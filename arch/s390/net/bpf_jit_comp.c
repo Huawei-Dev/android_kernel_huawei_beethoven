@@ -940,6 +940,77 @@ static noinline int bpf_jit_insn(struct bpf_jit *jit, struct bpf_prog *fp, int i
 		EMIT4(0xb9040000, BPF_REG_0, REG_2);
 		break;
 	}
+	case BPF_JMP | BPF_TAIL_CALL:
+		/*
+		 * Implicit input:
+		 *  B1: pointer to ctx
+		 *  B2: pointer to bpf_array
+		 *  B3: index in bpf_array
+		 */
+		jit->seen |= SEEN_TAIL_CALL;
+
+		/*
+		 * if (index >= array->map.max_entries)
+		 *         goto out;
+		 */
+
+		/* llgf %w1,map.max_entries(%b2) */
+		EMIT6_DISP_LH(0xe3000000, 0x0016, REG_W1, REG_0, BPF_REG_2,
+			      offsetof(struct bpf_array, map.max_entries));
+		/* clrj %b3,%w1,0xa,label0: if (u32)%b3 >= (u32)%w1 goto out */
+		EMIT6_PCREL_LABEL(0xec000000, 0x0077, BPF_REG_3,
+				  REG_W1, 0, 0xa);
+
+		/*
+		 * if (tail_call_cnt++ > MAX_TAIL_CALL_CNT)
+		 *         goto out;
+		 */
+
+		if (jit->seen & SEEN_STACK)
+			off = STK_OFF_TCCNT + STK_OFF;
+		else
+			off = STK_OFF_TCCNT;
+		/* lhi %w0,1 */
+		EMIT4_IMM(0xa7080000, REG_W0, 1);
+		/* laal %w1,%w0,off(%r15) */
+		EMIT6_DISP_LH(0xeb000000, 0x00fa, REG_W1, REG_W0, REG_15, off);
+		/* clij %w1,MAX_TAIL_CALL_CNT,0x2,label0 */
+		EMIT6_PCREL_IMM_LABEL(0xec000000, 0x007f, REG_W1,
+				      MAX_TAIL_CALL_CNT, 0, 0x2);
+
+		/*
+		 * prog = array->ptrs[index];
+		 * if (prog == NULL)
+		 *         goto out;
+		 */
+
+		/* llgfr %r1,%b3: %r1 = (u32) index */
+		EMIT4(0xb9160000, REG_1, BPF_REG_3);
+		/* sllg %r1,%r1,3: %r1 *= 8 */
+		EMIT6_DISP_LH(0xeb000000, 0x000d, REG_1, REG_1, REG_0, 3);
+		/* lg %r1,prog(%b2,%r1) */
+		EMIT6_DISP_LH(0xe3000000, 0x0004, REG_1, BPF_REG_2,
+			      REG_1, offsetof(struct bpf_array, ptrs));
+		/* clgij %r1,0,0x8,label0 */
+		EMIT6_PCREL_IMM_LABEL(0xec000000, 0x007d, REG_1, 0, 0, 0x8);
+
+		/*
+		 * Restore registers before calling function
+		 */
+		save_restore_regs(jit, REGS_RESTORE);
+
+		/*
+		 * goto *(prog->bpf_func + tail_call_start);
+		 */
+
+		/* lg %r1,bpf_func(%r1) */
+		EMIT6_DISP_LH(0xe3000000, 0x0004, REG_1, REG_1, REG_0,
+			      offsetof(struct bpf_prog, bpf_func));
+		/* bc 0xf,tail_call_start(%r1) */
+		_EMIT4(0x47f01000 + jit->tail_call_start);
+		/* out: */
+		jit->labels[0] = jit->prg;
+		break;
 	case BPF_JMP | BPF_EXIT: /* return b0 */
 		last = (i == fp->len - 1) ? 1 : 0;
 		if (last && !(jit->seen & SEEN_RET0))

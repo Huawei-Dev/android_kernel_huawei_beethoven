@@ -855,6 +855,10 @@ xadd:			if (is_imm8(insn->off))
 			}
 			break;
 
+		case BPF_JMP | BPF_TAIL_CALL:
+			emit_bpf_tail_call(&prog);
+			break;
+
 			/* cond jump */
 		case BPF_JMP | BPF_JEQ | BPF_X:
 		case BPF_JMP | BPF_JNE | BPF_X:
