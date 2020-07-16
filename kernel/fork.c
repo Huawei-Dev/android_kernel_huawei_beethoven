@@ -1828,9 +1828,11 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 	write_unlock_irq(&tasklist_lock);
 
 	proc_fork_connector(p);
+
 #ifdef CONFIG_HW_VIP_THREAD
 	iaware_proc_fork_connector(p);
 #endif
+	sched_post_fork(p);
 	cgroup_post_fork(p);
 	threadgroup_change_end(current);
 	perf_event_fork(p);
