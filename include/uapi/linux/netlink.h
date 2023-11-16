@@ -46,11 +46,13 @@
 #define NETLINK_EMCOM 35
 #endif
 
-#ifdef CONFIG_HW_CPULOAD_NOTI
+#if (defined(CONFIG_HW_CPULOAD_NOTI) || defined(CONFIG_HW_VIP_THREAD) \
+        || defined(CONFIG_HW_IAWARE_THREAD_BOOST))
 #define NETLINK_HW_CPULOAD_NOTI 33
-#define MAX_LINKS 34
+#define NETLINK_HW_IAWARE_CPU 34
+#define MAX_LINKS 36
 #else
-#define MAX_LINKS 33	
+#define MAX_LINKS 36	
 #endif
 
 struct sockaddr_nl {
