@@ -64,7 +64,7 @@ static void kernel_ril_receive(struct sk_buff *__skb)
 {
 	struct nlmsghdr *nlh = NULL;
 	struct sk_buff *skb = NULL;
-	Ril2KnlMsg * rilmsg = NULL;
+	struct Ril2KnlMsg * rilmsg = NULL;
 
 	if (NULL == __skb) {
 		hwlog_err("Invalid parameter: zero pointer reference(__skb)\n");
@@ -96,8 +96,8 @@ static void kernel_ril_receive(struct sk_buff *__skb)
 				hwlog_info("kernel_ril_receive NETLINK_TCP_UNREG\n");
 				g_ril_uspace_pid = 0;
 			} else if (NETLINK_TCP_RST_MSG == nlh->nlmsg_type) {
-				rilmsg = (Ril2KnlMsg *)nlmsg_data(nlh);
-				if((NULL == rilmsg) || (NULL == rilmsg->if_name)) {
+				rilmsg = (struct Ril2KnlMsg *)nlmsg_data(nlh);
+				if ((NULL == rilmsg) || (NULL == rilmsg->if_name)) {
 					hwlog_err("kernel_ril_receive NETLINK_TCP_RST_MSG rilmsg = NULL\n");
 					kfree_skb(skb);
 					mutex_unlock(&ril_receive_sem);
@@ -145,18 +145,18 @@ int ril_tcp_send_reset(const char * dev)
             net = sock_net(sk);
             inet = inet_sk(sk);
 
-            if(NULL != net && NULL != inet) {
-              if(inet->inet_saddr) {
+            if (NULL != net && NULL != inet) {
+              if (inet->inet_saddr) {
                 ndev = ip_dev_find(net, inet->inet_saddr);
               } else {
                 inet6 = inet6_sk(sk);
-                if(NULL != inet6) {
+                if (NULL != inet6) {
                   ndev = ip6_dev_find(net, &inet6->saddr);
                 }
               }
             }
 
-            if((NULL != ndev && !strncmp(dev, ndev->name, MAX_IF_NAME))
+            if ((NULL != ndev && !strncmp(dev, ndev->name, MAX_IF_NAME))
 #ifdef CONFIG_HW_WIFIPRO
             || (NULL != sk->wifipro_dev_name && !strncmp(dev, sk->wifipro_dev_name, MAX_IF_NAME))
 #endif
