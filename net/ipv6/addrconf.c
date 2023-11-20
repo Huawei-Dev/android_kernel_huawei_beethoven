@@ -1733,6 +1733,34 @@ static bool ipv6_chk_same_addr(struct net *net, const struct in6_addr *addr,
 	return false;
 }
 
+#ifdef CONFIG_RIL_NETLINK_MODULE
+struct net_device * ip6_dev_find(struct net *net, struct in6_addr *addr)
+{
+	struct inet6_ifaddr *ifp;
+	struct net_device *ndev = NULL;
+	unsigned int hash = 0;
+	if (NULL == net || NULL == addr) {
+		return NULL;
+	}
+	hash = inet6_addr_hash(addr);
+	rcu_read_lock();
+	hlist_for_each_entry_rcu(ifp, &inet6_addr_lst[hash], addr_lst) {
+		if (ipv6_addr_equal(&ifp->addr, addr)) {
+			if (net_eq(dev_net(ifp->idev->dev), net)) {
+				ndev = ifp->idev->dev;
+				if(ndev) {
+					dev_hold(ndev);
+				}
+				rcu_read_unlock();
+				return ndev;
+			}
+		}
+	}
+	rcu_read_unlock();
+	return ndev;
+}
+#endif
+
 /* Compares an address/prefix_len with addresses on device @dev.
  * If one is found it returns true.
  */

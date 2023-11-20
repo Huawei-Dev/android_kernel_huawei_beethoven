@@ -2,6 +2,7 @@ obj-$(CONFIG_ANTENNA_BOARDID_GPIO_DETECT)	+= antenna_board_gpio_match/
 obj-$(CONFIG_ANTENNA_FPGA)			+= antenna_fpga/
 obj-$(CONFIG_HUAWEI_AUDIO)			+= audio/
 obj-$(CONFIG_CHR_NETLINK_MODULE)		+= chr/
+obj-$(CONFIG_RIL_NETLINK_MODULE)   += riltcp/
 obj-y						+= connectivity/
 obj-$(CONFIG_HUAWEI_HW_DEV_DCT)		+= devdetect/
 
