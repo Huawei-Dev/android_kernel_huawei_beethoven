@@ -41,6 +41,8 @@
 #include <chipset_common/hwcfs/hwcfs_common.h>
 #endif
 
+static inline bool energy_aware(void);
+
 /*
  * Targeted preemption latency for CPU-bound tasks:
  * (default: 6ms * (1 + ilog(ncpus)), units: nanoseconds)
