@@ -35,11 +35,18 @@ struct undef_hook {
 void register_undef_hook(struct undef_hook *hook);
 void unregister_undef_hook(struct undef_hook *hook);
 
+#ifdef CONFIG_FUNCTION_GRAPH_TRACER
 static inline int __in_irqentry_text(unsigned long ptr)
 {
 	return ptr >= (unsigned long)&__irqentry_text_start &&
 	       ptr < (unsigned long)&__irqentry_text_end;
 }
+#else
+static inline int __in_irqentry_text(unsigned long ptr)
+{
+	return 0;
+}
+#endif
 
 static inline int in_exception_text(unsigned long ptr)
 {
