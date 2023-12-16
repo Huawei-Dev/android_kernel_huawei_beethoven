@@ -183,7 +183,6 @@ extern unsigned long nr_running(void);
 #ifdef CONFIG_HISI_BIG_MAXFREQ_HOTPLUG
 extern unsigned int cpu_nr_runnings(struct cpumask *mask);
 #endif
-extern bool cpu_has_rt_task(int cpu);
 extern bool single_task_running(void);
 extern unsigned long nr_iowait(void);
 extern unsigned long nr_iowait_cpu(int cpu);
