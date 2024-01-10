@@ -28,6 +28,8 @@ static u32 is_board_type = 0;
 static u32 battery_is_removable = 0;
 static u32 adc_batt_id = DEFAULT_HKADC_BATT_ID;
 static u32 adc_batt_temp = DEFAULT_HKADC_BATT_TEMP;
+static s32 batt_temp_too_hot = TEMP_TOO_HOT;
+static s32 batt_temp_too_cold = TEMP_TOO_COLD;
 int pl_calibration_en = FALSE;
 int v_offset_a = DEFAULT_V_OFF_A;
 int v_offset_b = 0;
@@ -88,6 +90,126 @@ static struct wake_lock coul_lock;
 static void iscd_clear_sampled_info(struct smartstar_coul_device *di);
 static void check_batt_critical_electric_leakage(struct smartstar_coul_device *di);
 static char dsm_buff[ISCD_DSM_LOG_SIZE_MAX] = { 0 };
+
+static struct coul_ocv_cali_info g_coul_ocv_cali_info[INDEX_MAX];
+static int g_ocv_cali_index = 0;
+static int g_ocv_cali_rbatt_valid_flag = 0;
+
+static int get_timestamp(char *str, int len)
+{
+    struct timeval tv;
+    struct rtc_time tm;
+
+    if(NULL == str) {
+        hwlog_err("%s input para is null.\n", __func__);
+        return -EINVAL;
+    }
+
+    do_gettimeofday(&tv);
+    tv.tv_sec -= (long)sys_tz.tz_minuteswest * 60;
+    rtc_time_to_tm(tv.tv_sec, &tm);
+
+    snprintf(str, len, "%04d-%02d-%02d %02d:%02d:%02d",
+         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+    return strlen(str);
+}
+
+static void record_ocv_cali_info(struct smartstar_coul_device *di)
+{
+    static int index = 0;
+    char timestamp[TIMESTAMP_STR_SIZE] = {0};
+
+    if (!di) {
+        hwlog_err("%s input para is null.\n", __func__);
+        return;
+    }
+
+    /*clean buff*/
+    memset(&g_coul_ocv_cali_info[index], 0, sizeof(g_coul_ocv_cali_info[index]));
+
+    /*get timestamp*/
+    get_timestamp(timestamp, TIMESTAMP_STR_SIZE);
+    snprintf(g_coul_ocv_cali_info[index].cali_timestamp, TIMESTAMP_STR_SIZE, "%s", timestamp);
+
+    /*save log:ocv,ocv_temp,cc*/
+    g_coul_ocv_cali_info[index].cali_ocv_uv = di->batt_ocv;
+    g_coul_ocv_cali_info[index].cali_ocv_temp = di->batt_ocv_temp;
+    g_coul_ocv_cali_info[index].cali_cc_uah = di->coul_dev_ops->calculate_cc_uah();
+
+    /*Save the currently used buff number to the global variable*/
+    g_ocv_cali_index = index;
+    g_ocv_cali_rbatt_valid_flag = 0;
+
+    /*switch buffer number*/
+    index++;
+    index = index % INDEX_MAX;
+}
+
+static void coul_dsm_report_ocv_cali_info(struct smartstar_coul_device *di, int err_num, const char *buff)
+{
+    char timestamp[TIMESTAMP_STR_SIZE] = {0};
+    char dsm_buf[DSM_BUFF_SIZE_MAX] = {0};
+    int i = 0, tmp_len = 0;
+
+    if(!di || NULL == buff) {
+        hwlog_err("null point in [%s].\n", __func__);
+        return;
+    }
+
+    /*get timestamp*/
+    get_timestamp(timestamp, TIMESTAMP_STR_SIZE);
+    tmp_len += snprintf(dsm_buf, DSM_BUFF_SIZE_MAX, "%s\n", timestamp);
+
+    /*common info:brand,cycles*/
+    tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "batteryName:%s, chargeCycles:%d\n",
+        di->batt_data->batt_brand, di->batt_chargecycles/PERCENT);
+
+    /*key info*/
+    tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "%s\n", buff);
+
+    /*OCV history calibration information*/
+    for (i = 0; i < INDEX_MAX; i++) {
+        tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "[OCV calibration]%s ", g_coul_ocv_cali_info[i].cali_timestamp);
+        tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "OCV:%duV ", g_coul_ocv_cali_info[i].cali_ocv_uv);
+        tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "temp:%d ", g_coul_ocv_cali_info[i].cali_ocv_temp);
+        tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "CC:%duAh ", (int)g_coul_ocv_cali_info[i].cali_cc_uah);
+        tmp_len += snprintf(dsm_buf + tmp_len, DSM_BUFF_SIZE_MAX - tmp_len, "rbatt:%d\n", g_coul_ocv_cali_info[i].cali_rbatt);
+    }
+
+    /*report*/
+    dsm_report(err_num, dsm_buf);
+}
+
+static void check_coul_abnormal_rollback(struct smartstar_coul_device *di)
+{
+    static int last_cc = 0;
+    int new_cc = 0;
+    static int abn_count = 0;
+
+    if (!di) {
+        hwlog_info("%s di is null.\n", __func__);
+        return;
+    }
+
+    if ( di->charging_state != CHARGING_STATE_CHARGE_START && di->charging_state != CHARGING_STATE_CHARGE_RECHARGE) {
+        new_cc = di->coul_dev_ops->calculate_cc_uah();
+        if (last_cc && new_cc < last_cc) {
+            if (abn_count++ < COUL_ABN_COUNT) {
+                hwlog_info("coul abnormal rollback, count is %d\n", abn_count);
+            } else {
+                abn_count = 0;
+                hwlog_info("coul abnormal rollback, report dsm!\n");
+                dsm_report(ERROR_COUL_ROLLBACK, "coul abnormal rollback");
+            }
+        } else {
+            abn_count = 0;
+        }
+        last_cc = new_cc;
+    } else {
+        last_cc = 0;
+    }
+}
 
 /**********************************************************
 *  Function:       coul_wake_lock
@@ -2042,9 +2164,9 @@ int coul_get_battery_health (void)
         return 0;
     }
 
-    if (temp < TEMP_TOO_COLD)
+    if (temp < batt_temp_too_cold)
         status = POWER_SUPPLY_HEALTH_COLD;
-    else if (temp > TEMP_TOO_HOT)
+    else if (temp > batt_temp_too_hot)
         status = POWER_SUPPLY_HEALTH_OVERHEAT;
 
     return status;
@@ -2318,8 +2440,9 @@ static void get_ocv_by_vol(struct smartstar_coul_device *di)
         di->batt_ocv_temp = di->batt_temp;
         di->coul_dev_ops->save_ocv_temp((short)di->batt_ocv_temp);
         di->batt_ocv_valid_to_refresh_fcc = 1;
-		coul_clear_cc_register();
-		coul_clear_coul_time();
+        record_ocv_cali_info(di);
+	coul_clear_cc_register();
+	coul_clear_coul_time();
         di->coul_dev_ops->save_ocv(voltage_uv, IS_UPDATE_FCC);
 		hwlog_info("awake from deep sleep, new OCV = %d,fcc_flag=%d \n", di->batt_ocv, di->batt_ocv_valid_to_refresh_fcc);
 		DBG_CNT_INC(dbg_ocv_cng_0);
@@ -2569,6 +2692,11 @@ static int calculate_delta_rc(struct smartstar_coul_device *di, int soc,
 
     rbatt_calc = (ocv - vc.avg_v)*1000/vc.avg_c;
 
+    if (!g_ocv_cali_rbatt_valid_flag && di->coul_dev_ops->calculate_cc_uah()/UA_PER_MA < CALI_RBATT_CC_MAX && vc.avg_c > CALI_RBATT_CURR_MIN) {
+        g_coul_ocv_cali_info[g_ocv_cali_index].cali_rbatt = rbatt_calc;
+        g_ocv_cali_rbatt_valid_flag = 1;
+    }
+    
     ratio = rbatt_calc*100/rbatt_tbl;
 
     di->rbatt_ratio = ratio;
@@ -3158,17 +3286,18 @@ static void battery_check_work(struct work_struct *work)
                 round_jiffies_relative(msecs_to_jiffies(BATTERY_CHECK_TIME_MS)));
 }
 static int calculate_real_fcc_uah(struct smartstar_coul_device *di,int *ret_fcc_uah);
-static void calculate_qmax_uah(struct smartstar_coul_device *di, int fcc_uah)
+static int calculate_qmax_uah(struct smartstar_coul_device *di, int fcc_uah)
 {
     unsigned int i;
     int delta_ocv = 0;
     int batt_fcc_ocv = 0;
     int pc;
     int max_fcc_uah;
+    int qmax = fcc_uah;
 
     if (!di) {
         hwlog_err("%s input param NULL!\n", __func__);
-        return;
+        return 0;
     }
 
     for (i = 0; i < BASP_LEVEL_CNT; i++) {
@@ -3178,7 +3307,6 @@ static void calculate_qmax_uah(struct smartstar_coul_device *di, int fcc_uah)
         }
     }
 
-    di->qmax = fcc_uah;
     if (delta_ocv) {
         batt_fcc_ocv = interpolate_ocv(di->batt_data->pc_temp_ocv_lut, di->batt_temp/TENTH, TENTH*SOC_FULL);
         pc = interpolate_pc(di->batt_data->pc_temp_ocv_lut, di->batt_temp, batt_fcc_ocv - delta_ocv);
@@ -3189,19 +3317,22 @@ static void calculate_qmax_uah(struct smartstar_coul_device *di, int fcc_uah)
                              batt_fcc_ocv, delta_ocv, pc);
     }
     max_fcc_uah = ((int)di->batt_data->fcc*UA_PER_MA/PERCENT)*FCC_MAX_PERCENT;
-    if (di->qmax >= max_fcc_uah) {
+    if (qmax >= max_fcc_uah) {
         hwlog_err(BASP_TAG "qmax(%d uAh) is above max_fcc(%d uAh), use max_fcc.\n",
-                          di->qmax, max_fcc_uah);
-        di->qmax = max_fcc_uah;
+                          qmax, max_fcc_uah);
+        qmax = max_fcc_uah;
     }
 
     hwlog_info(BASP_TAG "delta_ocv = %dmV, fcc_real = %dmAh, qmax = %dmAh\n",
                          delta_ocv, fcc_uah/UA_PER_MA, di->qmax/UA_PER_MA);
+    return qmax;
 }
+
 static int coul_get_qmax(struct smartstar_coul_device *di)
  {
     int fcc_uah;
     int index;
+    int qmax_basp, qmax_nonbasp;
 
     if (!di || !di->batt_exist) {
         return 0;
@@ -3209,13 +3340,18 @@ static int coul_get_qmax(struct smartstar_coul_device *di)
 
     index = (di->nv_info.latest_record_index -1);
     if (!di->nv_info.fcc_check_sum) {
-        di->qmax = calculate_fcc_uah(di, di->batt_temp, (int)di->batt_chargecycles/PERCENT);
+        return calculate_fcc_uah(di, di->batt_temp, (int)di->batt_chargecycles/PERCENT);
     } else {
         fcc_uah = di->nv_info.real_fcc_record[(int)(index+MAX_RECORDS_CNT)% MAX_RECORDS_CNT] * UA_PER_MA;
-        calculate_qmax_uah(di, fcc_uah);
+        qmax_basp = calculate_qmax_uah(di, fcc_uah);  //basp
+        fcc_uah = calculate_fcc_uah(di, di->batt_temp, (int)di->batt_chargecycles/PERCENT);
+        qmax_nonbasp = calculate_qmax_uah(di, fcc_uah);  //non-basp
+        if (qmax_basp * PERCENT > qmax_nonbasp * FCC_MAX_PERCENT) {
+            return qmax_nonbasp;
+        } else {
+            return qmax_basp;
+        }
     }
-
-    return di->qmax;
  }
 /* new battery, clear record fcc */
 void clear_record_fcc(struct smartstar_coul_device *di)
@@ -3489,6 +3625,7 @@ int coul_get_battery_aging_safe_level(void)
     /* calc soc */
     di->batt_soc = calculate_state_of_charge(di);
     check_batt_critical_electric_leakage(di);
+    check_coul_abnormal_rollback(di);
 
    if (cali_cnt % (CALIBRATE_INTERVAL / di->soc_work_interval) == 0)
    {
@@ -3607,9 +3744,10 @@ static void make_cc_no_overload(struct smartstar_coul_device *di)
 ********************************************************/
  static void coul_low_vol_int_handle(struct smartstar_coul_device *di)
 {
-	int ibat_ua = 0, vbat_uv = 0;
+    int ibat_ua = 0, vbat_uv = 0;
     int delta_soc = 0;
     int count = 3;
+    char buff[DSM_BUFF_SIZE_MAX] = {0};
 
     if( NULL == di)
     {
@@ -3710,6 +3848,10 @@ static void make_cc_no_overload(struct smartstar_coul_device *di)
 
     if (delta_soc > 1){
         hwlog_info("delta_soc=%d, mark save ocv is invalid\n", delta_soc);
+        /*dmd report: current information -- fcc, CC, cur_vol, cur_current, cur_temp, cur_soc, delta_soc*/
+        snprintf(buff, (size_t)DSM_BUFF_SIZE_MAX, "[LOW VOL] fcc:%dmAh, CC:%dmAh, cur_vol:%dmV, cur_current:%dmA, cur_temp:%d, cur_soc:%d, delta_soc:%d",
+        di->batt_fcc/UA_PER_MA, di->coul_dev_ops->calculate_cc_uah()/UA_PER_MA, vbat_uv/UVOLT_PER_MVOLT, -(ibat_ua/UA_PER_MA), di->batt_temp, di->batt_soc, delta_soc);
+        coul_dsm_report_ocv_cali_info(di, ERROR_LOW_VOL_INT, buff);
         di->coul_dev_ops->clear_ocv();
         di->batt_ocv_valid_to_refresh_fcc = 0;
     }
@@ -3903,7 +4045,7 @@ static void readjust_fcc_table(struct smartstar_coul_device *di)
 	}
 	di->adjusted_fcc_temp_lut = temp;
 }
-void reset_fcc(struct smartstar_coul_device *di);
+
 /*******************************************************
   Function:        refresh_fcc
   Description:     fcc self_study, check learning condition when charge done and
@@ -3914,7 +4056,8 @@ void reset_fcc(struct smartstar_coul_device *di);
 ********************************************************/
 void refresh_fcc(struct smartstar_coul_device *di)
 {
-    if( NULL == di )
+    char buff[DSM_BUFF_SIZE_MAX] = {0};
+    if ( NULL == di )
     {
         hwlog_err("NULL point in [%s]\n", __func__);
         return;
@@ -3948,14 +4091,19 @@ void refresh_fcc(struct smartstar_coul_device *di)
 							   "restring it to %d\n",
 							   delta_fcc_uah, max_delta_fcc_uah,
 							   fcc_uah, new_fcc_uah);
+			/*dmd report: current information -- old_fcc,new_fcc, delta_fcc, charging_begin_soc, charging_begin_cc, charing_end_cc, temp, basplevel*/
+			snprintf(buff, (size_t)DSM_BUFF_SIZE_MAX, " [refresh fcc warning]old_fcc:%dmAh, new_fcc:%dmAh, delta_fcc:%dmAh, "
+				"charging_beging_soc:%d, charging_begin_cc:%dmAh, charging_end_cc:%dmAh, temp:%d, basplevel:%d",
+				di->fcc_real_mah, new_fcc_uah/UA_PER_MA, delta_fcc_uah/UA_PER_MA, di->charging_begin_soc, di->charging_begin_cc/UA_PER_MA,
+				di->coul_dev_ops->calculate_cc_uah()/UA_PER_MA, di->batt_temp, di->basp_level);
+			coul_dsm_report_ocv_cali_info(di, ERROR_REFRESH_FCC_OUTSIDE, buff);
 		}
         di->fcc_real_mah = new_fcc_uah / 1000;
         /*limit max fcc, consider boardd 1.5*fcc gain */
         if (di->fcc_real_mah > design_fcc_mah*3/2)
             di->fcc_real_mah = design_fcc_mah*3/2;
         hwlog_info("refresh_fcc, start soc=%d, new fcc=%d \n",
-            di->charging_begin_soc, di->fcc_real_mah);
-        reset_fcc(di);
+        di->charging_begin_soc, di->fcc_real_mah);
         /* update the temp_fcc lookup table */
     	readjust_fcc_table(di);
 	}
@@ -4019,6 +4167,10 @@ static void coul_charging_done (struct smartstar_coul_device *di)
     hwlog_info("new charging cycles = %d%%\n", di->batt_chargecycles);
     if (ENABLED == di->iscd->enable) {
         di->iscd->last_sample_cnt = 0;
+        if (!di->iscd->rm_bcd || !di->iscd->fcc_bcd) {
+            di->iscd->rm_bcd = rm;
+            di->iscd->fcc_bcd = di->batt_fcc;
+        }
         di->iscd->last_sample_time = current_kernel_time();
         hrtimer_start(&di->iscd->timer, ktime_set((s64)di->iscd->sample_time_interval, (unsigned long)0), HRTIMER_MODE_REL);
     }
@@ -4307,7 +4459,8 @@ static int iscd_sample_ocv_soc_uAh(struct smartstar_coul_device *di, int ocv_uv,
 
     return (*ocv_soc_uAh > 0 ? SUCCESS : ERROR);
 }
-static int iscd_ocv_check_variance(int *ocv, int avg_ocv, int n)
+
+static int iscd_check_ocv_variance(int *ocv, int avg_ocv, int n)
 {
     s64 var = 0;
     int detal_ocv;
@@ -4319,7 +4472,7 @@ static int iscd_ocv_check_variance(int *ocv, int avg_ocv, int n)
         return FALSE;
     }
 
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n && ocv[i] > 0; i++) {
         detal_ocv = (int)(avg_ocv - ocv[i]);
         detal_ocv_square = (s64)((s64)detal_ocv * (s64)detal_ocv);
         var  =  (s64)(var + detal_ocv_square);
@@ -4340,6 +4493,7 @@ static int iscd_sample_battery_ocv_uv(struct smartstar_coul_device *di, int *ocv
     int current_ua = 0;
     int voltage_uv = 0;
     int total_vol = 0;
+    int total_cur = 0;
     int used = 0;
     int *fifo_volt_uv;
     int ret = ERROR;
@@ -4374,6 +4528,7 @@ static int iscd_sample_battery_ocv_uv(struct smartstar_coul_device *di, int *ocv
             }
             hwlog_info("ISCD valid current = %d uA, voltage = %duV\n", current_ua, voltage_uv);
             fifo_volt_uv[j] = voltage_uv;
+            total_cur += current_ua;
             total_vol += voltage_uv;
             used++;
         }
@@ -4383,30 +4538,23 @@ static int iscd_sample_battery_ocv_uv(struct smartstar_coul_device *di, int *ocv
         {
             *ocv_uv = total_vol / used;
             hwlog_info("ISCD avg_voltage_uv = %d\n", *ocv_uv);
-            if (TRUE == iscd_ocv_check_variance(fifo_volt_uv, *ocv_uv, used)) {
+            if (TRUE == iscd_check_ocv_variance(fifo_volt_uv, *ocv_uv, (int)fifo_depth)) {
+                current_ua = total_cur/used;
                 *ocv_uv += (current_ua/MOHM_PER_OHM)*
                     (di->r_pcb/UOHM_PER_MOHM + DEFAULT_BATTERY_OHMIC_RESISTANCE);
-                if (*ocv_uv <= di->iscd->ocv_min) {
-                    hwlog_err("ISCD ocv(%duV) below %duV, clear sapmpled info.\n", *ocv_uv, di->iscd->ocv_min);
-                    iscd_clear_sampled_info(di);
-                    ret = ERROR;
-                } else {
-                    ret = SUCCESS;
-                }
-                goto End;
+                ret = SUCCESS;
+                break;
             } else {
-                hwlog_err("ISCD variance sample ocv is out of range(0 -%d) \n", ISCD_OCV_UV_VAR_THREHOLD);
+                hwlog_err("ISCD variance sample ocv is out of range(0, %d) \n", ISCD_OCV_UV_VAR_THREHOLD);
             }
         }
     }
 
-End:
-    if (NULL != fifo_volt_uv) {
-        kfree(fifo_volt_uv);
-    }
+    kfree(fifo_volt_uv);
     hwlog_info("ISCD sampled ocv is %duV\n", *ocv_uv);
     return ret;
 }
+
 static int iscd_sample_battery_info
                                     (struct smartstar_coul_device *di, struct iscd_sample_info *sample_info)
 {
@@ -4496,10 +4644,26 @@ static void iscd_remove_sampled_info(struct smartstar_coul_device *di, int from,
     }
     di->iscd->size -= ((to -from) + 1);
 }
+
+static void iscd_reset_isc_buffer(struct smartstar_coul_device *di)
+{
+    int i;
+
+    if (!di) {
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return;
+    }
+
+    di->iscd->isc_buff[0] = 0;
+    for (i = 1; i < ISCD_ISC_MAX_SIZE; i++) {
+            di->iscd->isc_buff[i] = INVALID_ISC;
+    }
+}
+
 static void iscd_clear_sampled_info(struct smartstar_coul_device *di)
 {
     if (!di) {
-        hwlog_err("ISCD %s input para is null\n", __func__);
+        hwlog_err("ISCD %s di is null\n", __func__);
         return;
     }
 
@@ -4510,6 +4674,7 @@ static void iscd_clear_sampled_info(struct smartstar_coul_device *di)
     }
     iscd_remove_sampled_info(di, 0, di->iscd->size-1);
 }
+
 static void iscd_append_sampled_info(struct smartstar_coul_device *di, struct iscd_sample_info *sample_info)
 {
     if (!di ||!di->iscd||!sample_info) {
@@ -4528,26 +4693,14 @@ static void iscd_append_sampled_info(struct smartstar_coul_device *di, struct is
         return;
     }
 }
+
 static void iscd_insert_sampled_info(struct smartstar_coul_device *di, struct iscd_sample_info *sample_info)
 {
-    int i;
-    time_t delta_time = 0;
-
     if (!di ||!di->iscd||!sample_info) {
         hwlog_err("ISCD %s input para is null\n", __func__);
         return;
     }
 
-    for (i = di->iscd->size -1; i >= 0 ; i--) {
-        delta_time = sample_info->sample_time.tv_sec -di->iscd->sample_info[i].sample_time.tv_sec;
-        if(delta_time >= ISCD_SAMPLE_INTERVAL_MAX) {
-            hwlog_err("ISCD sample_time = %ld, sample[%d]_time = %ld, delta_time %ld >= %d\n",
-                                sample_info->sample_time.tv_sec, i, di->iscd->sample_info[i].sample_time.tv_sec,
-                                delta_time, ISCD_SAMPLE_INTERVAL_MAX);
-            iscd_remove_sampled_info(di, 0, i);
-            break;
-        }
-    }
     if (di->iscd->size >= ISCD_SMAPLE_LEN_MAX) {
         hwlog_info("ISCD sample size is %d, remove one from list.\n", di->iscd->size);
         iscd_remove_sampled_info(di, 0, 0);
@@ -4558,8 +4711,96 @@ static void iscd_insert_sampled_info(struct smartstar_coul_device *di, struct is
         iscd_remove_sampled_info(di, di->iscd->size -1, di->iscd->size -1);
     }
     iscd_append_sampled_info(di, sample_info);
-    di->iscd->samples_processed = FALSE;
 }
+
+static int iscd_check_ocv_abrupt_change(struct smartstar_coul_device *di)
+{
+    int size;
+    time_t delta_time1,delta_time2, delta_time1_abs,delta_time2_abs;
+    int delta_ocv1, delta_ocv2, delta_ocv1_abs, delta_ocv2_abs;
+    s64 delta_cc1, delta_cc2, delta_cc1_abs, delta_cc2_abs;
+
+    if (!di) {
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return ISCD_INVALID;
+    }
+
+    size = di->iscd->size;
+    if (size >= 3) { //linear compare needs at least 3 sample
+        delta_time1 = di->iscd->sample_info[size-2].sample_time.tv_sec - di->iscd->sample_info[size-3].sample_time.tv_sec;
+        delta_time2 = di->iscd->sample_info[size-1].sample_time.tv_sec - di->iscd->sample_info[size-2].sample_time.tv_sec;
+        delta_cc1 = di->iscd->sample_info[size-2].cc_value- di->iscd->sample_info[size-3].cc_value;
+        delta_cc2 = di->iscd->sample_info[size-1].cc_value- di->iscd->sample_info[size-2].cc_value;
+        delta_ocv1 = di->iscd->sample_info[size-2].ocv_volt_uv- di->iscd->sample_info[size-3].ocv_volt_uv;
+        delta_ocv2 = di->iscd->sample_info[size-1].ocv_volt_uv- di->iscd->sample_info[size-2].ocv_volt_uv;
+
+        delta_time1_abs = delta_time1 >= 0 ? delta_time1 : -delta_time1;
+        delta_time2_abs = delta_time2 >= 0 ? delta_time2 : -delta_time2;
+        delta_cc1_abs = delta_cc1 >= 0 ? delta_cc1 : -delta_cc1;
+        delta_cc2_abs = delta_cc2 >= 0 ? delta_cc2 : -delta_cc2;
+        delta_ocv1_abs = delta_ocv1 >= 0 ? delta_ocv1 : -delta_ocv1;
+        delta_ocv2_abs = delta_ocv2 >= 0 ? delta_ocv2 : -delta_ocv2;
+
+        if (delta_ocv2_abs >= ISCD_OCV_DELTA_MAX/HALF && delta_ocv1_abs < ISCD_OCV_DELTA_MAX/HALF &&
+             delta_time2_abs < ISCD_CALC_INTERVAL_900S && delta_time1_abs < ISCD_CALC_INTERVAL_900S &&
+             delta_cc2_abs < ISCD_RECHARGE_CC && delta_cc1_abs < ISCD_RECHARGE_CC) {
+            hwlog_err("ISCD %s the last OCV invalid: ocv %d->%d->%d uV \n",
+                                 __func__, di->iscd->sample_info[size-3].ocv_volt_uv, di->iscd->sample_info[size-2].ocv_volt_uv,
+                                 di->iscd->sample_info[size-1].ocv_volt_uv);
+            return ISCD_INVALID;
+        }
+    }
+
+    return ISCD_VALID;
+}
+
+static int iscd_remove_invalid_samples(struct smartstar_coul_device *di)
+{
+    int ret = FALSE;
+    time_t delta_time = 0;
+    int i, size;
+
+    if (!di ||di->iscd->size <= 0) {
+        hwlog_err("ISCD %s input para is null\n", __func__);
+        return FALSE;
+    }
+
+    size = di->iscd->size;
+    /*clear all samples when the lasted OCV is below designed ocv_min,typically 4V*/
+    if (di->iscd->sample_info[size -1].ocv_volt_uv <= di->iscd->ocv_min) {
+        hwlog_err("ISCD ocv(%duV) below %duV, clear sapmpled info.\n",
+                             di->iscd->sample_info[size -1].ocv_volt_uv, di->iscd->ocv_min);
+        iscd_clear_sampled_info(di);
+        iscd_reset_isc_buffer(di);
+        di->iscd->rm_bcd = 0;
+        di->iscd->fcc_bcd = 0;
+        return TRUE;
+    }
+
+    /*remove the samples whose delta time with the lasted sample is more than ISCD_SAMPLE_INTERVAL_MAX*/
+    for (i = size -1; i >= 0 ; i--) {
+        delta_time = di->iscd->sample_info[size -1].sample_time.tv_sec -di->iscd->sample_info[i].sample_time.tv_sec;
+        if(delta_time >= ISCD_SAMPLE_INTERVAL_MAX) {
+            hwlog_err("ISCD sample_time = %lds, sample[%d]_time = %lds, delta_time %ld >= %ds\n",
+                                di->iscd->sample_info[size -1].sample_time.tv_sec, i, di->iscd->sample_info[i].sample_time.tv_sec,
+                                delta_time, ISCD_SAMPLE_INTERVAL_MAX);
+            iscd_remove_sampled_info(di, 0, i);
+            iscd_reset_isc_buffer(di);
+            ret = TRUE;
+            break;
+        }
+    }
+
+    if (ISCD_INVALID == iscd_check_ocv_abrupt_change(di)) {
+        hwlog_err("ISCD the latest OCV is invalid, remove it from list.\n");
+        iscd_remove_sampled_info(di, size -1, size -1);
+        iscd_reset_isc_buffer(di);
+        ret = TRUE;
+    }
+
+    return ret;
+}
+
 static int iscd_calc_isc_by_two_samples(struct smartstar_coul_device *di, int index0, int index1)
 {
     int delta_tbatt = 0;
@@ -4596,11 +4837,10 @@ static int iscd_calc_isc_by_two_samples(struct smartstar_coul_device *di, int in
     delta_tbatt_abs = delta_tbatt >= 0 ? delta_tbatt : -delta_tbatt;
     delta_ocv_abs = delta_ocv >= 0 ? delta_ocv : -delta_ocv;
     delta_cc_abs = delta_cc >= 0 ? delta_cc : -delta_cc;
-    if ((delta_time_abs < (time_t)ISCD_SAMPLE_INTERVAL_MAX) &&
-         (delta_tbatt_abs <= di->iscd->tbatt_diff_max) &&
+    if ((delta_tbatt_abs <= di->iscd->tbatt_diff_max) &&
          ((delta_time_abs >= (time_t)di->iscd->calc_time_interval_min)
             ||((delta_ocv_abs >= ISCD_OCV_DELTA_MAX) &&
-                  ((int)delta_cc_abs <= -CHARGING_CURRENT_OFFSET) &&
+                  ((int)delta_cc_abs <= ISCD_CC_DELTA_MAX) &&
                   (delta_time_abs >= (time_t)ISCD_CALC_INTERVAL_900S)))
     ) {
         if (delta_time > 0) {
@@ -4615,61 +4855,181 @@ static int iscd_calc_isc_by_two_samples(struct smartstar_coul_device *di, int in
     }
     return INVALID_ISC;
 }
-static int iscd_is_isc_valid(struct smartstar_coul_device *di, int isc_cnt)
+
+static void iscd_push_isc_to_isc_buf(struct smartstar_coul_device *di, int isc_tmp)
 {
-    int valid_flag = ISC_INVALID;
-    time_t total_sample_time;
+    static int index = 1;
 
-     if (!di || !isc_cnt) {
-        hwlog_err("ISCD %s input para is null\n", __func__);
-        return ISC_INVALID;
+     if (!di) {
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return;
     }
 
-    total_sample_time = di->iscd->sample_info[di->iscd->size -1].sample_time.tv_sec - di->iscd->sample_info[0].sample_time.tv_sec;
-    if ((total_sample_time >= ISCD_SMAPLE_TIME_MIN) &&
-        (isc_cnt >= ISCD_VALID_CURRENT_CNT)) {
-        valid_flag = ISC_VALID;
+    di->iscd->isc_buff[index++] = isc_tmp;
+    di->iscd->isc_buff[0] += 1;
+    if (di->iscd->isc_buff[0] >= ISCD_ISC_MAX_SIZE ) {
+        di->iscd->isc_buff[0] = ISCD_ISC_MAX_SIZE - 1;
     }
-
-    hwlog_info("ISCD total sample time = %lds, valid isc cnt = %d\n", total_sample_time, isc_cnt);
-    if (ISC_VALID == valid_flag) {
-        hwlog_info("ISCD isc is valid (%d uA)\n", di->iscd->isc);
-    } else {
-        hwlog_info("ISCD isc is not valid, try next loop\n");
+    if (index >= ISCD_ISC_MAX_SIZE) {
+        index = 1;
     }
-    return valid_flag;
 }
-static int iscd_calc_isc_by_sampled_info(struct smartstar_coul_device *di)
+
+static int avg_isc_by_threhold(struct smartstar_coul_device *di, int lower, int upper, int percent)
 {
-    int i, j, size;
-    int total_isc = 0;
-    int avg_isc = 0;
-    int valid_isc_cnt = 0;
-    int isc_tmp;
+    s64 sum = 0;
+    int cnt = 0;
+    int isc_size;
+    int avg = INVALID_ISC;
+    int i;
 
     if (!di) {
-        hwlog_err("ISCD %s input para is null\n", __func__);
-        return valid_isc_cnt;
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return INVALID_ISC;
     }
-    hwlog_info("ISCD sample size is %d!!\n", di->iscd->size);
-    size = di->iscd->size;
-    for (i = size -1; i > (size -1) -ISCD_CALC_LOOP_CNT && i > 0; i--) {
-        for(j = 0; j < i; j++) {
-            isc_tmp = iscd_calc_isc_by_two_samples(di, j, i);
-            if (INVALID_ISC != isc_tmp) {
-                total_isc += isc_tmp;
-                valid_isc_cnt ++;
-            }
+
+    isc_size = di->iscd->isc_buff[0];
+    for (i = 1; i < ISCD_ISC_MAX_SIZE;  i++) {
+        if (di->iscd->isc_buff[i] > lower && di->iscd->isc_buff[i] < upper) {
+            sum += di->iscd->isc_buff[i];
+            cnt++;
         }
     }
-    if (valid_isc_cnt) {
-        avg_isc = total_isc /valid_isc_cnt;
-        hwlog_info("ISCD short current is preliminarily calculated to %d uA,"
-                  "valid short current number is %d \n", avg_isc, valid_isc_cnt);
-        di->iscd->isc = avg_isc > 0 ? avg_isc : 0;
+    hwlog_info("ISCD %s isc_size: %d, cnt: %d within threhold:(%d, %d)\n",
+                          __func__, isc_size, cnt, lower, upper);
+    if (cnt > 0 && cnt > isc_size* percent/PERCENT) {
+        avg = (int)(sum/cnt);
     }
-    return valid_isc_cnt;
+
+    return avg;
 }
+
+static int iscd_standard_deviation_of_isc(struct smartstar_coul_device *di,  int avg_isc)
+{
+    int i;
+    s64 var = 0;
+    int cnt = 0;
+    int detal_isc;
+    s64 detal_isc_square;
+
+    if (!di) {
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return INVALID_ISC;
+    }
+    for (i = 1; i < ISCD_ISC_MAX_SIZE; i++) {
+        if (INVALID_ISC != di->iscd->isc_buff[i]) {
+            detal_isc = (int)(avg_isc - di->iscd->isc_buff[i]);
+            detal_isc_square = (s64)((s64)detal_isc * (s64)detal_isc);
+            var += detal_isc_square;
+            cnt ++;
+        }
+    }
+    if (cnt > 0) {
+        var /= cnt;
+        hwlog_info("ISCD %s variance of isc: %lld, cnt: %d\n", __func__, var, cnt);
+    }
+
+    return (int)int_sqrt((unsigned long)var);
+}
+
+static int iscd_is_short_current_valid(struct smartstar_coul_device *di)
+{
+    int sample_size;
+    int avg_isc;
+    int isc_buff_size;
+    int sigma_isc;
+    time_t sample_time;
+    int chrg_cycle;
+    int i;
+    s64 sum_cnt = 0;
+    int avg_cnt = 0;
+
+    if (!di  || di->iscd->size <= 0) {
+        hwlog_err("ISCD %s input para is error\n", __func__);
+        return ISCD_INVALID;
+    }
+
+    chrg_cycle = coul_battery_cycle_count();
+    if (chrg_cycle <= ISCD_CHARGE_CYCLE_MIN) {
+        hwlog_err("ISCD %s charge_cycle(%d) is less than %d, try to next loop.\n",
+                          __func__, chrg_cycle, ISCD_CHARGE_CYCLE_MIN);
+       return ISCD_INVALID;
+    }
+
+    sample_size = di->iscd->size;
+    sample_time = di->iscd->sample_info[sample_size-1].sample_time.tv_sec - di->iscd->sample_info[0].sample_time.tv_sec;
+
+    if (sample_time < ISCD_SMAPLE_TIME_MIN) {
+        hwlog_err("ISCD %s sample time(%lds) is less than %ds, try to next loop.\n",
+                            __func__, sample_time, ISCD_SMAPLE_TIME_MIN);
+        return ISCD_INVALID;
+    }
+
+    isc_buff_size = di->iscd->isc_buff[0];
+    avg_isc = avg_isc_by_threhold(di, -INVALID_ISC, INVALID_ISC, 0);
+    hwlog_info("ISCD %s isc_buff_size: %d, primary avg_isc: %duAh\n", __func__, isc_buff_size, avg_isc);
+    if (avg_isc < ISCD_LARGE_ISC_THREHOLD) {
+        for (i = 0; i < sample_size; i++) {
+            sum_cnt += di->iscd->sample_info[i].sample_cnt;
+        }
+        avg_cnt = (int)(sum_cnt/sample_size);
+        if (isc_buff_size >= ISCD_SMALL_ISC_VALID_SIZE_1 ||
+            (isc_buff_size >= ISCD_SMALL_ISC_VALID_SIZE_2 &&
+            avg_cnt < ISCD_INVALID_SAMPLE_CNT_TO +1)) {
+            sigma_isc = iscd_standard_deviation_of_isc(di, avg_isc);
+            avg_isc = avg_isc_by_threhold(di, avg_isc -sigma_isc, avg_isc + sigma_isc, ISCD_SMALL_ISC_VALID_PERCENT);
+            hwlog_info("ISCD %s standard deviation of isc: %d, final avg_isc: %duAh\n", __func__, sigma_isc, avg_isc);
+            di->iscd->isc = avg_isc;
+            return (INVALID_ISC == avg_isc) ? ISCD_INVALID : ISCD_VALID;
+        }
+    } else if (avg_isc >= ISCD_LARGE_ISC_THREHOLD && isc_buff_size >= ISCD_LARGE_ISC_VALID_SIZE) {
+        avg_isc = avg_isc_by_threhold(di, ISCD_LARGE_ISC_THREHOLD,
+                                                INVALID_ISC, ISCD_LARGE_ISC_VALID_PERCENT);
+        hwlog_info("ISCD %s final avg_isc: %duAh\n", __func__, avg_isc);
+        di->iscd->isc = avg_isc;
+        return (INVALID_ISC == avg_isc) ? ISCD_INVALID : ISCD_VALID;
+    } else {
+        /*do nothing*/
+    }
+
+    return ISCD_INVALID;
+}
+
+static void iscd_calc_isc_with_prev_samples(struct smartstar_coul_device *di, int index)
+{
+    int i, isc_tmp;
+
+    if (!di ||index >= di->iscd->size) {
+        hwlog_err("ISCD %s para is error, index = %d\n", __func__, index);
+        return;
+    }
+    if (index == 0) {
+        hwlog_err("ISCD %s samples is not enough, try to next loop \n", __func__);
+        return;
+    }
+
+    for (i = 0; i < index; i++) {
+        isc_tmp = iscd_calc_isc_by_two_samples(di, i, index);
+        if (INVALID_ISC != isc_tmp) {
+            iscd_push_isc_to_isc_buf(di, isc_tmp);
+        }
+    }
+}
+
+static void iscd_calc_isc_by_all_samples(struct smartstar_coul_device *di)
+{
+    int i;
+
+    if (!di ||di->iscd->size <= 0) {
+        hwlog_err("ISCD %s input para is null\n", __func__);
+        return;
+    }
+
+    for (i = 1; i < di->iscd->size; i++) {
+        iscd_calc_isc_with_prev_samples(di, i);
+     }
+}
+
 void iscd_dump_dsm_info(struct smartstar_coul_device *di, char *buf)
 {
     int i;
@@ -4682,9 +5042,11 @@ void iscd_dump_dsm_info(struct smartstar_coul_device *di, char *buf)
     hwlog_info("ISCD %s ++\n", __func__);
     di->qmax = coul_get_qmax(di);
     snprintf(tmp_buf, (size_t)ISCD_ERR_NO_STR_SIZE, "battery is %s, charge_cycles is %d, "
-        "rm is %dmAh, fcc is %dmAh, Qmax is %dmAh\n",
+        "rm is %dmAh %dmAh, fcc is %dmAh %dmAh, Qmax is %dmAh\n",
         di->batt_data->batt_brand, di->batt_chargecycles /PERCENT,
-        di->batt_ruc/UA_PER_MA, di->batt_fcc/UA_PER_MA, di->qmax/UA_PER_MA);
+        di->iscd->rm_bcd/UA_PER_MA, di->batt_ruc/UA_PER_MA,
+        di->iscd->fcc_bcd/UA_PER_MA, di->batt_fcc/UA_PER_MA,
+        di->qmax/UA_PER_MA);
     strncat(buf, tmp_buf, strlen(tmp_buf));
     for (i = 0; i < MAX_RECORDS_CNT; i++) {
         snprintf(tmp_buf, (size_t)ISCD_ERR_NO_STR_SIZE, "BASP fcc[%d] is %d mAh\n", i, my_nv_info.real_fcc_record[i]);
@@ -4721,7 +5083,6 @@ static int iscd_dsm_report(struct smartstar_coul_device *di, int level)
         if (!di->iscd->level_config[level].dsm_report_time ||
             (now.tv_sec - di->iscd->level_config[level].dsm_report_time >= ISCD_DSM_REPORT_INTERVAL)) {
             iscd_dump_dsm_info(di, dsm_buff);
-            msleep(ISCD_DSM_REPORT_DELAY_MS);
             ret = dsm_report(di->iscd->level_config[level].dsm_err_no, dsm_buff);
             if (SUCCESS == ret) {
                 di->iscd->level_config[level].dsm_report_cnt++;
@@ -4741,7 +5102,7 @@ static int iscd_protection(struct smartstar_coul_device *di, int level)
     }
     return SUCCESS;
 }
-static int iscd_process_isc(struct smartstar_coul_device *di)
+static int iscd_process_short_current(struct smartstar_coul_device *di)
 {
     int ret = SUCCESS;
     int i;
@@ -4754,7 +5115,7 @@ static int iscd_process_isc(struct smartstar_coul_device *di)
     for (i = 0; i < di->iscd->total_level; i++) {
         if (di->iscd->isc >= di->iscd->level_config[i].isc_min &&
             di->iscd->isc < di->iscd->level_config[i].isc_max) {
-            hwlog_info("ISCD isc level = %d [%d, %d)uA", i,
+            hwlog_info("ISCD isc: %duA,  level: %d, threhold: [%d, %d)uA\n", di->iscd->isc, i,
                      di->iscd->level_config[i].isc_min, di->iscd->level_config[i].isc_max);
             ret |= iscd_dsm_report(di, i);
             ret |= iscd_protection(di, i);
@@ -4765,28 +5126,59 @@ static int iscd_process_isc(struct smartstar_coul_device *di)
 
     return ret;
 }
-static void iscd_process_sampled_info(struct smartstar_coul_device *di)
+
+static int iscd_calc_short_current(struct smartstar_coul_device *di, int rm_flag)
 {
-    int ret = SUCCESS;
-    int valid_isc_cnt;
+    int sample_size;
 
-    if (!di ||!di->iscd->size) {
-        hwlog_err("ISCD %s para is null\n", __func__);
-        return;
-    }
-    if (TRUE == di->iscd->samples_processed) {
-        hwlog_err("ISCD isc aready processed.\n ");
-        return;
+    if (!di) {
+        hwlog_err("ISCD %s di is null\n", __func__);
+        return FALSE;
     }
 
-    valid_isc_cnt = iscd_calc_isc_by_sampled_info(di);
-    if (ISC_VALID == iscd_is_isc_valid(di, valid_isc_cnt)) {
-        ret = iscd_process_isc(di);
-        if (SUCCESS == ret) {
-            di->iscd->samples_processed = TRUE;
+   sample_size = di->iscd->size;
+    if (sample_size < 2) {  //isc must be calculated at least with 2 samples
+        hwlog_err("ISCD %s sample size is %d\n, try to next calc.\n", __func__, sample_size);
+        return FALSE;
+    }
+
+    if (TRUE == rm_flag) {
+        if (di->iscd->sample_info[sample_size-1].sample_cnt > ISCD_INVALID_SAMPLE_CNT_TO) {
+            iscd_calc_isc_by_all_samples(di);
+            hwlog_info("some invalid samples has been removed, calc short current with all samples.\n");
+            return TRUE;
+        } else {
+            return FALSE;
         }
     }
+
+	if (di->iscd->sample_info[sample_size-1].sample_cnt > ISCD_INVALID_SAMPLE_CNT_TO ||
+        di->iscd->sample_info[sample_size-1].sample_cnt == ISCD_STANDBY_SAMPLE_CNT) {
+        //calc the last sample with its prev samples
+        iscd_calc_isc_with_prev_samples(di, sample_size-1);
+        return TRUE;
+    } else if (di->iscd->sample_info[sample_size-1].sample_cnt > ISCD_INVALID_SAMPLE_CNT_FROM &&
+                   di->iscd->sample_info[sample_size-1].sample_cnt <= ISCD_INVALID_SAMPLE_CNT_TO) {
+        hwlog_info("ISCD %s cnt is %d, do nothing\n",
+                              __func__, di->iscd->sample_info[sample_size-1].sample_cnt);
+        return FALSE;
+    } else if (di->iscd->sample_info[sample_size-1].sample_cnt == ISCD_INVALID_SAMPLE_CNT_FROM) {
+        if (di->iscd->sample_info[sample_size-2].sample_cnt > ISCD_INVALID_SAMPLE_CNT_TO ||
+            di->iscd->sample_info[sample_size-2].sample_cnt == ISCD_STANDBY_SAMPLE_CNT) {
+            hwlog_info("ISCD %s this cnt is %d, but prev cnt is %d, do nothing\n",
+                              __func__, di->iscd->sample_info[sample_size-1].sample_cnt,
+                              di->iscd->sample_info[sample_size-2].sample_cnt);
+            return FALSE;
+        } else {
+            //calc the penultimate sample with its prev samples
+            iscd_calc_isc_with_prev_samples(di, sample_size-2);
+            return TRUE;
+        }
+    } else {
+        return FALSE;
+    }
 }
+
 static void iscd_timer_start(struct smartstar_coul_device *di, time_t delta_secs)
 {
     ktime_t kt;
@@ -4807,12 +5199,13 @@ static void check_batt_critical_electric_leakage(struct smartstar_coul_device *d
     }
 
     if (ENABLED == di->iscd->enable) {
-        if (di->batt_ruc >= (di->batt_fcc/PERCENT)*FCC_MAX_PERCENT ||
-            di->batt_fcc/UA_PER_MA >= ((int)di->batt_data->fcc/PERCENT)*FCC_MAX_PERCENT ) {
+        if ((di->batt_fcc/UA_PER_MA >= (int)di->batt_data->fcc/HALF) &&
+            (di->batt_ruc * PERCENT >= di->batt_fcc * FCC_MAX_PERCENT ||
+            (di->batt_fcc/UA_PER_MA) * PERCENT >= (int)di->batt_data->fcc*FCC_MAX_PERCENT)) {
             di->iscd->isc = ISCD_FITAL_LEVEL_THREHOLD;
             hwlog_err("ISCD rm = %d, fcc = %d, set internal short current to %dmA.\n",
                             di->batt_ruc, di->batt_fcc, di->iscd->isc/UA_PER_MA);
-            iscd_process_isc(di);
+            iscd_process_short_current(di);
          }
     }
 }
@@ -4835,17 +5228,22 @@ static void iscd_work(struct work_struct *work)
     }
 
     if (CHARGING_STATE_CHARGE_STOP == di->charging_state) {
-        iscd_process_sampled_info(di);
         hrtimer_cancel(&di->iscd->timer);
     } else {
         ret = iscd_sample_battery_info(di, sample_info);
         if (SUCCESS == ret) {
             iscd_insert_sampled_info(di, sample_info);
-            if (di->iscd->size >= ISCD_SMAPLE_LEN_MAX) {
-                iscd_process_sampled_info(di);
+            ret = iscd_remove_invalid_samples(di);
+            ret = iscd_calc_short_current(di, ret);
+            if (TRUE == ret) {
+                ret = iscd_is_short_current_valid(di);
+                if (ISCD_VALID == ret)
+                    iscd_process_short_current(di);
             }
+            iscd_timer_start(di, (time_t)di->iscd->sample_time_interval);
+        } else {
+            iscd_timer_start(di, (time_t)di->iscd->sample_time_interval/QUARTER);
         }
-        iscd_timer_start(di, (time_t)di->iscd->sample_time_interval);
     }
     kfree(sample_info);
 FuncEnd:
@@ -4853,6 +5251,7 @@ FuncEnd:
 
     hwlog_info("ISCD %s --\n", __func__);
 }
+
 static enum hrtimer_restart iscd_timer_func(struct hrtimer *timer)
 {
     struct smartstar_coul_device *di = g_smartstar_coul_dev;
@@ -4876,56 +5275,6 @@ static enum hrtimer_restart iscd_timer_func(struct hrtimer *timer)
     }
 
     return HRTIMER_NORESTART;
-}
-
-void reset_fcc(struct smartstar_coul_device *di)
-{
-    int design_fcc , i = 0;
-
-    if( NULL == di )
-    {
-        hwlog_info("NULL point in [%s]\n", __func__);
-        return;
-    }
-
-    design_fcc = coul_battery_fcc_design();
-
-    hwlog_info("clear_fcc_flag =%d ,design_fcc=%d !\n",di->nv_info.clear_fcc_flag,design_fcc);
-    if(CLEAR_NV_NUM != di->nv_info.clear_fcc_flag)
-    {
-        if(BASP_LEVEL_3 == di->basp_level)/*basp policy level 3*/
-        {
-            di->fcc_real_mah = design_fcc*FCC_65/PERCENT;
-            for(i= 0;i < MAX_RECORDS_CNT;i++)
-            {
-                basp_record_fcc(di);
-            }
-            di->basp_level = (unsigned int)get_basp_level(di);
-        }
-        else if(BASP_LEVEL_2 == di->basp_level)/*basp policy level 2*/
-        {
-            di->fcc_real_mah = design_fcc*FCC_85/PERCENT;
-            for(i = 0;i < MAX_RECORDS_CNT;i++)
-            {
-                basp_record_fcc(di);
-            }
-            di->basp_level = (unsigned int)get_basp_level(di);
-        }
-        else if(di->fcc_real_mah < design_fcc*FCC_60/PERCENT)
-        {
-            di->fcc_real_mah = design_fcc*FCC_65/PERCENT;
-        }
-        else if (di->fcc_real_mah < design_fcc*FCC_80/PERCENT)
-        {
-            di->fcc_real_mah = design_fcc*FCC_85/PERCENT;
-        }
-        else
-        {
-            hwlog_info(" [%s] do nothing\n", __func__);
-        }
-        di->nv_info.clear_fcc_flag = CLEAR_NV_NUM;
-        hwlog_info("design_fcc =%d,fcc_real =%d!\n",design_fcc,di->fcc_real_mah);
-    }
 }
 
 #ifdef CONFIG_SYSFS
@@ -5514,12 +5863,6 @@ static void coul_core_get_iscd_info(struct device_node* np, struct smartstar_cou
         di->iscd->calc_time_interval_min = ISCD_DEFAULT_CALC_INTERVAL_MIN;
     }
     hwlog_info("ISCD calc_time_interval_min = %d\n", di->iscd->calc_time_interval_min);
-    ret = of_property_read_s32(np, "iscd_calc_time_interval_max", &di->iscd->calc_time_interval_max);
-    if (ret) {
-        hwlog_err("get iscd_calc_time_interval_max fail, use default one !!\n");
-        di->iscd->calc_time_interval_max = ISCD_DEFAULT_CALC_INTERVAL_MAX;
-    }
-    hwlog_info("ISCD calc_time_interval_max = %d\n", di->iscd->calc_time_interval_max);
     ret = of_property_read_s32(np, "iscd_level_warning_threhold", &di->iscd->isc_warning_threhold);
     if (ret) {
         hwlog_err("get iscd_level_warning_threhold fail, use default one !!\n");
@@ -5554,6 +5897,8 @@ static void coul_core_get_dts(struct smartstar_coul_device *di)
     int i = 0;
     int idata = 0;
     int array_len = 0;
+    const char *batt_temp_too_hot_string = NULL;
+    const char *batt_temp_too_cold_string = NULL;
     u32 one_policy[POLICY_MEM_CNT*4];
     np = di->dev->of_node;
     if(NULL == np){
@@ -5682,6 +6027,17 @@ static void coul_core_get_dts(struct smartstar_coul_device *di)
             i, basp_policy[i].level, basp_policy[i].chg_cycles, basp_policy[i].fcc_ratio, basp_policy[i].volt_dec, basp_policy[i].cur_ratio);
         }
     }
+    if (of_property_read_string(np, "batt_temp_too_hot", &batt_temp_too_hot_string))
+		hwlog_err("error:get batt_temp_too_hot value failed!\n");
+	else
+		batt_temp_too_hot = simple_strtol(batt_temp_too_hot_string, NULL, 10);
+	hwlog_info("dts:get batt_temp_too_hot = %d! \n",batt_temp_too_hot);
+	
+	if (of_property_read_string(np, "batt_temp_too_cold", &batt_temp_too_cold_string))
+		hwlog_err("error:get batt_temp_too_cold value failed!\n");
+	else
+		batt_temp_too_cold = simple_strtol(batt_temp_too_cold_string, NULL, 10);
+	hwlog_info("dts:get temp_too_cold = %d! \n",batt_temp_too_cold);
 }
 
 static int coul_shutdown_prepare(struct notifier_block *nb, unsigned long event, void *_data)
@@ -5729,6 +6085,7 @@ static int  hisi_coul_probe(struct platform_device *pdev)
         return -1;
     }
     di->iscd = iscd;
+    iscd_reset_isc_buffer(di);
 
     di->dev =&pdev->dev;
     if (!g_coul_core_ops) {
@@ -6191,8 +6548,9 @@ static int hisi_coul_resume(struct platform_device *pdev)
 
     int current_sec = 0;
     int sr_sleep_time = 0;
+    int old_soc = 0;
 
-    if(NULL == di)
+    if (NULL == di)
     {
         hwlog_info("[%s]di is null\n",__FUNCTION__);
         return 0;
@@ -6234,9 +6592,19 @@ static int hisi_coul_resume(struct platform_device *pdev)
             di->batt_ocv_valid_to_refresh_fcc = 0;
         }
     }
-	di->coul_dev_ops->exit_eco();
+    di->coul_dev_ops->exit_eco();
     di->soc_limit_flag = 2;
+    old_soc = di->batt_soc;
     di->batt_soc = calculate_state_of_charge(di);
+    /*dmd report*/
+    if (abs(old_soc - di->batt_soc) >= SOC_JUMP_MAX) {
+        char buff[DSM_BUFF_SIZE_MAX] = {0};
+        /* current information --- fcc, temp, old_soc, new_soc */
+        snprintf(buff, (size_t)DSM_BUFF_SIZE_MAX, "[resume jump]fcc:%d, temp:%d, old_soc:%d, new_soc:%d",
+        di->batt_fcc, di->batt_temp, old_soc, di->batt_soc);
+        coul_dsm_report_ocv_cali_info(di, ERROR_RESUME_SOC_JUMP, buff);
+    }
+
     di->soc_limit_flag = 1;
 
     DI_UNLOCK();

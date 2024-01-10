@@ -125,6 +125,5 @@ void voice_proxy_set_send_sign(bool first, bool *cnf, int64_t *timestamp);
 int32_t voice_proxy_add_cmd(uint16_t msg_id);
 int32_t voice_proxy_add_data(voice_proxy_add_data_cb callback, int8_t *data, uint32_t size, uint16_t msg_id);
 int64_t voice_proxy_get_time_ms(void);
-void debug_test_buf(int8_t *buf, uint32_t buf_size);
 #endif /* end of voice_proxy.h */
 

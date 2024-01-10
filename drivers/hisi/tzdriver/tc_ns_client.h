@@ -3,6 +3,8 @@
 #ifndef _TC_NS_CLIENT_H_
 #define _TC_NS_CLIENT_H_
 
+#define SECURITY_AUTH_ENHANCE
+
 typedef struct {
 	__u32 method;
 	__u32 mdata;

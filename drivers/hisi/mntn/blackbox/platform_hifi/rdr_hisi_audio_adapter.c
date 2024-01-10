@@ -219,13 +219,13 @@ void rdr_audio_dump_log(u32 modid, u32 etype, u64 coreid,
 
 	if (((modid >= RDR_AUDIO_SOC_MODID_START) && (modid <= RDR_AUDIO_SOC_MODID_END))
 		|| ((modid >= RDR_AUDIO_REBOOT_MODID_START) && (modid <= RDR_AUDIO_REBOOT_MODID_END))) {
-		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, pathname);
+		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, "%s", pathname);
 		rdr_audio_soc_dump(modid, s_rdr_audio_des.soc_pathname, pfn_cb);
 	} else if ((modid >= RDR_AUDIO_CODEC_MODID_START) && (modid <= RDR_AUDIO_CODEC_MODID_END)) {
-		snprintf(s_rdr_audio_des.codec_pathname, RDR_FNAME_LEN, pathname);
+		snprintf(s_rdr_audio_des.codec_pathname, RDR_FNAME_LEN, "%s", pathname);
 		rdr_audio_codec_dump(modid, s_rdr_audio_des.codec_pathname, pfn_cb);
 	} else if (modid == RDR_MODEM_CP_MOD_ID || modid == RDR_MODEM_CP_RESET_3RD_MOD_ID) {
-		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, pathname);
+		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, "%s", pathname);
 		BB_PRINT_PN("modem reset soc hifi dump = %s, begin\n", s_rdr_audio_des.soc_pathname);
 		rdr_audio_soc_dump(modid, s_rdr_audio_des.soc_pathname, pfn_cb);
 		BB_PRINT_PN("modem reset soc hifi dump = %s, end\n", s_rdr_audio_des.soc_pathname);

@@ -47,8 +47,8 @@ struct dsm_client *dsm_register_client(struct dsm_dev *dev)
 		goto out;
 	}
 
-	if (dev == NULL) {
-		DSM_LOG_ERR("dsm_dev is NULL\n");
+	if (dev == NULL || dev->buff_size > DSM_EXTERN_CLIENT_MAX_BUF_SIZE) {
+		DSM_LOG_ERR("dsm_dev is NULL or buffer size is too big\n");
 		goto out;
 	}
 
@@ -73,6 +73,7 @@ struct dsm_client *dsm_register_client(struct dsm_dev *dev)
 					break;
 				}
 			} else {
+				mutex_unlock(&g_dsm_server.mtx_lock);
 				DSM_LOG_ERR("Please specify the dsm device name!\n");
 				kfree(ptr);
 				ptr = NULL;
@@ -338,17 +339,27 @@ out:
 
 static int dsm_register_extern_client(struct dsm_extern_client *ext_client)
 {
-	static int ext_client_cnt;
+	static int ext_client_cnt = 0;
+
+	if (NULL == ext_client || NULL == ext_client->client_name) {
+		DSM_LOG_ERR("%s:the ext_client or ext_client->client_name is null, invalid.\n", __func__);
+		return -ENOENT;
+	}
+
+	if(ext_client_cnt >= EXTERN_DSM_CLIENT_MAX) {
+		DSM_LOG_ERR("%s:the count of external client registed exceeds the upper limit.\n", __func__);
+		return -ENOENT;
+	}
+
+	if(ext_client->buf_size < 0 ) {
+		DSM_LOG_ERR("%s:the ext_client buffer size is negative,invalid.\n", __func__);
+		return -ENOENT;
+	}
 
 	ext_dev[ext_client_cnt].buff_size = ext_client->buf_size;
 	ext_dev[ext_client_cnt].name = ext_client->client_name;
 
-	if (0 >= ext_dev[ext_client_cnt].buff_size || NULL == ext_dev[ext_client_cnt].name
-			|| ext_client_cnt >= EXTERN_DSM_CLIENT_MAX) {
-		DSM_LOG_ERR("[dsm_register_extern_client]client name or buf_size is fault."
-				"don't register!\n");
-		return -ENOENT;
-	} else if (NULL != dsm_find_client((char *)ext_dev[ext_client_cnt].name)) {
+	if (NULL != dsm_find_client((char *)ext_dev[ext_client_cnt].name)) {
 		DSM_LOG_ERR("[dsm_register_extern_client]register %s has exist, dont register again!\n",
 				ext_dev[ext_client_cnt].name);
 		return -EEXIST;

@@ -199,6 +199,7 @@ struct soundtrigger_dma_drv_info {
 	struct delayed_work 			soundtrigger_delay_dma_normal_right_work;	/* delay work of interrupt response for normal transmit right channel */
 
 	struct wake_lock st_wake_lock;
+	struct mutex ioctl_mutex;
 };
 
 DRV_DMA_CONFIG_STRU hi6403_soundtrigger_dma_fast_cfg[2] = {
@@ -1144,14 +1145,20 @@ static long dma_fops_ioctl(struct file *fd, uint32_t cmd, unsigned long arg)
 
 	switch(cmd) {
 		case SOUNDTRIGGER_CMD_DMA_READY:
+			mutex_lock(&g_dma_drv_info->ioctl_mutex);
 			err = dma_open(fast_status);
+			mutex_unlock(&g_dma_drv_info->ioctl_mutex);
 			logi("dma open, ret[%d].\n", err);
 			break;
 		case SOUNDTRIGGER_CMD_DMA_OPEN:
+			mutex_lock(&g_dma_drv_info->ioctl_mutex);
 			err = dma_start(fast_status);
+			mutex_unlock(&g_dma_drv_info->ioctl_mutex);
 			break;
 		case SOUNDTRIGGER_CMD_DMA_CLOSE:
+			mutex_lock(&g_dma_drv_info->ioctl_mutex);
 			err = hi64xx_soundtrigger_dma_close();
+			mutex_unlock(&g_dma_drv_info->ioctl_mutex);
 			logi("dma close, ret[%d].\n", err);
 			break;
 		default:
@@ -1656,6 +1663,7 @@ static int32_t soundtrigger_dma_drv_probe (struct platform_device *pdev)
 	dma_drv_info->is_slimbus_enable = 0;
 	wake_lock_init(&dma_drv_info->st_wake_lock, WAKE_LOCK_SUSPEND, "hisi-64xx-soundtrigger");
 	platform_set_drvdata(pdev, dma_drv_info);
+	mutex_init(&dma_drv_info->ioctl_mutex);
 	g_dma_drv_info = dma_drv_info;
 
 	logi("dma probe end.\n");
@@ -1696,6 +1704,7 @@ static int32_t soundtrigger_dma_drv_remove(struct platform_device *pdev)
 	wake_lock_destroy(&g_dma_drv_info->st_wake_lock);
 
 	misc_deregister(&soundtrigger_dma_drv_device);
+	mutex_destroy(&g_dma_drv_info->ioctl_mutex);
 
 	if(g_dma_drv_info->soundtrigger_delay_wq) {
 		cancel_delayed_work(&g_dma_drv_info->soundtrigger_delay_dma_fast_left_work);

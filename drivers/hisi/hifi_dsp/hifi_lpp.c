@@ -77,6 +77,7 @@ struct hifi_misc_priv {
 	spinlock_t	recv_sync_lock;
 	spinlock_t	recv_proc_lock;
 	spinlock_t	pcm_read_lock;
+	struct mutex ioctl_mutex;
 
 	struct completion	completion;
 	wait_queue_head_t	proc_waitq;
@@ -1134,7 +1135,9 @@ static long hifi_misc_ioctl(struct file *fd,
 	switch(cmd) {
 		case HIFI_MISC_IOCTL_ASYNCMSG/*异步命令*/:
 			logd("ioctl: HIFI_MISC_IOCTL_ASYNCMSG.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_async_cmd((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_SYNCMSG/*同步命令*/:
@@ -1163,34 +1166,48 @@ static long hifi_misc_ioctl(struct file *fd,
 
 		case HIFI_MISC_IOCTL_GET_PHYS/*获取*/:
 			logd("ioctl: HIFI_MISC_IOCTL_GET_PHYS.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_get_phys_cmd((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_WRITE_PARAMS : /* write algo param to hifi*/
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_write_param((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_DUMP_HIFI:
 			logi("ioctl: HIFI_MISC_IOCTL_DUMP_HIFI.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_dump_hifi((void __user *)arg);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_DISPLAY_MSG:
 			logi("ioctl: HIFI_MISC_IOCTL_DISPLAY_MSG.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_get_dmesg((void __user *)arg);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_GET_VOICE_BSD_PARAM:
 			logi("ioctl:HIFI_MISC_IOCTL_GET_VOICE_BSD_PARAM.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_om_get_voice_bsd_param(data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		case HIFI_MISC_IOCTL_WAKEUP_THREAD:
 			logi("ioctl: HIFI_MISC_IOCTL_WAKEUP_THREAD.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_wakeup_read_thread((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		case HIFI_MISC_IOCTL_WAKEUP_PCM_READ_THREAD: /*lint !e30 !e142*/
 			logi("ioctl: HIFI_MISC_IOCTL_WAKEUP_PCM_READ_THREAD.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_wakeup_pcm_read_thread((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		default:
 			/*打印无该CMD类型*/
@@ -1711,6 +1728,7 @@ static int hifi_misc_probe (struct platform_device *pdev)
 	spin_lock_init(&s_misc_data.recv_sync_lock);
 	spin_lock_init(&s_misc_data.recv_proc_lock);
 	spin_lock_init(&s_misc_data.pcm_read_lock);
+	mutex_init(&s_misc_data.ioctl_mutex);
 
 	/*初始化同步信号量*/
 	init_completion(&s_misc_data.completion);
@@ -1821,6 +1839,7 @@ static int hifi_misc_remove(struct platform_device *pdev)
 	/* wake lock destroy */
 	wake_lock_destroy(&s_misc_data.hifi_misc_wakelock);
 	wake_lock_destroy(&s_misc_data.update_buff_wakelock);
+	mutex_destroy(&s_misc_data.ioctl_mutex);
 
 	OUT_FUNCTION;
 	return OK;

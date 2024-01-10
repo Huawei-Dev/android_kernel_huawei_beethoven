@@ -145,7 +145,10 @@
 #define VENDOR_ID_RICHTEK 0x01
 #define VENDOR_ID_IWATT 0x03
 
-enum adapter_vendor{
+#define VBUS_ON_THRESHOLD 3000
+#define VBAT_VBUS_DIFFERENCE 150
+
+enum adapter_vendor {
 	RICHTEK_ADAPTER,
 	IWATT_ADAPTER,
 };

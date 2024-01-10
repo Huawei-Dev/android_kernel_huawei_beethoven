@@ -119,7 +119,7 @@ extern int synaptics_fw_s3718_configid(struct synaptics_rmi4_data *rmi4_data,
 				 u8 *buf,
 				 size_t buf_size);
 #ifdef SYNA_UPP
-extern unsigned short get_oem_data_info( void );
+extern short get_oem_data_info( void );
 extern int get_oem_data(unsigned char *oem_data, unsigned short leng);
 extern int set_oem_data(unsigned char *oem_data, unsigned short leng);
 #endif
@@ -1118,7 +1118,7 @@ static int synaptics_set_oem_info(struct ts_oem_info_param *info)
 	u8 type_reserved = TS_CHIP_TYPE_RESERVED;
 	u8 len_reserved = TS_CHIP_TYPE_LEN_RESERVED;
 	int store_type_count = 0;
-	int flash_size = 0;
+	short flash_size = 0;
 	int used_size = 16;
 	int error = NO_ERR;
 	int index = 0;
@@ -1128,6 +1128,11 @@ static int synaptics_set_oem_info(struct ts_oem_info_param *info)
 
 	TS_LOG_INFO("%s called\n", __func__);
 	flash_size = get_oem_data_info();
+	if (flash_size < 0) {
+		TS_LOG_ERR("%s: Could not get TPIC flash size,fail line=%d\n", __func__, __LINE__);
+		error = -EINVAL;
+		goto out;
+	}
 	type = info->data[0];
 	len  = info->data[1];
 	used_size += len * 16;
@@ -1255,7 +1260,7 @@ static int synaptics_get_oem_info(struct ts_oem_info_param *info)
 {
 	u8 type_reserved = TS_CHIP_TYPE_RESERVED;
 	u8 type = tp_type_cmd[0];
-	unsigned short flash_size = 0;
+	short flash_size = 0;
 	int error = NO_ERR;
 	int index =0;
 	int latest_index = 0;
@@ -1263,15 +1268,14 @@ static int synaptics_get_oem_info(struct ts_oem_info_param *info)
 
 	TS_LOG_INFO("%s called\n", __func__);
 	flash_size = get_oem_data_info();
-	if(flash_size <= 0) {
-		TS_LOG_ERR("%s: Could not get TPIC flash size,fail line=%d\n", __func__,
-			   __LINE__);
-		error = EINVAL;
+	if (flash_size < 0) {
+		TS_LOG_ERR("%s: Could not get TPIC flash size,fail line=%d\n", __func__, __LINE__);
+		error = -EINVAL;
 		goto out;
 	}
 
 	//return the result info if type is 0x0
-	if(type == 0x0) {
+	if (type == 0x0) {
 		memcpy(info->data, tp_result_info, TS_CHIP_TYPE_MAX_SIZE);
 		TS_LOG_INFO("%s:Reurn the write result=%2x to sys node.\n", __func__, info->data[0]);
 		goto out;
@@ -1281,7 +1285,7 @@ static int synaptics_get_oem_info(struct ts_oem_info_param *info)
 	TS_LOG_INFO("%s: store type=%2x\n", __func__, type);
 	if (type > type_reserved) {
 		TS_LOG_ERR("%s Read Type=0x%2x is RESERVED\n", __func__, type);
-		error = EINVAL;
+		error = -EINVAL;
 		goto out;
 	}
 
@@ -1289,7 +1293,7 @@ static int synaptics_get_oem_info(struct ts_oem_info_param *info)
 	if (error < 0) {
 		TS_LOG_ERR("%s: memory not enough,fail line=%d\n", __func__,
 			   __LINE__);
-		error = EINVAL;
+		error = -EINVAL;
 		goto out;
 	}
 

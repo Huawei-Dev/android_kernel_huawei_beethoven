@@ -85,6 +85,7 @@ int tp_gpio_num;
 
 /*global variable declare*/
 static void rawdata_timeout_proc_fn(struct work_struct *work);
+static void ts_work_after_input(void);
 
 struct rawdata_timeout_info {
 	atomic_t idle_flag;
@@ -559,7 +560,7 @@ int put_one_cmd(struct ts_cmd_node *cmd, int timeout)
 	if (q->cmd_count == q->queue_size) {
 		spin_unlock_irqrestore(&q->spin_lock, flags);
 		TS_LOG_ERR("queue is full\n");
-		BUG_ON(1);
+		WARN_ON(1);
 		error = -EIO;
 		goto free_sync;
 	}
@@ -4355,6 +4356,7 @@ out:
 			up(&g_ts_data.fingers_aft_send);
 			//TS_LOG_ERR("[MUTI_AFT] wake_up_interruptible  fingers_waitq!\n");
 
+			ts_work_after_input();  /* do some delayed works */
 			out_cmd->command = TS_INVAILD_CMD;
 		}
 		else if(atomic_read(&g_ts_data.fingers_waitq_flag)  != AFT_WAITQ_IDLE)
@@ -4580,16 +4582,11 @@ static int ts_power_control(int irq_id,
 			break;
 		case TS_SUSPEND_DEVICE:	/*device power off or sleep */
 			atomic_set(&g_ts_data.state, TS_SLEEP);
-			if(g_ts_data.aft_param.aft_enable_flag)
+			if (g_ts_data.aft_param.aft_enable_flag)
 			{
-				TS_LOG_INFO("ts_kit suspend\n");
+				TS_LOG_INFO("ts_kit aft suspend\n");
 				kobject_uevent(&g_ts_data.input_dev->dev.kobj,
 					KOBJ_OFFLINE);
-				if(atomic_read(&g_ts_data.fingers_waitq_flag) == AFT_WAITQ_WAIT)
-				{
-					up(&g_ts_data.fingers_aft_send);
-					TS_LOG_ERR("[MUTI_AFT] wake_up aptouch in suspend!\n");
-				}
 			}
 			if (dev->ops->chip_suspend)
 				error = dev->ops->chip_suspend();
@@ -4610,10 +4607,9 @@ static int ts_power_control(int irq_id,
 				    chip_after_resume((void *)&g_ts_data.
 						      feature_info);
 			send_up_msg_in_resume();
-			if(g_ts_data.aft_param.aft_enable_flag)
+			if (g_ts_data.aft_param.aft_enable_flag)
 			{
-				TS_LOG_INFO("ts_kit resume\n");
-				atomic_set(&g_ts_data.fingers_waitq_flag, AFT_WAITQ_IDLE);
+				TS_LOG_INFO("ts_kit aft resume\n");
 				kobject_uevent(&g_ts_data.input_dev->dev.kobj,
 					KOBJ_ONLINE);
 			}
@@ -5537,14 +5533,10 @@ static long ts_ioctl_get_fingers_info(unsigned long arg)
 	}
 	/* wait event */
 	atomic_set(&g_ts_data.fingers_waitq_flag, AFT_WAITQ_WAIT);
-	down(&g_ts_data.fingers_aft_send);
-	if(atomic_read(&g_ts_data.fingers_waitq_flag) == AFT_WAITQ_WAIT)
+	down_interruptible(&g_ts_data.fingers_aft_send);
+	if (atomic_read(&g_ts_data.fingers_waitq_flag) == AFT_WAITQ_WAIT)
 	{
-	      atomic_set(&g_ts_data.fingers_waitq_flag, AFT_WAITQ_IGNORE);
-		if(atomic_read(&g_ts_data.state) == TS_SLEEP)
-		{
-				return -EACCES;
-		}
+		atomic_set(&g_ts_data.fingers_waitq_flag, AFT_WAITQ_IGNORE);
 		return -EINVAL;
 	}
 	//TS_LOG_ERR("[MUTI_AFT] get_fingers_info status:%d, x:%d, y:%d,major:%d, minor:%d\n",g_ts_kit_platform_data.fingers_send_aft_info.fingers[0].status,
@@ -5725,8 +5717,6 @@ static long ts_ioctl_set_coordinates(unsigned long arg)
 		//TS_LOG_ERR("[MUTI_AFT] report the added release event\n");
 	}
 	//TS_LOG_ERR("[MUTI_AFT] ts_report_input done, finger_num = %d\n", finger_num);
-
-	ts_work_after_input();  /* do some delayed works */
 
 	atomic_set(&g_data_report_over, 1);
 	/*TS_LOG_ERR("[MUTI_AFT] set_coordinates status:%d, x:%d, y:%d,major:%d, minor:%d \n",g_ts_kit_platform_data.fingers_recv_aft_info.fingers[0].status,

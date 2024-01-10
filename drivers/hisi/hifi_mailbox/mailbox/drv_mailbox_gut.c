@@ -1033,7 +1033,7 @@ void *mem_remap_type(unsigned long phys_addr, size_t size, pgprot_t pgprot)
         vaddr += offset;
     }
     vfree(pages);
-    printk(KERN_DEBUG "%s: phys_addr:0x%08lx size:0x%08lx npages:%d vaddr:%pK offset:0x%08lx\n", __FUNCTION__, phys_addr, (unsigned long)size, npages, vaddr, offset);
+    printk(KERN_DEBUG "%s: phys_addr:0x%pK size:0x%08lx npages:%d vaddr:%pK offset:0x%08lx\n", __FUNCTION__, (void *)phys_addr, (unsigned long)size, npages, vaddr, offset);
     return (void *)vaddr;
 }
 
@@ -1067,7 +1067,7 @@ MAILBOX_GLOBAL int mailbox_init(void)
 		return mailbox_logerro_p1(MAILBOX_ERR_GUT_ALREADY_INIT, g_mailbox_handle.init_flag);
 	}
 
-	printk("func = %s, line = %d baseaddr = 0x%x\n", __func__, __LINE__, (unsigned int)MAILBOX_MEM_BASEADDR);
+	printk("func = %s, line = %d baseaddr = 0x%pK\n", __func__, __LINE__, (void *)MAILBOX_MEM_BASEADDR);
 
 	g_shareMemBase = mem_remap_nocache(MAILBOX_MEM_BASEADDR, MAILBOX_MEM_LENGTH);
 	/*初始化邮箱中的数据*/
@@ -1083,8 +1083,8 @@ MAILBOX_GLOBAL int mailbox_init(void)
 		g_mailbox_global_cfg_tbl[i].head_addr = g_mailbox_global_cfg_tbl[i].head_addr + offset;
 		g_mailbox_global_cfg_tbl[i].data_addr = g_mailbox_global_cfg_tbl[i].data_addr + offset;
 
-		printk("i = %d, head_addr = 0x%lx, data_addr = 0x%lx\n", i,
-			   g_mailbox_global_cfg_tbl[i].head_addr, g_mailbox_global_cfg_tbl[i].data_addr);
+		printk("i = %d, head_addr = 0x%pK, data_addr = 0x%pK\n", i,
+			(void *)(g_mailbox_global_cfg_tbl[i].head_addr), (void *)(g_mailbox_global_cfg_tbl[i].data_addr));
 
 		/*初始化邮箱头*/
 		head = (struct mb_head *)g_mailbox_global_cfg_tbl[i].head_addr;

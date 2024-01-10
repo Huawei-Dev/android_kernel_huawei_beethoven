@@ -14,6 +14,7 @@
 
 #define ANC_HS_ENABLE_CHARGE 0
 #define ANC_HS_DISABLE_CHARGE 1
+#define CHIP_DEFUALT_POWERED_TIME    4  // 2.73(PMIC powered on time) + 1(chip powered on time)
 
 #define ANC_MAX14744_R000_DEVICE_ID                                       0x00
 #define ANC_MAX14744_R001_ADC_CONVERSION                            0x01
@@ -54,7 +55,7 @@
 #define ANC_MAX14744_FORCE_CNTL_MASK                               0x20
 
 struct MLIBSetParaInfo {
-    short   msgID;
+    unsigned   short   msgID;
     short   reserve;
     int     uwPathID;
     int     uwModuleID;

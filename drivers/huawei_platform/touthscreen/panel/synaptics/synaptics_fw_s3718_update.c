@@ -108,7 +108,7 @@ static int fwu_do_reflash(void);
 static int fwu_recovery_check_status(void);
 #ifdef SYNA_UPP
 static int fwu_read_f34_queries(void);
-unsigned short get_oem_data_info( void );
+short get_oem_data_info( void );
 int get_oem_data(unsigned char *oem_data, unsigned short leng);
 int set_oem_data(unsigned char *oem_data, unsigned short leng);
 #endif
@@ -4021,13 +4021,23 @@ out:
 	return retval;
 }
 
-unsigned short get_oem_data_info(void)
+short get_oem_data_info(void)
 {
 	int retval=0;
 	unsigned short oem_data_max_size = 0;
+	
+	if (!fwu || !fwu->rmi4_data) {
+		TS_LOG_ERR("%s: fwu or  fwu->rmi4_data is null  \n", __func__);
+		return -EIO;
+	}
+
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
 	retval = synaptics_fw_data_s3718_init(rmi4_data);
+	if (retval) {
+		TS_LOG_ERR("%s: synap_fw_data_s3718_init  Failed \n", __func__);
+		return -EIO;
+	}
 
 	if (!strncmp(rmi4_data->rmi4_mod_info.product_id_string, "S3331",5)) {
 		oem_data_max_size = fwu->blkcount.utility_param * fwu->block_size/16;
@@ -4052,10 +4062,15 @@ int get_oem_data(unsigned char *oem_data, unsigned short leng)
 	unsigned short block_count;
 	unsigned short config_area;
 
+	if (!fwu || !fwu->rmi4_data) {
+		TS_LOG_ERR("%s: fwu or  fwu->rmi4_data is null  \n", __func__);
+		return -EIO;
+	}
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
 	retval = synaptics_fw_data_s3718_init(rmi4_data);
 	if (retval) {
+		TS_LOG_ERR("%s: synap_fw_data_s3718_init  Failed \n", __func__);
 		return -EIO;
 	}
 
@@ -4079,6 +4094,10 @@ int get_oem_data(unsigned char *oem_data, unsigned short leng)
 
 	if (!strncmp(rmi4_data->rmi4_mod_info.product_id_string, "S3330",5)) {
 		retval = synaptics_fw_data_s3718_init(rmi4_data);
+		if (retval) {
+			TS_LOG_ERR("%s: synap_fw_data_s3718_init  Failed \n", __func__);
+			return -EIO;
+		}
 		fwu->config_area = PM_CONFIG_AREA;
 		block_count = fwu->blkcount.pm_config;
 		if (block_count == 0) {
@@ -4135,10 +4154,15 @@ int set_oem_data(unsigned char *oem_data, unsigned short leng)
 	unsigned short block_count;
 	unsigned short config_area;
 
+	if (!fwu || !fwu->rmi4_data) {
+		TS_LOG_ERR("%s: fwu or  fwu->rmi4_data is null  \n", __func__);
+		return -EIO;
+	}
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
 	retval = synaptics_fw_data_s3718_init(rmi4_data);
 	if (retval) {
+		TS_LOG_ERR("%s: synap_fw_data_s3718_init  Failed \n", __func__);
 		return -EIO;
 	}
 

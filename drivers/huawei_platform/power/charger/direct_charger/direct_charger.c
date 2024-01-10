@@ -985,7 +985,7 @@ static int scp_direct_charge_init(struct direct_charge_device* di)
 
 static void scp_stop_charging(void)
 {
-	int ret;
+	int ret, vbat;
 	struct direct_charge_device *di = g_di;
 	int vbus_vol = 0;
 
@@ -1031,8 +1031,11 @@ static void scp_stop_charging(void)
 		hwlog_err("[%s]: get vbus vol fail!\n", __func__);
 	}
 	hwlog_info("%s: vbus_vol = %d!\n", __func__, vbus_vol);
-	if (vbus_vol < 3000)
+	vbat = get_bat_voltage(di);
+	hwlog_info("%s: vbat = %d!\n", __func__, vbat);
+	if ((vbus_vol < VBUS_ON_THRESHOLD) || (vbat - vbus_vol) > VBAT_VBUS_DIFFERENCE)
 	{
+		hwlog_info("%s: vbat - vbus_vol = %d!\n", __func__, vbat - vbus_vol);
 		di->sysfs_enable_charger = 1;
 		di->error_cnt = 0;
 		hwlog_info("%s:direct charger disconnect!\n", __func__);

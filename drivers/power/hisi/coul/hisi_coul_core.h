@@ -27,6 +27,8 @@
 #include <linux/power/hisi/hisi_battery_data.h>
 #include <linux/power/hisi/hisi_bci_battery.h>
 #include <linux/suspend.h>
+#include <linux/timer.h>
+#include <linux/rtc.h>
 #ifdef CONFIG_HUAWEI_CHARGER
 #include <huawei_platform/power/huawei_charger.h>
 #else
@@ -111,11 +113,6 @@ typedef enum BATTERY_TEMP_USER {
 
 #define  DEFAULT_HKADC_BATT_TEMP  10
 #define  DEFAULT_HKADC_BATT_ID    6
-#define CLEAR_NV_NUM  (999)
-#define FCC_85 (85)
-#define FCC_65 (65)
-#define FCC_80 (80)
-#define FCC_60 (60)
 
 #define COMPENSATION_PARA_LEVEL   6
 #ifdef SMARTSTAR_DEBUG
@@ -199,13 +196,15 @@ typedef enum BATTERY_TEMP_USER {
 #define DELTA_TEMP 150
 #define LOW_BATT_TEMP_CHECK_THRESHOLD -100
 
+#define HALF            2
+#define QUARTER   4
 #define SUCCESS    0
 #define ERROR         1
 #define ENABLED     1
 #define DISABLED    0
-#define ISC_VALID           1
-#define ISC_INVALID       0
-#define INVALID_ISC   -99999
+#define ISCD_VALID           1
+#define ISCD_INVALID       0
+#define INVALID_ISC   999999
 
 #define UOHM_PER_MOHM 1000
 #define MOHM_PER_OHM 1000
@@ -220,49 +219,53 @@ typedef enum BATTERY_TEMP_USER {
 #define PERCENT         100
 #define PERMILLAGE  1000
 
-#define FCC_MAX_PERCENT  125
+#define FCC_MAX_PERCENT  135
 #define FCC_UPDATE_MAX_OCV_INTERVAL   12
 
 #define ISCD_SAMPLE_RETYR_CNT    3
-#define ISCD_CALC_LOOP_CNT   2
-#define ISCD_SMAPLE_TIME_MIN  2*3600 //2h
+#define ISCD_SMAPLE_TIME_MIN  3*3600 //3h
 #define ISCD_SMAPLE_LEN_MAX 30
-#define ISCD_SMAPLE_LEN_MIN 2
-#define ISCD_SAMPLE_INTERVAL_MAX  6*3600 //s
+#define ISCD_SAMPLE_INTERVAL_MAX  12*3600  //12h
 #define ISCD_SAMPLE_INTERVAL_DELTA 20 //s
-#define ISCD_DEFAULT_OCV_MIN 4000000
+#define ISCD_DEFAULT_OCV_MIN 4000000  //4V
 #define ISCD_DEFAULT_TBATT_MIN 100
 #define ISCD_DEFAULT_TBATT_MAX 500
 #define ISCD_DEFAULT_TBATT_DIFF 100
 #define ISCD_DEFAULT_SAMPLE_INTERVAL 600 //10min
 #define ISCD_DEFAULT_SAMPLE_DELAY 10 //s
-#define ISCD_MAX_SAMPLE_INTERVAL 24*3600 //24h
-#define ISCD_DEFAULT_CALC_INTERVAL_MIN 3600 //s
-#define ISCD_DEFAULT_CALC_INTERVAL_MAX 6*3600 //s
+#define ISCD_DEFAULT_CALC_INTERVAL_MIN 3600 //1h
 #define ISCD_CALC_INTERVAL_900S 900 //15min
 #define ISCD_INVALID_SAMPLE_CNT_FROM 1
 #define ISCD_INVALID_SAMPLE_CNT_TO 2
+#define ISCD_STANDBY_SAMPLE_CNT (-1)  //for standby mode
+#define ISCD_CHARGE_CYCLE_MIN  10
 
 #define ISCD_WARNING_LEVEL_THREHOLD  10000 //uA
 #define ISCD_ERROR_LEVEL_THREHOLD  30000 //uA
 #define ISCD_CRITICAL_LEVEL_THREHOLD  100000 //uA
 #define ISCD_FITAL_LEVEL_THREHOLD  200000 //uA
-#define ISCD_VALID_CURRENT_CNT 8
 #define ISCD_RECHARGE_CC   1000  //uAh
+#define ISCD_LARGE_ISC_THREHOLD  50000 //uA
+#define ISCD_LARGE_ISC_VALID_SIZE      10
+#define ISCD_LARGE_ISC_VALID_PERCENT  50  //50%
+#define ISCD_SMALL_ISC_VALID_SIZE_1      40
+#define ISCD_SMALL_ISC_VALID_SIZE_2      30
+#define ISCD_SMALL_ISC_VALID_PERCENT     50  //50%
 
-#define ISCD_OCV_FIFO_LEN   20
 #define ISCD_OCV_FIFO_VALID_CNT 3
 #define ISCD_OCV_UV_VAR_THREHOLD   3000000  //ocv variance threhold
-#define ISCD_OCV_UV_MIN  2500000  //uV
-#define ISCD_OCV_UV_MAX 4500000 //uV
-#define ISCD_OCV_DELTA_MAX  10000 //uV
+#define ISCD_OCV_UV_MIN  2500000  //2.5V
+#define ISCD_OCV_UV_MAX 4500000 //4.5V
+#define ISCD_OCV_DELTA_MAX  10000 //10mV
+#define ISCD_CC_DELTA_MAX  10000 //10mAh
+
+#define ISCD_ISC_MAX_SIZE 512
 
 #define ISCD_MAX_LEVEL 10
-#define ISCD_DSM_REPORT_DELAY_MS 5000  //5s
 #define ISCD_DSM_REPORT_CNT_MAX  3
 #define ISCD_DSM_REPORT_INTERVAL   (24*3600)   //24h
 #define ISCD_DSM_LOG_SIZE_MAX      (2048)
-#define ISCD_ERR_NO_STR_SIZE 96
+#define ISCD_ERR_NO_STR_SIZE 128
 
 enum ISCD_LEVEL_CONFIG {
     ISCD_ISC_MIN,
@@ -274,7 +277,23 @@ enum ISCD_LEVEL_CONFIG {
     ISCD_LEVEL_CONFIG_CNT
 };
 
-struct ss_coul_nv_info{
+#define TIMESTAMP_STR_SIZE 32
+#define DSM_BUFF_SIZE_MAX 1024
+#define INDEX_MAX 3
+#define COUL_ABN_COUNT 5
+#define SOC_JUMP_MAX 5
+#define CALI_RBATT_CC_MAX 20 //mAh
+#define CALI_RBATT_CURR_MIN 500 //mA
+
+struct coul_ocv_cali_info {
+    char cali_timestamp[TIMESTAMP_STR_SIZE];
+    int cali_ocv_uv;
+    int cali_ocv_temp; //tenth degree
+    s64 cali_cc_uah;
+    int cali_rbatt;
+};
+
+struct ss_coul_nv_info {
     int charge_cycles;
     int v_offset_a;
     int v_offset_b;
@@ -290,10 +309,9 @@ struct ss_coul_nv_info{
     short real_fcc_record[MAX_RECORDS_CNT];
     short latest_record_index;
     short fcc_check_sum;
-    short clear_fcc_flag;
 };
 
-struct vcdata{
+struct vcdata {
 int avg_v; //mv
 int avg_c; //ma
 int min_c; //ma
@@ -301,17 +319,17 @@ int max_c; //ma
 };
 
 /* ntc_temp_compensation_para*/
-enum ntc_temp_compensation_para_info{
+enum ntc_temp_compensation_para_info {
     NTC_COMPENSATION_PARA_ICHG = 0,
     NTC_COMPENSATION_PARA_VALUE,
     NTC_COMPENSATION_PARA_TOTAL,
 };
-struct ntc_temp_compensation_para_data{
+struct ntc_temp_compensation_para_data {
     int ntc_compensation_ichg;
     int ntc_compensation_value;
 };
 
-struct coul_device_ops{
+struct coul_device_ops {
     int   (*calculate_cc_uah)(void);
     void  (*save_cc_uah)(int cc_uah);
     int   (*convert_regval2ua)(short reg_val);
@@ -361,7 +379,7 @@ struct coul_device_ops{
     void  (*get_last_soc_flag)(bool *valid);
 };
 
-enum coul_fault_type{
+enum coul_fault_type {
     COUL_FAULT_NON = 0,
     COUL_FAULT_LOW_VOL,
     COUL_FAULT_CL_INT,
@@ -389,6 +407,7 @@ struct iscd_level_config
 {
     int isc_min;
     int isc_max;
+    int isc_valid_cnt;
     int dsm_err_no;
     int dsm_report_cnt;
     time_t dsm_report_time;
@@ -400,6 +419,8 @@ struct iscd_info {
     s64 full_update_cc;//uAh
     int last_sample_cnt; //last sample counts since charge/recharge done
     struct iscd_sample_info sample_info[ISCD_SMAPLE_LEN_MAX];
+    int rm_bcd;   //rm bofore charging done
+    int fcc_bcd;  //fcc bofore charging done
 
     int enable;
     int ocv_min;
@@ -414,7 +435,7 @@ struct iscd_info {
     int isc_error_threhold;
     int isc_critical_threhold;
     int total_level;
-    int samples_processed;
+    int isc_buff[ISCD_ISC_MAX_SIZE];  //isc_buff[0]:buffer size
     struct timespec last_sample_time;
     struct iscd_level_config level_config[ISCD_MAX_LEVEL];
     struct delayed_work delayed_work;/*ISCD: detect_battery short current*/

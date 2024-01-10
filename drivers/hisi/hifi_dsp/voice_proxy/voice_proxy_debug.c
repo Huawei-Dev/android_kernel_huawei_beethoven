@@ -400,8 +400,6 @@ static int32_t debug_tfagent_handle_msg(struct send_tfagent_data *volte_buf)
 	buf.data_type = volte_buf->data_type;
 	buf.id = volte_buf->id;
 	memcpy(buf.data, volte_buf->data, (size_t)PROXY_VOICE_CODEC_MAX_DATA_LEN);
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf((int8_t*)&buf, (uint32_t)sizeof(struct send_tfagent_data));
 
 	if (PROXY_TO_TF_UNDECRYPT_DATA == volte_buf->data_type) {
 		logi("get right undecrypt data\n");
@@ -433,8 +431,6 @@ static int32_t debug_tfagent_thread(void *arg)
 	while (!kthread_should_stop()) {
 		size = proxy_pull_data((int8_t *)&buf, (int32_t)sizeof(buf));
 		loge("debug_tfagent_thread\n");
-		loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-		debug_test_buf((int8_t*)&buf, (uint32_t)sizeof(buf));
 		if (size == (int32_t)sizeof(buf))
 			debug_tfagent_handle_msg(&buf);
 	}

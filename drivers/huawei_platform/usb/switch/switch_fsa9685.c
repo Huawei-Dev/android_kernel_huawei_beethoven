@@ -387,7 +387,15 @@ static irqreturn_t fsa9685_irq_handler(int irq, void *dev_id)
 {
     int gpio_value;
  
-    usb_switch_wake_lock();
+#ifdef CONFIG_TCPC_CLASS
+    if (is_pd_supported()) {
+        //do nothing
+    } else {
+#endif
+        usb_switch_wake_lock();
+#ifdef CONFIG_TCPC_CLASS
+    }
+#endif
 
     gpio_value = gpio_get_value(gpio);
     if(gpio_value==1)
@@ -777,10 +785,18 @@ static void rt8979_intb_work(struct work_struct *work)
         invalid_times = 0;
     }
 OUT:
+#ifdef CONFIG_TCPC_CLASS
+    if (is_pd_supported()) {
+        //do nothing
+    } else {
+#endif
     if ((USB_SWITCH_NEED_WAKE_UNLOCK == usb_switch_wakelock_flag) &&
             (0 == invalid_times)) {
             usb_switch_wake_unlock();
-    }
+        }
+#ifdef CONFIG_TCPC_CLASS
+     }
+#endif
 
     hwlog_info("%s: ------end.\n", __func__);
     return;
@@ -965,10 +981,18 @@ static void fsa9685_intb_work(struct work_struct *work)
     }
 
 OUT:
+#ifdef CONFIG_TCPC_CLASS
+    if(is_pd_supported()) {
+        //do nothing
+    } else {
+#endif
     if ((USB_SWITCH_NEED_WAKE_UNLOCK == usb_switch_wakelock_flag) &&
             (0 == invalid_times)) {
             usb_switch_wake_unlock();
+       }
+#ifdef CONFIG_TCPC_CLASS
     }
+#endif
 
     hwlog_info("%s: ------end.\n", __func__);
     return;

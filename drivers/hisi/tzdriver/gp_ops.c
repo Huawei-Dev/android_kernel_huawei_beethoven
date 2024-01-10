@@ -239,6 +239,7 @@ static TC_NS_Operation *alloc_operation(TC_NS_DEV_File *dev_file,
 				tlogd("temp_buf malloc ok, i = %d.\n", i);
 			}
 			local_temp_buffer[i].temp_buffer = temp_buf;
+			local_temp_buffer[i].size = buffer_size;
 			if ((TEEC_MEMREF_TEMP_INPUT == param_type) ||
 			    (TEEC_MEMREF_TEMP_INOUT == param_type)) {
 				tlogv("client_param->memref.buffer=0x%llx\n",
@@ -256,7 +257,6 @@ static TC_NS_Operation *alloc_operation(TC_NS_DEV_File *dev_file,
 			}
 			operation->params[i].memref.buffer = virt_to_phys((void *)temp_buf);
 			operation->buffer_h_addr[i] = virt_to_phys((void *)temp_buf) >> 32;
-			local_temp_buffer[i].size = buffer_size;
 			operation->params[i].memref.size = buffer_size;
 			/*TEEC_MEMREF_TEMP_INPUT equal
 			 * to TEE_PARAM_TYPE_MEMREF_INPUT*/
@@ -380,9 +380,8 @@ static TC_NS_Operation *alloc_operation(TC_NS_DEV_File *dev_file,
 					ion_import_dma_buf(drm_ion_client,
 							   ion_shared_fd);
 				if (IS_ERR(drm_ion_handle)) {
-					tloge("in %s err: client=%p handle=%p fd=%d\n",
-					      __func__, drm_ion_client,
-					      drm_ion_handle, ion_shared_fd);
+					tloge("in %s err:fd=%d\n",
+					      __func__, ion_shared_fd);
 					ret = -EFAULT;
 					break;
 				}
@@ -392,9 +391,8 @@ static TC_NS_Operation *alloc_operation(TC_NS_DEV_File *dev_file,
 					       &drm_ion_phys, &drm_ion_size);
 
 				if (ret) {
-					tloge("in %s err:ret=%d client=%p handle=%p fd=%d\n",
-					      __func__, ret, drm_ion_client,
-					      drm_ion_handle, ion_shared_fd);
+					tloge("in %s err:ret=%d  fd=%d\n",
+					      __func__, ret, ion_shared_fd);
 					ret = -EFAULT;
 					break;
 				}
@@ -557,7 +555,7 @@ static int free_operation(TC_NS_ClientContext *client_context,
 			/* free temp buffer */
 			/* TODO: this is all sorts of bad */
 			temp_buf = local_temp_buffer[i].temp_buffer;
-			tlogd("Free temp buf %p, i = %d\n", temp_buf, i);
+			tlogd("Free temp buf, i = %d\n", i);
 			if (virt_addr_valid(temp_buf) &&
 			    !ZERO_OR_NULL_PTR(temp_buf))
 				free_pages((unsigned long)temp_buf,

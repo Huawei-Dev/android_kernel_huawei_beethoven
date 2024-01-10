@@ -242,6 +242,11 @@ static char ca_hash[SHA256_DIGEST_LENTH] = {0x59, 0xc0, 0xd6, 0x84,
 #define APK_64_PROCESS_PATH_FAC "/system/framework/arm64/boot.oat"
 #define APK_32_PROCESS_PATH_FAC "/system/framework/arm/boot.oat"
 
+static unsigned char teecd_hash[SHA256_DIGEST_LENTH] = {0};
+static bool g_teecd_hash_enable = false;
+/* Calculate hash of task's text */
+static int tee_calc_task_hash(unsigned char *digest);
+
 static char *get_process_path(struct task_struct *task, char *tpath)
 {
 	char *ret_ptr = NULL;
@@ -314,6 +319,21 @@ static int calc_teecd_path_hash(unsigned char *data, unsigned long len, char *di
 	return rc;
 }
 
+static int check_teecd_hash(void)
+{
+	unsigned char digest[SHA256_DIGEST_LENTH] = {0};
+
+	if (g_teecd_hash_enable) {
+		if (tee_calc_task_hash(digest)
+			|| memcmp(digest, teecd_hash, SHA256_DIGEST_LENTH)) {
+			tloge("compare teecd hash error!\n");
+			return -EFAULT;
+		}
+	}
+
+	return 0;
+}
+
 static int check_teecd_access(struct task_struct *ca_task)
 {
 	char *ca_cert;
@@ -370,8 +390,9 @@ static int check_teecd_access(struct task_struct *ca_task)
 		if (message_size > 0) {
 			ret =  calc_teecd_path_hash(ca_cert, message_size, digest);
 			if (!ret) {
-				if (!memcmp(digest, ca_hash,
-							SHA256_DIGEST_LENTH)) {
+				ret = !memcmp(digest, ca_hash, SHA256_DIGEST_LENTH);
+				ret = (ret && !check_teecd_hash());
+				if (ret) {
 					kfree(tpath);
 					kfree(ca_cert);
 					put_cred(cred);
@@ -395,6 +416,8 @@ static int check_package_name(TC_NS_DEV_File *dev_file)
 	char *realpath_buf = NULL;
 	char *dentrypath_buf = NULL;
 	char *ca_dentry_path = NULL;
+	char *real_cmdline = NULL;
+	int res = 0;
 	errno_t sret;
 
 	sret = memset_s((void *)&path, sizeof(struct path), 0, sizeof(struct path));
@@ -404,6 +427,28 @@ static int check_package_name(TC_NS_DEV_File *dev_file)
 	}
 
 	if (TEE_REQ_FROM_USER_MODE == dev_file->kernel_api) {
+		real_cmdline = kzalloc((size_t)PAGE_SIZE, GFP_KERNEL);
+		if (NULL == real_cmdline) {
+			tloge("real_cmdline kzalloc fail\n");
+			return -1;
+		}
+
+		/* get the real cmdline */
+		res = get_cmdline(current, real_cmdline, PAGE_SIZE);
+		if (!res || (strnlen(real_cmdline, res) != dev_file->pkg_name_len)) {
+			tloge("cmdline length is not matched!\n");
+			kfree((void *)real_cmdline);
+			return -1;
+		}
+
+		if (memcmp((void *)real_cmdline, (void *)dev_file->pkg_name,
+				(size_t)dev_file->pkg_name_len)) {
+			tloge("package name is not equal to real one!\n");
+			kfree((void *)real_cmdline);
+			return -1;
+		}
+
+		kfree((void *)real_cmdline);
 		/* get real path from cmdline */
 		realpath_buf = kzalloc((size_t)(MAX_PATH_SIZE), GFP_KERNEL);
 		if (NULL == realpath_buf) {
@@ -1134,6 +1179,11 @@ static int TC_NS_Client_Login(TC_NS_DEV_File *dev_file, void __user *buffer)
 	uint8_t *cert_buffer, *buf;
 	errno_t sret;
 
+	/*if (check_teecd_access(current)) {
+		tloge(KERN_ERR "tc client login: teecd verification failed!\n");
+		return -EPERM;
+	}*/
+	
 	if (dev_file->login_setup) {
 		TCERR("Login information cannot be set twice!\n");
 		return -EINVAL;
@@ -2362,6 +2412,21 @@ static int tc_client_open(struct inode *inode, struct file *file)
 		return -EPERM;
 	}*/
 
+	if (!g_teecd_hash_enable) {
+		if (memset_s((void *)teecd_hash,
+			    sizeof(teecd_hash), 0x00, sizeof(teecd_hash))) {
+			tloge("tc_client_open memset failed!\n");
+			return -EFAULT;
+		}
+
+		if (current->mm && !tee_calc_task_hash(teecd_hash)) {
+			g_teecd_hash_enable = true;
+		} else {
+			tloge("calc teecd hash failed\n");
+			return -EFAULT;
+		}
+	}
+
 	if (!g_teecd_task) {
 		g_teecd_task = current->group_leader;
 		/*currently we have 3 agents need to care for. */
@@ -2571,8 +2636,8 @@ skip_tui:
 	drm_ion_client = hisi_ion_client_create("DRM_ION");
 
 	if (IS_ERR(drm_ion_client)) {
-		TCERR("in %s err: drm ion client create failed! client %p\n",
-		      __func__, drm_ion_client);
+		TCERR("in %s err: drm ion client create failed!\n",
+		      __func__);
 		ret = -EFAULT;
 		goto free_tui;
 	}

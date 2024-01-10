@@ -54,7 +54,7 @@ int hisi_atfisp_cma_alloc(void)
 
     pr_info("%s: phys_to_virt(dma).0x%lx\n", __func__, (unsigned long)phys_to_virt(dma));
     create_mapping_late((phys_addr_t)dma, (unsigned long)phys_to_virt(dma),
-            ISP_CMA_MEM_SIZE, __pgprot(PROT_NORMAL_NC));
+            ISP_CMA_MEM_SIZE, __pgprot(PROT_DEVICE_nGnRE));
 
     atfd_hisi_service_access_register_smc(ACCESS_REGISTER_FN_MAIN_ID,
                         ISP_CMA_START, ISP_CMA_MEM_SIZE, ACCESS_REGISTER_FN_SUB_ID_DDR_ISP_SEC_OPEN);
@@ -82,7 +82,7 @@ void hisi_atfisp_cma_free(void)
     }
 
     create_mapping_late((phys_addr_t)dev->cma_dma, (unsigned long)phys_to_virt(dev->cma_dma),
-            ISP_CMA_MEM_SIZE, __pgprot(PROT_NORMAL));
+            ISP_CMA_MEM_SIZE, __pgprot(PROT_DEVICE_nGnRE));
 
     dma_free_coherent(dev->device, ISP_CMA_MEM_SIZE, dev->cma_va, dev->cma_dma);
 

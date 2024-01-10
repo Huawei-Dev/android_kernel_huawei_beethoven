@@ -79,6 +79,7 @@ static bool capacity_debounce_flag = false;
 static int removable_batt_flag = 0;
 static int is_board_type = 0;
 static int is_fake_battery = 0;
+static int google_battery_node = 0;
 struct kobject *g_sysfs_bq_bci = NULL;
 module_param(is_fake_battery, int, 0644);
 
@@ -133,11 +134,13 @@ struct hisi_bci_device_info {
 	#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0))
 	struct power_supply bat;
 	struct power_supply usb;
+	struct power_supply bat_google;
 	struct power_supply ac;
 	struct power_supply bk_bat;
 	#else
 	struct power_supply    *bat;
 	struct power_supply    *usb;
+	struct power_supply    *bat_google;
 	struct power_supply    *ac;
 	struct power_supply    *bk_bat;
 	#endif
@@ -1231,6 +1234,14 @@ static const struct power_supply_desc hisi_bci_bk_battery_desc = {
 	.num_properties		= ARRAY_SIZE(hisi_bk_bci_battery_props),
 	.get_property		= hisi_bk_bci_battery_get_property,
 };
+
+static const struct power_supply_desc hisi_bci_bat_google_desc = {
+	.name			= "battery",
+	.type			= POWER_SUPPLY_TYPE_UNKNOWN,
+	.properties		= hisi_bci_battery_props,
+	.num_properties		= ARRAY_SIZE(hisi_bci_battery_props),
+	.get_property		= hisi_bci_battery_get_property,
+};
 #endif
 
 /**********************************************************
@@ -1259,6 +1270,10 @@ static int hisi_bci_parse_dts(struct device_node *np, struct hisi_bci_device_inf
 	if (of_property_read_u32(np, "battery_board_type", &is_board_type)) {
 		is_board_type = BAT_BOARD_SFT;
 		hwlog_err("error:get battery_board_type value failed!\n");
+	}
+	if (of_property_read_u32(np, "google_battery_node", (u32 *)&google_battery_node)) {
+		google_battery_node = 0;
+		hwlog_err("error:get google_battery_node value failed!\n");
 	}
 
 	/*bci_work_interval_para*/
@@ -1361,6 +1376,15 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 	di->bk_bat.properties = hisi_bk_bci_battery_props;
 	di->bk_bat.num_properties = ARRAY_SIZE(hisi_bk_bci_battery_props);
 	di->bk_bat.get_property = hisi_bk_bci_battery_get_property;
+	
+	di->bat_google.name = "battery";
+	di->bat_google.supplied_to = hisi_bci_supplied_to;
+	di->bat_google.num_supplicants = ARRAY_SIZE(hisi_bci_supplied_to);
+	di->bat_google.type = POWER_SUPPLY_TYPE_UNKNOWN;
+	di->bat_google.properties = hisi_bci_battery_props;
+	di->bat_google.num_properties = ARRAY_SIZE(hisi_bci_battery_props);
+	di->bat_google.get_property = hisi_bci_battery_get_property;
+
 #endif
 	di->bat_health = POWER_SUPPLY_HEALTH_GOOD;
 	di->bat_exist = is_hisi_battery_exist();
@@ -1390,6 +1414,9 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 		wake_lock(&low_power_lock);
 		is_low_power_locked = 1;
 	}
+	
+	hisi_bci_parse_dts(np, di);
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0))
 	ret = power_supply_register(&pdev->dev, &di->bat);
 	if (ret) {
@@ -1413,6 +1440,14 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 	if (ret) {
 		hwlog_debug("failed to register backup battery\n");
 		goto bk_batt_failed;
+	}
+	
+	if (google_battery_node) {
+		ret = power_supply_register(&pdev->dev, &di->bat_google);
+		if (ret) {
+			hwlog_debug("failed to register google battery\n");
+			goto bat_google_failed;
+		}
 	}
 #else
 	di->bat = power_supply_register(&pdev->dev, &hisi_bci_battery_desc, &hisi_bci_battery_cfg);
@@ -1438,6 +1473,14 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 		hwlog_debug("failed to register backup battery\n");
 		goto bk_batt_failed;
 	}
+	
+	if (google_battery_node) {
+		di->bat_google= power_supply_register(&pdev->dev, &hisi_bci_bat_google_desc, &hisi_bci_battery_cfg);
+		if (IS_ERR(di->bat_google)) {
+			hwlog_debug("failed to register google battery\n");
+			goto bat_google_failed;
+		}
+	}
 #endif
 	power_class = hw_power_get_class();
 	if (power_class) {
@@ -1457,8 +1500,6 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 		}
 	}
 
-	hisi_bci_parse_dts(np, di);
-
 	INIT_DELAYED_WORK(&di->hisi_bci_monitor_work, hisi_bci_battery_work);
 	schedule_delayed_work(&di->hisi_bci_monitor_work, 0);
 
@@ -1476,16 +1517,26 @@ static int hisi_bci_battery_probe(struct platform_device *pdev)
 
 	return 0;
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 13, 0))
-bk_batt_failed:
+bat_google_failed:
 	cancel_delayed_work(&di->hisi_bci_monitor_work);
+	power_supply_unregister(&di->bk_bat);
+bk_batt_failed:
+	if (!google_battery_node) {
+		cancel_delayed_work(&di->hisi_bci_monitor_work);
+	}
 	power_supply_unregister(&di->ac);
 ac_failed:
 	power_supply_unregister(&di->usb);
 usb_failed:
 	power_supply_unregister(&di->bat);
 #else
-bk_batt_failed:
+bat_google_failed:
     cancel_delayed_work(&di->hisi_bci_monitor_work);
+    power_supply_unregister(di->bk_bat);
+bk_batt_failed:
+    if (!google_battery_node) {
+		cancel_delayed_work(&di->hisi_bci_monitor_work);
+    }
     power_supply_unregister(di->ac);
 ac_failed:
     power_supply_unregister(di->usb);

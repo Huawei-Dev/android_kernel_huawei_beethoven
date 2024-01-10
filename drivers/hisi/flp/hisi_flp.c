@@ -889,24 +889,6 @@ static int  flp_ar_update_cmd(flp_port_t *flp_port, const char __user *buf, size
     return 0;
 }
 
-static ssize_t  pdr_write_cmd(flp_port_t *flp_port, char __user *buf, size_t count)
-{
-    printk(HISI_FLP_DEBUG "%s %d: \n", __func__, __LINE__);
-
-    /*check input parameter*/
-    if (!flp_port) {
-        printk(KERN_ERR "flp_write parameter error\n");
-        return -EINVAL;
-    }
-    if (count > (MAX_PKT_LENGTH - sizeof(pkt_header_t))) {
-        printk(KERN_ERR "flp_write parameter error\n");
-        return -EINVAL;
-    }
-
-    send_cmd_from_user(TAG_PDR, CMD_CMN_CONFIG_REQ, CMD_FLP_PDR_WRITE_REQ, buf, count);
-    return count;
-}
-
 static void copy_data_to_buf(flp_data_buf_t *pdata, char *data,
         unsigned int len, unsigned int align)
 {
@@ -1486,13 +1468,6 @@ static int flp_pdr_ioctl(flp_port_t *flp_port, unsigned int cmd, unsigned long a
             flp_port->pdr_buf.data_buf = NULL;
             mutex_unlock(&g_flp_dev.lock);
             break ;
-        case FLP_IOCTL_PDR_WRITE(0):
-            if (copy_from_user(&para, (void *)arg, sizeof(buf_info_t))) {
-                printk(KERN_ERR "flp_ioctl copy_from_user error\n");
-                return -EFAULT;
-            }
-
-            return pdr_write_cmd(flp_port, para.buf, para.len);
         case FLP_IOCTL_PDR_READ(0):
             if (copy_from_user(&para, (void *)arg, sizeof(buf_info_t))) {
                 printk(KERN_ERR "flp_ioctl copy_from_user error\n");

@@ -1077,6 +1077,8 @@ void anc_max14744_stop_charge(void)
  **/
 int anc_max14744_dev_register(struct anc_hs_dev *dev, void *codec_data)
 {
+	int value = 0, ret = 0;
+	
 	/* anc_hs driver not be probed, just return */
 	if (g_anc_max14744_priv == NULL)
 		return -ENODEV;
@@ -1099,7 +1101,11 @@ int anc_max14744_dev_register(struct anc_hs_dev *dev, void *codec_data)
 	g_anc_max14744_priv->private_data = codec_data;
 	g_anc_max14744_priv->registered = true;
 
-	force_clear_irq();
+	ret = anc_max14744_regmap_read(ANC_MAX14744_R006_INTERRUPT, &value);
+	if (ret < 0) {
+		hwlog_err("anc_max14744_dev_register: anc_max14744 force_clear_irq, read irq reg fail. \n");
+	}
+
 	max14744_unmask_plug_irq();
 	hwlog_info("%s(%u) : anc hs has been register sucessful!\n",
 			   __func__, __LINE__);
@@ -1198,14 +1204,6 @@ static void anc_hs_btn_work(struct work_struct *work)
 
 }
 
-#if 0
-static irqreturn_t max14744_handler(int irq, void *data)
-{
-	disable_irq_nosync(irq);
-	return IRQ_WAKE_THREAD;
-}
-#endif
-
 /**
  * anc_max14744_irq_handler - respond button irq while charging
  * for anc headset
@@ -1273,7 +1271,6 @@ static irqreturn_t anc_max14744_irq_handler(int irq, void *data)
 static int judge_headset_type_further(void)
 {
 	int value = 0;
-	int value1 = 0;
 	int idet_lvl = 0;
 	int retry = 3;
 	int idet = 0;
@@ -1476,28 +1473,6 @@ static ssize_t anc_max14744_reg_list_show(struct device *dev,
 	return strlen(buf);
 }
 
-static ssize_t anc_max14744_reg_single_show(struct device *dev,
-					struct device_attribute *attr, char *buf)
-{
-	int value = 0;
-	int reg;
-	char val_str[20];
-	char *p_end = buf;
-
-	buf[0] = '\0';
-
-	reg = kstrtol(buf, &p_end, 16);
-	if(reg < 0 || reg > 0x0C) {
-		hwlog_info("reg address not correct!");
-		return 0;
-	}
-	anc_max14744_regmap_read(reg, &value);
-	sprintf(val_str, "0x%02x = 0x%02x\n", reg, value);
-	strcat(buf, val_str);
-
-	return strlen(buf);
-}
-
 static ssize_t anc_max14744_adc_show(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -1519,30 +1494,52 @@ static ssize_t anc_max14744_reg_write_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
 {
-	int reg = 0;
-	int val = 0;
-	char *p_end = (char *)buf;
+	int ret = 0;
+	long reg = 0;
+	long val = 0;
+	const char *p_val = buf;
+	char *p_reg = NULL;
 
-	reg = kstrtol(buf, &p_end, 16);
-	p_end++;
-	hwlog_info("anc_max14744_reg_write_store reg : 0x%x\n", reg);
-	val = kstrtol(p_end, &p_end, 16);
-	hwlog_info("anc_max14744_reg_write_store val : 0x%x\n", val);
+	if (NULL == strstr(buf, " ")) {
+		hwlog_err("%s: input parameters error\n", __func__);
+		return -EINVAL;
+	}
+
+	p_reg = strsep(&p_val, " ");
+
+	if (('\0' == *p_reg) || ('\0' == *p_val)) {
+		hwlog_err("%s: input register address or value is \\0\n", __func__);
+		return -EINVAL;
+	}
+
+	ret = kstrtol(p_reg, 16, &reg);
+	if (ret < 0) {
+		hwlog_err("%s: input register address error:%s\n", __func__, p_reg);
+		return -EINVAL;
+	}
+
+	ret = kstrtol(p_val, 16, &val);
+	if (ret < 0) {
+		hwlog_err("%s: input register value error:%s\n", __func__, p_val);
+		return -EINVAL;
+	}
 
 	if (reg <= 0x06 || reg > 0x0c) {
 		hwlog_err("invalid register address: 0x%x\n", reg);
 		return -ENXIO;
 	}
 
-	anc_max14744_regmap_write(reg, val);
-
+	if (val < 0x00 || val > 0xff) {
+		hwlog_err("invalid register value: 0x%x\n", val);
+		return -ENXIO;
+	}
+ 
+	anc_max14744_regmap_write((int)reg, (int)val);
 	return count;
 }
 
 
 static DEVICE_ATTR(reg_list, 0664, anc_max14744_reg_list_show,
-				   NULL);
-static DEVICE_ATTR(reg_single, 0664, anc_max14744_reg_single_show,
 				   NULL);
 static DEVICE_ATTR(reg_write, 0660, NULL,
 				   anc_max14744_reg_write_store);
@@ -1551,7 +1548,6 @@ static DEVICE_ATTR(adc, 0664, anc_max14744_adc_show,
 
 static struct attribute *anc_max14744_attributes[] = {
 	&dev_attr_reg_list.attr,
-	&dev_attr_reg_single.attr,
 	&dev_attr_reg_write.attr,
 	&dev_attr_adc.attr,
 	NULL
@@ -1690,6 +1686,7 @@ static int anc_max14744_probe(struct i2c_client *client,
 	const char *ldo_supply_used_name = "ldo_supply_used";
 	const char *anc_hs_vdd_name = "anc_hs_vdd";
 	const char *cam_ldo_used_name = "cam_ldo_used";
+	const char *chip_powered_on_time = "chip_powered_on_time";
 	unsigned long flag = IRQF_ONESHOT | IRQF_NO_SUSPEND;
 	struct anc_max14744_priv *di = NULL;
 	struct device_node *np = NULL;
@@ -1773,7 +1770,27 @@ static int anc_max14744_probe(struct i2c_client *client,
 		}
 	}
 
+	ret = of_property_read_u32(np, chip_powered_on_time, &val);
+	if (ret) {
+		hwlog_info("%s: fail to get chip_powered_on_time.\n", __func__);
+		val = CHIP_DEFUALT_POWERED_TIME;
+	}
+	mdelay(val);
+	
 	i2c_set_clientdata(client, di);
+	di->regmapL = regmap_init_i2c(client, &anc_max14744_regmap);
+	if (IS_ERR(di->regmapL)) {
+		ret = PTR_ERR(di->regmapL);
+		hwlog_err("Failed to allocate regmapL: %d\n", ret);
+		goto err_out;
+	}
+
+	ret = anc_max14744_regmap_read(ANC_MAX14744_R000_DEVICE_ID, &val);
+	if (ret < 0) {
+		hwlog_err("max14744 chip is not exist, stop the chip init.\n");
+		ret = -ENXIO;
+		goto err_out;
+	}
 
 	mutex_init(&di->charge_lock);
 	mutex_init(&di->btn_mutex);
@@ -1808,12 +1825,6 @@ static int anc_max14744_probe(struct i2c_client *client,
 	if (ret)
 		hwlog_err("could not set pins to default state.\n");
 
-	di->regmapL = regmap_init_i2c(client, &anc_max14744_regmap);
-	if (IS_ERR(di->regmapL)) {
-		ret = PTR_ERR(di->regmapL);
-		hwlog_err("Failed to allocate regmapL: %d\n", ret);
-		goto err_out;
-	}
 	ret = sysfs_create_group(&client->dev.kobj, &anc_max14744_attr_group);
 	if (ret < 0)
 		hwlog_err("failed to register sysfs\n");
@@ -1958,7 +1969,6 @@ err_out:
 	if (ret < 0) {
 		if (di->regmapL)
 			regmap_exit(di->regmapL);
-		kfree(di);
 	}
 	g_anc_max14744_priv = NULL;
 	np = NULL;
@@ -2014,7 +2024,6 @@ static int anc_max14744_remove(struct i2c_client *client)
 			hwlog_err("%s: disable anc hs ldo failed.\n", __func__);
 		}
 	}
-	kfree(di);
 	di = NULL;
 
 	misc_deregister(&anc_max14744_device);
