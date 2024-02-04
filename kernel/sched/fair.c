@@ -11727,58 +11727,6 @@ static bool do_migration(int reason, int new_cpu, int cpu)
 	/* Inter cluster high irqload migrations are OK */
 	return new_cpu != cpu;
 }
-
-/*
- * Check if currently running task should be migrated to a better cpu.
- *
- * Todo: Effect this via changes to nohz_balancer_kick() and load balance?
- */
-void check_for_migration(struct rq *rq, struct task_struct *p)
-{
-	int cpu = cpu_of(rq), new_cpu;
-	int active_balance = 0, reason;
-
-	reason = migration_needed(p, cpu);
-	if (!reason)
-		return;
-
-	raw_spin_lock(&migration_lock);
-	new_cpu = select_best_cpu(p, cpu, reason, 0);
-
-	if (do_migration(reason, new_cpu, cpu)) {
-		active_balance = kick_active_balance(rq, p, new_cpu);
-		if (active_balance)
-			mark_reserved(new_cpu);
-	}
-
-	raw_spin_unlock(&migration_lock);
-
-	if (active_balance)
-		stop_one_cpu_nowait(cpu, active_load_balance_cpu_stop, rq,
-					&rq->active_balance_work);
-}
-#else
-void check_for_migration(struct rq *rq, struct task_struct *p)
-{
-	int new_cpu;
-	int active_balance;
-	int cpu = task_cpu(p);
-
-	if (rq->misfit_task) {
-		if (rq->curr->state != TASK_RUNNING ||
-		    rq->curr->nr_cpus_allowed == 1)
-			return;
-
-		new_cpu = select_energy_cpu_brute(p, cpu, 0);
-		if (capacity_orig_of(new_cpu) > capacity_orig_of(cpu)) {
-			active_balance = kick_active_balance(rq, p, new_cpu);
-			if (active_balance)
-				stop_one_cpu_nowait(cpu,
-						active_load_balance_cpu_stop,
-						rq, &rq->active_balance_work);
-		}
-	}
-}
 #endif
 
 #endif /* CONFIG_SMP */
