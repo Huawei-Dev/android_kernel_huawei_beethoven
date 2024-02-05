@@ -1025,16 +1025,16 @@ static void __uclamp_update_util_min_rt_default(struct task_struct *p)
 
 static void uclamp_update_util_min_rt_default(struct task_struct *p)
 {
-	struct rq_flags rf;
+	unsigned long flags;
 	struct rq *rq;
 
 	if (!rt_task(p))
 		return;
 
 	/* Protect updates to p->uclamp_* */
-	rq = task_rq_lock(p, &rf);
+	rq = task_rq_lock(p, &flags);
 	__uclamp_update_util_min_rt_default(p);
-	task_rq_unlock(rq, p, &rf);
+	task_rq_unlock(rq, p, &flags);
 }
 
 static void uclamp_sync_util_min_rt_default(void)
@@ -1283,7 +1283,7 @@ static inline void uclamp_rq_dec(struct rq *rq, struct task_struct *p)
 static inline void
 uclamp_update_active(struct task_struct *p, enum uclamp_id clamp_id)
 {
-	struct rq_flags rf;
+	unsigned long flags;
 	struct rq *rq;
 
 	/*
@@ -1294,7 +1294,7 @@ uclamp_update_active(struct task_struct *p, enum uclamp_id clamp_id)
 	 * enqueues, dequeues and migration operations.
 	 * This is the same locking schema used by __set_cpus_allowed_ptr().
 	 */
-	rq = task_rq_lock(p, &rf);
+	rq = task_rq_lock(p, &flags);
 
 	/*
 	 * Setting the clamp bucket is serialized by task_rq_lock().
@@ -1307,7 +1307,7 @@ uclamp_update_active(struct task_struct *p, enum uclamp_id clamp_id)
 		uclamp_rq_inc_id(rq, p, clamp_id);
 	}
 
-	task_rq_unlock(rq, p, &rf);
+	task_rq_unlock(rq, p, &flags);
 }
 
 #ifdef CONFIG_UCLAMP_TASK_GROUP
