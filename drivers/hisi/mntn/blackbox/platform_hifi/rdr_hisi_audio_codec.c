@@ -28,17 +28,7 @@
 #include "rdr_hisi_audio_adapter.h"
 #include "rdr_hisi_audio_codec.h"
 
-/*lint -e750*/
-
-#define COMMENT_TEXT_LEN		(512)
-#define MAX_DUMP_REG_SIZE		(0x1000)
-#define MAX_DUMP_LOG_SIZE		(0xA000)
-
-#define OM_HI64XX_LOG_PATH	"codechifi_logs/"
-#define DUMP_TCM_FILE_NAME	"codec_tcm.bin"
-#define DUMP_OCRAM_FILE_NAME	"codec_ocram.bin"
-#define DUMP_LOG_NAME		"codec_log.bin"
-#define DUMP_REG_FILE_NAME	"codec_reg.bin"
+/*lint -e750 -e730*/
 
 struct rdr_codec_des_s {
 	u32 modid;
@@ -53,141 +43,21 @@ struct rdr_codec_des_s {
 };
 static struct rdr_codec_des_s codec_des;
 
-static int dump_hifi_ocram(char *filepath)
-{
-	int ret = 0;
-	char *buf = NULL;
-	char xn[RDR_FNAME_LEN] = { 0 };
-	unsigned int dump_size = 0;
-	unsigned int dump_addr = 0;
-
-	BUG_ON(NULL == filepath);
-
-	snprintf(xn, sizeof(xn), "%s%s%s", filepath, OM_HI64XX_LOG_PATH, DUMP_OCRAM_FILE_NAME); /* [false alarm] */
-	dump_addr = hi64xx_misc_get_ocram_dump_addr();
-	dump_size = hi64xx_misc_get_ocram_dump_size();
-
-	if ((0 == dump_addr) || (dump_size > MAX_DUMP_LOG_SIZE)) {
-		BB_PRINT_ERR("%s():dump_addr,dump_size err!dump_addr:0x%x,dump_size:%d\n", __func__,dump_addr, dump_size);
-		return -1;
-	}
-
-	buf = vzalloc(dump_size);
-	if (!buf) {
-		BB_PRINT_ERR("hi64xx_rdr %s():alloc buf failed\n", __func__);
-		return -1;
-	}
-
-	hi64xx_misc_dump_bin(dump_addr, buf, dump_size);
-
-	ret = rdr_audio_write_file(xn, buf, dump_size);
-	if (ret)
-		BB_PRINT_ERR("hi64xx_rdr %s(): write file fail\n", __func__);
-
-	vfree(buf);
-
-	return ret;
-}
-
-static int dump_codec_reg(char *filepath)
-{
-	int ret = 0;
-	size_t reg_size = 0;
-	size_t comment_size = 0;
-	char *buf = NULL;
-	char xn[RDR_FNAME_LEN];
-
-	BUG_ON(NULL == filepath);
-
-	snprintf(xn, sizeof(xn), "%s%s%s", filepath, OM_HI64XX_LOG_PATH, DUMP_REG_FILE_NAME); /* [false alarm] */
-
-	reg_size = hi64xx_get_dump_reg_size();
-	BUG_ON(MAX_DUMP_REG_SIZE < reg_size);
-
-	buf = vzalloc(reg_size + COMMENT_TEXT_LEN);
-	if (!buf) {
-		BB_PRINT_ERR("hi64xx_rdr %s():alloc buf failed\n", __func__);
-		return -1;
-	}
-
-	hi64xx_misc_dump_reg(buf, reg_size);
-
-	comment_size = hi64xx_append_comment(buf + reg_size, COMMENT_TEXT_LEN);
-	BUG_ON(COMMENT_TEXT_LEN <= comment_size);
-
-	ret = rdr_audio_write_file(xn, buf, (reg_size + comment_size));
-	if (ret)
-		BB_PRINT_ERR("write codec reg file fail\n");
-
-	vfree(buf);
-
-	return ret;
-}
-
-static int dump_codec_log(char *filepath)
-{
-	int ret = 0;
-	char *buf = NULL;
-	char xn[RDR_FNAME_LEN] = { 0 };
-	unsigned int dump_size = 0;
-	unsigned int dump_addr = 0;
-
-	BUG_ON(NULL == filepath);
-
-	snprintf(xn, sizeof(xn), "%s%s%s", filepath, OM_HI64XX_LOG_PATH, DUMP_LOG_NAME); /* [false alarm] */
-	dump_addr = hi64xx_misc_get_log_dump_addr();
-	dump_size = hi64xx_misc_get_log_dump_size();
-
-	if ((0 == dump_addr) || (dump_size > MAX_DUMP_LOG_SIZE)) {
-		BB_PRINT_ERR("%s():dump_addr,dump_size err!dump_addr:0x%x,dump_size:%d\n", __func__,dump_addr, dump_size);
-		return -1;
-	}
-	buf = vzalloc(dump_size);
-	if (!buf) {
-		BB_PRINT_ERR("hi64xx_rdr %s():alloc buf failed\n", __func__);
-		return -1;
-	}
-
-	hi64xx_misc_dump_bin(dump_addr, buf, dump_size);
-
-	ret = rdr_audio_write_file(xn, buf, dump_size);
-	if (ret)
-		BB_PRINT_ERR("hi64xx_rdr %s(): write file fail\n", __func__);
-
-	vfree(buf);
-	buf = NULL;
-
-	return ret;
-}
-
+/*lint -e838*/
 static int dump_codec(char *filepath)
 {
-	int ret = 0;
-
 	BUG_ON(NULL == filepath);
+	hi64xx_hifi_dump_with_path(filepath);
 
-	ret = dump_hifi_ocram(filepath);
-	BB_PRINT_PN("rdr:%s():dump 6402dsp panic stack, %s\n", __func__,
-		    ret ? "fail" : "success");
-
-	/* dump 36k log saved in 6402dsp om buffer */
-	ret = dump_codec_log(filepath);
-	BB_PRINT_PN("rdr:%s():dump 6402dsp log, %s\n", __func__,
-		    ret ? "fail" : "success");
-
-	/* XXX: reg dump should be always in the end */
-	ret = dump_codec_reg(filepath);
-	BB_PRINT_PN("rdr:%s():dump 6402dsp reg, %s\n", __func__,
-		    ret ? "fail" : "success");
-	return ret;
+	return 0;
 }
-
+/*lint +e838*/
 void rdr_codec_hifi_watchdog_process(void)
 {
 	wake_lock(&codec_des.rdr_wl);
 	up(&codec_des.handler_sem);
-}
-
+}/*lint !e454*/
+/*lint -e715*/
 static int irq_handler_thread(void *arg)
 {
 	BB_PRINT_START();
@@ -228,7 +98,7 @@ static int dump_thread(void *arg)
 			BB_PRINT_DBG
 			    ("begin dump codec hifi done callback, modid: 0x%x\n",
 			     codec_des.modid);
-			codec_des.dumpdone_cb(codec_des.modid, RDR_HIFI);
+			codec_des.dumpdone_cb(codec_des.modid, (unsigned long long)RDR_HIFI);
 			BB_PRINT_DBG("end dump codec hifi done callback\n");
 		}
 	}
@@ -262,13 +132,13 @@ void rdr_audio_codec_reset(u32 modid, u32 etype, u64 coreid)
 	/*       ....send watchdog event.....   */
 	hi64xx_watchdog_send_event();
 
-	wake_unlock(&codec_des.rdr_wl);
+	wake_unlock(&codec_des.rdr_wl);/*lint !e455*/
 
 	BB_PRINT_END();
 
 	return;
 }
-
+/*lint +e715*/
 int rdr_audio_codec_init(void)
 {
 	BB_PRINT_START();

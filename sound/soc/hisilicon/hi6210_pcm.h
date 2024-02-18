@@ -199,6 +199,7 @@ struct hi6210_runtime_data
 #ifdef __DRV_AUDIO_MAILBOX_WORK__
 	struct hi6210_pcm_mailbox_data hi6210_pcm_mailbox;
 #endif
+	long snd_pre_time;
 #ifdef CONFIG_SND_TEST_AUDIO_PCM_LOOP
 	struct hi6210_simu_pcm_data hi6210_simu_pcm;
 #endif
@@ -268,6 +269,7 @@ struct hifi_chn_pcm_period_elapsed
 	HI_CHN_COMMON
 	unsigned int    substream_l32;  /* 通道SubStream对象的地址 */
 	unsigned int    substream_h32;  /* 通道SubStream对象的地址 */
+	unsigned int    msg_timestamp;
 };
 
 
@@ -290,6 +292,8 @@ struct hifi_chn_pcm_period_elapsed
 /*****************************************************************************
   10 函数声明
 *****************************************************************************/
+void snd_pcm_print_timeout(struct snd_pcm_substream *substream, unsigned int timeout_type);
+void snd_pcm_reset_pre_time(struct snd_pcm_substream *substream);
 
 #ifdef __cplusplus
     #if __cplusplus

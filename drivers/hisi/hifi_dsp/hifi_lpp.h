@@ -54,30 +54,36 @@ extern "C" {
 #define HIFI_UNSEC_BASE_ADDR   (HISI_RESERVED_HIFI_DATA_PHYMEM_BASE)
 #endif
 
-/** 非安全区   3.5M **/
-/* |~0x34f00000~|~0x35032000~|~0x35132000~|~0x351b1000~|~0x351b2000~|~0x351c5000~|~~0x351c6000~~|~0x351c7000~|~0x351f9800~|~~0x35209800~~| */
+/** for dallas **/
+/** unsecured region 3.5M **/
+/* |~0x34f00000~|~0x35032000~|~0x35132000~|~0x351b1000~|~0x351b2000~|~0x351c5000~|~~0x351c6000~~|~0x351c7000~|~0x35212C00~|~~0x35222C00~~| */
 /* |~Music data~|~~~PCM data~|~~hifi uart~|~panic stack|~icc debug~~|~flag data ~|~DDR sec head~|~~~AP NV ~~~|~AP&HIFI MB~|~unsec reserve| */
-/* |~~~~~1.2M~~~|~~~~~1M~~~~~|~~~508k~~~~~|~~~~~~4k~~~~|~~~~76k~~~~~|~~~~~4k~~~~~|~~~~~~4k~~~~~~|~~~~202k~~~~|~~~~~64k~~~~|~~~~~~474k~~~~| */
-/* |~0x35031fff~|~0x35131fff~|~0x351b0fff~|~0x351b1fff~|~0x351c4fff~|~0x351c5fff~|~~0x351c6fff~~|~0x351f97ff~|~0x352097ff~|~~~0x3527ffff~| */
+/* |~~~~~1.2M~~~|~~~~~1M~~~~~|~~~508k~~~~~|~~~~~~4k~~~~|~~~~76k~~~~~|~~~~~4k~~~~~|~~~~~~4k~~~~~~|~~~~303k~~~~|~~~~~64k~~~~|~~~~~~373k~~~~| */
+/* |~0x35031fff~|~0x35131fff~|~0x351b0fff~|~0x351b1fff~|~0x351c4fff~|~0x351c5fff~|~~0x351c6fff~~|~0x35212BFF~|~0x35222BFF~|~~~0x3527ffff~| */
 
-/** 安全区 9.5M **/
-/* |~~~0x35280000~~~|~~~0x352b0000~~|~~~0x352ce000~~~|~~~0x356ce000~~~|~~~0x35700000~~~| */
-/* |~OCRAM img bak~~|~~TCM img bak~~|~~~~IMG bak~~~~~|~~~sec reserve~~|~~HIFI RUNNING~~| */
-/* |~~~~~~192K~~~~~~|~~~~~120k~~~~~~|~~~~~~~4M ~~~~~~|~~~~~200k~~~~~~~|~~~~~~~5M~~~~~~~| */
-/* |~~~0x352affff~~~|~~~0x352cdfff~~|~~~0x356cdfff~~~|~~~0x356fffff~~~|~~~0x35bfffff~~~| */
+/** secure region 11.5M **/
+/* |~~~0x35280000~~~|~~~0x352b0000~~|~~~0x352ce000~~~|~~~0x352cf000~~~|~~~0x35300000~~~| */
+/* |~OCRAM img bak~~|~~TCM img bak~~|~~sec img head~~|~~~sec reserve~~|~~HIFI RUNNING~~| */
+/* |~~~~~~192K~~~~~~|~~~~~120k~~~~~~|~~~~~~~4k ~~~~~~|~~~~~196k~~~~~~~|~~~~~~~11M~~~~~~| */
+/* |~~~0x352affff~~~|~~~0x352cdfff~~|~~~0x352cefff~~~|~~~0x352FFFFF~~~|~~~0x35dfffff~~~| */
 
 /** for chicago only **/
-/** 非安全区 3.5M **/
-/* |~0x8B300000~|~0x8B432000~|~0x8B532000~|~0x8B5B1000~|~0x8B5B2000~|~0x8B5C5000~|~0x8B5C6000~|~0x8B5C7000~|~0x8B5F9800~|~~~0x8B609800~~~|~~~0x8B618800~~~|~~0x8B618880~~|~0x8B627880~|~~0x8B629880~~| */
-/* |~Music data~|~~~PCM data~|~~hifi uart~|~panic stack|~icc debug~~|~flag data ~|DDR sec head|~~~AP NV ~~~|~AP&HIFI MB~|~codec dma buff~|codec dma config|~soundtrigger~|~pcm upload~|~unsec reserve| */
-/* |~~~~~1.2M~~~|~~~~~1M~~~~~|~~~508k~~~~~|~~~~~~4k~~~~|~~~~76k~~~~~|~~~~~4k~~~~~|~~~~~4k~~~~~|~~~~202k~~~~|~~~~~64k~~~~|~~~~~~60k~~~~~~~|~~~~~~128b~~~~~~|~~~~~~60k~~~~~|~~~~~8k~~~~~|~~346K-128b~~~| */
-/* |~0x8B431fff~|~0x8B531fff~|~0x8B5B0fff~|~0x8B5B1fff~|~0x8B5C4fff~|~0x8B5C5fff~|~0x8B5C6fff~|~0x8B5F97ff~|~0x8B6097ff~|~~~0x8B6187FF~~~|~~~0x8B61887F~~~|~~0x8B62787F~~|~0x8B62987F~|~~0x8B67FFFF~~| */
+/** unsecured region 5M **/
+/* |~0x8B600000~|~0x8B732000~|~0x8B932000~|~0x8B9B1000~|~0x8B9B2000~|~0x8B9C5000~|~0x8B9C6000~|~0x8B9C7000~|~0x8BA12C00~| */
+/* |~Music data~|~~~PCM data~|~~hifi uart~|~panic stack|~icc debug~~|~flag data ~|DDR sec head|~~~AP NV ~~~|~AP&HIFI MB~| */
+/* |~~~~~1.2M~~~|~~~~~2M~~~~~|~~~508k~~~~~|~~~~~~4k~~~~|~~~~76k~~~~~|~~~~~4k~~~~~|~~~~~4k~~~~~|~~~~303k~~~~|~~~~~64k~~~~| */
+/* |~0x8B731fff~|~0x8B931fff~|~0x8B9B0fff~|~0x8B9B1fff~|~0x8B9C4fff~|~0x8B9C5fff~|~0x8B9C6fff~|~0x8BA12BFF~|~0x8BA22BFF~| */
 
-/** 安全区 9.5M **/
-/* |~~~0x89200000~~~|~~~0x89800000~~~|~~~0x89830000~~|~~~0x89864000~~~| */
-/* |~~HIFI RUNNING~~|~OCRAM img bak~~|~~TCM img bak~~|~~~~IMG bak~~~~~| */
-/* |~~~~~~~6M~~~~~~~|~~~~~~192K~~~~~~|~~~~~208k~~~~~~|~~~~~~3.1M ~~~~~| */
-/* |~~~0x897fffff~~~|~~~0x8982ffff~~~|~~~0x89863fff~~|~~~0x89B80000~~~| */
+/* |~0x8BA22C00~|~~0x8BA31C00~~|~0x8BA40C00~|~0x8BA42C00~|~~0x8BA62C00~~~|~~0x8BA82C00~~~| */
+/* |~~~OM DMA~~~|~soundtrigger~|~upload buf~|~usb share~~|~~~DP buffer~~~|~unsec reserve~| */
+/* |~~~~~60K~~~~|~~~~~~60K~~~~~|~~~~~8k~~~~~|~~~~128k~~~~|~~~~~128k~~~~~~|~~~~~501k~~~~~~| */
+/* |~0x8BA31BFF~|~~0x8BA40BFF~~|~0x8BA42BFF~|~0x8BA62BFF~|~~0x8BA82BFF~~~|~~0x8BAFFFFF~~~| */
+
+/** secure region 12M **/
+/* |~~~0x89200000~~~|~0x89d00000~|~0x89d30000~~|~~~0x89d64000~~~|~0x89d65000~| */
+/* |~~HIFI RUNNING~~|~OCRAM bak~~|~TCM img bak~|~~sec img head~~|~~reserve~~~| */
+/* |~~~~~~~11M~~~~~~|~  192K    ~|~~~~~208k ~~~|~~~~~~~4K ~~~~~~|~~~~~620K~~~| */
+/* |~~~0x89cfffff~~~|~0x89d2ffff~|~0x89d63FFF~~|~~~0x89d64FFF~~~|~0x89dfffff~| */
 
 #define HIFI_UNSEC_REGION_SIZE              (0x380000)
 #define HIFI_MUSIC_DATA_SIZE                (0x132000)
@@ -207,6 +213,7 @@ typedef enum HIFI_MSG_ID_ {
 	ID_AP_AUDIO_SET_DTS_ENABLE_CMD		= 0xDD36,
 	ID_AP_AUDIO_SET_DTS_DEV_CMD			= 0xDD38,
 	ID_AP_AUDIO_SET_DTS_GEQ_CMD			= 0xDD39,
+	ID_AP_AUDIO_SET_AUDIO_EFFECT_PARAM_CMD    = 0xDD3A,
 	ID_AP_AUDIO_SET_DTS_GEQ_ENABLE_CMD	= 0xDD3B,
 
 	/* AP和HIFI的控制外置耳机HIFI codec交互消息 */
@@ -272,14 +279,24 @@ typedef enum HIFI_MSG_ID_ {
 	ID_AUDIO_AP_VOICE_BSD_PARAM_CMD     = 0xDDCC,/* VOICE BSD 参数上报 */
 
 	ID_AP_ENABLE_MODEM_LOOP_REQ         = 0xDDCD,/* the audio hal notify HIFI to start/stop  MODEM LOOP*/
+	ID_AUDIO_AP_3A_CMD                  = 0xDDCE,
+	ID_AP_ENABLE_AT_DSP_LOOP_REQ        = 0xDDCF,/* notify HIFI to start/stop hifidsp LOOP from slimbus to i2s */
 	ID_AP_HIFI_REQUEST_VOICE_PARA_REQ   = 0xDF00, /*AP REQUEST VOICE MSG*/
 	ID_HIFI_AP_REQUEST_VOICE_PARA_CNF   = 0xDF01, /*HIFI REPLAY VOICE MSG*/
+	ID_AP_HIFI_REQUEST_SET_PARA_CMD     = 0xDF08,    /* HIFI SET PARAM MSG */
+	ID_AP_HIFI_REQUEST_GET_PARA_CMD     = 0xDF09,    /* HIFI GET PARAM MSG */
+	ID_AP_HIFI_REQUEST_GET_PARA_CNF     = 0xDF0A,    /* HIFI GET PARAM MSG */
 } HIFI_MSG_ID;
 
 typedef enum HI6402_DP_CLK_STATE_ {
 	HI6402_DP_CLK_OFF = 0x0,
 	HI6402_DP_CLK_ON = 0x1,
 } HI6402_DP_CLK_STATE;
+
+enum hifi_dsp_platform_type {
+	HIFI_DSP_PLATFORM_ASIC,
+	HIFI_DSP_PLATFORM_FPGA,
+};
 
 /*处理hifi回复消息，记录cmd_id和数据*/
 typedef struct {
@@ -332,10 +349,26 @@ struct drv_fama_config {
 	unsigned int rear_magic;
 };
 
+enum usbaudio_ioctl_type
+{
+	USBAUDIO_QUERY_INFO = 0,
+	USBAUDIO_USB_POWER_RESUME,
+	USBAUDIO_MSG_MAX
+};
+
+struct usbaudio_ioctl_input {
+	unsigned int msg_type;
+	unsigned int input1;
+	unsigned int input2;
+};
+
 int hifi_send_msg(unsigned int mailcode, void *data, unsigned int length);
 void hifi_get_log_signal(void);
 void hifi_release_log_signal(void);
 void sochifi_watchdog_send_event(void);
+unsigned long try_copy_from_user(void *to, const void __user *from, unsigned long n);
+unsigned long try_copy_to_user(void __user *to, const void *from, unsigned long n);
+enum hifi_dsp_platform_type hifi_misc_get_platform_type(void);
 
 #ifdef __cplusplus
 #if __cplusplus

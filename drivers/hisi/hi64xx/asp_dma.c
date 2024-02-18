@@ -24,13 +24,16 @@
 #include <linux/wakelock.h>
 #include <linux/interrupt.h>
 #include <linux/hisi/hi64xx/asp_dma.h>
+#include <linux/delay.h>
+
+/*lint -e774 -e747 -e502*/
 
 #define ASP_DMA_HWLOCK_ID (6)
 #define HWLOCK_WAIT_TIME (50)
 
 struct dma_callback{
     callback_t callback;
-    unsigned int para;
+    unsigned long para;
 };
 
 struct asp_dma_priv {
@@ -46,7 +49,7 @@ struct asp_dma_priv {
 
 static struct asp_dma_priv *asp_dma_priv = NULL;
 
-static unsigned int _dmac_reg_read(unsigned int reg)
+unsigned int _dmac_reg_read(unsigned int reg)
 {
 	struct asp_dma_priv *priv = asp_dma_priv;
 	unsigned long flag = 0;
@@ -125,7 +128,7 @@ static void _dmac_reg_clr_bit(unsigned int reg, unsigned int offset)
 	spin_lock_irqsave(&priv->lock, flag_sft);
 
 	value = readl(priv->asp_dma_reg_base_addr + reg);
-	value &= ~(1 << offset);
+	value &= ~(1UL << offset);
 	writel(value, priv->asp_dma_reg_base_addr + reg);
 
 	spin_unlock_irqrestore(&priv->lock, flag_sft);
@@ -144,15 +147,15 @@ static void _dmac_dump(unsigned int dma_channel)
 		return;
 	}
 
-	dev_info(priv->dev, "a count:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CNT0(dma_channel)));
-	dev_info(priv->dev, "src addr:0x%x\n", _dmac_reg_read(ASP_DMA_CX_SRC_ADDR(dma_channel)));
-	dev_info(priv->dev, "des addr:0x%x\n", _dmac_reg_read(ASP_DMA_CX_DES_ADDR(dma_channel)));
-	dev_info(priv->dev, "lli:0x%x\n", _dmac_reg_read(ASP_DMA_CX_LLI(dma_channel)));
-	dev_info(priv->dev, "config:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CONFIG(dma_channel)));
+	dev_dbg(priv->dev, "a count:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CNT0(dma_channel)));
+	dev_dbg(priv->dev, "src addr:0x%x\n", _dmac_reg_read(ASP_DMA_CX_SRC_ADDR(dma_channel)));
+	dev_dbg(priv->dev, "des addr:0x%x\n", _dmac_reg_read(ASP_DMA_CX_DES_ADDR(dma_channel)));
+	dev_dbg(priv->dev, "lli:0x%x\n", _dmac_reg_read(ASP_DMA_CX_LLI(dma_channel)));
+	dev_dbg(priv->dev, "config:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CONFIG(dma_channel)));
 
-	dev_info(priv->dev, "c count:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CNT1(dma_channel)));
-	dev_info(priv->dev, "b index:0x%x\n", _dmac_reg_read(ASP_DMA_CX_BINDX(dma_channel)));
-	dev_info(priv->dev, "c index:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CINDX(dma_channel)));
+	dev_dbg(priv->dev, "c count:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CNT1(dma_channel)));
+	dev_dbg(priv->dev, "b index:0x%x\n", _dmac_reg_read(ASP_DMA_CX_BINDX(dma_channel)));
+	dev_dbg(priv->dev, "c index:0x%x\n", _dmac_reg_read(ASP_DMA_CX_CINDX(dma_channel)));
 }
 
 static irqreturn_t _asp_dmac_irq_handler(int irq, void *data)
@@ -183,19 +186,18 @@ static irqreturn_t _asp_dmac_irq_handler(int irq, void *data)
 	tc1  = _dmac_reg_read(ASP_DMA_INT_TC1_AP);
 	tc2  = _dmac_reg_read(ASP_DMA_INT_TC2_AP);
 
+	/* clr interupt states */
+	_dmac_reg_write(ASP_DMA_INT_TC1_RAW, int_state);
+	_dmac_reg_write(ASP_DMA_INT_TC2_RAW, int_state);
+	_dmac_reg_write(ASP_DMA_INT_ERR1_RAW, int_state);
+	_dmac_reg_write(ASP_DMA_INT_ERR2_RAW, int_state);
+	_dmac_reg_write(ASP_DMA_INT_ERR3_RAW, int_state);
 
 	for (i = 0; i < ASP_DMA_MAX_CHANNEL_NUM; i++) {
 		int_mask = 0x1L << i;
 
 		if (int_state & int_mask) {
 			if (priv->callback[i].callback) {
-				/* clr interupt states */
-				_dmac_reg_set_bit(ASP_DMA_INT_TC1_RAW, i);
-				_dmac_reg_set_bit(ASP_DMA_INT_TC2_RAW, i);
-				_dmac_reg_set_bit(ASP_DMA_INT_ERR1_RAW, i);
-				_dmac_reg_set_bit(ASP_DMA_INT_ERR2_RAW, i);
-				_dmac_reg_set_bit(ASP_DMA_INT_ERR3_RAW, i);
-
 				if (err1 & int_mask)
 					int_type = ASP_DMA_INT_TYPE_ERR1;
 				else if (err2 & int_mask)
@@ -209,7 +211,7 @@ static irqreturn_t _asp_dmac_irq_handler(int irq, void *data)
 				else
 					int_type = ASP_DMA_INT_TYPE_BUTT;
 
-				priv->callback[i].callback(int_type, priv->callback[i].para);
+				priv->callback[i].callback(int_type, priv->callback[i].para, i);
 			}
 		}
 	}
@@ -252,7 +254,7 @@ int asp_dma_config(
 			unsigned short dma_channel,
 			struct dma_lli_cfg *lli_cfg,
 			callback_t callback,
-			unsigned int para)
+			unsigned long para)
 {
 	struct asp_dma_priv *priv = asp_dma_priv;
 	unsigned int channel_mask = (0x1L << dma_channel);
@@ -316,6 +318,7 @@ int asp_dma_start(
 			struct dma_lli_cfg *lli_cfg)
 {
 	struct asp_dma_priv *priv = asp_dma_priv;
+	unsigned int lli_reg;
 
 	BUG_ON(NULL == priv);
 
@@ -326,6 +329,12 @@ int asp_dma_start(
 
 	if (!lli_cfg) {
 		dev_err(priv->dev, "lli cfg is null.\n");
+		return -EINVAL;
+	}
+
+	lli_reg = _dmac_reg_read(ASP_DMA_CX_LLI(dma_channel));
+	if (lli_reg != lli_cfg->lli) {
+		dev_err(priv->dev, "lli is changed, lli_reg: %d, lli_cfg: %d\n", lli_reg, lli_cfg->lli);
 		return -EINVAL;
 	}
 
@@ -342,6 +351,8 @@ EXPORT_SYMBOL(asp_dma_start);
 void asp_dma_stop(unsigned short dma_channel)
 {
 	struct asp_dma_priv *priv = asp_dma_priv;
+	unsigned int channel_mask = (0x1U << dma_channel);
+	unsigned int i = 40;
 
 	BUG_ON(NULL == priv);
 
@@ -353,18 +364,30 @@ void asp_dma_stop(unsigned short dma_channel)
 	/* disable dma channel */
 	_dmac_reg_clr_bit(ASP_DMA_CX_CONFIG(dma_channel), 0);
 
+	do {
+		if (0 == (_dmac_reg_read(ASP_DMA_CH_STAT) & channel_mask)) {
+			break;
+		}
+		dev_info(priv->dev, "stopping dma_channel: %d\n", dma_channel);
+		udelay(250);
+	} while (--i);
+
 	_dmac_reg_clr_bit(ASP_DMA_INT_ERR1_MASK_AP, dma_channel);
 	_dmac_reg_clr_bit(ASP_DMA_INT_ERR2_MASK_AP, dma_channel);
 	_dmac_reg_clr_bit(ASP_DMA_INT_ERR3_MASK_AP, dma_channel);
 	_dmac_reg_clr_bit(ASP_DMA_INT_TC1_MASK_AP, dma_channel);
 	_dmac_reg_clr_bit(ASP_DMA_INT_TC2_MASK_AP, dma_channel);
 
-/* fixme:memset 0 may cause irq handler NULL point panic */
+	memset(&priv->callback[dma_channel], 0, sizeof(struct dma_callback));
 
-	dev_info(priv->dev, "dma stop succ.\n");
+	if (!i) {
+		dev_err(priv->dev, "dma_channel:%d stop fail, channel state: %d\n", dma_channel, (_dmac_reg_read(ASP_DMA_CH_STAT) & channel_mask));
+		return;
+	}
+	dev_info(priv->dev, "dma_channel:%d stop succ\n", dma_channel);
 }
 EXPORT_SYMBOL(asp_dma_stop);
-
+/*lint -e429*/
 static int asp_dma_probe (struct platform_device *pdev)
 {
 	int ret = 0;
@@ -444,7 +467,7 @@ err_exit:
 
 	return ret;
 }
-
+/*lint +e429*/
 static int asp_dma_remove (struct platform_device *pdev)
 {
 	struct asp_dma_priv *priv =
@@ -467,8 +490,6 @@ static int asp_dma_remove (struct platform_device *pdev)
 	devm_kfree(priv->dev, priv);
 
 	asp_dma_priv = NULL;
-
-	dev_info(priv->dev, "asp dma driver remove succ.\n");
 
 	return 0;
 }

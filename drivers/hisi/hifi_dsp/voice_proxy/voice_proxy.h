@@ -50,11 +50,8 @@
 
 /* The size limit for the in and out parameters of read/write/mailbox*/
 #define VOICE_PROXY_LIMIT_PARAM_SIZE (300)
-#define VOICE_PROXY_QUEUE_SIZE_MAX 50
-
-#ifndef UNUSED_PARAMETER
-#define UNUSED_PARAMETER(x) (void)(x)
-#endif
+/* QUEUE_SIZE_MUST_GREATER_THAN_SECRET_KEY_NEGOTIATION_SIZE(500) */
+#define VOICE_PROXY_QUEUE_SIZE_MAX 600
 
 enum send_tfagent_data_type {
 	VOLTE_NONE,
@@ -63,6 +60,12 @@ enum send_tfagent_data_type {
 	TF_TO_PROXY_DECRYPTED_DATA,
 	TF_TO_PROXY_ENCRYPTED_DATA,
 	VOLTE_MAX,
+};
+
+enum voice_modem_no {
+    VOICE_MC_MODEM0 = 0,
+    VOICE_MC_MODEM1,
+    VOICE_MC_MODEM_NUM_BUTT
 };
 
 struct send_tfagent_data {
@@ -75,6 +78,7 @@ struct send_tfagent_data {
 struct voice_proxy_cmd_node {
 	struct list_head list_node;
 	uint16_t msg_id;
+	uint16_t modem_no;
 };
 
 struct voice_proxy_data_buf {
@@ -113,18 +117,17 @@ struct voice_proxy_cmd_handle {
 };
 
 int64_t voice_proxy_get_timems(void);
-int32_t voice_proxy_add_work_queue_cmd(uint16_t msg_id);
+int32_t voice_proxy_add_work_queue_cmd(uint16_t msg_id, uint16_t modem_no);
 int32_t voice_proxy_create_data_node(struct voice_proxy_data_node **node, int8_t *data, int32_t size);
-int voice_proxy_register_msg_callback(uint16_t msg_id, voice_proxy_msg_cb callback);
+void voice_proxy_register_msg_callback(uint16_t msg_id, voice_proxy_msg_cb callback);
 void voice_proxy_deregister_msg_callback(uint16_t msg_id);
-int voice_proxy_register_cmd_callback(uint16_t msg_id, voice_proxy_cmd_cb callback);
+void voice_proxy_register_cmd_callback(uint16_t msg_id, voice_proxy_cmd_cb callback);
 void voice_proxy_deregister_cmd_callback(uint16_t msg_id);
-void voice_proxy_register_sign_init_callback(voice_proxy_sign_init_cb cb, int32_t *index);
-void voice_proxy_deregister_sign_init_callback(int32_t index);
+void voice_proxy_register_sign_init_callback(voice_proxy_sign_init_cb cb);
+void voice_proxy_deregister_sign_init_callback(voice_proxy_sign_init_cb cb);
 void voice_proxy_set_send_sign(bool first, bool *cnf, int64_t *timestamp);
 int32_t voice_proxy_add_cmd(uint16_t msg_id);
 int32_t voice_proxy_add_data(voice_proxy_add_data_cb callback, int8_t *data, uint32_t size, uint16_t msg_id);
 int64_t voice_proxy_get_time_ms(void);
-void debug_test_buf(int8_t *buf, uint32_t buf_size);
 #endif /* end of voice_proxy.h */
 

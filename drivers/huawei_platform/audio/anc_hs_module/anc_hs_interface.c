@@ -1,4 +1,4 @@
-
+/*lint -e528 -e529 */
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/device.h>
@@ -106,7 +106,9 @@ int anc_hs_ops_register(struct anc_hs_ops *ops)
 		g_anc_ops = ops;
 	} else {
 		pr_err("anc_hs interface ops register fail!\n");
+		/*lint -save -e* */
 		ret = -EPERM;
+		/*lint -restore*/
 	}
 	return ret;
 }
@@ -142,6 +144,7 @@ static struct of_device_id anc_hs_interface_match_table[] = {
 	},
 };
 
+/*lint -save -e* */
 static struct platform_driver anc_hs_interface_driver = {
 	.probe = anc_hs_interface_probe,
 	.remove = anc_hs_interface_remove,
@@ -152,6 +155,8 @@ static struct platform_driver anc_hs_interface_driver = {
 		.of_match_table = of_match_ptr(anc_hs_interface_match_table),
 	},
 };
+/*lint -restore*/
+
 /**********************************************************
 *  Function:       anc_hs_interface_init
 *  Discription:    anc_hs module initialization
@@ -173,8 +178,10 @@ static void __exit anc_hs_interface_exit(void)
 	platform_driver_unregister(&anc_hs_interface_driver);
 }
 
+/*lint -save -e* */
 device_initcall_sync(anc_hs_interface_init);
 module_exit(anc_hs_interface_exit);
+/*lint -restore*/
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("anc hs module driver");
 MODULE_AUTHOR("HUAWEI Inc");

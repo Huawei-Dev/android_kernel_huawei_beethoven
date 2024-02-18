@@ -7,6 +7,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+/*lint -e528 -e529 */
 #include <linux/i2c.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -45,7 +46,7 @@
 
 #include <linux/hisi/hisi_adc.h>
 #ifdef CONFIG_HUAWEI_DSM
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 #endif
 #include "huawei_platform/audio/anc_max14744.h"
 
@@ -55,18 +56,7 @@ HWLOG_REGIST();
 #ifdef CONFIG_HIFI_DSP_ONE_TRACK
 extern int hifi_send_msg(unsigned int mailcode, void *data, unsigned int length);
 #endif
-#ifdef CONFIG_HUAWEI_DSM
-/* dmd error report definition*/
-static struct dsm_dev dsm_anc_max14744 = {
-	.name = "dsm_anc_max14744",
-	.device_name = NULL,
-	.ic_name = NULL,
-	.module_name = NULL,
-	.fops = NULL,
-	.buff_size = 1024,
-};
-static struct dsm_client *anc_max14744_dclient;
-#endif
+
 enum anc_hs_mode {
 	ANC_HS_CHARGE_OFF          = 0,
 	ANC_HS_CHARGE_ON           = 1,
@@ -120,6 +110,8 @@ enum anc_max14744_irq_type {
 #define NO_BUTTON_PRESS                    (-1)
 
 #define CODEC_GPIO_BASE                    (224)
+#define I2C_REG_FAIL_MAX_TIMES             (10)
+#define I2C_FAIL_REPORT_MAX_TIMES          (20)
 
 /*#define ANC_BTN_MASK (SND_JACK_BTN_0)*/
 #define ANC_BTN_MASK (SND_JACK_BTN_0 | SND_JACK_BTN_1 | SND_JACK_BTN_2)
@@ -164,7 +156,10 @@ struct anc_max14744_priv {
 	struct mutex charge_lock; /* charge status protect lock */
 	struct mutex invert_hs_lock;
 	struct wake_lock wake_lock;
+
+	/*lint -save -e* */
 	spinlock_t irq_lock;
+	/*lint -restore*/
 
 	int registered; /* anc hs regester flag */
 	struct anc_hs_dev *anc_dev; /* anc hs dev */
@@ -194,7 +189,10 @@ struct anc_max14744_priv {
 };
 
 struct anc_max14744_priv *g_anc_max14744_priv;
+static unsigned int i2c_reg_fail_times = 0;
+static unsigned int i2c_fail_report_times = I2C_FAIL_REPORT_MAX_TIMES;
 
+/*lint -save -e* */
 static struct reg_default anc_max14744_reg[] = {
 	{ 0x00, 0x32 }, /* device id */
 	{ 0x01, 0x00 }, /* adc conversion */
@@ -210,7 +208,9 @@ static struct reg_default anc_max14744_reg[] = {
 	{ 0x0B, 0x10 }, /* acc control1 */
 	{ 0x0C, 0x00 }, /* acc control2 */
 };
+/*lint -restore*/
 
+/*lint -save -e* */
 static bool anc_max14744_volatile_register(struct device *dev,
 					   unsigned int reg)
 {
@@ -228,13 +228,17 @@ static bool anc_max14744_volatile_register(struct device *dev,
 			return false;
 	}
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static bool anc_max14744_readable_register(struct device *dev,
 					   unsigned int reg)
 {
 	return true;
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static inline int anc_hs_max14744_get_value(int gpio)
 {
 	if (gpio >= CODEC_GPIO_BASE)
@@ -242,6 +246,7 @@ static inline int anc_hs_max14744_get_value(int gpio)
 	else
 		return gpio_get_value(gpio);
 }
+/*lint -restore*/
 
 static inline void anc_max14744_gpio_set_value(int gpio, int value)
 {
@@ -251,6 +256,7 @@ static inline void anc_max14744_gpio_set_value(int gpio, int value)
 		gpio_set_value(gpio, value);
 }
 
+/*lint -save -e* */
 static inline void anc_hs_enable_irq(int irq)
 {
 	if (!g_anc_max14744_priv->irq_flag) {
@@ -258,7 +264,9 @@ static inline void anc_hs_enable_irq(int irq)
 		g_anc_max14744_priv->irq_flag = true;
 	}
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static inline void anc_hs_disable_irq(int irq)
 {
 	if (g_anc_max14744_priv->irq_flag) {
@@ -266,14 +274,32 @@ static inline void anc_hs_disable_irq(int irq)
 		g_anc_max14744_priv->irq_flag = false;
 	}
 }
+/*lint -restore*/
+
+static void anc_dsm_i2c_reg_fail_report(void)
+{
+	i2c_reg_fail_times ++;
+	if ((i2c_reg_fail_times > I2C_REG_FAIL_MAX_TIMES)
+        && (i2c_fail_report_times > 0)) {
+		i2c_reg_fail_times = 0;
+		i2c_fail_report_times --;
+#ifdef CONFIG_HUAWEI_DSM
+		audio_dsm_report_info(AUDIO_ANC_HS, ANC_HS_I2C_ERR, "anc regmap i2c error.\n");
+#endif
+	}
+	return;
+}
 
 static int anc_max14744_regmap_read(int reg, int *value)
 {
 	int ret = 0;
 
+	/*lint -save -e* */
 	ret = regmap_read(g_anc_max14744_priv->regmapL, reg, value);
+	/*lint -restore*/
 	if (ret < 0) {
-		hwlog_err("anc_max14744 regmap read error,%d\n", ret);
+		anc_dsm_i2c_reg_fail_report();
+		hwlog_err("anc_max14744 regmap read error,ret = %d, i2c_reg_fail_times = %d\n", ret, i2c_reg_fail_times);
 		return ret;
 	}
 
@@ -286,7 +312,8 @@ static int anc_max14744_regmap_write(int reg, int value)
 
 	ret = regmap_write(g_anc_max14744_priv->regmapL, reg, value);
 	if (ret < 0) {
-		hwlog_err("anc_max14744 regmap write error,%d\n", ret);
+		anc_dsm_i2c_reg_fail_report();
+		hwlog_err("anc_max14744 regmap write error,ret = %d, i2c_reg_fail_times = %d\n", ret, i2c_reg_fail_times);
 		return ret;
 	}
 
@@ -300,7 +327,8 @@ static int anc_max14744_regmap_update_bits(int reg, int mask, int value)
 	ret = regmap_update_bits(g_anc_max14744_priv->regmapL,
 						 reg, mask, value);
 	if (ret < 0) {
-		hwlog_err("anc_max14744 regmap update bits error,%d\n", ret);
+		anc_dsm_i2c_reg_fail_report();
+		hwlog_err("anc_max14744 regmap update bits error,ret = %d, i2c_reg_fail_times = %d\n", ret, i2c_reg_fail_times);
 		return ret;
 	}
 
@@ -356,6 +384,7 @@ static void max14744_unmask_plug_irq(void)
 					ANC_MAX14744_PLUG_IRQ_BIT, ANC_MAX14744_PLUG_IRQ_BIT);
 }
 
+/*lint -save -e* */
 static void max14744_mask_plug_irq(void)
 {
 	hwlog_info("anc_max14744 mask plug irq\n");
@@ -363,7 +392,9 @@ static void max14744_mask_plug_irq(void)
 	anc_max14744_regmap_update_bits(ANC_MAX14744_R007_MASK,
 					ANC_MAX14744_PLUG_IRQ_BIT, 0x00);
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static void max14744_unmask_eoc_irq(void)
 {
 	hwlog_info("anc_max14744 unmask eoc irq\n");
@@ -371,7 +402,9 @@ static void max14744_unmask_eoc_irq(void)
 	anc_max14744_regmap_update_bits(ANC_MAX14744_R007_MASK,
 					ANC_MAX14744_EOC_IRQ_BIT, ANC_MAX14744_EOC_IRQ_BIT);
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static void max14744_mask_eoc_irq(void)
 {
 	hwlog_info("anc_max14744 mask eoc irq\n");
@@ -379,6 +412,7 @@ static void max14744_mask_eoc_irq(void)
 	anc_max14744_regmap_update_bits(ANC_MAX14744_R007_MASK,
 					ANC_MAX14744_EOC_IRQ_BIT, 0x00);
 }
+/*lint -restore*/
 
 static void mic_bias_mode(int mode0)
 {
@@ -390,7 +424,9 @@ static void mic_bias_mode(int mode0)
 						ANC_MAX14744_MODE1_MASK, 0x00);
 		anc_max14744_regmap_update_bits(ANC_MAX14744_R008_PINS_CONTROL1,
 						ANC_MAX14744_MODE0_MASK, 0x00);
+		/*lint -save -e* */
 		mdelay(30);
+		/*lint -restore*/
 		anc_max14744_regmap_update_bits(ANC_MAX14744_R008_PINS_CONTROL1,
 						ANC_MAX14744_MODE0_MASK, mode0);
 		anc_max14744_regmap_update_bits(ANC_MAX14744_R008_PINS_CONTROL1,
@@ -419,7 +455,9 @@ static void power_mode(void)
 		anc_max14744_regmap_update_bits(ANC_MAX14744_R008_PINS_CONTROL1,
 						ANC_MAX14744_FORCE_MIC_SW_MASK,
 						ANC_MAX14744_FORCE_MIC_SW_MASK);
+		/*lint -save -e* */
 		mdelay(1);
+		/*lint -restore*/
 		anc_max14744_regmap_update_bits(ANC_MAX14744_R008_PINS_CONTROL1,
 						ANC_MAX14744_MODE1_MASK,
 						ANC_MAX14744_MODE1_MASK);
@@ -460,6 +498,7 @@ static void normal_mode(void)
 	return;
 }
 
+/*lint -save -e* */
 void anc_max14744_refresh_headset_type(int headset_type)
 {
 	if (NULL != g_anc_max14744_priv) {
@@ -467,6 +506,7 @@ void anc_max14744_refresh_headset_type(int headset_type)
 		hwlog_info("max14744: refresh headset_type %d.", g_anc_max14744_priv->headset_type);
 	}
 }
+/*lint -restore*/
 
 static void anc_hs_invert_ctl_work(struct work_struct* work)
 {
@@ -485,6 +525,7 @@ static void anc_hs_invert_ctl_work(struct work_struct* work)
 	wake_unlock(&g_anc_max14744_priv->wake_lock);
 }
 
+/*lint -save -e* */
 void anc_max14744_invert_headset_control(int connect)
 {
 	switch(connect) {
@@ -512,6 +553,7 @@ void anc_max14744_invert_headset_control(int connect)
 			break;
 	}
 }
+/*lint -restore*/
 
 /**
  * anc_hs_get_adc_delta
@@ -519,6 +561,7 @@ void anc_max14744_invert_headset_control(int connect)
  * get 3 times adc value with 1ms delay and use average value(delta) of it,
  * charge for it when delta is between anc_hs_limit_min and anc_hs_limit_max
  **/
+/*lint -save -e* */
 static int anc_max14744_get_adc_delta(void)
 {
 	int ear_pwr_h = 0, ear_pwr_l = 0;
@@ -587,6 +630,7 @@ static int anc_max14744_get_adc_delta(void)
 			   __func__, delta, count);
 	return delta;
 }
+/*lint -restore*/
 
 /**
  * anc_hs_get_btn_value - judge which button is pressed
@@ -656,11 +700,15 @@ static void anc_max14744_btn_judge(void)
 		/*button down event*/
 		hwlog_info("%s(%u) : button down event !\n",
 				   __func__, __LINE__);
+		/*lint -save -e* */
 		mdelay(50);
+		/*lint -restore*/
 		btn_report = anc_max14744_get_btn_value();
 		if (NO_BUTTON_PRESS != btn_report) {
 			g_anc_max14744_priv->button_pressed = 1;
+			/*lint -save -e* */
 			fops->btn_report(btn_report, ANC_BTN_MASK);
+			/*lint -restore*/
 		} else {
 			hwlog_warn("anc_max14744_btn_judge: it is not a button press.");
 		}
@@ -673,7 +721,9 @@ static void anc_max14744_btn_judge(void)
 
 		/* we permit button up event report to userspace,
 			 make sure down and up in pair*/
+		/*lint -save -e* */
 		fops->btn_report(btn_report, ANC_BTN_MASK);
+		/*lint -restore*/
 	}
 
 	mutex_unlock(&g_anc_max14744_priv->btn_mutex);
@@ -729,7 +779,9 @@ static int anc_hs_send_hifi_msg(int anc_status)
 static bool anc_max14744_need_charge(void)
 {
 	int delta = 0;
+	/*lint -save -e* */
 	mdelay(30);
+	/*lint -restore*/
 	delta = anc_max14744_get_adc_delta();
 	if ((delta >= g_anc_max14744_priv->anc_hs_limit_min) &&
 		(delta <= g_anc_max14744_priv->anc_hs_limit_max)) {
@@ -846,8 +898,9 @@ static bool anc_max14744_charge_judge(void)
 	/* waiting for anc chip start up*/
 	hwlog_info("%s: delay %d ms to wait anc chip up!\n",
 			   __func__, g_anc_max14744_priv->sleep_time);
+	/*lint -save -e* */
 	mdelay(g_anc_max14744_priv->sleep_time);
-
+	/*lint -restore*/
 	mutex_lock(&g_anc_max14744_priv->charge_lock);
 
 	if ((g_anc_max14744_priv->hs_micbias_ctl == ANC_HS_ENABLE_CHARGE) &&
@@ -873,7 +926,9 @@ static bool anc_max14744_charge_judge(void)
 		/* stop charge and change status to CHARGE_OFF*/
 		max14744_mask_btn_irq();
 		mic_bias_mode(LDO1_CALL_MODE);
+		/*lint -save -e* */
 		udelay(500);
+		/*lint -restore*/
 		g_anc_max14744_priv->anc_hs_mode = ANC_HS_CHARGE_OFF;
 		if (ERROR_RET == anc_hs_send_hifi_msg(ANC_HS_CHARGE_OFF)) {
 			hwlog_err("%s(%u) : anc_hs_send_hifi_msg TURN OFF ANC_HS return ERROR !\n", __func__, __LINE__);
@@ -909,7 +964,9 @@ static void update_charge_status(void)
 		if (g_anc_max14744_priv->anc_hs_mode == ANC_HS_CHARGE_ON) {
 			max14744_mask_btn_irq();
 			mic_bias_mode(LDO1_CALL_MODE);
+			/*lint -save -e* */
 			udelay(500);
+			/*lint -restore*/
 
 			hwlog_info("%s(%u) : stop charging for anc hs !\n",
 					   __func__, __LINE__);
@@ -933,7 +990,9 @@ static void update_charge_status(void)
 				if (g_anc_max14744_priv->anc_hs_mode == ANC_HS_CHARGE_OFF) {
 					g_anc_max14744_priv->anc_hs_mode = ANC_HS_CHARGE_ON;
 					power_mode();
+					/*lint -save -e* */
 					udelay(500);
+					/*lint -restore*/
 					max14744_unmask_btn_irq();
 
 					hwlog_info("%s(%u) : resume charging for anc hs!\n",
@@ -1075,8 +1134,12 @@ void anc_max14744_stop_charge(void)
  * only support one codec to be registered, and all the callback
  * functions must be realized.
  **/
+/*lint -save -e* */
 int anc_max14744_dev_register(struct anc_hs_dev *dev, void *codec_data)
 {
+	int value = 0;
+	int ret = 0;
+
 	/* anc_hs driver not be probed, just return */
 	if (g_anc_max14744_priv == NULL)
 		return -ENODEV;
@@ -1099,13 +1162,18 @@ int anc_max14744_dev_register(struct anc_hs_dev *dev, void *codec_data)
 	g_anc_max14744_priv->private_data = codec_data;
 	g_anc_max14744_priv->registered = true;
 
-	force_clear_irq();
+	ret = anc_max14744_regmap_read(ANC_MAX14744_R006_INTERRUPT, &value);
+	if (ret < 0) {
+		hwlog_err("anc_max14744_dev_register: anc_max14744 force_clear_irq, read irq reg fail. \n");
+	}
+
 	max14744_unmask_plug_irq();
 	hwlog_info("%s(%u) : anc hs has been register sucessful!\n",
 			   __func__, __LINE__);
 
 	return 0;
 }
+/*lint -restore*/
 
 bool check_anc_max14744_support(void)
 {
@@ -1125,6 +1193,7 @@ bool anc_max14744_plug_enable(void)
 		return true;
 }
 
+/*lint -save -e* */
 bool anc_max14744_check_headset_pluged_in(void)
 {
 	int value = 0;
@@ -1139,6 +1208,7 @@ bool anc_max14744_check_headset_pluged_in(void)
 	else
 		return false;
 }
+/*lint -restore*/
 
 static int get_irq_type(void)
 {
@@ -1198,14 +1268,6 @@ static void anc_hs_btn_work(struct work_struct *work)
 
 }
 
-#if 0
-static irqreturn_t max14744_handler(int irq, void *data)
-{
-	disable_irq_nosync(irq);
-	return IRQ_WAKE_THREAD;
-}
-#endif
-
 /**
  * anc_max14744_irq_handler - respond button irq while charging
  * for anc headset
@@ -1264,7 +1326,9 @@ static irqreturn_t anc_max14744_irq_handler(int irq, void *data)
 		loop = loop - 1;
 	}
 	if (loop <= 0) {
-		hwlog_err("anc_hs_max14744: there is irq unhandled in anc_max14744_irq_handler.\n");
+#ifdef CONFIG_HUAWEI_DSM
+		audio_dsm_report_info(AUDIO_ANC_HS, ANC_HS_UNHANDLED_IRQ, "there is irq unhandled in anc_max14744_irq_handler.\n");
+#endif
 	}
 
 	return IRQ_HANDLED;
@@ -1273,7 +1337,6 @@ static irqreturn_t anc_max14744_irq_handler(int irq, void *data)
 static int judge_headset_type_further(void)
 {
 	int value = 0;
-	int value1 = 0;
 	int idet_lvl = 0;
 	int retry = 3;
 	int idet = 0;
@@ -1371,6 +1434,7 @@ static int compute_final_voltage(void)
  * userspeace can get charge status and force control
  * charge status.
  **/
+/*lint -save -e* */
 static long anc_max14744_ioctl(struct file *file, unsigned int cmd,
 							   unsigned long arg)
 {
@@ -1434,7 +1498,6 @@ static long anc_max14744_ioctl(struct file *file, unsigned int cmd,
 			voltage = compute_final_voltage();
 			anc_max14744_gpio_set_value(
 				g_anc_max14744_priv->anc_pwr_en_gpio, 0);
-
 			ret = put_user((__u32)voltage, p_user);
 			break;
 		case IOCTL_ANC_HS_GET_VDD_BUCK_VOLTAGE_CMD:
@@ -1442,7 +1505,6 @@ static long anc_max14744_ioctl(struct file *file, unsigned int cmd,
 			anc_max14744_gpio_set_value(
 				g_anc_max14744_priv->anc_pwr_en_gpio, 0);
 			voltage = compute_final_voltage();
-
 			ret = put_user((__u32)voltage, p_user);
 			break;
 		case IOCTL_ANC_HS_GET_HEADSET_RESISTANCE_CMD:
@@ -1457,6 +1519,7 @@ static long anc_max14744_ioctl(struct file *file, unsigned int cmd,
 
 	return (long)ret;
 }
+/*lint -restore*/
 
 static ssize_t anc_max14744_reg_list_show(struct device *dev,
 					  struct device_attribute *attr, char *buf)
@@ -1476,28 +1539,6 @@ static ssize_t anc_max14744_reg_list_show(struct device *dev,
 	return strlen(buf);
 }
 
-static ssize_t anc_max14744_reg_single_show(struct device *dev,
-					struct device_attribute *attr, char *buf)
-{
-	int value = 0;
-	int reg;
-	char val_str[20];
-	char *p_end = buf;
-
-	buf[0] = '\0';
-
-	reg = kstrtol(buf, &p_end, 16);
-	if(reg < 0 || reg > 0x0C) {
-		hwlog_info("reg address not correct!");
-		return 0;
-	}
-	anc_max14744_regmap_read(reg, &value);
-	sprintf(val_str, "0x%02x = 0x%02x\n", reg, value);
-	strcat(buf, val_str);
-
-	return strlen(buf);
-}
-
 static ssize_t anc_max14744_adc_show(struct device *dev,
 				 struct device_attribute *attr, char *buf)
 {
@@ -1507,9 +1548,13 @@ static ssize_t anc_max14744_adc_show(struct device *dev,
 	buf[0] = '\0';
 
 	ear_pwr_h = hisi_adc_get_value(g_anc_max14744_priv->channel_pwl_h);
+	/*lint -save -e* */
 	mdelay(50);
+	/*lint -restore*/
 	ear_pwr_l = hisi_adc_get_value(g_anc_max14744_priv->channel_pwl_l);
+	/*lint -save -e* */
 	mdelay(50);
+	/*lint -restore*/
 	sprintf(val_str, "h = %d, l = %d\n", ear_pwr_h, ear_pwr_l);
 	strcat(buf, val_str);
 
@@ -1519,39 +1564,79 @@ static ssize_t anc_max14744_reg_write_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
 {
-	int reg = 0;
-	int val = 0;
-	char *p_end = (char *)buf;
+	int ret = 0;
+	long reg = 0;
+	long val = 0;
+	const char *p_val = buf;
+	char *p_reg = NULL;
 
-	reg = kstrtol(buf, &p_end, 16);
-	p_end++;
-	hwlog_info("anc_max14744_reg_write_store reg : 0x%x\n", reg);
-	val = kstrtol(p_end, &p_end, 16);
-	hwlog_info("anc_max14744_reg_write_store val : 0x%x\n", val);
+	if ((NULL == buf) || (NULL == strstr(buf, " "))) {
+		hwlog_err("%s: input parameters error\n", __func__);
+		/*lint -save -e* */
+		return -EINVAL;
+		/*lint -restore*/
+	}
+
+	/*lint -save -e* */
+	p_reg = strsep(&p_val, " ");
+	/*lint -restore*/
+
+	if ((NULL == p_reg) || (NULL == p_val) || ('\0' == *p_reg) || ('\0' == *p_val)) {
+		hwlog_err("%s: input register address or value is \\0\n", __func__);
+		/*lint -save -e* */
+		return -EINVAL;
+		/*lint -restore*/
+	}
+
+	/*lint -save -e* */
+	ret = kstrtol(p_reg, 16, &reg);
+	/*lint -restore*/
+	if (ret < 0) {
+		hwlog_err("%s: input register address error:%s\n", __func__, p_reg);
+		/*lint -save -e* */
+		return -EINVAL;
+		/*lint -restore*/
+	}
+
+	/*lint -save -e* */
+	ret = kstrtol(p_val, 16, &val);
+	/*lint -restore*/
+	if (ret < 0) {
+		hwlog_err("%s: input register value error:%s\n", __func__, p_val);
+		/*lint -save -e* */
+		return -EINVAL;
+		/*lint -restore*/
+	}
 
 	if (reg <= 0x06 || reg > 0x0c) {
 		hwlog_err("invalid register address: 0x%x\n", reg);
+		/*lint -save -e* */
 		return -ENXIO;
+		/*lint -restore*/
 	}
 
-	anc_max14744_regmap_write(reg, val);
+	if (val < 0x00 || val > 0xff) {
+		hwlog_err("invalid register value: 0x%x\n", val);
+		/*lint -save -e* */
+		return -ENXIO;
+		/*lint -restore*/
+	}
 
+	anc_max14744_regmap_write((int)reg, (int)val);
 	return count;
 }
 
-
+/*lint -save -e* */
 static DEVICE_ATTR(reg_list, 0664, anc_max14744_reg_list_show,
-				   NULL);
-static DEVICE_ATTR(reg_single, 0664, anc_max14744_reg_single_show,
 				   NULL);
 static DEVICE_ATTR(reg_write, 0660, NULL,
 				   anc_max14744_reg_write_store);
 static DEVICE_ATTR(adc, 0664, anc_max14744_adc_show,
 				   NULL);
+/*lint -restore*/
 
 static struct attribute *anc_max14744_attributes[] = {
 	&dev_attr_reg_list.attr,
-	&dev_attr_reg_single.attr,
 	&dev_attr_reg_write.attr,
 	&dev_attr_adc.attr,
 	NULL
@@ -1561,6 +1646,7 @@ static const struct attribute_group anc_max14744_attr_group = {
 	.attrs = anc_max14744_attributes,
 };
 
+/*lint -save -e* */
 static const struct regmap_config anc_max14744_regmap = {
 	.reg_bits		 = 8,
 	.val_bits		 = 8,
@@ -1571,7 +1657,9 @@ static const struct regmap_config anc_max14744_regmap = {
 	.readable_reg	 = anc_max14744_readable_register,
 	.cache_type	   = REGCACHE_RBTREE,
 };
+/*lint -restore*/
 
+/*lint -save -e* */
 static const struct file_operations anc_max14744_fops = {
 	.owner			   = THIS_MODULE,
 	.open				= simple_open,
@@ -1580,14 +1668,18 @@ static const struct file_operations anc_max14744_fops = {
 	.compat_ioctl		= anc_max14744_ioctl,
 #endif
 };
+/*lint -restore*/
 
+/*lint -save -e* */
 static struct miscdevice anc_max14744_device = {
 	.minor  = MISC_DYNAMIC_MINOR,
 	.name   = "anc_hs",
 	.fops   = &anc_max14744_fops,
 };
+/*lint -restore*/
 
 /* load dts config for board difference */
+/*lint -save -e* */
 static void load_anc_hs_config(struct device_node *node)
 {
 	int temp = 0;
@@ -1648,6 +1740,7 @@ static void load_anc_hs_config(struct device_node *node)
 		g_anc_max14744_priv->anc_hs_btn_volume_down_max_voltage =
 			ANC_HS_VOLUME_DOWN_MAX;
 }
+/*lint -restore*/
 
 static void chip_init(void)
 {
@@ -1682,6 +1775,7 @@ struct anc_hs_ops anc_max14744_ops = {
  *  id:i2c_device_id
  *  return value:  0-sucess or others-fail
 **********************************************************/
+/*lint -save -e* */
 static int anc_max14744_probe(struct i2c_client *client,
 			  const struct i2c_device_id *id)
 {
@@ -1690,6 +1784,7 @@ static int anc_max14744_probe(struct i2c_client *client,
 	const char *ldo_supply_used_name = "ldo_supply_used";
 	const char *anc_hs_vdd_name = "anc_hs_vdd";
 	const char *cam_ldo_used_name = "cam_ldo_used";
+	const char *chip_powered_on_time = "chip_powered_on_time";
 	unsigned long flag = IRQF_ONESHOT | IRQF_NO_SUSPEND;
 	struct anc_max14744_priv *di = NULL;
 	struct device_node *np = NULL;
@@ -1768,12 +1863,34 @@ static int anc_max14744_probe(struct i2c_client *client,
 			hwlog_info("%s failed to get cam_ldo_value from device tree, just go on\n", __func__);
 		}
 
+#ifdef CONFIG_USE_CAMERA3_ARCH
 		if ((di->cam_ldo_num != -EINVAL) && (di->cam_ldo_value != -EINVAL)) {
 			hw_extern_pmic_config(di->cam_ldo_num, di->cam_ldo_value, 1);
 		}
+#endif
 	}
 
+	ret = of_property_read_u32(np, chip_powered_on_time, &val);
+	if (ret) {
+		hwlog_info("%s: fail to get chip_powered_on_time.\n", __func__);
+		val = CHIP_DEFUALT_POWERED_TIME;
+	}
+	mdelay(val);
+
 	i2c_set_clientdata(client, di);
+	di->regmapL = regmap_init_i2c(client, &anc_max14744_regmap);
+	if (IS_ERR(di->regmapL)) {
+		ret = PTR_ERR(di->regmapL);
+		hwlog_err("Failed to allocate regmapL: %d\n", ret);
+		goto err_out;
+	}
+
+	ret = anc_max14744_regmap_read(ANC_MAX14744_R000_DEVICE_ID, &val);
+	if (ret < 0) {
+		hwlog_err("max14744 chip is not exist, stop the chip init.\n");
+		ret = -ENXIO;
+		goto err_out;
+	}
 
 	mutex_init(&di->charge_lock);
 	mutex_init(&di->btn_mutex);
@@ -1808,12 +1925,6 @@ static int anc_max14744_probe(struct i2c_client *client,
 	if (ret)
 		hwlog_err("could not set pins to default state.\n");
 
-	di->regmapL = regmap_init_i2c(client, &anc_max14744_regmap);
-	if (IS_ERR(di->regmapL)) {
-		ret = PTR_ERR(di->regmapL);
-		hwlog_err("Failed to allocate regmapL: %d\n", ret);
-		goto err_out;
-	}
 	ret = sysfs_create_group(&client->dev.kobj, &anc_max14744_attr_group);
 	if (ret < 0)
 		hwlog_err("failed to register sysfs\n");
@@ -1913,6 +2024,7 @@ static int anc_max14744_probe(struct i2c_client *client,
 		goto err_out_irq;
 	}
 
+
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
 	/* detect current device successful, set the flag as present */
 	set_hw_dev_flag(DEV_I2C_ANC_MAX14744);
@@ -1958,13 +2070,13 @@ err_out:
 	if (ret < 0) {
 		if (di->regmapL)
 			regmap_exit(di->regmapL);
-		kfree(di);
 	}
 	g_anc_max14744_priv = NULL;
 	np = NULL;
 
 	return ret;
 }
+/*lint -restore*/
 
 /**********************************************************
 *  Function:	   anc_max14744_remove
@@ -1972,6 +2084,7 @@ err_out:
 *  Parameters:   client:i2c_client
 *  return value:  0-sucess or others-fail
 **********************************************************/
+/*lint -save -e* */
 static int anc_max14744_remove(struct i2c_client *client)
 {
 	struct anc_max14744_priv *di = i2c_get_clientdata(client);
@@ -2014,7 +2127,6 @@ static int anc_max14744_remove(struct i2c_client *client)
 			hwlog_err("%s: disable anc hs ldo failed.\n", __func__);
 		}
 	}
-	kfree(di);
 	di = NULL;
 
 	misc_deregister(&anc_max14744_device);
@@ -2023,8 +2135,9 @@ static int anc_max14744_remove(struct i2c_client *client)
 
 	return 0;
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 static struct of_device_id anc_max14744_of_match[] = {
 	{
 		.compatible = "huawei,anc_max14744",
@@ -2033,13 +2146,19 @@ static struct of_device_id anc_max14744_of_match[] = {
 	{
 	},
 };
+/*lint -restore*/
+
+/*lint -save -e* */
 MODULE_DEVICE_TABLE(of, anc_max14744_of_match);
+/*lint -restore*/
 
 static const struct i2c_device_id anc_max14744_i2c_id[] = {
 	{"anc_max14744", 0}, {},
 };
 
+/*lint -save -e* */
 MODULE_DEVICE_TABLE(i2c, anc_max14744_i2c_id);
+/*lint -restore*/
 
 static struct i2c_driver anc_max14744_driver = {
 	.probe                = anc_max14744_probe,
@@ -2081,9 +2200,10 @@ static void __exit anc_max14744_exit(void)
 {
 	i2c_del_driver(&anc_max14744_driver);
 }
+/*lint -save -e* */
 module_init(anc_max14744_init);
 module_exit(anc_max14744_exit);
-
+/*lint -restore*/
 
 MODULE_DESCRIPTION("anc max14744 headset driver");
 MODULE_LICENSE("GPL");

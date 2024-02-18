@@ -38,8 +38,13 @@
 #include <linux/timer.h>
 #include <linux/delay.h>
 #include <global_ddr_map.h>
+#include <linux/clk.h>
+#include <linux/clkdev.h>
 
 #define EFUSE_DEV_NAME "efuse"
+#define EFUSE_CLOCK_VOLT "efuse_volt_hold"
+
+static struct clk *pefuse_clk = NULL;
 static EFUSE_LOG_LEVEL g_efuse_print_level = log_level_error;
 static EFUSEC_DATA g_efusec_data;
 static char* g_efusec_attributions[]={
@@ -68,7 +73,13 @@ static char* g_efusec_attributions[]={
         printk(KERN_ERR fmt, ##__VA_ARGS__); \
     } \
 } while (0)
-
+// cppcheck-suppress *
+#define check_efuse_module_ready() \
+({ if (EFUSE_MODULE_INIT_SUCCESS_FLG != g_efusec_data.is_init_success) { \
+	efuse_print_info(log_level_error, "%s: efuse module is not ready now.\n", __func__);\
+	return -ENODEV; \
+ } \
+})
 
 #define EFUSE_FN_GET_DIEID                                       0xc5000001
 #define EFUSE_FN_GET_CHIPID                                      0xc5000002
@@ -78,12 +89,44 @@ static char* g_efusec_attributions[]={
 #define EFUSE_FN_GET_SECURITYDEBUG                               0xc5000006
 #define EFUSE_FN_SET_SECURITYDEBUG                               0xc5000007
 #define EFUSE_FN_GET_THERMAL                                     0xc5000008
-#define EFUSE_FN_TEST_DISPLAY                                    0xc5000009 //lint !e750
+/*lint -e750 -esym(750,*)*/
+#define EFUSE_FN_TEST_DISPLAY                                    0xc5000009
+/*lint -e750 +esym(750,*)*/
 #define EFUSE_FN_GET_KCE                                         0xc500000B
 #define EFUSE_FN_SET_KCE                                         0xc500000C
 #define EFUSE_FN_GET_FREQ                                        0xc500000E
 #define EFUSE_FN_SET_HISEE                                0xc5000013
 #define EFUSE_FN_GET_HISEE                                0xc5000014
+
+
+static int vote_efuse_volt(void)
+{
+	int ret = ERROR;
+	if (IS_ERR_OR_NULL(pefuse_clk))
+	{
+		efuse_print_info(log_level_error, "%s: %d: pefuse_clk is NULL.\n", __func__, __LINE__);
+		return -EFAULT;
+	}
+	ret = clk_prepare_enable(pefuse_clk);
+	if (ret != OK)
+	{
+		efuse_print_info(log_level_error, "%s: %d: clk_prepare_enable fail.\n", __func__, __LINE__);
+		return ERROR;
+	}
+	return OK;
+}
+
+
+static int restore_efuse_volt(void)
+{
+	if (IS_ERR_OR_NULL(pefuse_clk))
+	{
+		efuse_print_info(log_level_error, "%s: %d: pefuse_clk is NULL.\n", __func__, __LINE__);
+		return -EFAULT;
+	}
+	clk_disable_unprepare(pefuse_clk);
+	return OK;
+}
 
 noinline int atfd_hisi_service_efusec_smc(u64 function_id, u64 arg0, u64 arg1, u64 arg2)
 {
@@ -99,6 +142,7 @@ noinline int atfd_hisi_service_efusec_smc(u64 function_id, u64 arg0, u64 arg1, u
 	return (int)function_id;
 }
 
+
 int get_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
 {
 	int ret;
@@ -108,6 +152,7 @@ int get_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsi
 		efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
 		return -EFAULT;
 	}
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
 	ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_HISEE, (u64)g_efusec_data.buf_phy_addr, u32Length, timeout);
@@ -122,18 +167,23 @@ int get_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsi
 
 
 int set_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
-	{
+{
 	int ret;
+	int vote_efuse_volt_flag = ERROR;
 
 	if (NULL == pu8Buffer || (u32Length > EFUSE_HISEE_LENGTH_BYTES))
 	{
 		efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
 		return -EFAULT;
 	}
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
 	memmove((void *)g_efusec_data.buf_virt_addr, (void *)pu8Buffer, u32Length);
 	ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_SET_HISEE, (u64)g_efusec_data.buf_phy_addr, u32Length, timeout);
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
 	mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
 	return ret;
@@ -148,6 +198,7 @@ int get_efuse_dieid_value(unsigned char *pu8Buffer, unsigned int u32Length, unsi
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_DIEID, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
@@ -156,6 +207,7 @@ int get_efuse_dieid_value(unsigned char *pu8Buffer, unsigned int u32Length, unsi
         memmove((void *)pu8Buffer, (void *)g_efusec_data.buf_virt_addr, u32Length);
     }
 	mutex_unlock(&g_efusec_data.efuse_mutex);
+	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
 }
 int get_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
@@ -167,6 +219,7 @@ int get_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Length, uns
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
         return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_CHIPID, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
@@ -181,16 +234,21 @@ int get_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Length, uns
 int set_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
 {
     int ret;
+	int vote_efuse_volt_flag = ERROR;
 
     if (NULL == pu8Buffer || (u32Length > EFUSE_CHIPID_LENGTH_BYTES))
     {
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
 		return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
     memmove((void *)g_efusec_data.buf_virt_addr, (void *)pu8Buffer, u32Length);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_SET_CHIPID, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
     mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
@@ -204,6 +262,7 @@ int get_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Length, un
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_AUTHKEY, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
@@ -218,16 +277,21 @@ int get_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Length, un
 int set_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
 {
     int ret;
+	int vote_efuse_volt_flag = ERROR;
 
     if (NULL == pu8Buffer || (u32Length > EFUSE_AUTHKEY_LENGTH_BYTES))
     {
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
     memmove((void *)g_efusec_data.buf_virt_addr, (void *)pu8Buffer, u32Length);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_SET_AUTHKEY, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
     mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
@@ -241,6 +305,7 @@ int get_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int u32Leng
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_SECURITYDEBUG, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
@@ -255,16 +320,21 @@ int get_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int u32Leng
 int set_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int timeout)
 {
 	int ret;
+	int vote_efuse_volt_flag = ERROR;
 
 	if (NULL == pu8Buffer)
 	{
 		efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
 	   return -EFAULT;
 	}
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
 	memmove((void *)g_efusec_data.buf_virt_addr, (void *)pu8Buffer, sizeof(unsigned int));
 	ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_SET_SECURITYDEBUG, (u64)g_efusec_data.buf_phy_addr, (u64)0, (u64)timeout);
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
 	mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
 	return ret;
@@ -278,6 +348,7 @@ int get_efuse_thermal_value(unsigned char *pu8Buffer, unsigned int u32Length, un
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_THERMAL, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
@@ -299,6 +370,7 @@ int get_efuse_freq_value(unsigned char *pu8Buffer, unsigned int u32Length)
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
        return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_FREQ, (u64)g_efusec_data.buf_phy_addr, sizeof(unsigned int), (u64)0);
@@ -316,6 +388,7 @@ int get_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsign
 {
     int ret = OK;
 
+	check_efuse_module_ready();
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
 }
@@ -324,16 +397,21 @@ int get_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsign
 int set_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
 {
     int ret;
+	int vote_efuse_volt_flag = ERROR;
 
     if (NULL == pu8Buffer || (u32Length != EFUSE_KCE_LENGTH_BYTES))
     {
         efuse_print_info(log_level_error, "%s: %d: pu8Buffer is NULL.\n", __func__, __LINE__);
         return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
     mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
     memmove((void *)g_efusec_data.buf_virt_addr, (void *)pu8Buffer, u32Length);
     ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_SET_KCE, (u64)g_efusec_data.buf_phy_addr, (u64)u32Length, (u64)timeout);
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
     mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
@@ -349,6 +427,7 @@ int bsp_efuse_read(unsigned int * pBuf, const unsigned int group, const unsigned
         efuse_print_info(log_level_error, "%s: %d: pBuf is NULL.\n", __func__, __LINE__);
         return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
     switch(group)
@@ -382,7 +461,6 @@ int bsp_efuse_read(unsigned int * pBuf, const unsigned int group, const unsigned
 			ret = g_efusec_data.invoke_efuse_fn(EFUSE_FN_GET_DIEID, (u64)g_efusec_data.buf_phy_addr, bytes, EFUSE_MAILBOX_TIMEOUT_1000MS);
 			if (OK != ret) {
     			efuse_print_info(log_level_error, "%s: %d: get_efuse_dieid_value failed.\n", __func__, __LINE__);
-                ret = ERROR;
 				break;
     		}
 			if (pBuf != (unsigned int *)g_efusec_data.buf_virt_addr) {
@@ -401,7 +479,6 @@ int bsp_efuse_read(unsigned int * pBuf, const unsigned int group, const unsigned
 			if (OK != ret)
     		{
 				efuse_print_info(log_level_error, "%s: %d: get_efuse_dieid_value failed.\n", __func__, __LINE__);
-                ret = ERROR;
 				break;
     		}
 			if (pBuf != (unsigned int *)g_efusec_data.buf_virt_addr) {
@@ -423,14 +500,17 @@ int bsp_efuse_write(unsigned int *pBuf, const unsigned int group, const unsigned
 {
     int ret;
     int bytes;
+	int vote_efuse_volt_flag = ERROR;
 
     if (NULL == pBuf)
     {
         efuse_print_info(log_level_error, "%s: %d: pBuf is NULL.\n", __func__, __LINE__);
         return -EFAULT;
     }
+	check_efuse_module_ready();
 	BUG_ON(in_interrupt());
 	mutex_lock(&g_efusec_data.efuse_mutex);
+	vote_efuse_volt_flag = vote_efuse_volt();
     switch(group)
     {
         case EFUSE_KCE_GROUP_START:
@@ -455,6 +535,8 @@ int bsp_efuse_write(unsigned int *pBuf, const unsigned int group, const unsigned
             ret = OK;
             break;
     }
+	if (OK == vote_efuse_volt_flag)
+		restore_efuse_volt();
 	mutex_unlock(&g_efusec_data.efuse_mutex);
 	efuse_print_info(log_level_error, "%s: ret=%d.\n", __func__, ret);
     return ret;
@@ -474,7 +556,7 @@ static long efusec_ioctl(struct file *file, u_int cmd, u_long arg)
 {
 	int ret = OK;
 	void __user *argp = (void __user *)arg;
-	int i;
+	unsigned int i;
 	unsigned int bits_width, bytes;
 	/*20 bytes be enough for these efuse field now, need to make larger if
 	 *the length of efuse field more than 20!
@@ -643,7 +725,6 @@ static long efusec_ioctl(struct file *file, u_int cmd, u_long arg)
         break;
 
 
-
 	default:
 	    efuse_print_info(log_level_error, "[EFUSE][%s] Unknow command!\n", __func__);
 		ret = -ENOTTY;
@@ -663,7 +744,7 @@ static int __init hisi_efusec_init(void)
 	int ret = 0;
 	int major = 0;
 	struct class *efuse_class;
-    struct device *pdevice;
+	struct device *pdevice;
 	struct device_node *np = NULL;
 	unsigned int bit_width;
 	unsigned int i;
@@ -741,6 +822,12 @@ static int __init hisi_efusec_init(void)
 		goto error2;
 	}
 
+	pefuse_clk = devm_clk_get(pdevice, EFUSE_CLOCK_VOLT);
+	if (IS_ERR_OR_NULL(pefuse_clk))
+	{
+		efuse_print_info(log_level_error, "%s: %d: devm_clk_get is NULL.\n", __func__, __LINE__);
+	}
+
 	g_efusec_data.invoke_efuse_fn = atfd_hisi_service_efusec_smc;
 	mutex_init(&(g_efusec_data.efuse_mutex));
 
@@ -772,6 +859,7 @@ static int __init hisi_efusec_init(void)
         efuse_print_info(log_level_error, "%s: %d: allocate memory for g_efusec_data.buf_virt_addr failed.\n", __func__, __LINE__);
         goto error2;
     }
+	g_efusec_data.is_init_success = EFUSE_MODULE_INIT_SUCCESS_FLG;
 	efuse_print_info(log_level_error, "g_efusec_data.buf_phy_addr=0x%lx, g_efusec_data.buf_virt_addr=0x%lx, efuse init success", (unsigned long)g_efusec_data.buf_phy_addr, (unsigned long)g_efusec_data.buf_virt_addr);
 	return ret;
 error2:

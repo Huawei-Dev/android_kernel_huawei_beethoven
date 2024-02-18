@@ -32,7 +32,7 @@ extern "C" {
 #define HIFIDEBUG_LEVEL_PROC_FILE                     "debuglevel"
 #define HIFIDEBUG_DSPDUMPLOG_PROC_FILE                "dspdumplog"
 #define HIFIDEBUG_FAULTINJECT_PROC_FILE               "dspfaultinject"
-#define HIFIDEBUG_RESETOPTION_PROC_FILE               "resetsystem"
+#define HIFIDEBUG_MISCPROC_PROC_FILE                  "miscproc"
 
 #ifndef LOG_TAG
 #define LOG_TAG "hifi_misc "
@@ -46,6 +46,7 @@ extern "C" {
 #define HIFI_OM_FILE_LIMIT		0640
 #define HIFI_OM_LOG_SIZE_MAX	0x400000 /* 4*1024*1024 = 4M */
 #define HIFI_OM_FILE_BUFFER_SIZE_MAX	(1024)
+#define HIFI_SEC_MAX_NUM 100
 
 typedef enum {
 	DUMP_DSP_LOG,
@@ -83,6 +84,13 @@ enum HIFI_CPU_OM_INFO_ENUM
 	HIFI_CPU_OM_UPDATE_BUFF_DELAY_INFO, /* audio pcm play or capture update buff delay */
 	HIFI_CPU_OM_INFO_BUTT
 };
+
+enum HIFI_VOICE_3A_INFO_ENUM
+{
+	HIFI_3A_INFO_MSG= 0,
+	HIFI_3A_INFO_MSG_BUTT
+};
+
 enum EFFECT_ALGO_ENUM                          /*À„∑®¡–±Ì*/
 {
 	ID_EFFECT_ALGO_START                =0,
@@ -138,6 +146,46 @@ enum EFFECT_STREAM_ID{
 	AUDIO_STREAM_VOICE_INPUT,
 	AUDIO_STREAM_VOICEPP_INPUT,
 	AUDIO_STREAM_INPUT_CNT,
+};
+
+enum DRV_HIFI_IMAGE_SEC_LOAD_ENUM {
+	DRV_HIFI_IMAGE_SEC_LOAD_STATIC = 0,
+	DRV_HIFI_IMAGE_SEC_LOAD_DYNAMIC,
+	DRV_HIFI_IMAGE_SEC_UNLOAD,
+	DRV_HIFI_IMAGE_SEC_UNINIT,
+	DRV_HIFI_IMAGE_SEC_LOAD_BUTT,
+};
+typedef unsigned char DRV_HIFI_IMAGE_SEC_LOAD_ENUM_UINT8;
+
+enum DRV_HIFI_IMAGE_SEC_TYPE_ENUM {
+	DRV_HIFI_IMAGE_SEC_TYPE_CODE = 0,
+	DRV_HIFI_IMAGE_SEC_TYPE_DATA,
+	DRV_HIFI_IMAGE_SEC_TYPE_BSS,
+	DRV_HIFI_IMAGE_SEC_TYPE_BUTT,
+};
+typedef unsigned char DRV_HIFI_IMAGE_SEC_TYPE_ENUM_UINT8;
+
+struct drv_hifi_image_sec {
+	unsigned short sn;
+	DRV_HIFI_IMAGE_SEC_TYPE_ENUM_UINT8 type;
+	DRV_HIFI_IMAGE_SEC_LOAD_ENUM_UINT8 load_attib;
+	unsigned int src_offset;
+	unsigned int des_addr;
+	unsigned int size;
+};
+
+struct drv_hifi_image_head {
+	char time_stamp[24];
+	unsigned int image_size;
+	unsigned int sections_num;
+	struct drv_hifi_image_sec sections[HIFI_SEC_MAX_NUM];
+};
+
+struct image_partition_table{
+	unsigned long phy_addr_start;
+	unsigned long phy_addr_end;
+	unsigned int size;
+	unsigned long remap_addr;
 };
 
 struct hifi_om_s {
@@ -216,8 +264,15 @@ struct hifi_om_effect_mcps_stru
 struct hifi_om_update_buff_delay_info
 {
 	unsigned int	recv_msg_type;
-	unsigned short	reserved;
 	unsigned short	pcm_mode;
+	unsigned short	pcm_device;
+};
+
+struct voice_3a_om_stru
+{
+	unsigned int	recv_msg_type;
+	unsigned short	reserved;
+	unsigned short	recv_msg;
 };
 
 extern struct hifi_om_s g_om_data;
@@ -247,6 +302,7 @@ struct voice_bsd_param_hsm {
 enum hifi_om_work_id {
 	HIFI_OM_WORK_VOICE_BSD = 0,
 	HIFI_OM_WORK_AUDIO_OM_DETECTION,
+	HIFI_OM_WORK_VOICE_3A,
 	HIFI_OM_WORK_MAX,
 };
 

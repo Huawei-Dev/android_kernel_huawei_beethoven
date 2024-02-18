@@ -174,7 +174,7 @@ struct voice_proxy_wifi_rx_notify {
  */
 struct voice_proxy_confirm {
 	uint16_t msg_id;
-	uint16_t reserved;
+	uint16_t modem_no;
 	uint32_t result;
 };
 
@@ -183,7 +183,7 @@ struct voice_proxy_confirm {
  */
 struct voice_proxy_lte_tx_notify {
 	uint16_t msg_id;
-	uint16_t reserved;
+	uint16_t modem_no;
 	uint16_t amr_type;
 	uint16_t frame_type;
 	uint16_t data[PROXY_VOICE_CODEC_MAX_DATA_LEN];
@@ -194,7 +194,7 @@ struct voice_proxy_lte_tx_notify {
  */
 struct voice_proxy_wifi_tx_notify {
 	uint16_t msg_id;
-	uint16_t reserved;
+	uint16_t modem_no;
 	uint32_t channel_id;
 	uint32_t port_type;
 	uint16_t data_len;
@@ -234,6 +234,8 @@ struct voice_proxy_voice_encrypt_key_end {
 #define HIFI_MISC_IOCTL_WAKEUP_THREAD	_IOW('A',  0x78, unsigned int) 	   //唤醒read线程,正常退出
 #define HIFI_MISC_IOCTL_DISPLAY_MSG		_IOWR('A', 0x79, struct misc_io_dump_buf_param) 	   //读取HIFI在DDR上的数据并传递至用户空间
 #define HIFI_MISC_IOCTL_WAKEUP_PCM_READ_THREAD _IOW('A',  0x7a, unsigned int)
+#define HIFI_MISC_IOCTL_AUDIO_EFFECT_PARAMS        _IOWR('A', 0x7B, struct misc_io_async_param)
+#define HIFI_MISC_IOCTL_USBAUDIO        _IOW('A', 0x7C, struct misc_io_sync_param)      //for usbaudio
 
 #ifdef CLT_VOICE
 #define CLT_HIFI_MISC_IOCTL_SEND_VOICE _IOWR('A', 0x90, struct misc_io_async_param)

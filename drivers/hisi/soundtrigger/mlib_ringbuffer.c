@@ -157,7 +157,7 @@ int RingBuffer_Get(RingBuffer *rb, void *element)
 
 	if (!RingBuffer_IsEmpty(rb))
 	{
-		memcpy(element, rb->buffer + rb->start * rb->element_size, rb->element_size);
+		memcpy(element, rb->buffer + rb->start * rb->element_size, rb->element_size);/*lint !e679*/
 		rb->start = (rb->start + 1) % rb->size;
 		--rb->count;
 		retval = 320;
@@ -188,7 +188,7 @@ int RingBuffer_Put(RingBuffer *rb, void *element)
 	int end, retval;
 
 	end = (rb->start + rb->count) % rb->size;
-	memcpy(rb->buffer + end * rb->element_size, element, rb->element_size);
+	memcpy(rb->buffer + end * rb->element_size, element, rb->element_size);/*lint !e679*/
 	if (RingBuffer_IsFull(rb))
 	{
 		rb->start = (rb->start + 1) % rb->size; /* full, overwrite */
@@ -213,7 +213,7 @@ int RingBuffer_Compare(RingBuffer *rb,void *element,int compareCount)
 	{
 		if (!RingBuffer_IsEmpty(rb))
 		{
-			ret = memcmp((char *)element + rb->element_size*i, rb->buffer + rb->start * rb->element_size, rb->element_size);
+			ret = memcmp((char *)element + rb->element_size*i, rb->buffer + rb->start * rb->element_size, rb->element_size);/*lint !e679*/
 
 			if(0 == ret)
 			{

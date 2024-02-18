@@ -14,7 +14,7 @@
 #include <linux/fs.h>
 #include <linux/of.h>
 #ifdef CONFIG_HUAWEI_DSM
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 #endif
 #include <huawei_platform/log/hw_log.h>
 #include <linux/platform_device.h>
@@ -44,14 +44,6 @@ static struct maxim_ioctl_ops *max_io_ops;
 //static struct list_head maxim_list;
 LIST_HEAD(maxim_list);
 
-#ifdef CONFIG_HUAWEI_DSM
-static struct dsm_dev dsm_maxim_smartpa = {
-	.name = "dsm_maxim_smartpa",
-	.fops = NULL,
-	.buff_size = 1024,
-};
-struct dsm_client *maxim_dclient;
-#endif
 
 struct maxim_priv * maxim_priv_data = NULL;
 enum rcv_switch_status {
@@ -198,9 +190,8 @@ static int maxim_open(struct inode *inode, struct file *filp)
 	ret = max_io_ops->maxim_open(inode, filp);
 
 #ifdef CONFIG_HUAWEI_DSM
-	if (ret && !dsm_client_ocuppy(maxim_dclient)) {
-		dsm_client_record(maxim_dclient, "%s: maxim open error %d\n", __func__, ret);
-		dsm_client_notify(maxim_dclient, DSM_SMARTPA_I2C_ERR);
+	if (ret) {
+		audio_dsm_report_info(AUDIO_SMARTPA, DSM_SMARTPA_I2C_ERR, "%s: maxim open error %d\n", __func__, ret);
 	}
 #endif
 
@@ -433,9 +424,8 @@ static int maxim_do_ioctl(struct file *file, unsigned int cmd, void __user *p, i
 */
 	}
 #ifdef CONFIG_HUAWEI_DSM
-	if (ret && !dsm_client_ocuppy(maxim_dclient)) {
-		dsm_client_record(maxim_dclient, "%s: ioctl error %d\n", __func__, ret);
-		dsm_client_notify(maxim_dclient, DSM_SMARTPA_I2C_ERR);
+	if (ret) {
+		audio_dsm_report_info(AUDIO_SMARTPA, DSM_SMARTPA_I2C_ERR, "%s: ioctl error %d\n", __func__, ret);
 	}
 #endif
 	return ret;
@@ -537,11 +527,6 @@ static int maxim_ioctl_probe(struct platform_device *pdev)
 		hwlog_err("%s: can't register maxim miascdev, ret:%d.\n", __func__, ret);
 		goto err_rcv_en2_gpio;
 	}
-#ifdef CONFIG_HUAWEI_DSM
-	if (!maxim_dclient) {
-		maxim_dclient = dsm_register_client(&dsm_maxim_smartpa);
-	}
-#endif
 
 	return 0;
 

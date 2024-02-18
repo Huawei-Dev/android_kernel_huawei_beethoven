@@ -208,6 +208,8 @@ source "drivers/dsm/Kconfig"
 
 source "drivers/connectivity/Kconfig"
 
+source "drivers/devkit/audiokit/Kconfig"
+
 source "drivers/hwusb/Kconfig"
 
 source "drivers/cpuload/Kconfig"

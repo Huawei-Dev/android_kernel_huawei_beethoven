@@ -43,6 +43,7 @@ typedef struct tag_efusec_data{
 	int (*invoke_efuse_fn)(u64, u64, u64, u64);
     EFUSE_ATTRIBUTION_INFO efuse_attrs_parsed_from_dts[efuse_mem_attr_max];
 	struct mutex efuse_mutex;
+	unsigned int is_init_success;
 }EFUSEC_DATA;
 
 #define OK                      (0)     /* ³É¹¦ */
@@ -66,9 +67,7 @@ typedef struct tag_efusec_data{
 
 #define HISI_EFUSE_READ_THERMAL            0x9000
 
-/* #define HISI_EFUSE_DEBUG */
-
-#ifdef HISI_EFUSE_DEBUG
+#ifdef CONFIG_HISI_DEBUG_FS
 #define HISI_EFUSE_TEST_WR           0xa001
 #define HISI_EFUSE_TEST_READ_CHIPID  0xa002
 #define HISI_EFUSE_TEST_READ_DIEID   0xa003
@@ -96,6 +95,7 @@ typedef struct tag_efusec_data{
 #define EFUSE_THERMAL_LENGTH_BYTES         (8)
 #define EFUSE_FREQ_LENGTH_BYTES            (4)
 
+#ifdef CONFIG_HI3XXX_EFUSE
 extern int get_efuse_dieid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout);
 extern int get_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout);
 extern int set_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout);
@@ -104,6 +104,77 @@ extern int set_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Len
 extern int get_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout);
 extern int set_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int timeout);
 extern int get_efuse_thermal_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout);
+extern int get_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout);
+extern int set_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout);
+extern int get_efuse_freq_value(unsigned char *pu8Buffer, unsigned int u32Length);
+extern int get_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout);
+extern int set_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout);
+#else
+static inline int get_efuse_dieid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int set_efuse_chipid_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int set_efuse_authkey_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int u32Lenght, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int set_efuse_securitydebug_value(unsigned char *pu8Buffer, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_thermal_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int set_efuse_hisee_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int get_efuse_freq_value(unsigned char *pu8Buffer, unsigned int u32Length)
+{
+	return OK;
+}
+
+static inline int get_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
+{
+	return OK;
+}
+
+static inline int set_efuse_kce_value(unsigned char *pu8Buffer, unsigned int u32Length, unsigned int timeout)
+{
+	return OK;
+}
+#endif
 
 #ifdef CONFIG_HI3XXX_EFUSE
 #define  EFUSE_DIEID_GROUP_START  32
@@ -146,7 +217,4 @@ int bsp_efuse_read(unsigned int * pBuf, const unsigned int group, const unsigned
 int bsp_efuse_write(unsigned int *pBuf, const unsigned int group, const unsigned int num);
 #endif
 
-#ifdef HISI_EFUSE_DEBUG
-extern int test_efuse_wr(unsigned int timeout);
-#endif
 #endif

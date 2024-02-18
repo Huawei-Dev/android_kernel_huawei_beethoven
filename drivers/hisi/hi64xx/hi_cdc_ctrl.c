@@ -18,7 +18,7 @@
 
 #include <linux/hisi/hi64xx/hi_cdc_ctrl.h>
 
-/*lint -e838 -e730 -e774 -e747 -e529 -e438 -e826 -e778*/
+/*lint -e838 -e730 -e774 -e747 -e529 -e438 -e826 -e778 -e527 -e574*/
 
 struct reg_ops {
 	unsigned int (*read8)(unsigned int reg);
@@ -117,7 +117,7 @@ unsigned int hi_cdcctrl_reg_read(struct hi_cdc_ctrl *cdc_ctrl,
 	if (priv->cdc_ctrl.pm_runtime_support) {
 		pm_ret = pm_runtime_get_sync(cdc_ctrl->dev);
 		if (pm_ret < 0) {
-			pr_err("[%s:%d] pm resume error, reg_addr:0x%x pm_ret:%d\n", __FUNCTION__, __LINE__, reg_addr, pm_ret);
+			pr_err("[%s:%d] pm resume error, reg_addr:0x%pK pm_ret:%d\n", __FUNCTION__, __LINE__, (void *)(unsigned long)reg_addr, pm_ret);
 			mutex_unlock(&priv->io_mutex);
 			BUG_ON(true);
 			return 0;
@@ -153,7 +153,7 @@ int hi_cdcctrl_reg_write(struct hi_cdc_ctrl *cdc_ctrl,
 	if (priv->cdc_ctrl.pm_runtime_support) {
 		pm_ret = pm_runtime_get_sync(cdc_ctrl->dev);
 		if (pm_ret < 0) {
-			pr_err("[%s:%d] pm resume error, reg_addr:0x%x pm_ret:%d\n", __FUNCTION__, __LINE__, reg_addr, pm_ret);
+			pr_err("[%s:%d] pm resume error, reg_addr:0x%pK pm_ret:%d\n", __FUNCTION__, __LINE__, (void *)(unsigned long)reg_addr, pm_ret);
 			mutex_unlock(&priv->io_mutex);
 			BUG_ON(true);
 			return 0;
@@ -188,7 +188,7 @@ void hi_cdcctrl_reg_update_bits(struct hi_cdc_ctrl *cdc_ctrl, unsigned int reg,
 	if (priv->cdc_ctrl.pm_runtime_support) {
 		pm_ret = pm_runtime_get_sync(cdc_ctrl->dev);
 		if (pm_ret < 0) {
-			pr_err("[%s:%d] pm resume error, reg:0x%x pm_ret:%d\n", __FUNCTION__, __LINE__, reg, pm_ret);
+			pr_err("[%s:%d] pm resume error, reg:0x%pK pm_ret:%d\n", __FUNCTION__, __LINE__, (void *)(unsigned long)reg, pm_ret);
 			BUG_ON(true);
 			return ;
 		}
@@ -276,30 +276,14 @@ static struct of_device_id of_codec_controller_child_match_tbl[] = {
 	{ /* end */ }
 };
 
-static int hi_cdcctrl_probe(struct platform_device *pdev)
+void hi_cdc_bus_type_select(struct hi_cdc_ctrl_priv *priv,
+						struct device *dev, struct device_node *np)
 {
-	int ret;
-	struct device *dev = &pdev->dev;
-	struct device_node *np = dev->of_node;
-	struct hi_cdc_ctrl_priv *priv;
+	int ret = 0;
 	const char *str;
-	const char *platformtype;
-	int gpio;
-	enum of_gpio_flags flags;
-
-	dev_info(dev, "probe begin");
-
-	priv = devm_kzalloc(dev, sizeof(struct hi_cdc_ctrl_priv), GFP_KERNEL);
-	if (!priv) {
-		return -ENOMEM;
-	}
-
-	platform_set_drvdata(pdev, priv);
-	priv->cdc_ctrl.dev = dev;
-	cdc_ctrl_priv = priv;
 
 	ret = of_property_read_string(np, "hisilicon,bus-sel", &str);
-	if (ret == 0 && !strcmp(str, "slimbus")) {
+	if (ret == 0 && !strncmp(str, "slimbus", 7)) {
 		priv->cdc_ctrl.bus_sel = BUSTYPE_SELECT_SLIMBUS;
 		priv->reg_ops.read8 = slimbus_read_1byte;
 		priv->reg_ops.read32 = slimbus_read_4byte;
@@ -316,14 +300,46 @@ static int hi_cdcctrl_probe(struct platform_device *pdev)
 		}
 	}
 
+}
+
+void hi_cdc_platform_type_read(struct platform_device *pdev, struct hi_cdc_ctrl_priv *priv)
+{
+	const char *platformtype;
+
 	priv->cdc_ctrl.platform_type = HI_CDCCTRL_PLATFORM_PHONE;
 
 	if (!of_property_read_string(pdev->dev.of_node, "platform-type", &platformtype)) {
-		if (!strcmp(platformtype, "UDP"))
+		if (!strncmp(platformtype, "UDP", 3))
 			priv->cdc_ctrl.platform_type = HI_CDCCTRL_PLATFORM_UDP;
-		else if (!strcmp(platformtype, "FPGA"))
+		else if (!strncmp(platformtype, "FPGA", 4))
 			priv->cdc_ctrl.platform_type = HI_CDCCTRL_PLATFORM_FPGA;
 	}
+
+}
+
+static int hi_cdcctrl_probe(struct platform_device *pdev)
+{
+	int ret;
+	struct device *dev = &pdev->dev;
+	struct device_node *np = dev->of_node;
+	struct hi_cdc_ctrl_priv *priv;
+	int gpio;
+	enum of_gpio_flags flags;
+
+	dev_info(dev, "probe begin");
+
+	priv = devm_kzalloc(dev, sizeof(struct hi_cdc_ctrl_priv), GFP_KERNEL);
+	if (!priv) {
+		return -ENOMEM;
+	}
+
+	platform_set_drvdata(pdev, priv);
+	priv->cdc_ctrl.dev = dev;
+	cdc_ctrl_priv = priv;
+
+	hi_cdc_bus_type_select(priv, dev, np);
+
+	hi_cdc_platform_type_read(pdev, priv);
 
 	ret = of_property_read_u32(np, "hisilicon,reg-8bit-begin-addr", &priv->regaddr8_begin);
 	if (ret) {
@@ -368,7 +384,7 @@ static int hi_cdcctrl_probe(struct platform_device *pdev)
 	if (gpio < 0) {
 		dev_err(dev, "get gpio flags failed\n");
 		ret = gpio;
-		goto err_exit;
+		goto init_gpio_err;
 	}
 
 	dev_info(dev, "probe gpio %d", gpio);
@@ -376,13 +392,13 @@ static int hi_cdcctrl_probe(struct platform_device *pdev)
 	if (!gpio_is_valid(gpio)) {
 		dev_err(dev, "gpio%d is invalid\n", gpio);
 		ret = -EINVAL;
-		goto err_exit;
+		goto init_gpio_err;
 	}
 
 	ret = gpio_request_one((unsigned int)gpio, GPIOF_IN, "codec_interrupt");
 	if (ret < 0) {
 		dev_err(dev, "failed to request gpio%d\n", gpio);
-		goto err_exit;
+		goto init_gpio_err;
 	}
 
 	priv->irq = gpio_to_irq((unsigned int)gpio);
@@ -404,7 +420,16 @@ static int hi_cdcctrl_probe(struct platform_device *pdev)
 	dev_info(dev, "codec-controller probe ok, platform_type:%d, pm_runtime_support:%d\n", priv->cdc_ctrl.platform_type, priv->cdc_ctrl.pm_runtime_support);
 
 	return 0;
+
+init_gpio_err:
+	clk_disable_unprepare(priv->cdc_mclk);
 err_exit:
+	if (priv->supplies[CDC_SUP_MAIN]) {
+		ret = regulator_disable(priv->supplies[CDC_SUP_MAIN]);
+		if (ret != 0)
+			dev_err(dev, "regulator_disable: %d", ret);
+	}
+
 	dev_err(dev, "codec-controller probe fail, platform_type:%d\n", priv->cdc_ctrl.platform_type);
 	return ret;
 }
@@ -413,6 +438,7 @@ static int hi_cdcctrl_remove(struct platform_device *pdev)
 {
 	struct hi_cdc_ctrl_priv *priv =
 		(struct hi_cdc_ctrl_priv *)platform_get_drvdata(pdev);
+	struct device *dev = &pdev->dev;
 
 	mutex_destroy(&priv->io_mutex);
 
@@ -421,6 +447,14 @@ static int hi_cdcctrl_remove(struct platform_device *pdev)
 		pm_runtime_disable(&pdev->dev);
 		pm_runtime_set_suspended(&pdev->dev);
 	}
+
+	if (priv->supplies[CDC_SUP_MAIN]) {
+		int ret = regulator_disable(priv->supplies[CDC_SUP_MAIN]);
+		if (ret != 0)
+			dev_err(dev, "regulator_disable: %d", ret);
+	}
+
+	clk_disable_unprepare(priv->cdc_mclk);
 
 	cdc_ctrl_priv = NULL;
 

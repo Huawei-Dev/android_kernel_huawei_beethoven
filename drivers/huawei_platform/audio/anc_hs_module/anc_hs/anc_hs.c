@@ -7,7 +7,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-
+/*lint -e528 -e529 */
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/device.h>
@@ -35,7 +35,7 @@
 
 #include <linux/hisi/hisi_adc.h>
 #ifdef CONFIG_HUAWEI_DSM
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 #endif
 #include "huawei_platform/audio/anc_hs.h"
 
@@ -97,9 +97,6 @@ static struct dsm_client *anc_hs_dclient;
 #endif
 
 struct anc_hs_data {
-#if 0
-	struct regulator_bulk_data  regu_boost5v;
-#endif
 	int anc_hs_mode;         /* charge status */
 	int gpio_mic_sw;         /* switch chip control gpio*/
 	int mic_irq_gpio;
@@ -229,22 +226,20 @@ static void anc_hs_dump(void)
 			   anc_hs_gpio_get_value(pdata->gpio_mic_sw));
 }
 
+/*lint -save -e* */
 static void anc_dsm_report(int anc_errno, int sys_errno)
 {
 #ifdef CONFIG_HUAWEI_DSM
-	if (!dsm_client_ocuppy(anc_hs_dclient)) {
-		dsm_client_record(anc_hs_dclient,
-						  "mode:%d,irq:%d,sleep_time:%d,mic_used:%d,switch:%d,errno:%d\n",
+	audio_dsm_report_info(AUDIO_ANC_HS, anc_errno,  "mode:%d,irq:%d,sleep_time:%d,mic_used:%d,switch:%d,errno:%d\n",
 						  pdata->anc_hs_mode,
 						  pdata->irq_flag,
 						  pdata->sleep_time,
 						  pdata->mic_used,
 						  anc_hs_gpio_get_value(pdata->gpio_mic_sw),
 						  sys_errno);
-		dsm_client_notify(anc_hs_dclient, anc_errno);
-	}
 #endif
 }
+/*lint -restore*/
 
 static inline void anc_hs_enable_irq(void)
 {
@@ -275,13 +270,6 @@ static int enable_boost(bool enable)
 	/* use boost_flag to void un-balance call */
 	if (enable) {
 		if (!pdata->boost_flag) {
-#if 0
-			ret = regulator_bulk_enable(1, &pdata->regu_boost5v);
-			if (ret != 0) {
-				hwlog_err("%s:bulk enable fail err = %d\n", __func__, ret);
-				return ret;
-			}
-#endif
 #ifdef CONFIG_HISI_BOOST5V_CONTROL
 			boost5v_denoise_headphone_enable(true);
 #endif
@@ -291,13 +279,6 @@ static int enable_boost(bool enable)
 		}
 	} else {
 		if (pdata->boost_flag) {
-#if 0
-			ret = regulator_bulk_disable(1, &pdata->regu_boost5v);
-			if (ret != 0) {
-				hwlog_err("%s:bulk disable fail err = %d\n", __func__, ret);
-				return ret;
-			}
-#endif
 #ifdef CONFIG_HISI_BOOST5V_CONTROL
 			boost5v_denoise_headphone_enable(false);
 #endif
@@ -313,6 +294,7 @@ static int enable_boost(bool enable)
  * get 3 times adc value with 1ms delay and use average value(delta) of it,
  * charge for it when delta is between anc_hs_limit_min and anc_hs_limit_max
  **/
+/*lint -save -e* */
 static int anc_hs_get_adc_delta(void)
 {
 	int ear_pwr_h = 0, ear_pwr_l = 0;
@@ -370,6 +352,7 @@ static int anc_hs_get_adc_delta(void)
 	hwlog_info("%s:fianal adc value= %d  count=%d\n", __func__, delta, count);
 	return delta;
 }
+/*lint -restore*/
 
 /**
  * anc_hs_send_hifi_msg - send hifi dsp message to set 3A parameter whether it is anc headset
@@ -424,7 +407,9 @@ static int anc_hs_send_hifi_msg(int anc_status)
 static bool anc_hs_need_charge(void)
 {
 	int delta = 0;
+	/*lint -save -e* */
 	mdelay(30);
+	/*lint -restore*/
 	delta = anc_hs_get_adc_delta();
 	if ((delta >= pdata->anc_hs_limit_min) &&
 		(delta <= pdata->anc_hs_limit_max)) {
@@ -564,7 +549,9 @@ static bool anc_hs_charge_judge(void)
 
 	/* waiting for anc chip start up*/
 	hwlog_info("%s: delay %d ms to wait anc chip up!\n", __func__, pdata->sleep_time);
+	/*lint -save -e* */
 	mdelay(pdata->sleep_time);
+	/*lint -restore*/
 
 	mutex_lock(&pdata->charge_lock);
 
@@ -587,7 +574,9 @@ static bool anc_hs_charge_judge(void)
 		}
 		/* stop charge and change status to CHARGE_OFF*/
 		anc_hs_gpio_set_value(pdata->gpio_mic_sw, SWITCH_CHIP_HSBIAS);
+		/*lint -save -e* */
 		udelay(500);
+		/*lint -restore*/
 		pdata->anc_hs_mode = ANC_HS_CHARGE_OFF;
 		if (ERROR_RET == anc_hs_send_hifi_msg(ANC_HS_CHARGE_OFF)) {
 			hwlog_err("%s(%u) : anc_hs_send_hifi_msg TURN OFF ANC_HS return ERROR !\n", __func__, __LINE__);
@@ -623,7 +612,9 @@ static void update_charge_status(void)
 		if (pdata->anc_hs_mode == ANC_HS_CHARGE_ON) {
 			anc_hs_disable_irq();
 			anc_hs_gpio_set_value(pdata->gpio_mic_sw, SWITCH_CHIP_HSBIAS);
+			/*lint -save -e* */
 			udelay(500);
+			/*lint -restore*/
 
 			hwlog_info("%s(%u) : stop charging for anc hs !\n", __func__, __LINE__);
 			pdata->anc_hs_mode = ANC_HS_CHARGE_OFF;
@@ -654,7 +645,9 @@ static void update_charge_status(void)
 				if (pdata->anc_hs_mode == ANC_HS_CHARGE_OFF) {
 					pdata->anc_hs_mode = ANC_HS_CHARGE_ON;
 					anc_hs_gpio_set_value(pdata->gpio_mic_sw, SWITCH_CHIP_5VBOOST);
+					/*lint -save -e* */
 					udelay(500);
+					/*lint -restore*/
 
 					anc_hs_enable_irq();
 					hwlog_info("%s(%u) : resume charging for anc hs!\n", __func__, __LINE__);
@@ -825,19 +818,25 @@ int anc_hs_dev_register(struct anc_hs_dev *dev, void *codec_data)
 {
 	/* anc_hs driver not be probed, just return */
 	if (pdata == NULL) {
+		/*lint -save -e* */
 		return -ENODEV;
+		/*lint -restore*/
 	}
 
 	/* only support one codec to be registered */
 	if (pdata->registered) {
 		hwlog_err("one codec has registered, no more permit\n");
+		/*lint -save -e* */
 		return -EEXIST;
+		/*lint -restore*/
 	}
 	if (!dev->ops.check_headset_in ||
 		!dev->ops.btn_report ||
 		!dev->ops.codec_resume_lock) {
 		hwlog_err("codec ops funtion must be all registed\n");
+		/*lint -save -e* */
 		return -EINVAL;
+		/*lint -restore*/
 	}
 
 	pdata->dev = dev;
@@ -866,6 +865,7 @@ bool check_anc_hs_support(void)
  * should sync with codec power control, codec visit should
  * after codec_resume_lock(pdata->private_data, false).
  **/
+/*lint -save -e* */
 static void anc_hs_btn_judge(struct work_struct *work)
 {
 	struct anc_hs_dev *pdev = pdata->dev;
@@ -881,7 +881,9 @@ static void anc_hs_btn_judge(struct work_struct *work)
 		if (pdata->button_pressed == 1) {
 			btn_report = 0;
 			pdata->button_pressed = 0;
+			/*lint -save -e* */
 			fops->btn_report(btn_report, ANC_BTN_MASK);
+			/*lint -restore*/
 			hwlog_info("%s:irq level:%d", __func__, anc_hs_gpio_get_value(pdata->mic_irq_gpio));
 		}
 		return;
@@ -899,11 +901,15 @@ static void anc_hs_btn_judge(struct work_struct *work)
 	if (!anc_hs_gpio_get_value(pdata->mic_irq_gpio) && (pdata->button_pressed == 0)) {
 		/*button down event*/
 		hwlog_info("%s(%u) : button down event !\n", __func__, __LINE__);
+		/*lint -save -e* */
 		mdelay(50);
+		/*lint -restore*/
 		btn_report = anc_hs_get_btn_value();
 		if (NO_BUTTON_PRESS != btn_report) {
 			pdata->button_pressed = 1;
+			/*lint -save -e* */
 			fops->btn_report(btn_report, ANC_BTN_MASK);
+			/*lint -restore*/
 		}
 
 	} else if (pdata->button_pressed == 1) {
@@ -915,7 +921,9 @@ static void anc_hs_btn_judge(struct work_struct *work)
 
 		/* we permit button up event report to userspace,
 		   make sure down and up in pair*/
+		/*lint -save -e* */
 		fops->btn_report(btn_report, ANC_BTN_MASK);
+		/*lint -restore*/
 	}
 
 	mutex_unlock(&pdata->btn_mutex);
@@ -923,6 +931,7 @@ static void anc_hs_btn_judge(struct work_struct *work)
 
 	return;
 }
+/*lint -restore*/
 
 /**
  * anc_hs_btn_handler - respond button irq while charging
@@ -932,6 +941,7 @@ static void anc_hs_btn_judge(struct work_struct *work)
  *
  * disable irq will be better until delay_work to be scheduled.
  **/
+/*lint -save -e* */
 static irqreturn_t anc_hs_btn_handler(int irq, void *data)
 {
 	/* make sure delay_work to be scheduled*/
@@ -946,6 +956,7 @@ static irqreturn_t anc_hs_btn_handler(int irq, void *data)
 
 	return IRQ_HANDLED;
 }
+/*lint -restore*/
 
 /**
  * anc_hs_ioctl - ioctl interface for userspeace
@@ -965,11 +976,15 @@ static long anc_hs_ioctl(struct file *file, unsigned int cmd,
 	unsigned int __user *p_user = (unsigned int __user *) arg;
 
 	if (pdata->registered == false) {
+		/*lint -save -e* */
 		return -EBUSY;
+		/*lint -restore*/
 	}
 
 	switch (cmd) {
+		/*lint -save -e* */
 		case IOCTL_ANC_HS_CHARGE_ENABLE_CMD:
+		/*lint -restore*/
 			if (pdata->force_charge_ctl == ANC_HS_ENABLE_CHARGE) {
 				break;
 			}
@@ -978,7 +993,9 @@ static long anc_hs_ioctl(struct file *file, unsigned int cmd,
 			hwlog_info("app level contrl set charge status with %d\n", pdata->force_charge_ctl);
 			update_charge_status();
 			break;
+		/*lint -save -e* */
 		case IOCTL_ANC_HS_CHARGE_DISABLE_CMD:
+		/*lint -restore*/
 			if (pdata->force_charge_ctl == ANC_HS_DISABLE_CHARGE) {
 				break;
 			}
@@ -987,7 +1004,9 @@ static long anc_hs_ioctl(struct file *file, unsigned int cmd,
 			hwlog_info("app level contrl set charge status with %d\n", pdata->force_charge_ctl);
 			update_charge_status();
 			break;
+		/*lint -save -e* */
 		case IOCTL_ANC_HS_GET_HEADSET_CMD:
+		/*lint -restore*/
 			charge_mode = pdata->anc_hs_mode;
 			if (charge_mode == ANC_HS_CHARGE_ON) {
 				if (!anc_hs_need_charge()) {
@@ -999,18 +1018,26 @@ static long anc_hs_ioctl(struct file *file, unsigned int cmd,
 					}
 				}
 			}
+			/*lint -save -e* */
 			if (charge_mode == ANC_HS_CHARGE_ON)
 				ret = put_user((__u32)(ANC_HS_HEADSET), p_user);
 			else {
 				ret = put_user((__u32)(ANC_HS_NORMAL_4POLE), p_user);
 			}
+			/*lint -restore*/
 			break;
+		/*lint -save -e* */
 		case IOCTL_ANC_HS_GET_CHARGE_STATUS_CMD:
+		/*lint -restore*/
+			/*lint -save -e* */
 			ret = put_user((__u32)(pdata->anc_hs_mode), p_user);
+			/*lint -restore*/
 			break;
 		default:
 			hwlog_err("unsupport cmd\n");
+			/*lint -save -e* */
 			ret = -EINVAL;
+			/*lint -restore*/
 			break;
 	}
 
@@ -1117,6 +1144,7 @@ static ssize_t anc_precharge_time_store(struct device *dev,
 	return count;
 }
 
+/*lint -save -e* */
 static DEVICE_ATTR(hs_info, 0664, anc_hs_info_show,
 				   NULL);
 static DEVICE_ATTR(detect_limit, 0660, anc_detect_limit_show,
@@ -1125,6 +1153,7 @@ static DEVICE_ATTR(gpio_sw, 0660, anc_gpio_sw_show,
 				   anc_gpio_sw_store);
 static DEVICE_ATTR(precharge_time, 0660, anc_precharge_time_show,
 				   anc_precharge_time_store);
+/*lint -restore*/
 
 static struct attribute *anc_hs_attributes[] = {
 	&dev_attr_hs_info.attr,
@@ -1134,9 +1163,11 @@ static struct attribute *anc_hs_attributes[] = {
 	NULL
 };
 
+/*lint -save -e* */
 static const struct attribute_group anc_hs_attr_group = {
 	.attrs = anc_hs_attributes,
 };
+/*lint -restore*/
 
 static const struct file_operations anc_hs_fops = {
 	.owner               = THIS_MODULE,
@@ -1147,11 +1178,13 @@ static const struct file_operations anc_hs_fops = {
 #endif
 };
 
+/*lint -save -e* */
 static struct miscdevice anc_hs_device = {
 	.minor  = MISC_DYNAMIC_MINOR,
 	.name   = "anc_hs",
 	.fops   = &anc_hs_fops,
 };
+/*lint -restore*/
 
 static const struct of_device_id anc_hs_of_match[] = {
 	{
@@ -1159,9 +1192,12 @@ static const struct of_device_id anc_hs_of_match[] = {
 	},
 	{ },
 };
+/*lint -save -e* */
 MODULE_DEVICE_TABLE(of, anc_hs_of_match);
+/*lint -restore*/
 
 /* load dts config for board difference */
+/*lint -save -e* */
 static void load_anc_hs_config(struct device_node *node)
 {
 	int temp;
@@ -1227,6 +1263,7 @@ static void load_anc_hs_config(struct device_node *node)
 		pdata->anc_hs_btn_volume_down_max_voltage = ANC_HS_VOLUME_DOWN_MAX;
 	}
 }
+/*lint -restore*/
 
 struct anc_hs_ops anc_hs_ops = {
 	.anc_hs_dev_register = anc_hs_dev_register,
@@ -1241,6 +1278,7 @@ struct anc_hs_ops anc_hs_ops = {
 	.anc_hs_refresh_headset_type = NULL,
 };
 
+/*lint -save -e* */
 static int anc_hs_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -1268,16 +1306,6 @@ static int anc_hs_probe(struct platform_device *pdev)
 	pdata->boost_flag = false;
 	pdata->registered = false;
 	pdata->hs_status = ANC_HS_HEADSET_PLUG_OUT;
-
-#if 0
-	/* get boost5v resource */
-	pdata->regu_boost5v.supply = "anc_hs_charge";
-	ret = devm_regulator_bulk_get(dev, 1, &(pdata->regu_boost5v));
-	if (0 != ret) {
-		hwlog_err("couldn't get regulators(boost5v) %d\n", ret);
-		return -ENODEV;
-	}
-#endif
 
 	/*CONFIG_GPIO_HI6402 is temporarily added for chicago 4.1 kernel update*/
 #ifdef CONFIG_GPIO_HI6402
@@ -1379,12 +1407,7 @@ static int anc_hs_probe(struct platform_device *pdev)
 	if ((ret = sysfs_create_group(&dev->kobj, &anc_hs_attr_group)) < 0) {
 		hwlog_err("failed to register sysfs\n");
 	}
-#ifdef CONFIG_HUAWEI_DSM
-	/* register dsm client*/
-	if (!anc_hs_dclient) {
-		anc_hs_dclient = dsm_register_client(&dsm_anc_hs);
-	}
-#endif
+
 	ret = anc_hs_ops_register(&anc_hs_ops);
 	if (ret) {
 		pr_err("register anc_hs_interface ops failed!\n");
@@ -1409,6 +1432,7 @@ gpio_mic_sw_err:
 	return ret;
 
 }
+/*lint -restore*/
 
 static int anc_hs_remove(struct platform_device *pdev)
 {
@@ -1454,8 +1478,10 @@ static void __exit anc_hs_exit(void)
 	platform_driver_unregister(&anc_hs_driver);
 }
 
+/*lint -save -e* */
 device_initcall(anc_hs_init);
 module_exit(anc_hs_exit);
+/*lint -restore*/
 
 MODULE_DESCRIPTION("anc headset driver");
 MODULE_LICENSE("GPL");

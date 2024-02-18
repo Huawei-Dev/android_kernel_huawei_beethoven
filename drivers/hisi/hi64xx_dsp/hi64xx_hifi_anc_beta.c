@@ -14,13 +14,12 @@
 #include "huawei_platform/log/imonitor.h"
 #include "huawei_platform/log/imonitor_keys.h"
 
-
 /*lint -e655 -e838 -e730 -e754 -e747 -e731*/
 #define CODEC_DSP_ANC_ERR_BASE_ID        916000000
 #define CODEC_DSP_SMARTPA_ERR_BASE_ID    916000100
 #define HOOK_PATH_BETA_CLUB "/data/log/codec_dsp/beta_club/"
-#define FULL_PERMISSION (0)
-#define SAFE_PERMISSION (0)
+#define FULL_PERMISSION true
+#define SAFE_PERMISSION false
 #define EVENTLEVEL E916000001_EVENTLEVEL_INT
 #define EVENTMODULE E916000001_EVENTMODULE_VARCHAR
 
@@ -56,24 +55,18 @@ typedef struct{
     int         exc_limiter_overshoots;
 } Dsm_adp_statistics;
 
-#if FULL_PERMISSION
 static struct om_hook_para g_anc_hook_para_full_perms[4] = {
 	{HOOK_POS_ANC_PCM_REF, 2, 1, 16000},
 	{HOOK_POS_ANC_PCM_ERR, 2, 1, 16000},
 	{HOOK_POS_ANC_PCM_ANTI, 2, 1, 16000},
 	{HOOK_POS_ANC_BETA_CSINFO, 2, 1, 8000}
 };
-#else
-static struct om_hook_para g_anc_hook_para_full_perms[1] = {
-	{HOOK_POS_ANC_BETA_CSINFO, 2, 1, 8000}
-};
-#endif
 
 static struct om_hook_para g_anc_hook_para_safe_perms[1] = {
 	{HOOK_POS_ANC_BETA_CSINFO, 2, 1, 8000}
 };
 
-int voice_record_permission = SAFE_PERMISSION;
+bool voice_record_permission = SAFE_PERMISSION;
 
 void anc_beta_set_voice_hook_switch(unsigned short permission)
 {
@@ -99,7 +92,7 @@ int anc_beta_start_hook(void)
 		anc_hook_para = g_anc_hook_para_safe_perms;
 	}
 
-	buf_in = (unsigned char *)kmalloc(sizeof(msg) + msg.para_size, GFP_ATOMIC);
+	buf_in = (unsigned char *)kzalloc(sizeof(msg) + msg.para_size, GFP_ATOMIC);
 	if (!buf_in) {
 		HI64XX_DSP_ERROR("buf_in alloc fail\n");
 		return -ENOMEM;
@@ -140,7 +133,7 @@ int anc_beta_stop_hook(void)
 		anc_hook_para = g_anc_hook_para_safe_perms;
 	}
 
-	buf_in = (unsigned char *)kmalloc(sizeof(msg) + msg.para_size, GFP_ATOMIC);
+	buf_in = (unsigned char *)kzalloc(sizeof(msg) + msg.para_size, GFP_ATOMIC);
 	if (!buf_in) {
 		HI64XX_DSP_ERROR("buf_in alloc fail\n");
 		return -ENOMEM;
@@ -219,6 +212,12 @@ int dsm_beta_dump_file(void* data, bool create_dir)
 		hi64xx_hifi_create_hook_dir(HOOK_PATH_BETA_CLUB);
 
 	snprintf(fullname, sizeof(fullname) - 1, "%s%s", HOOK_PATH_BETA_CLUB, "pa_om_info.log");
+
+	if( info->msgSize > sizeof(MLIB_DSM_DFT_INFO)) {
+		hi64xx_hifi_dump_to_file((char *)info, sizeof(MLIB_DSM_DFT_INFO), fullname);
+		HI64XX_DSP_ERROR("message size is wrong\n");
+		return 0;
+	}
 	hi64xx_hifi_dump_to_file((char *)info,  info->msgSize, fullname);
 
 	return 0;
@@ -255,4 +254,3 @@ int dsm_beta_log_upload(void* data)
 
 	return ret;
 }
-

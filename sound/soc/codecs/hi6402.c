@@ -224,9 +224,12 @@ void hi6402_set_rec_pll(struct snd_soc_codec *codec,unsigned int offset,unsigned
 	struct hi6402_platform_data *priv = snd_soc_codec_get_drvdata(codec);
 	unsigned int m_rec_state = rec_state;
 
+	bool expression;
+
 	BUG_ON(NULL == priv);
 
-	if((MAD_BIT == offset) && (false == state) && (m_rec_state & (1<<REC_BIT))) {
+	expression = ((MAD_BIT == offset) && (false == state) && (m_rec_state & (1<<REC_BIT)));
+	if (expression) {
 		hi64xx_resmgr_request_pll(priv->resmgr , PLL_HIGH);
 	} else if ((REC_BIT == offset) && (true == state) && (0 == (m_rec_state & (1<<MAD_BIT)))) {
 		hi64xx_resmgr_request_pll(priv->resmgr , PLL_HIGH);
@@ -242,7 +245,7 @@ void hi6402_set_rec_pll(struct snd_soc_codec *codec,unsigned int offset,unsigned
 	if(true == state)
 		rec_state = m_rec_state | (1 << offset);
 	else
-		rec_state = m_rec_state & (~(1 << offset));
+		rec_state = m_rec_state & (~(1ul << offset));
 }
 
 int hi6402_mad_power_mode_event(struct snd_soc_dapm_widget *w,
@@ -568,6 +571,7 @@ int hi6402_slimbus_port1415_power_mode_event(struct snd_soc_dapm_widget *w,
 	return ret;
 }
 
+/* start: add for dapm to solution 3mic conflict */
 int hi6402_s1_interface_clk_power_mode_event(struct snd_soc_dapm_widget *w,
 				struct snd_kcontrol *kcontrol, int event)
 {
@@ -898,7 +902,7 @@ static void hi6402_hp_power_on(struct snd_soc_codec *codec)
 	unsigned int hsl_pga_value = hsl_reg_value & 0x3F;
 	unsigned int hsr_pga_value = hsr_reg_value & 0x3F;
 	unsigned int min_pga = (hsl_pga_value<hsr_pga_value? hsl_pga_value:hsr_pga_value);
-	int i = 0;
+	unsigned int i = 0;
 
 	hi64xx_update_bits(codec, HI6402_HPL_POP_CFG1_REG, 0x3F, 0x01F);
 	/* -32dB init */
@@ -1641,8 +1645,6 @@ int hi6402_dacsl_pga_power_mode_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMU:
 		/* dacl clk enable */
 		hi64xx_update_bits(codec, HI6402_DAC_ADC_CLK_REG, 1 << HI6402_DACSL_EN_BIT, 1 << HI6402_DACSL_EN_BIT);
-		/* dacl src up16 clk enable */
-		hi64xx_update_bits(codec, HI6402_EQ_SM_CLK_REG, 1 << HI6402_SRC_UP16L_EN_BIT, 1 << HI6402_SRC_UP16L_EN_BIT);
 		/* dacl sdm clk enable */
 		hi64xx_update_bits(codec, HI6402_SDM_CLK_REG, 1 << HI6402_DACSL_SDM_EN_BIT, 1 << HI6402_DACSL_SDM_EN_BIT);
 		/* dacsl sdm enable */
@@ -1653,8 +1655,6 @@ int hi6402_dacsl_pga_power_mode_event(struct snd_soc_dapm_widget *w,
 		hi64xx_update_bits(codec, HI6402_SDM_DACS_REG, 1 << HI6402_SDM_DACSL_EN_BIT, 0);
 		/* dacl sdm clk disable */
 		hi64xx_update_bits(codec, HI6402_SDM_CLK_REG, 1 << HI6402_DACSL_SDM_EN_BIT, 0);
-		/* dacl src up16 clk disable */
-		hi64xx_update_bits(codec, HI6402_EQ_SM_CLK_REG, 1 << HI6402_SRC_UP16L_EN_BIT, 0);
 		/* dacl clk disable */
 		hi64xx_update_bits(codec, HI6402_DAC_ADC_CLK_REG, 1 << HI6402_DACSL_EN_BIT, 0);
 		break;
@@ -1675,8 +1675,6 @@ int hi6402_dacsr_pga_power_mode_event(struct snd_soc_dapm_widget *w,
 	case SND_SOC_DAPM_PRE_PMU:
 		/* dacr clk enable */
 		hi64xx_update_bits(codec, HI6402_DAC_ADC_CLK_REG, 1 << HI6402_DACSR_EN_BIT, 1 << HI6402_DACSR_EN_BIT);
-		/* dacr src up16 clk enable */
-		hi64xx_update_bits(codec, HI6402_EQ_SM_CLK_REG, 1 << HI6402_SRC_UP16R_EN_BIT, 1 << HI6402_SRC_UP16R_EN_BIT);
 		/* dacr sdm clk enable */
 		hi64xx_update_bits(codec, HI6402_SDM_CLK_REG, 1 << HI6402_DACSR_SDM_EN_BIT, 1 << HI6402_DACSR_SDM_EN_BIT);
 		/* dacsrl sdm enable */
@@ -1687,8 +1685,6 @@ int hi6402_dacsr_pga_power_mode_event(struct snd_soc_dapm_widget *w,
 		hi64xx_update_bits(codec, HI6402_SDM_DACS_REG, 1 << HI6402_SDM_DACSR_EN_BIT, 1 << HI6402_SDM_DACSR_EN_BIT);
 		/* dacr sdm clk disable */
 		hi64xx_update_bits(codec, HI6402_SDM_CLK_REG, 1 << HI6402_DACSR_SDM_EN_BIT, 0);
-		/* dac rsrc up16 clk disable */
-		hi64xx_update_bits(codec, HI6402_EQ_SM_CLK_REG, 1 << HI6402_SRC_UP16R_EN_BIT, 0);
 		/* dacrl clk disable */
 		hi64xx_update_bits(codec, HI6402_DAC_ADC_CLK_REG, 1 << HI6402_DACSR_EN_BIT, 0);
 		break;
@@ -4410,9 +4406,9 @@ static void hi6402_dump_reg(char *buf, unsigned int dump_size)
 	}
 
 	len = strlen(buf);
-	len += snprintf(buf + len, dump_size - len,  "%#04x-%#04x\n", HI6402_IRQ_REG_IOMUX,
+	len += snprintf(buf + len, dump_size - len,  "%#04x-%#04x\n", HI6402_IRQ_REG_IOMUX,/* unsafe_function_ignore: snprintf */
 		snd_soc_read(g_hi6402_codec, HI6402_IRQ_REG_IOMUX -CODEC_BASE_ADDR));
-	if (len >= dump_size)
+	if (((unsigned int)len) >= dump_size)
 		return;
 
 	for (i = BASE_ADDR_PAGE_CFG + 0x00; i <= BASE_ADDR_PAGE_CFG + 0xff; i++)
@@ -4421,26 +4417,26 @@ static void hi6402_dump_reg(char *buf, unsigned int dump_size)
 			i = BASE_ADDR_PAGE_CFG + 0x4c;
 			continue;
 		}
-		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));
-		if (len >= dump_size)
+		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));/* unsafe_function_ignore: snprintf */
+		if (((unsigned int)len) >= dump_size)
 			return;
 	}
 
 	for (i = BASE_ADDR_PAGE_CFG + 0x41; i <= BASE_ADDR_PAGE_CFG + 0x4c; i++)
 	{
-		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));
-		if (len >= dump_size)
+		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));/* unsafe_function_ignore: snprintf */
+		if (((unsigned int)len) >= dump_size)
 			return;
 	}
 
 	for (i = BASE_ADDR_PAGE_DIG + 0x00; i <= BASE_ADDR_PAGE_DIG + 0x1FF; i++)
 	{
-		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));
-		if (len >= dump_size)
+		len += snprintf(buf + len, dump_size - len, "%#04x-%#04x\n", CODEC_BASE_ADDR | i, snd_soc_read(g_hi6402_codec, i));/* unsafe_function_ignore: snprintf */
+		if (((unsigned int)len) >= dump_size)
 			return;
 	}
 	len = strlen(buf);
-	snprintf(buf + len, dump_size - len, "\n");
+	snprintf(buf + len, dump_size - len, "\n");/* unsafe_function_ignore: snprintf */
 }
 
 
@@ -4487,6 +4483,7 @@ static int hi6402_resmgr_init(struct hi6402_platform_data *pd)
 	cfg.disable_ibias = hi6402_disable_ibias;
 	cfg.enable_micbias = hi6402_enable_micbias;
 	cfg.disable_micbias = hi6402_disable_micbias;
+	cfg.hi64xx_hs_high_resistance_enable = NULL;
 	ret = hi64xx_resmgr_init(pd->codec, pd->cdc_ctrl, pd->irqmgr, &cfg, &pd->resmgr);
 
 	return ret;
@@ -4918,7 +4915,7 @@ MODULE_DEVICE_TABLE(of, hi6402_platform_match);
 
 static void hi6402_get_board_cfg(struct device_node *node, struct hi6402_board_cfg *board_cfg)
 {
-	int val = 0;
+	unsigned int val = 0;
 
 	/* get board defination */
 	if (!of_property_read_u32(node, "micbias1_mic2", &val)) {
@@ -4928,13 +4925,13 @@ static void hi6402_get_board_cfg(struct device_node *node, struct hi6402_board_c
 	}
 
 	if (!of_property_read_u32(node, "hisilicon,mic_num", &val)) {
-		board_cfg->mic_num = val;
+		board_cfg->mic_num = (int)val;
 	} else {
 		board_cfg->mic_num = 2;
 	}
 
 	if (!of_property_read_u32(node, "hisilicon,hac_gpio", &val)) {
-		board_cfg->hac_gpio = val;
+		board_cfg->hac_gpio = (int)val;
 	} else {
 		board_cfg->hac_gpio = 0;
 	}
@@ -4986,7 +4983,7 @@ static void hi6402_init_codec_device(struct hi_cdc_ctrl* cdc)
 	hi_cdcctrl_reg_write(cdc, HI6402_IOS_IOM_CTRL33, 0x104);
 	hi_cdcctrl_reg_write(cdc, HI6402_IRQ_REG_IRQ_CTRL, 0x84);
 }
-
+/*lint -e429*/
 static int hi6402_platform_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -5085,7 +5082,7 @@ free_platform_data:
 
 	return ret;
 }
-
+/*lint +e429*/
 static int hi6402_platform_remove(struct platform_device *pdev)
 {
 	struct hi6402_platform_data *priv =

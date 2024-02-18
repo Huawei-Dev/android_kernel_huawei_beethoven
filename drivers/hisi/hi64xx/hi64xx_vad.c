@@ -122,6 +122,8 @@ int hi64xx_vad_deinit()
 	if (!vad_data)
 		return -EINVAL;
 
+	wake_lock_destroy(&vad_data->soundtrigger_wake_lock);
+
 	if (vad_data->irq)
 		hi64xx_irq_free_irq(vad_data->irq, IRQ_VAD, vad_data);
 

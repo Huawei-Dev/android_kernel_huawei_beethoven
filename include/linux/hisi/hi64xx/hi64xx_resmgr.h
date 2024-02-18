@@ -60,6 +60,8 @@ struct resmgr_config {
 	/* functions to enable/disable ibias */
 	int (*enable_ibias)(struct snd_soc_codec *);
 	int (*disable_ibias)(struct snd_soc_codec *);
+
+	void (*hi64xx_hs_high_resistance_enable)(struct snd_soc_codec *, bool);
 };
 
 
@@ -97,6 +99,8 @@ void hi64xx_resmgr_pm_get_clk(void);
 void hi64xx_resmgr_pm_put_clk(void);
 
 int hi64xx_resmgr_force_release_micbias(struct hi64xx_resmgr *resmgr);
+
+void hi64xx_resmgr_hs_high_resistence_enable(struct hi64xx_resmgr *resmgr, bool enable);
 
 void hi64xx_resmgr_dump(struct hi64xx_resmgr *resmgr);
 

@@ -30,12 +30,29 @@ extern "C" {
 #define BSP_RESET_ERROR                 (-1)
 #define DRV_MODULE_NAME_LEN             9  /* exclude '\0' */
 #define HIFI_SEC_DDR_MAX_NUM            (32)
+#define HIFI_SEC_MAX_NUM                (100)
 
 #ifdef CONFIG_HISI_FAMA
 #define ICC_SHARE_FAMA_ADDR_OFFSET      (HISI_RESERVED_MODEM_SHARE_PHYMEM_BASE_FAMA - HISI_RESERVED_MODEM_SHARE_PHYMEM_HIFI_ICC_BASE)
 #else
 #define ICC_SHARE_FAMA_ADDR_OFFSET      0
 #endif
+
+struct drv_hifi_image_sec {
+	unsigned short	 sn;
+	unsigned char type;
+	unsigned char load_attib;
+	unsigned int src_offset;
+	unsigned int des_addr;
+	unsigned int size;
+};
+
+struct drv_hifi_image_head {
+	char time_stamp[24];
+	unsigned int image_size;
+	unsigned int sections_num;
+	struct drv_hifi_image_sec sections[HIFI_SEC_MAX_NUM];
+};
 
 struct drv_hifi_sec_info {
 	unsigned int type;

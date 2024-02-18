@@ -30,7 +30,7 @@
 #include <linux/slab.h>
 #include <linux/hisi/hilog.h>
 #include <linux/pm_runtime.h>
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 
 #include "hi3630_asp_common.h"
 
@@ -41,13 +41,8 @@
 #include "slimbus_6403.h"
 
 
-extern struct dsm_client *dsm_audio_client;
 
-/*lint -e838 -e730 -e747 -e774 -e826 -e529 -e438*/
-
-#define REG_VIR_ADDR_MAP(phyAddr)		 	ioremap(phyAddr, sizeof(unsigned long))
-#define REG_VIR_ADDR_UNMAP(virAddr) 	 		iounmap(virAddr)
-#define PMU_AUDIOCLK_ADDR				(0xfff34428)
+/*lint -e838 -e730 -e747 -e774 -e826 -e529 -e438 -e485 -e785 -e651 -e64 -e527 -e570*/
 
 slimbus_channel_property_t audio_playback[SLIMBUS_AUDIO_PLAYBACK_CHANNELS] = {{0,{0,},{{0,},},},};
 slimbus_channel_property_t audio_capture[SLIMBUS_AUDIO_CAPTURE_MULTI_MIC_CHANNELS] = {{0,{0,},{{0,},},},};
@@ -57,7 +52,8 @@ slimbus_channel_property_t img_download[SLIMBUS_IMAGE_DOWNLOAD_CHANNELS] = {{0,{
 slimbus_channel_property_t ec_ref[SLIMBUS_ECREF_CHANNELS] = {{0,{0,},{{0,},},},};
 slimbus_channel_property_t sound_trigger[SLIMBUS_SOUND_TRIGGER_CHANNELS] = {{0,{0,},{{0,},},},};
 slimbus_channel_property_t audio_debug[SLIMBUS_DEBUG_CHANNELS] = {{0,{0,},{{0,},},},};
-slimbus_channel_property_t audio_hires_playback[SLIMBUS_AUDIO_PLAYBACK_CHANNELS] = {{0,{0,},{{0,},},},};
+slimbus_channel_property_t audio_direct_playback[SLIMBUS_AUDIO_PLAYBACK_CHANNELS] = {{0,{0,},{{0,},},},};
+slimbus_channel_property_t audio_fast_playback[SLIMBUS_AUDIO_PLAYBACK_CHANNELS] = {{0,{0,},{{0,},},},};
 
 enum {
 	SLIMBUS_TRACK_PLAY_ON                   = 1<<SLIMBUS_TRACK_AUDIO_PLAY,
@@ -68,7 +64,8 @@ enum {
 	SLIMBUS_TRACK_EC_ON                     = 1<<SLIMBUS_TRACK_ECREF,
 	SLIMBUS_TRACK_SOUND_TRIGGER_ON          = 1<<SLIMBUS_TRACK_SOUND_TRIGGER,
 	SLIMBUS_TRACK_DEBUG_ON                  = 1<<SLIMBUS_TRACK_DEBUG,
-	SLIMBUS_TRACK_HIRES_PLAY_ON             = 1<<SLIMBUS_TRACK_HIRES_PLAY,
+	SLIMBUS_TRACK_DIRECT_PLAY_ON            = 1<<SLIMBUS_TRACK_DIRECT_PLAY,
+	SLIMBUS_TRACK_FAST_PLAY_ON              = 1<<SLIMBUS_TRACK_FAST_PLAY,
 };
 
 
@@ -96,6 +93,7 @@ struct slimbus_private_data
 	bool slimbus_dynamic_freq_enable;
 	slimbus_device_ops_t *dev_ops;
 	bool pm_runtime_support;
+	bool switch_framer_disable;
 };
 
 static struct slimbus_private_data *pdata;
@@ -163,12 +161,19 @@ slimbus_track_config_t track_config_table[SLIMBUS_TRACK_MAX] = {
 		.params.callback = NULL,
 		.channel_pro = &audio_debug[0],
 	},
-	/* hires play */
+	/* direct play */
 	{
 		.params.channels = SLIMBUS_AUDIO_PLAYBACK_CHANNELS,
 		.params.rate = SLIMBUS_SAMPLE_RATE_192K,
 		.params.callback = NULL,
-		.channel_pro = &audio_hires_playback[0],
+		.channel_pro = &audio_direct_playback[0],
+	},
+	/* fast play */
+	{
+		.params.channels = SLIMBUS_AUDIO_PLAYBACK_CHANNELS,
+		.params.rate = SLIMBUS_SAMPLE_RATE_48K,
+		.params.callback = NULL,
+		.channel_pro = &audio_fast_playback[0],
 	},
 
 };
@@ -254,17 +259,16 @@ int slimbus_element_read(
 	mutex_unlock(&dev->rw_mutex);
 
 	if (ret) {
-		SLIMBUS_LIMIT_ERR("read error! slice_size=%d, addr=0x%x!\n", slice_size, byte_address);
+		SLIMBUS_LIMIT_ERR("read error! slice_size=%d, addr=0x%pK!\n", slice_size, (void *)(long)byte_address);
 		if (1 == slimbus_dmd_flag) {
-			if (!dsm_client_ocuppy(dsm_audio_client)) {
-				dsm_client_record(dsm_audio_client, "slice_size=%d, addr=0x%x\n",slice_size, byte_address);
-				dsm_client_notify(dsm_audio_client, DSM_HI6402_SLIMBUS_READ_ERR);
+			if (audio_dsm_report_info(AUDIO_CODEC, DSM_HI6402_SLIMBUS_READ_ERR,
+				"slice_size=%d, addr=0x%pK\n",slice_size, (void *)(long)byte_address) >= 0) {
 				slimbus_dmd_flag = 0;
 			}
 		}
 		return -EFAULT;
 	}
-	SLIMBUS_RECOVER_INFO("read recover, slice_size=%d, addr=%x!\n", slice_size, byte_address);
+	SLIMBUS_RECOVER_INFO("read recover, slice_size=%d, addr=%pK!\n", slice_size, (void *)(long)byte_address);
 
 	return 0;
 }
@@ -293,26 +297,13 @@ int slimbus_element_write(
 	mutex_unlock(&dev->rw_mutex);
 
 	if (ret) {
-		SLIMBUS_LIMIT_ERR("write error! slice_size=%d, addr=0x%x!\n", slice_size, byte_address);
+		SLIMBUS_LIMIT_ERR("write error! slice_size=%d, addr=0x%pK!\n", slice_size, (void *)(long)byte_address);
 		return -EFAULT;
 	}
-	SLIMBUS_RECOVER_INFO("write recover, slice_size=%d, addr=%x!\n", slice_size, byte_address);
+	SLIMBUS_RECOVER_INFO("write recover, slice_size=%d, addr=%pK!\n", slice_size, (void *)(long)byte_address);
 
 	return 0;
 }
-
-unsigned int slimbus_reg_read_u32(unsigned int pAddr)
-{
-	unsigned int value = 0;
-	void __iomem *virAddr = NULL;
-
-	virAddr = REG_VIR_ADDR_MAP(pAddr);
-	value = readl(virAddr);
-	REG_VIR_ADDR_UNMAP(virAddr);
-
-	return value;
-}
-
 
 unsigned int slimbus_read_1byte(unsigned int reg)
 {
@@ -333,15 +324,13 @@ unsigned int slimbus_read_1byte(unsigned int reg)
 		slimbus_element_read(slimbus_dev, reg, SLIMBUS_SS_1_BYTE, &value);
 
 		if (value == 0x5A) {
-			SLIMBUS_LIMIT_INFO("SLIMbus read1byte retry: reg:%#x, val:%#x !\n", reg, value);
+			SLIMBUS_LIMIT_INFO("SLIMbus read1byte retry: reg:0x%pK, val:%#x !\n", (void *)(unsigned long)reg, value);
 			retry_count++;
 			mdelay(1);
 		}
 	} while ((value == 0x5A) && (retry_count <= 3));
 
 	if (retry_count > 0) {
-		uint32_t pmu_audioclk_val = 0;
-
 		info0 = 0xa1;
 		info1 = 0xa2;
 		info2 = 0xa3;
@@ -350,8 +339,7 @@ unsigned int slimbus_read_1byte(unsigned int reg)
 		slimbus_drv_request_info(0x40, 0x400, SLIMBUS_SS_1_BYTE, &info1);
 		slimbus_drv_request_info(0x20, 0x400, SLIMBUS_SS_1_BYTE, &info2);
 		slimbus_drv_request_info(0x41, 0x400, SLIMBUS_SS_1_BYTE, &info3);
-		pmu_audioclk_val = slimbus_reg_read_u32(PMU_AUDIOCLK_ADDR);
-		SLIMBUS_LIMIT_INFO("SLIMbus info: %#x, %#x, %#x, %#x ! clk: %#x \n", info0, info1, info2, info3, pmu_audioclk_val);
+		SLIMBUS_LIMIT_INFO("SLIMbus info: %#x, %#x, %#x, %#x \n", info0, info1, info2, info3);
 	}
 	return value;
 }
@@ -377,7 +365,7 @@ unsigned int slimbus_read_4byte(unsigned int reg)
 		slimbus_element_read(slimbus_dev, 0x20007023, SLIMBUS_SS_4_BYTES, &value);
 
 		if (value == 0x6A6A6A6A) {
-			SLIMBUS_LIMIT_INFO("SLIMbus read4byte retry: reg:%#x, val:%#x !\n", reg, value);
+			SLIMBUS_LIMIT_INFO("SLIMbus read4byte retry: reg:0x%pK, val:%#x !\n", (void *)(unsigned long)reg, value);
 			retry_count++;
 			mdelay(1);
 		}
@@ -429,8 +417,8 @@ void slimbus_read_pageaddr(void)
 	slimbus_drv_element_read(slimbus_dev->generic_la, HI6402_PAGE_SELECT_REG_2, SLIMBUS_SS_1_BYTE, (uint8_t *)&page2);
 	mutex_unlock(&slimbus_dev->rw_mutex);
 
-	pr_info("[%s:%d] cdc page addr:%#x, page0:%#x, page1:%#x, page2:%#x !\n",
-		__FUNCTION__, __LINE__, slimbus_dev->page_sel_addr, page0, page1, page2);
+	pr_info("[%s:%d] cdc page addr:0x%pK, page0:%#x, page1:%#x, page2:%#x !\n",
+		__FUNCTION__, __LINE__, (void *)(unsigned long)(slimbus_dev->page_sel_addr), page0, page1, page2);
 }
 EXPORT_SYMBOL(slimbus_read_pageaddr);
 
@@ -447,6 +435,15 @@ uint32_t slimbus_trackstate_get(void)
 	return trackstate;
 }
 EXPORT_SYMBOL(slimbus_trackstate_get);
+
+static bool is_image_scene(uint32_t active_tracks)
+{
+	if (active_tracks & SLIMBUS_TRACK_IMAGE_LOAD_ON) {
+		return true;
+	}
+
+	return false;
+}
 
 static bool is_play_scene(uint32_t active_tracks)
 {
@@ -476,6 +473,24 @@ static bool is_call_only_scene(uint32_t active_tracks)
 	return false;
 }
 
+static bool is_call_12288_scene(uint32_t active_tracks)
+{
+	switch (active_tracks) {
+	case SLIMBUS_TRACK_VOICE_UP_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_VOICE_UP_ON | SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_VOICE_UP_ON | SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_EC_ON:
+	case SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_EC_ON:
+	case SLIMBUS_TRACK_VOICE_UP_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_EC_ON:
+	case SLIMBUS_TRACK_VOICE_UP_ON | SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_EC_ON:
+		return true;
+	default:
+		break;
+	}
+
+	return false;
+}
+
 static bool is_anc_call_scene(uint32_t active_tracks)
 {
 	switch (active_tracks) {
@@ -497,17 +512,54 @@ static bool is_anc_call_scene(uint32_t active_tracks)
 	return false;
 }
 
-static bool is_hires_play_scene(uint32_t active_tracks)
+static bool is_direct_play_scene(uint32_t active_tracks)
+{
+	uint32_t tmp = 0;
+
+	switch (active_tracks) {
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_EC_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+		return true;
+	default:
+		tmp = (SLIMBUS_TRACK_DEBUG_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_FAST_PLAY_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return false;
+		}
+
+		tmp = (SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_VOICE_UP_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return false;
+		}
+
+		tmp = (SLIMBUS_TRACK_DEBUG_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON);
+		if ((active_tracks & tmp) == tmp ) {
+			return true;
+		}
+		break;
+	}
+
+	return false;
+}
+
+static bool is_fast_play_scene(uint32_t active_tracks)
 {
 	switch (active_tracks) {
-	case SLIMBUS_TRACK_HIRES_PLAY_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_EC_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
-	case SLIMBUS_TRACK_HIRES_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON:
 		return true;
 	default:
 		break;
@@ -516,26 +568,201 @@ static bool is_hires_play_scene(uint32_t active_tracks)
 	return false;
 }
 
-static bool is_scene_conflict(
-				slimbus_track_type_t	track,
-				slimbus_scene_config_type_t scenes,
-				bool track_enable)
+static bool is_fast_play_record_scene(uint32_t active_tracks)
 {
-	bool is_conflict = false;
+	uint32_t tmp = 0;
 
-	if ((((track == SLIMBUS_TRACK_DEBUG) && track_enable)
-		|| track_state[SLIMBUS_TRACK_DEBUG])
-			&& (track_config_table[SLIMBUS_TRACK_DEBUG].params.channels == 2)
-			&& (scenes != SLIMBUS_SCENE_CONFIG_ANC_CALL)) {
+	switch (active_tracks) {
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_CAPTURE_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_PLAY_ON:
+		return true;
+	default:
+		tmp = (SLIMBUS_TRACK_DEBUG_ON | SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return false;
+		}
 
-		is_conflict = true;
-	} else if ((track == SLIMBUS_TRACK_HIRES_PLAY) && (scenes != SLIMBUS_SCENE_CONFIG_HIRES_PLAY)) {
-		is_conflict = true;
-	} else {
-		/*todo hires and call conflict*/
+		tmp = (SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_VOICE_UP_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return false;
+		}
+
+		tmp = (SLIMBUS_TRACK_DEBUG_ON | SLIMBUS_TRACK_FAST_PLAY_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return true;
+		}
+
+		break;
 	}
 
-	return is_conflict;
+	return false;
+}
+
+static bool is_fast_play_soundtrigger_scene(uint32_t active_tracks)
+{
+	uint32_t tmp = 0;
+
+	switch (active_tracks) {
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+	case SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_EC_ON | SLIMBUS_TRACK_PLAY_ON | SLIMBUS_TRACK_DIRECT_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON:
+		return true;
+	default:
+		tmp = (SLIMBUS_TRACK_VOICE_DOWN_ON | SLIMBUS_TRACK_VOICE_UP_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return false;
+		}
+
+		tmp = (SLIMBUS_TRACK_FAST_PLAY_ON | SLIMBUS_TRACK_SOUND_TRIGGER_ON);
+		if ((active_tracks & tmp) == tmp) {
+			return true;
+		}
+		break;
+	}
+
+	return false;
+}
+
+static int process_direct_and_play_conflict(slimbus_track_type_t track)
+{
+	int ret = 0;
+
+	if (track_state[SLIMBUS_TRACK_DIRECT_PLAY] && (track == SLIMBUS_TRACK_AUDIO_PLAY)) {
+		pr_info("[%s:%d] direct conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (track_state[SLIMBUS_TRACK_AUDIO_PLAY] && (track == SLIMBUS_TRACK_DIRECT_PLAY)) {
+		ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_AUDIO_PLAY].channel_pro,
+						track_config_table[SLIMBUS_TRACK_AUDIO_PLAY].params.channels);
+
+		track_state[SLIMBUS_TRACK_AUDIO_PLAY] = false;
+	}
+
+	return ret;
+}
+
+static int process_play_and_debug_conflict(slimbus_track_type_t track, int *need_callback)
+{
+	int ret = 0;
+
+	if ((track_state[SLIMBUS_TRACK_DIRECT_PLAY] || track_state[SLIMBUS_TRACK_FAST_PLAY])
+		&& (track == SLIMBUS_TRACK_DEBUG)) {
+		pr_info("[%s:%d] debug conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (track_state[SLIMBUS_TRACK_DEBUG]) {
+		*need_callback = 1;
+		ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_DEBUG].channel_pro,
+						track_config_table[SLIMBUS_TRACK_DEBUG].params.channels);
+
+		track_state[SLIMBUS_TRACK_DEBUG] = false;
+		track_config_table[SLIMBUS_TRACK_DEBUG].params.channels = 1;
+	}
+
+	return ret;
+}
+
+static int process_image_and_other_conflict(slimbus_track_type_t track)
+{
+	int ret = 0;
+	int i = 0;
+
+	if (track_state[SLIMBUS_TRACK_IMAGE_LOAD] && (track != SLIMBUS_TRACK_IMAGE_LOAD)) {
+		pr_info("[%s:%d] image conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (track == SLIMBUS_TRACK_IMAGE_LOAD) {
+		for (i = 0; i < SLIMBUS_TRACK_MAX; i++) {
+			if (track_state[i] && (i != track)) {
+				pr_info("[%s:%d] image load, deactivate track:%#x \n", __FUNCTION__, __LINE__, i);
+				ret += slimbus_drv_track_deactivate(track_config_table[i].channel_pro,
+						track_config_table[i].params.channels);
+				track_state[i] = false;
+			}
+		}
+
+	}
+
+	return ret;
+}
+
+static int process_normal_scene_conflict(slimbus_track_type_t track, bool track_enable, int *need_callback)
+{
+	int ret = 0;
+
+	if (track_state[SLIMBUS_TRACK_VOICE_UP] && (track == SLIMBUS_TRACK_SOUND_TRIGGER) && track_enable) {
+		pr_info("[%s:%d] st conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+
+	if (((track == SLIMBUS_TRACK_DIRECT_PLAY) || (track == SLIMBUS_TRACK_FAST_PLAY)) && track_enable) {
+		pr_info("[%s:%d] conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if ((track == SLIMBUS_TRACK_DEBUG) && (track_config_table[SLIMBUS_TRACK_DEBUG].params.channels == 2)) {
+		track_config_table[track].params.channels = 1;
+		pr_info("[%s:%d] debug conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (track_state[SLIMBUS_TRACK_DIRECT_PLAY]) {
+		ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_DIRECT_PLAY].channel_pro,
+						track_config_table[SLIMBUS_TRACK_DIRECT_PLAY].params.channels);
+
+		track_state[SLIMBUS_TRACK_DIRECT_PLAY] = false;
+	}
+	if (track_state[SLIMBUS_TRACK_FAST_PLAY]) {
+		ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_FAST_PLAY].channel_pro,
+						track_config_table[SLIMBUS_TRACK_FAST_PLAY].params.channels);
+
+		track_state[SLIMBUS_TRACK_FAST_PLAY] = false;
+	}
+	if (track_state[SLIMBUS_TRACK_DEBUG] && (track_config_table[SLIMBUS_TRACK_DEBUG].params.channels == 2)) {
+		*need_callback = 1;
+		ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_DEBUG].channel_pro,
+						track_config_table[SLIMBUS_TRACK_DEBUG].params.channels);
+
+		track_state[SLIMBUS_TRACK_DEBUG] = false;
+		track_config_table[SLIMBUS_TRACK_DEBUG].params.channels = 1;
+	}
+
+	return ret;
+}
+
+static int process_other_scenes_conflict(slimbus_track_type_t track, int *need_callback)
+{
+	int ret = 0;
+
+	if (process_direct_and_play_conflict(track)) {
+		pr_info("[%s:%d] direct conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (process_play_and_debug_conflict(track, need_callback)) {
+		pr_info("[%s:%d] debug conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+	if (process_image_and_other_conflict(track)) {
+		pr_info("[%s:%d] image conflict\n", __FUNCTION__, __LINE__);
+		return -EPERM;
+	}
+
+	return ret;
 }
 
 static int slimbus_check_scenes(
@@ -545,28 +772,23 @@ static int slimbus_check_scenes(
 {
 	unsigned int i = 0;
 	int ret = 0;
-	bool need_callback = false;
+	int need_callback = 0;
 
 	BUG_ON(track >= SLIMBUS_TRACK_MAX);
 	BUG_ON(scenes >= SLIMBUS_SCENE_CONFIG_MAX);
 
-	if (is_scene_conflict(track, scenes, track_enable)) {
-		pr_info("[%s:%d] scenes %d conflict, track %d \n",  __FUNCTION__, __LINE__, scenes, track);
-
-		if ((track == SLIMBUS_TRACK_DEBUG) || (track == SLIMBUS_TRACK_HIRES_PLAY)) {
-			track_config_table[track].params.channels = 1;
-			ret = -EPERM;
-			return ret;
-		}
-
-		need_callback = true;
-		if (track_state[SLIMBUS_TRACK_DEBUG]) {
-			ret = slimbus_drv_track_deactivate(track_config_table[SLIMBUS_TRACK_DEBUG].channel_pro,
-							track_config_table[SLIMBUS_TRACK_DEBUG].params.channels);
-
-			track_state[SLIMBUS_TRACK_DEBUG] = false;
-			track_config_table[SLIMBUS_TRACK_DEBUG].params.channels = 1;
-		}
+	switch (scenes) {
+	case SLIMBUS_SCENE_CONFIG_IMAGE_LOAD:
+	case SLIMBUS_SCENE_CONFIG_DIRECT_PLAY:
+	case SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_REC:
+	case SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_ST:
+		ret = process_other_scenes_conflict(track, &need_callback);
+		break;
+	case SLIMBUS_SCENE_CONFIG_NORMAL:
+		ret = process_normal_scene_conflict(track, track_enable, &need_callback);
+		break;
+	default:
+		break;
 	}
 
 	for (i = 0; i < SLIMBUS_TRACK_MAX; i++) {
@@ -598,7 +820,7 @@ static int slimbus_select_scenes(
 		active_tracks |= (1<<track);
 	}
 
-	if (SLIMBUS_TRACK_IMAGE_LOAD_ON == active_tracks) {
+	if (is_image_scene(active_tracks)) {
 		scene_config_type = SLIMBUS_SCENE_CONFIG_IMAGE_LOAD;
 		cg = SLIMBUS_CG_10;
 		sm = SLIMBUS_SM_3_CSW_8_SL;
@@ -610,12 +832,28 @@ static int slimbus_select_scenes(
 		scene_config_type = SLIMBUS_SCENE_CONFIG_CALL;
 		cg = SLIMBUS_CG_8;
 		sm = SLIMBUS_SM_6_CSW_24_SL;
+	} else if (is_call_12288_scene(active_tracks)) {
+		scene_config_type = SLIMBUS_SCENE_CONFIG_CALL_12288;
+		cg = SLIMBUS_CG_9;
+		sm = SLIMBUS_SM_8_CSW_32_SL;
 	} else if (is_anc_call_scene(active_tracks)) {
 		scene_config_type = SLIMBUS_SCENE_CONFIG_ANC_CALL;
 		cg = SLIMBUS_CG_10;
 		sm = SLIMBUS_SM_1_CSW_32_SL;
-	} else if (is_hires_play_scene(active_tracks)) {
-		scene_config_type = SLIMBUS_SCENE_CONFIG_HIRES_PLAY;
+	} else if (is_direct_play_scene(active_tracks)) {
+		scene_config_type = SLIMBUS_SCENE_CONFIG_DIRECT_PLAY;
+		cg = SLIMBUS_CG_10;
+		sm = SLIMBUS_SM_4_CSW_32_SL;
+	} else if (is_fast_play_scene(active_tracks)) {
+		scene_config_type = SLIMBUS_SCENE_CONFIG_FAST_PLAY;
+		cg = SLIMBUS_CG_8;
+		sm = SLIMBUS_SM_8_CSW_32_SL;
+	} else if (is_fast_play_record_scene(active_tracks)) {
+		scene_config_type = SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_REC;
+		cg = SLIMBUS_CG_10;
+		sm = SLIMBUS_SM_2_CSW_32_SL;
+	} else if (is_fast_play_soundtrigger_scene(active_tracks)) {
+		scene_config_type = SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_ST;
 		cg = SLIMBUS_CG_10;
 		sm = SLIMBUS_SM_4_CSW_32_SL;
 	} else {
@@ -625,8 +863,10 @@ static int slimbus_select_scenes(
 	}
 
 	ret = slimbus_check_scenes(track, scene_config_type, track_enable);
-	if (ret)
+	if (ret) {
+		pr_info("[%s:%d] ret %d\n", __FUNCTION__, __LINE__, ret);
 		return ret;
+	}
 
 	if (dev->scene_config_type != scene_config_type) {
 		pr_info("[%s:%d] scene changed from %d to %d\n", __FUNCTION__, __LINE__, dev->scene_config_type, scene_config_type);
@@ -679,17 +919,42 @@ static int slimbus_track_soundtrigger_activate(
 
 }
 
+static int slimbus_check_pm(slimbus_track_type_t track)
+{
+	int ret = 0;
+
+	if (pdata->pm_runtime_support) {
+		if (track_state[track]) {
+			pr_info("[%s:%d] track:%d has been configured \n", __FUNCTION__, __LINE__, track);
+		} else {
+			ret = pm_runtime_get_sync(pdata->dev);
+			if (ret < 0) {
+				pr_err("[%s:%d] pm resume error, track:%d, ret:%d\n", __FUNCTION__, __LINE__, track, ret);
+				BUG_ON(true);
+				return ret;
+			}
+			if (!slimbus_trackstate_get()) {
+				ret = slimbus_switch_framer(pdata->device_type, SLIMBUS_FRAMER_CODEC);
+				if (ret) {
+					pr_err("[%s:%d] slimbus switch framer to codec failed!\n", __FUNCTION__, __LINE__);
+				}
+			}
+		}
+	}
+
+	return ret;
+}
+
 int slimbus_track_activate(
 				slimbus_device_type_t	dev_type,
 				slimbus_track_type_t	track,
 				slimbus_track_param_t	*params)
 {
 	int ret = 0;
-	int pm_ret;
 	struct slimbus_device_info *dev = NULL;
 
-	if ( (dev_type >= SLIMBUS_DEVICE_NUM) || (track >= SLIMBUS_TRACK_MAX)) {
-		pr_err("slimbus activate param err, dev_type %d, track %d\n", dev_type, track);
+	if (track >= SLIMBUS_TRACK_MAX) {
+		pr_err("params error, dev_type %d, track %d\n", dev_type, track);
 		return -1;
 	}
 
@@ -702,24 +967,10 @@ int slimbus_track_activate(
 
 	mutex_lock(&dev->track_mutex);
 
-	if (pdata->pm_runtime_support) {
-		if (track_state[track]) {
-			pr_info("[%s:%d] track:%d has been configured \n", __FUNCTION__, __LINE__, track);
-		} else {
-			pm_ret = pm_runtime_get_sync(pdata->dev);
-			if (pm_ret < 0) {
-				pr_err("[%s:%d] pm resume error, track:%d, pm_ret:%d\n", __FUNCTION__, __LINE__, track, pm_ret);
-				mutex_unlock(&dev->track_mutex);
-				BUG_ON(true);
-				return pm_ret;
-			}
-			if (!slimbus_trackstate_get()) {
-				ret = slimbus_switch_framer(pdata->device_type, SLIMBUS_FRAMER_CODEC);
-				if (ret) {
-					pr_err("[%s:%d] slimbus switch framer to codec failed!\n", __FUNCTION__, __LINE__);
-				}
-			}
-		}
+	ret = slimbus_check_pm(track);
+	if (ret < 0) {
+		mutex_unlock(&dev->track_mutex);
+		return ret;
 	}
 
 	if (params) {
@@ -795,7 +1046,7 @@ int slimbus_track_deactivate(
 	struct slimbus_device_info *dev = NULL;
 
 	if ((dev_type >= SLIMBUS_DEVICE_NUM) || (track >= SLIMBUS_TRACK_MAX)) {
-		pr_err("slimbus deactivate param err, dev_type %d, track %d\n", dev_type, track);
+		pr_err("params error, dev_type %d, track %d\n", dev_type, track);
 		return -1;
 	}
 
@@ -898,6 +1149,9 @@ int slimbus_switch_framer(
 		return -EINVAL;
 	}
 
+	if (pdata->switch_framer_disable)
+		return 0;
+
 	if (dev->rf == SLIMBUS_RF_6144) {
 		if (framer_type == SLIMBUS_FRAMER_CODEC) {
 			ret = slimbus_drv_switch_framer(la, 4, 18, bus_cfg);
@@ -989,19 +1243,51 @@ int slimbus_bus_configure(slimbus_bus_config_type_t type)
 }
 EXPORT_SYMBOL(slimbus_bus_configure);
 
+static void slimbus_ioparam_get(slimbus_device_type_t device_type)
+{
+	uint32_t   slimbusclk_drv = 0;
+	uint32_t   slimbusdata_drv = 0;
+	uint32_t   slimbusclk_offset = 0;
+	uint32_t   slimbusdata_offset = 0;
+	uint32_t   slimbusclk_cfg_offset = 0;
+	uint32_t   slimbusdata_cfg_offset = 0;
 
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusclk_io_driver", &slimbusclk_drv)) {
+		slimbus_devices[device_type]->slimbusclk_drv = slimbusclk_drv;
+	}
+
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusdata_io_driver", &slimbusdata_drv)) {
+		slimbus_devices[device_type]->slimbusdata_drv = slimbusdata_drv;
+	}
+
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusclk_offset", &slimbusclk_offset)) {
+		slimbus_devices[device_type]->slimbusclk_offset = slimbusclk_offset;
+	}
+
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusdata_offset", &slimbusdata_offset)) {
+		slimbus_devices[device_type]->slimbusdata_offset = slimbusdata_offset;
+	}
+
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusclk_cfg_offset", &slimbusclk_cfg_offset)) {
+		slimbus_devices[device_type]->slimbusclk_cfg_offset = slimbusclk_cfg_offset;
+	}
+
+	if (!of_property_read_u32(pdata->dev->of_node, "slimbusdata_cfg_offset", &slimbusdata_cfg_offset)) {
+		slimbus_devices[device_type]->slimbusdata_cfg_offset = slimbusdata_cfg_offset;
+	}
+}
 
 static int slimbus_init_platform_params(const char *platformtype, slimbus_device_type_t device_type, platform_type_t *platform_type)
 {
 	int ret = 0;
-	uint32_t   slimbusclk_drv = 0;
-	uint32_t   slimbusdata_drv = 0;
-
-	pr_info("[%s:%d] platform type:%s device_type: %d!\n", __FUNCTION__, __LINE__, platformtype, device_type);
 
 	slimbus_devices[device_type]->rf = SLIMBUS_RF_6144;
 	slimbus_devices[device_type]->slimbusclk_drv = 0xA0;
 	slimbus_devices[device_type]->slimbusdata_drv = 0xA3;
+	slimbus_devices[device_type]->slimbusclk_offset = IOC_SYS_IOMG_011;
+	slimbus_devices[device_type]->slimbusdata_offset = IOC_SYS_IOMG_012;
+	slimbus_devices[device_type]->slimbusclk_cfg_offset = IOC_SYS_IOCG_013;
+	slimbus_devices[device_type]->slimbusdata_cfg_offset = IOC_SYS_IOCG_014;
 	*platform_type = PLATFORM_PHONE;
 
 	if(NULL == platformtype){
@@ -1012,13 +1298,13 @@ static int slimbus_init_platform_params(const char *platformtype, slimbus_device
 		bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].cg = SLIMBUS_CG_10;
 		slimbus_devices[device_type]->scene_config_type = SLIMBUS_SCENE_CONFIG_NORMAL;
 	} else {
-		if (!strcmp(platformtype, "ASIC")) {
+		if (!strncmp(platformtype, "ASIC", 4)) {
 			slimbus_devices[device_type]->rf = SLIMBUS_RF_24576;
 			bus_config[SLIMBUS_BUS_CONFIG_NORMAL].sm = SLIMBUS_SM_8_CSW_32_SL;
 			bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].sm = SLIMBUS_SM_8_CSW_32_SL;
 			bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].cg = SLIMBUS_CG_10;
 			slimbus_devices[device_type]->scene_config_type = SLIMBUS_SCENE_CONFIG_NORMAL;
-		} else if (!strcmp(platformtype, "UDP")) {
+		} else if (!strncmp(platformtype, "UDP", 3)) {
 			slimbus_devices[device_type]->rf = SLIMBUS_RF_24576;
 			slimbus_devices[device_type]->slimbusclk_drv = 0xC0;
 			slimbus_devices[device_type]->slimbusdata_drv = 0xC3;
@@ -1027,8 +1313,11 @@ static int slimbus_init_platform_params(const char *platformtype, slimbus_device
 			bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].cg = SLIMBUS_CG_10;
 			slimbus_devices[device_type]->scene_config_type = SLIMBUS_SCENE_CONFIG_NORMAL;
 			*platform_type = PLATFORM_UDP;
-		} else if (!strcmp(platformtype, "FPGA")) {
+		} else if (!strncmp(platformtype, "FPGA", 4)) {
 			slimbus_devices[device_type]->rf = SLIMBUS_RF_6144;
+			bus_config[SLIMBUS_BUS_CONFIG_NORMAL].sm = SLIMBUS_SM_4_CSW_32_SL;
+			bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].sm = SLIMBUS_SM_4_CSW_32_SL;
+			bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].cg = SLIMBUS_CG_8;
 			if (SLIMBUS_DEVICE_HI6403 == device_type) {
 				slimbus_devices[device_type]->scene_config_type = SLIMBUS_SCENE_CONFIG_6144_FPGA;
 			}
@@ -1040,20 +1329,21 @@ static int slimbus_init_platform_params(const char *platformtype, slimbus_device
 		}
 	}
 
-	if (!of_property_read_u32(pdata->dev->of_node, "slimbusclk_io_driver", &slimbusclk_drv)) {
-		slimbus_devices[device_type]->slimbusclk_drv = slimbusclk_drv;
-	}
+	slimbus_ioparam_get(device_type);
 
-	if (!of_property_read_u32(pdata->dev->of_node, "slimbusdata_io_driver", &slimbusdata_drv)) {
-		slimbus_devices[device_type]->slimbusdata_drv = slimbusdata_drv;
-	}
-
-	if (SLIMBUS_DEVICE_HI6403 == device_type) {
+	if ((SLIMBUS_DEVICE_HI6403 == device_type) && (*platform_type != PLATFORM_FPGA)) {
 		bus_config[SLIMBUS_BUS_CONFIG_NORMAL].sm = SLIMBUS_SM_1_CSW_32_SL;
 		bus_config[SLIMBUS_BUS_CONFIG_SWITCH_FRAMER].sm = SLIMBUS_SM_1_CSW_32_SL;
 		slimbus_devices[device_type]->cg = SLIMBUS_CG_10;
 		slimbus_devices[device_type]->sm = SLIMBUS_SM_1_CSW_32_SL;
 	}
+
+	pr_info("[%s:%d] platform type:%s device_type:%d slimbusclk:0x%x, slimbusdata:0x%x, slimbusclk_cfg:0x%x slimbusdata_cfg:0x%x\n",
+		__FUNCTION__, __LINE__, platformtype, device_type,
+		slimbus_devices[device_type]->slimbusclk_offset,
+		slimbus_devices[device_type]->slimbusdata_offset,
+		slimbus_devices[device_type]->slimbusclk_cfg_offset,
+		slimbus_devices[device_type]->slimbusdata_cfg_offset);
 
 	if (pdata)
 		pdata->dev_ops->slimbus_device_param_init(slimbus_devices[device_type]);
@@ -1091,23 +1381,12 @@ static void slimbus_hi6403_register(slimbus_device_ops_t *dev_ops)
 	return;
 }
 
-static int slimbus_probe(struct platform_device *pdev)
+static int slimbus_clk_init(struct platform_device *pdev, struct slimbus_private_data *pd)
 {
-	struct slimbus_private_data *pd;
-	struct device	*dev = &pdev->dev;
-	struct resource *resource;
-	const char *platformtype = NULL;
-	const char *codectype = NULL;
-	int   ret          = 0;
+	int ret = 0;
+	struct device *dev = &pdev->dev;
+	struct resource *resource = NULL;
 	uint32_t   clk_asp_subsys = 0;
-	const char *property_value = NULL;
-	slimbus_device_ops_t *dev_ops = NULL;
-
-	pd = devm_kzalloc(dev, sizeof(struct slimbus_private_data), GFP_KERNEL);
-	if (!pd) {
-		dev_err(dev, "not enough memory for slimbus_private_data\n");
-		return -ENOMEM;
-	}
 
 	/* get pmu audio clk */
 	pd->pmu_audio_clk = devm_clk_get(dev, "clk_pmuaudioclk");
@@ -1170,95 +1449,120 @@ static int slimbus_probe(struct platform_device *pdev)
 
 	slimbus_utils_init(pd->asp_reg_base_addr, clk_asp_subsys);
 
-	/* get asp power state address from dts, step next if fail to protect no definition */
-	resource = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+	return 0;
+get_aspres_err:
+	iounmap(pd->base_addr);
+asp_subsys_clk_enable_err:
+	clk_disable_unprepare(pd->asp_subsys_clk);
+asp_subsys_clk_clk_err:
+pmu_audio_clk_enable_err:
+	clk_disable_unprepare(pd->pmu_audio_clk);
+get_pmu_audio_clk_err:
+
+	return -EFAULT;
+}
+
+static int slimbus_asp_power_init(struct platform_device *pdev, struct resource *resource, struct slimbus_private_data *pd)
+{
+	int ret = 0;
+	struct device *dev = &pdev->dev;
+
 	if (!resource) {
-		dev_err(dev, "get sctrl base addr failed\n");
+		pr_err("get sctrl base addr failed\n");
 	} else {
 		pd->sctrl_base_addr = ioremap(resource->start, resource_size(resource));
 		if (!pd->sctrl_base_addr) {
-			dev_err(dev, "remap base address %pK failed\n", (void*)resource->start);
-			goto map_asp_err;
+			pr_err("remap base address %pK failed\n", (void*)resource->start);
+			return -ENOMEM;
 		}
 
 		if (of_property_read_u32(pdev->dev.of_node, "asp_power_state_offset", &(pd->asp_power_state_offset))) {
-			dev_err(dev, "of_property_read_u32 return error! ret:%d\n", ret);
-			goto map_sctrl_err;
+			pr_err("of_property_read_u32 return error!\n");
+			return -EFAULT;
 		}
 
 		if (of_property_read_u32(pdev->dev.of_node, "asp_clk_state_offset", &(pd->asp_clk_state_offset))) {
-			dev_err(dev, "of_property_read_u32 return error! ret:%d\n", ret);
-			goto map_sctrl_err;
+			pr_err("of_property_read_u32 return error!\n");
+			return -EFAULT;
 		}
 
 		pr_info("[%s:%d] sctrl base addr:0x%pK, virtaddr:0x%pK, power-offset:0x%x clk-offset:0x%x\n",
 			__FUNCTION__, __LINE__, (void*)resource->start, pd->sctrl_base_addr, pd->asp_power_state_offset, pd->asp_clk_state_offset);
 	}
 
-	dev_info(dev, "[%s:%d] virtual address slimbus:%pK, asp:%pK!\n", __FUNCTION__, __LINE__,pd->base_addr, pd->asp_reg_base_addr);
+	pr_info("[%s:%d] virtual address slimbus:%pK, asp:%pK!\n", __FUNCTION__, __LINE__,pd->base_addr, pd->asp_reg_base_addr);
 
 	/* SLIMbus irq */
 	pd->irq = platform_get_irq_byname(pdev, "asp_irq_slimbus");
 	if (pd->irq < 0) {
-		dev_err(dev, "get irq failed\n");
-		goto map_sctrl_err;
+		pr_err("get irq failed\n");
+		return -EFAULT;
 	}
 
 	pd->regu_asp = devm_regulator_get(dev, "slimbus-reg");
 	if (IS_ERR(pd->regu_asp)) {
-		dev_err(dev, "couldn't get regulators !\n");
-		goto map_sctrl_err;
+		pr_err("couldn't get regulators !\n");
+		return -EFAULT;
 	}
 
 	ret = regulator_enable(pd->regu_asp);
 	if (ret) {
-		dev_err(dev, "couldn't enable regulators %d\n", ret);
-		goto map_sctrl_err;
+		pr_err("couldn't enable regulators %d\n", ret);
+		return -EFAULT;
 	}
+
+	return ret;
+}
+
+static int slimbus_pinctrl_init(struct platform_device *pdev, struct slimbus_private_data *pd)
+{
+	int ret = 0;
+	int get_err = -1;
+	int ops_err = -2;
+	slimbus_device_ops_t *dev_ops = NULL;
+	const char *codectype = NULL;
+	struct device *dev = &pdev->dev;
 
 	/* ssi&slimbus iomux config */
 	pd->pctrl = pinctrl_get(dev);
 	if (IS_ERR(pd->pctrl)) {
 		dev_err(dev, "could not get pinctrl\n");
-		goto get_pinctrl_err;
+		return get_err;
 	}
 	pd->pin_default = pinctrl_lookup_state(pd->pctrl, PINCTRL_STATE_DEFAULT);
 	if (IS_ERR(pd->pin_default)) {
 		dev_err(dev, "%s : could not get defstate (%li)\n", __FUNCTION__ , PTR_ERR(pd->pin_default));
-		goto ops_pinctrl_err;
+		return ops_err;
 	}
 	pd->pin_idle = pinctrl_lookup_state(pd->pctrl, PINCTRL_STATE_IDLE);
 	if (IS_ERR(pd->pin_idle)) {
 		dev_err(dev, "%s : could not get defstate (%li)\n", __FUNCTION__ , PTR_ERR(pd->pin_idle));
-		goto ops_pinctrl_err;
+		return ops_err;
 	}
 
 	ret = pinctrl_select_state(pd->pctrl, pd->pin_default);
 	if (ret) {
 		dev_err(dev, "%s : could not set pins to default state\n", __FUNCTION__);
 		HiLOGE("audio","Slimbus", "%s : could not set pins to default state\n", __FUNCTION__);
-		goto ops_pinctrl_err;
+		return ops_err;
 	}
 
 	dev_ops = kzalloc(sizeof(*dev_ops), GFP_KERNEL);
 	if(!dev_ops){
 		pr_err("%s : kzalloc error!\n", __FUNCTION__);
-		goto ops_pinctrl_err;
+		return ops_err;
 	}
 
 	pd->dev_ops = dev_ops;
 
-	pdata = pd;
-	pdata->dev = dev;
-
 	pd->device_type = SLIMBUS_DEVICE_HI6402;
 	ret = of_property_read_string(pdev->dev.of_node, "codec-type", &codectype);
-	if (ret == 0 && !strcmp(codectype, "slimbus-6403es")) {
+	if (ret == 0 && !strncmp(codectype, "slimbus-6403es", 14)) {
 		pd->device_type = SLIMBUS_DEVICE_HI6403;
 		slimbus_hi6403_register(dev_ops);
 
 		ret = dev_ops->create_slimbus_device(&slimbus_devices[SLIMBUS_DEVICE_HI6403], CODEC_HI6403ES);
-	} else if (ret == 0 && !strcmp(codectype, "slimbus-6403cs")) {
+	} else if (ret == 0 && !strncmp(codectype, "slimbus-6403cs", 14)) {
 		pd->device_type = SLIMBUS_DEVICE_HI6403;
 		slimbus_hi6403_register(dev_ops);
 
@@ -1272,15 +1576,77 @@ static int slimbus_probe(struct platform_device *pdev)
 
 	if (ret) {
 		dev_err(dev, "slimbus device create failed! \n");
+		return ops_err;
+	}
+
+	return ret;
+}
+
+static void slimbus_pm_init(struct platform_device *pdev, struct slimbus_private_data *pd)
+{
+	if (of_property_read_bool(pdev->dev.of_node, "pm_runtime_support"))
+		pd->pm_runtime_support = true;
+
+	pr_info("[%s:%d] pm_runtime_suppport:%d!\n", __FUNCTION__, __LINE__,pd->pm_runtime_support);
+
+	if (pd->pm_runtime_support) {
+		pm_runtime_use_autosuspend(&pdev->dev);
+		pm_runtime_set_autosuspend_delay(&pdev->dev, 200); /* 200ms */
+		pm_runtime_set_active(&pdev->dev);
+		pm_suspend_ignore_children(&pdev->dev, true);
+		pm_runtime_enable(&pdev->dev);
+	}
+
+	return;
+}
+
+static int slimbus_probe(struct platform_device *pdev)
+{
+	struct slimbus_private_data *pd;
+	struct device	*dev = &pdev->dev;
+	struct resource *resource;
+	const char *platformtype = NULL;
+	int   ret          = 0;
+	const char *property_value = NULL;
+	int get_err = -1;
+	int ops_err = -2;
+
+	pd = devm_kzalloc(dev, sizeof(struct slimbus_private_data), GFP_KERNEL);
+	if (!pd) {
+		dev_err(dev, "not enough memory for slimbus_private_data\n");
+		return -ENOMEM;
+	}
+
+	ret = slimbus_clk_init(pdev, pd);
+	if (ret != 0) {
+		pr_info("[%s:%d] clk init fail!\n", __FUNCTION__, __LINE__);
+		return ret;
+	}
+
+
+	/* get asp power state address from dts, step next if fail to protect no definition */
+	resource = platform_get_resource(pdev, IORESOURCE_MEM, 2);
+	ret = slimbus_asp_power_init(pdev, resource, pd);
+	if (ret == -ENOMEM) {
+		goto map_asp_err;
+	} else if (ret == -EFAULT) {
+		goto map_sctrl_err;
+	}
+
+	pdata = pd;
+	pdata->dev = dev;
+
+	ret = slimbus_pinctrl_init(pdev, pd);
+	if (ret == get_err) {
+		goto get_pinctrl_err;
+	} else if (ret == ops_err) {
 		goto ops_pinctrl_err;
 	}
 
 	pd->slimbus_dynamic_freq_enable = false;
 	ret = of_property_read_string(pdev->dev.of_node, "slimbus_dynamic_freq", &property_value);
-	if (!ret && (!strcmp(property_value, "true"))) {
+	if (!ret && (!strncmp(property_value, "true", 4))) {
 		pd->slimbus_dynamic_freq_enable = true;
-	} else {
-		pd->slimbus_dynamic_freq_enable = false;
 	}
 
 	ret = of_property_read_string(pdev->dev.of_node, "platform-type", &platformtype);
@@ -1289,11 +1655,11 @@ static int slimbus_probe(struct platform_device *pdev)
 		goto ops_pinctrl_err;
 	}
 
-	if (of_property_read_bool(dev->of_node, "pm_runtime_support"))
-		pd->pm_runtime_support = true;
+	if (of_property_read_bool(dev->of_node, "switch_framer_disable"))
+		pd->switch_framer_disable = true;
 
-	pr_info("[%s:%d] platform type:%s codectype: %s, dynamic freq %d pm_runtime_suppport:%d!\n",
-		__FUNCTION__, __LINE__, platformtype, codectype, pd->slimbus_dynamic_freq_enable, pd->pm_runtime_support);
+	pr_info("[%s:%d] platform type:%s device_type: %d, dynamic freq %d switch_framer_disable:%d!\n",
+		__FUNCTION__, __LINE__, platformtype, pd->device_type, pd->slimbus_dynamic_freq_enable, pd->switch_framer_disable);
 
 	ret = slimbus_init_platform_params(platformtype, pd->device_type, &(pd->platform_type));
 	if (ret) {
@@ -1324,13 +1690,7 @@ static int slimbus_probe(struct platform_device *pdev)
 	pd->lastframer	= SLIMBUS_FRAMER_SOC;
 	platform_set_drvdata(pdev, pd);
 
-	if (pd->pm_runtime_support) {
-		pm_runtime_use_autosuspend(&pdev->dev);
-		pm_runtime_set_autosuspend_delay(&pdev->dev, 200); /* 200ms */
-		pm_runtime_set_active(&pdev->dev);
-		pm_suspend_ignore_children(&pdev->dev, true);
-		pm_runtime_enable(&pdev->dev);
-	}
+	slimbus_pm_init(pdev, pd);
 
 	return 0;
 
@@ -1341,9 +1701,9 @@ release_slimbusdev:
 	}
 ops_pinctrl_err:
 	pinctrl_put(pd->pctrl);
-	if (dev_ops) {
-		kfree(dev_ops);
-		dev_ops = NULL;
+	if (pd->dev_ops) {
+		kfree(pd->dev_ops);
+		pd->dev_ops = NULL;
 	}
 get_pinctrl_err:
 	regulator_disable(pd->regu_asp);
@@ -1352,18 +1712,12 @@ map_sctrl_err:
 map_asp_err:
 	iounmap(pd->asp_reg_base_addr);
 	slimbus_utils_deinit();
-get_aspres_err:
-	iounmap(pd->base_addr);
-asp_subsys_clk_enable_err:
-	clk_disable_unprepare(pd->asp_subsys_clk);
-asp_subsys_clk_clk_err:
-	devm_clk_put(dev, pd->asp_subsys_clk);
-pmu_audio_clk_enable_err:
-	clk_disable_unprepare(pd->pmu_audio_clk);
-get_pmu_audio_clk_err:
-	devm_clk_put(dev, pd->pmu_audio_clk);
 
-	devm_kfree(&pdev->dev, pd);
+	iounmap(pd->base_addr);
+
+	clk_disable_unprepare(pd->asp_subsys_clk);
+
+	clk_disable_unprepare(pd->pmu_audio_clk);
 
 	return -EFAULT;
 }
@@ -1401,10 +1755,7 @@ static int slimbus_remove(struct platform_device *pdev)
 	iounmap(pd->base_addr);
 	iounmap(pd->sctrl_base_addr);
 	clk_disable_unprepare(pd->pmu_audio_clk);
-	devm_clk_put(dev, pd->pmu_audio_clk);
 	clk_disable_unprepare(pd->asp_subsys_clk);
-	devm_clk_put(dev, pd->asp_subsys_clk);
-	devm_kfree(dev, pd);
 
 	platform_set_drvdata(pdev, NULL);
 

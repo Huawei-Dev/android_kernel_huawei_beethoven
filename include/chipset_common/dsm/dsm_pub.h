@@ -201,6 +201,11 @@
 #define DSM_HI6402_SLIMBUS_LOST_MS          (921001008)
 #define DSM_HI6402_MBHC_HS_ERR_TYPE         (921001009)
 #define DSM_SOC_HIFI_UPDATE_BUFF_DELAY      (921001024)
+#define DSM_SOC_HIFI_3A_ERROR               (921001031)
+#define DSM_CODEC_HIFI_TIMEOUT              (921001032)
+/*hifi*/
+#define DSM_HIFI_AK4376_I2C_ERR             (921001034)
+#define DSM_HIFI_AK4376_CODEC_PROBE_ERR     (921001035)
 
 /* anc_hs */
 #define ANC_HS_OPEN_BOOST_ERR               (921002000)
@@ -211,9 +216,12 @@
 #define ANC_HS_MIC_WITH_GPIO_ERR            (921002005)
 #define ANC_HS_QUEUE_WORK_ERR               (921002006)
 #define ANC_HS_BTN_NOT_IN_RANGE             (921002007)
+#define ANC_HS_UNHANDLED_IRQ                (921002008)
+#define ANC_HS_I2C_ERR                      (921002009)
 
 /*smartpa*/
 #define DSM_SMARTPA_I2C_ERR                 (921003000)
+#define DSM_SMARTPA_INT_ERR                 (921003001)
 
 /* sdio */
 #define DSM_SDIO_RW_ERROR_NO                        (925002000)

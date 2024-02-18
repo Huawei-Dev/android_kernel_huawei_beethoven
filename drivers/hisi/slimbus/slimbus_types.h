@@ -43,7 +43,6 @@ typedef enum {
 #define SLIMBUS_SOUND_TRIGGER_CHANNELS                  (1)
 #define SLIMBUS_VOICE_UP_SOUNDTRIGGER                   (1)
 #define SLIMBUS_DEBUG_CHANNELS                          (1)
-#define SLIMBUS_HIRES_PLAY_CHANNELS                     (2)
 
 #define SLIMBUS_CHANNELS_MAX                            (4)
 
@@ -51,6 +50,7 @@ typedef enum {
 #define SLIMBUS_SAMPLE_RATE_16K                         (16000)
 #define SLIMBUS_SAMPLE_RATE_32K                         (32000)
 #define SLIMBUS_SAMPLE_RATE_48K                         (48000)
+#define SLIMBUS_SAMPLE_RATE_96K                         (96000)
 #define SLIMBUS_SAMPLE_RATE_192K                        (192000)
 #define SLIMBUS_SAMPLE_RATE_768K                        (768000)
 
@@ -224,8 +224,8 @@ typedef enum {
 	SLIMBUS_TRACK_ECREF,
 	SLIMBUS_TRACK_SOUND_TRIGGER,
 	SLIMBUS_TRACK_DEBUG,
-	SLIMBUS_TRACK_HIRES_PLAY,
-
+	SLIMBUS_TRACK_DIRECT_PLAY,
+	SLIMBUS_TRACK_FAST_PLAY,
 	SLIMBUS_TRACK_MAX,
 } slimbus_track_type_t;
 
@@ -280,9 +280,13 @@ typedef enum {
 	SLIMBUS_SCENE_CONFIG_CALL               = 2,
 	SLIMBUS_SCENE_CONFIG_NORMAL             = 3,
 	SLIMBUS_SCENE_CONFIG_ANC_CALL           = 4,
-	SLIMBUS_SCENE_CONFIG_HIRES_PLAY         = 5,
+	SLIMBUS_SCENE_CONFIG_DIRECT_PLAY        = 5,
 	SLIMBUS_SCENE_CONFIG_IMAGE_LOAD         = 6,
-	SLIMBUS_SCENE_CONFIG_MAX                = 7,
+	SLIMBUS_SCENE_CONFIG_FAST_PLAY          = 7,
+	SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_REC  = 8,
+	SLIMBUS_SCENE_CONFIG_FAST_PLAY_AND_ST   = 9,
+	SLIMBUS_SCENE_CONFIG_CALL_12288         = 10,
+	SLIMBUS_SCENE_CONFIG_MAX                = 11,
 
 } slimbus_scene_config_type_t;
 
@@ -296,6 +300,10 @@ typedef struct slimbus_device_info {
 	slimbus_rf_type_t	rf; 				/* root frequency */
 	uint32_t			slimbusclk_drv;
 	uint32_t			slimbusdata_drv;
+	uint32_t			slimbusclk_offset;
+	uint32_t			slimbusdata_offset;
+	uint32_t			slimbusclk_cfg_offset;
+	uint32_t			slimbusdata_cfg_offset;
 	slimbus_hi6403_type_t hi6403_type;
 	int sm; 	                       /* subframe mode */
 	int cg;                            /* clock gear */
@@ -348,3 +356,4 @@ typedef struct slimbus_bus_config {
 } slimbus_bus_config_t;
 
 #endif /* __SLIMBUS_TYPES_H__ */
+

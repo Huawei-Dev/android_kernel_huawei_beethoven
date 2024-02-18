@@ -3,24 +3,14 @@
 #include <linux/hisi/hi64xx/hi64xx_utils.h>
 #include <linux/proc_fs.h>
 #include <linux/vmalloc.h>
-#include <dsm/dsm_pub.h>
 
-/*lint -e750*/
+/*lint -e750 -e679*/
 
-#define SIZE_MAX_HI64xxDUMP            0x5000
+#define SIZE_MAX_HI64xxDUMP            0x6000
 #define AUDIO_DEBUG_DIR                "audio"
 #define AUDIO_DEBUG_HI64XXdump         "hi64xxdump"
 
-static struct dsm_dev dsm_audio = {
-	.name = "dsm_audio_info",
-	.device_name = NULL,
-	.ic_name = NULL,
-	.module_name = NULL,
-	.fops = NULL,
-	.buff_size = 4096,
-};
 
-struct dsm_client *dsm_audio_client = NULL;
 static struct proc_dir_entry *audio_debug_dir = NULL;
 static struct utils_config *s_utils_config = NULL;
 
@@ -112,9 +102,6 @@ int hi64xx_utils_init(struct snd_soc_codec *codec, struct hi_cdc_ctrl *cdc_ctrl,
 		goto error_exit;
 	}
 
-	if (!dsm_audio_client) {
-		dsm_audio_client = dsm_register_client(&dsm_audio);
-	}
 
 
 	return 0;

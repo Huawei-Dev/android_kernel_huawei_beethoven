@@ -121,25 +121,25 @@
 /* io reg end */
 
 /* ana reg begin */
+
 /* ana reg end */
 
 /* dig reg begin */
-#define HI64xx_SC_S4_IF_L                  (BASE_ADDR_PAGE_DIG + 0x06)
-#define HI64xx_SC_CODEC_MUX_SEL3_0         (BASE_ADDR_PAGE_DIG + 0x14)
-#define HI64xx_SC_S1_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x37)
-#define HI64xx_SC_S2_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x49)
-#define HI64xx_SC_S3_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x58)
-#define HI64xx_SC_S4_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x67)
-#define HI64xx_SC_MISC_SRC_CTRL_H          (BASE_ADDR_PAGE_DIG + 0x88)
-#define HI64xx_CODEC_DP_CLK_EN             (BASE_ADDR_PAGE_DIG+ 0x1D8)
+#define HI64xx_SC_S4_IF_L                  (BASE_ADDR_PAGE_DIG + 0x006)
+#define HI64xx_SC_CODEC_MUX_SEL3_0         (BASE_ADDR_PAGE_DIG + 0x014)
+#define HI64xx_SC_S1_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x037)
+#define HI64xx_SC_S2_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x049)
+#define HI64xx_SC_S3_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x058)
+#define HI64xx_SC_S4_SRC_LR_CTRL_M         (BASE_ADDR_PAGE_DIG + 0x067)
+#define HI64xx_SC_MISC_SRC_CTRL_H          (BASE_ADDR_PAGE_DIG + 0x088)
+#define HI64xx_SC_FS_S1_CTRL_H             (BASE_ADDR_PAGE_DIG + 0x0AF)
+#define HI64xx_SC_FS_S2_CTRL_H             (BASE_ADDR_PAGE_DIG + 0x0B1)
+#define HI64xx_SC_FS_S3_CTRL_H             (BASE_ADDR_PAGE_DIG + 0x0B3)
+#define HI64xx_SC_FS_S4_CTRL_L             (BASE_ADDR_PAGE_DIG + 0x0B4)
+#define HI64xx_SC_FS_S4_CTRL_H             (BASE_ADDR_PAGE_DIG + 0x0B5)
+#define HI64xx_SC_FS_MISC_CTRL             (BASE_ADDR_PAGE_DIG + 0x0B6)
+#define HI64xx_SC_FS_SELC_TRL              (BASE_ADDR_PAGE_DIG + 0x0F2)
+#define HI64xx_CODEC_DP_CLK_EN             (BASE_ADDR_PAGE_DIG + 0x1D8)
 
-#define HI64xx_SC_FS_S1_CTRL_H             (BASE_ADDR_PAGE_DIG + 0xAF)
-#define HI64xx_SC_FS_S2_CTRL_H             (BASE_ADDR_PAGE_DIG + 0xB1)
-#define HI64xx_SC_FS_S3_CTRL_H             (BASE_ADDR_PAGE_DIG + 0xB3)
-#define HI64xx_SC_FS_S4_CTRL_L             (BASE_ADDR_PAGE_DIG + 0xB4)
-#define HI64xx_SC_FS_S4_CTRL_H             (BASE_ADDR_PAGE_DIG + 0xB5)
-#define HI64xx_SC_FS_MISC_CTRL             (BASE_ADDR_PAGE_DIG + 0xB6)
-
-#define HI64xx_SC_FS_SELC_TRL              (BASE_ADDR_PAGE_DIG + 0xF2)
 /* dig reg end */
 #endif

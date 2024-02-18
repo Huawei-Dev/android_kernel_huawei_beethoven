@@ -38,6 +38,10 @@
 #define HI6403ES_S1_OR_SRC_EN_MM_BIT      (15)
 #define HI6403ES_HPCLASSH_BIT             (16)
 #define HI6403ES_VOICE32K_BIT             (17)
+#define HI6403ES_PLAY48K_BIT              (18)
+#define HI6403ES_PLAY96K_BIT              (19)
+#define HI6403ES_PLAY192K_BIT             (20)
+#define HI6403ES_LOWLANTENCY_BIT          (21)
 /* vir mm reg end */
 
 /* cfg reg begin */
@@ -121,6 +125,7 @@
 #define HI6403ES_DACR_SRC_MIXER_CLKEN_BIT 1
 #define HI6403ES_DACL_SRC_MIXER_CLKEN_BIT 0
 
+#define HI6403ES_CFG_CLK_CTRL         (BASE_ADDR_PAGE_CFG + 0x02F)
 #define HI6403ES_SLIM_CLK_DIV_REG (BASE_ADDR_PAGE_CFG + 0x030)
 #define HI6403ES_S1_PORT_CLKEN_REG    (0x041 + BASE_ADDR_PAGE_CFG)
 #define HI6403ES_S1_OR_SRC_CLKEN_BIT  7

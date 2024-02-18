@@ -25,6 +25,10 @@
 #define VOICE_PROXY_VOLTE_DATA_COUNT_MAX 100000000
 #define DTS_COMP_VOICE_PROXY_VOLTE_NAME "hisilicon,voice_proxy_volte"
 
+#ifndef UNUSED_PARAMETER
+#define UNUSED_PARAMETER(x) (void)(x)
+#endif
+
 enum {
 	SEC_KEY_NEGO_ENABLE,
 	SEC_KEY_NEGO_SUCC_DISABLE,
@@ -91,11 +95,11 @@ struct volte_priv {
 	/* encrypted voice data time stamp*/
 	int64_t ciphertext_stamp;
 
-	/* this handle is get from voice proxy when register sign init callback*/
-	int32_t sign_handle;
 };
 
 static struct volte_priv priv;
+static const short amrnb_frame_length[] =
+{12, 13, 15, 17, 19, 20, 26, 31, 5, 0, 0, 0, 0, 0, 0, 0};
 
 extern int32_t voice_proxy_mailbox_send_msg_cb(uint32_t mailcode, uint16_t msg_id, void *buf, uint32_t size);
 
@@ -107,27 +111,11 @@ static void volte_sign_init(void)
 	priv.first_ciphertext = true;
 }
 
-void debug_test_buf(int8_t *buf, uint32_t buf_size)
-{
-	int i;
-	printk(KERN_ERR "debug_data_print:\n");
-	for (i = 0; i < buf_size; i++) {/*lint !e574 !e737*/
-		if ( 0 == i%16) {
-			printk(KERN_ERR "\n%08X : ", i);
-		}
-		printk(KERN_ERR " %02X ", buf[i]);
-	}
-
-	return;
-}
-
 static int32_t volte_add_decrypted_data(int8_t *data, uint32_t size)
 {
 	struct voice_proxy_data_node *node;
 
 	UNUSED_PARAMETER(size);
-
-	BUG_ON(NULL == data);/*lint !e730*/
 
 	if (priv.decrypted_cnt > VOICE_PROXY_QUEUE_SIZE_MAX) {
 		loge("out of queue, decrypted_cnt(%d) > QUEUE_SIZE_MAX(%d)\n",
@@ -149,8 +137,6 @@ static int32_t volte_add_encrypted_data(int8_t *data, uint32_t size)
 
 	UNUSED_PARAMETER(size);
 
-	BUG_ON(NULL == data);/*lint !e730*/
-
 	if (priv.encrypted_cnt > VOICE_PROXY_QUEUE_SIZE_MAX) {
 		loge("out of queue, encrypted_cnt(%d) > QUEUE_SIZE_MAX(%d)\n",
 			 priv.encrypted_cnt, VOICE_PROXY_QUEUE_SIZE_MAX);
@@ -171,35 +157,28 @@ static int32_t volte_send_data(struct voice_proxy_data_node *node, struct send_t
 	struct voice_proxy_lte_rx_notify *rx;
 	struct voice_proxy_lte_tx_notify *tx;
 
-	BUG_ON(NULL == node);/*lint !e730*/
-	BUG_ON(NULL == buf);/*lint !e730*/
-
 	/*fill handled voice buf to the packege of mailbox*/
 	if (TF_TO_PROXY_DECRYPTED_DATA == buf->data_type) {/*lint !e826*/
 		rx = (struct voice_proxy_lte_rx_notify *)node->list_data.data;/*lint !e826*/
-		memset(rx->data, 0, sizeof(rx->data));
-		memcpy((int8_t *)rx->data, buf->data, (size_t)PROXY_VOICE_CODEC_MAX_DATA_LEN);
+		memset(rx->data, 0, sizeof(rx->data));/* unsafe_function_ignore: memset */
+		memcpy((int8_t *)rx->data, buf->data, (size_t)PROXY_VOICE_CODEC_MAX_DATA_LEN);/* unsafe_function_ignore: memcpy */
 		rx->msg_id = ID_PROXY_VOICE_LTE_RX_NTF;
 		node->list_data.size = sizeof(*rx);
 
-		loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-		debug_test_buf((int8_t *)rx->data, PROXY_VOICE_CODEC_MAX_DATA_LEN);
 		ret = voice_proxy_add_data(volte_add_decrypted_data,
 		                           (int8_t *)node,
-		                           (uint32_t)sizeof(*node),
+		                           (unsigned int)sizeof(*node),
 		                           ID_PROXY_VOICE_LTE_RX_NTF);
 	} else {
 		tx = (struct voice_proxy_lte_tx_notify *)node->list_data.data;/*lint !e826*/
-		memset(tx->data, 0, sizeof(tx->data));
-		memcpy((int8_t *)tx->data, buf->data, (size_t)PROXY_VOICE_CODEC_MAX_DATA_LEN);
+		memset(tx->data, 0, sizeof(tx->data));/* unsafe_function_ignore: memset */
+		memcpy((int8_t *)tx->data, buf->data, (size_t)PROXY_VOICE_CODEC_MAX_DATA_LEN);/* unsafe_function_ignore: memcpy */
 		tx->msg_id = ID_PROXY_VOICE_LTE_TX_NTF;
 		node->list_data.size = sizeof(*tx);
 
-		loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-		debug_test_buf((int8_t *)tx->data, PROXY_VOICE_CODEC_MAX_DATA_LEN);
 		ret = voice_proxy_add_data(volte_add_encrypted_data,
 		                           (int8_t *)node,
-		                           (uint32_t)sizeof(*node),
+		                           (unsigned int)sizeof(*node),
 		                           ID_PROXY_VOICE_LTE_TX_NTF);
 	}
 
@@ -220,8 +199,8 @@ int32_t proxy_push_data(void *data)
 	struct send_tfagent_data *buf;
 	struct voice_proxy_data_node *node = NULL;
 
-	if (NULL == data) {
-		loge("data is NULL\n");
+	if (!data) {
+		loge("proxy_push_data fail, param data is NULL!\n");
 		return -EINVAL;
 	}
 
@@ -255,15 +234,11 @@ int32_t proxy_push_data(void *data)
 		spin_unlock_bh(&priv.push_lock);
 
 		if (node) {
-			logi("list data id:%d voice id:%d\n", node->list_data.id, buf->id);
 			if (node->list_data.id < buf->id) {
 				loge("ignore this node\n");
 				kfree(node);
 				node = NULL;
 			} else if (node->list_data.id == buf->id) {
-				logi("send this node\n");
-				loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-				debug_test_buf((int8_t*)buf, (uint32_t)sizeof(struct send_tfagent_data));
 				volte_send_data(node, buf);
 				break;
 			} else {
@@ -299,7 +274,7 @@ int32_t proxy_pull_data(int8_t *data, int32_t size)
 		return -EINVAL;
 	}
 
-	memset(&buf, 0, sizeof(buf));
+	memset(&buf, 0, sizeof(buf));/* unsafe_function_ignore: memset */
 
 	spin_lock_bh(&priv.pull_lock);
 	if (list_empty_careful(&pull_queue)) {
@@ -325,10 +300,8 @@ int32_t proxy_pull_data(int8_t *data, int32_t size)
 		spin_unlock_bh(&priv.pull_lock);
 
 		if (node->list_data.size <= size) {
-			memcpy(data, node->list_data.data, node->list_data.size);/*lint !e732 !e747*/
+			memcpy(data, node->list_data.data, node->list_data.size);/*lint !e732 !e747*/ /* unsafe_function_ignore: memcpy */
 			ret = node->list_data.size;
-			loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-			debug_test_buf(data, (uint32_t)ret);
 		} else {
 			loge("data size err, data size(%d)>size(%d)\n", node->list_data.size, size);
 			ret = -EFAULT;
@@ -379,7 +352,7 @@ int32_t proxy_enable_sec_key_negotiation(int32_t enable)
 	ret = voice_proxy_mailbox_send_msg_cb(MAILBOX_MAILCODE_ACPU_TO_HIFI_VOICE_RT,
                                               msg.msg_id,
                                               &msg,
-                                              (uint32_t)sizeof(msg));
+                                              (unsigned int)sizeof(msg));
 	if (ret)
                 loge("mailbox_send_msg fail:%d\n", ret);
 
@@ -398,10 +371,6 @@ static int32_t volte_add_pull_data(int8_t *rev_buf, uint32_t buf_size, int32_t t
 	struct voice_proxy_lte_rx_notify *rx = NULL;
 	struct voice_proxy_lte_tx_notify *tx = NULL;
 
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
-
-	logi("type:%d\n", type);
-
 	if (PROXY_TO_TF_UNDECRYPT_DATA == type) {
 		if (priv.decrypting_cnt > VOICE_PROXY_QUEUE_SIZE_MAX) {
 			loge("out of queue, decrypting_cnt(%d)>(%d)\n",
@@ -416,15 +385,14 @@ static int32_t volte_add_pull_data(int8_t *rev_buf, uint32_t buf_size, int32_t t
 		}
 	}
 
-	ret = voice_proxy_create_data_node(&node, rev_buf, (int32_t)buf_size);
+	ret = voice_proxy_create_data_node(&node, rev_buf, (int)buf_size);
 	if (ret) {
-		loge("kmalloc node failed %d\n", ret);
+		loge("kzalloc node failed %d\n", ret);
 		return ret;
 	}
 
-	buf.buf_size = PROXY_VOICE_CODEC_MAX_DATA_LEN;
 	buf.data_type = type;
-	memset(buf.data, 0, sizeof(buf.data));
+	memset(buf.data, 0, sizeof(buf.data));/* unsafe_function_ignore: memset */
 
 	/*
 	 * 1.get the voice data from the structure of
@@ -432,24 +400,40 @@ static int32_t volte_add_pull_data(int8_t *rev_buf, uint32_t buf_size, int32_t t
 	 */
 	if (PROXY_TO_TF_UNDECRYPT_DATA == type) {
 		rx = (struct voice_proxy_lte_rx_notify *)rev_buf;/*lint !e826*/
-		memcpy(buf.data, (int8_t *)rx->data, buf.buf_size);/*lint !e732 !e747*/
-		node->list_data.id = rx_cnt;
+		if ((0 != rx->codec_type) || (ARRAY_SIZE(amrnb_frame_length) <= rx->frame_type)
+			|| ((ARRAY_SIZE(amrnb_frame_length) > rx->frame_type) && (amrnb_frame_length[rx->frame_type] > PROXY_VOICE_CODEC_MAX_DATA_LEN))) {
+			loge("rx frame info error, codec_type, frame type:%d, %d\n", rx->codec_type, rx->frame_type);
+			kfree(node);
+			node = NULL;
+			goto OUT;
+		}
+		buf.buf_size = amrnb_frame_length[rx->frame_type];
+		memcpy(buf.data, (int8_t *)rx->data, buf.buf_size);/*lint !e732 !e747*/ /* unsafe_function_ignore: memcpy */
+		node->list_data.id = rx_cnt;/*[false alarm]*/
 		buf.id = node->list_data.id;
 		rx_cnt++;
 	} else {
 		tx = (struct voice_proxy_lte_tx_notify *)rev_buf;/*lint !e826*/
-		memcpy(buf.data, (int8_t *)tx->data, buf.buf_size);/*lint !e732 !e747*/
-		node->list_data.id = tx_cnt;
+		if (ARRAY_SIZE(amrnb_frame_length) <= tx->frame_type
+			|| ((ARRAY_SIZE(amrnb_frame_length) > tx->frame_type) && (amrnb_frame_length[tx->frame_type] > PROXY_VOICE_CODEC_MAX_DATA_LEN))) {
+			loge("tx frame type error %d\n", tx->frame_type);
+			kfree(node);
+			node = NULL;
+			goto OUT;
+		}
+		buf.buf_size = amrnb_frame_length[tx->frame_type];
+		memcpy(buf.data, (int8_t *)tx->data, buf.buf_size);/*lint !e732 !e747*/ /* unsafe_function_ignore: memcpy */
+		node->list_data.id = tx_cnt;/*[false alarm]*/
 		buf.id = node->list_data.id;
 		tx_cnt++;
 	}
 
-	ret = voice_proxy_create_data_node(&tf_node, (int8_t *)&buf, (int32_t)sizeof(buf));
+	ret = voice_proxy_create_data_node(&tf_node, (int8_t *)&buf, (int)sizeof(buf));
 	if (ret) {
-		loge("kmalloc push_node failed %d\n", ret);
+		loge("kzalloc push_node failed %d\n", ret);
 		kfree(node);
 		node = NULL;
-		return ret;/*lint !e438*/
+		goto OUT;
 	}
 
 	/*
@@ -468,7 +452,7 @@ static int32_t volte_add_pull_data(int8_t *rev_buf, uint32_t buf_size, int32_t t
 
 	/* 3.send voice data to tfagent for decrypting/encrypting*/
 	spin_lock_bh(&priv.pull_lock);
-	list_add_tail(&tf_node->list_node, &pull_queue);
+	list_add_tail(&tf_node->list_node, &pull_queue);/*[false alarm]*/
 	priv.pull_wait_flag++;
 	spin_unlock_bh(&priv.pull_lock);
 	wake_up(&priv.pull_waitq);
@@ -497,11 +481,12 @@ static void volte_receive_undecrypt_ntf(int8_t *rev_buf, uint32_t buf_size)
 	int32_t ret;
 	static int32_t cnt = 0;
 
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
+	if (!rev_buf) {
+		loge("receive_undecrypt_ntf fail, param rev_buf is NULL!\n");
+		return;
+	}
 
 	loge("volte_receive_undecrypt_ntf\n");
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf(rev_buf, buf_size);
 
 	ret = volte_add_pull_data(rev_buf, buf_size, PROXY_TO_TF_UNDECRYPT_DATA);
 	if (ret) {
@@ -509,10 +494,9 @@ static void volte_receive_undecrypt_ntf(int8_t *rev_buf, uint32_t buf_size)
 		return;
 	}
 
-	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_LTE_RX_CNF);
+	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_LTE_RX_CNF, VOICE_MC_MODEM0);
 
 	cnt++;
-	logi("receive ciphertext msg: cnt:%d\n", cnt);
 }
 
 static void volte_receive_unencrypt_ntf(int8_t *rev_buf, uint32_t buf_size)
@@ -520,11 +504,10 @@ static void volte_receive_unencrypt_ntf(int8_t *rev_buf, uint32_t buf_size)
 	int32_t ret;
 	static int32_t cnt = 0;
 
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
-
-	loge("volte_receive_unencrypt_ntf\n");
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf(rev_buf, buf_size);
+	if (!rev_buf) {
+		loge("receive_unencrypt_ntf fail, param rev_buf is NULL!\n");
+		return;
+	}
 
 	ret = volte_add_pull_data(rev_buf, buf_size, PROXY_TO_TF_UNENCRYPT_DATA);
 	if (ret) {
@@ -532,10 +515,9 @@ static void volte_receive_unencrypt_ntf(int8_t *rev_buf, uint32_t buf_size)
 		return;
 	}
 
-	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_LTE_TX_CNF);
+	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_LTE_TX_CNF, VOICE_MC_MODEM0);
 
 	cnt++;
-	logi("receive plaintext msg: cnt:%d\n", cnt);
 }
 
 static void volte_receive_decrypted_cnf(int8_t *rev_buf, uint32_t buf_size)
@@ -554,7 +536,6 @@ static void volte_receive_decrypted_cnf(int8_t *rev_buf, uint32_t buf_size)
 	}
 
 	cnt++;
-	logi("receive plaintext cnf msg: cnt:%d\n", cnt);
 }
 
 static void volte_receive_encrypted_cnf(int8_t *rev_buf, uint32_t buf_size)
@@ -573,27 +554,24 @@ static void volte_receive_encrypted_cnf(int8_t *rev_buf, uint32_t buf_size)
 	}
 
 	cnt++;
-	logi("receive ciphertext cnf msg: cnt:%d\n", cnt);
 }
 
 static void volte_get_decryped_data(int8_t *data, uint32_t *size)
 {
 	struct voice_proxy_data_node *node = NULL;
 
-	loge("volte_get_decryped_data\n");
-
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-
 	if (!list_empty_careful(&decrypted_queue)) {
 		node = list_first_entry(&decrypted_queue,
 						struct voice_proxy_data_node,
 						list_node);/*lint !e826*/
 
-		BUG_ON(*size < (uint32_t)node->list_data.size);/*lint !e730*/
+		if (*size < (uint32_t)node->list_data.size) {
+			loge("Size is invalid, size = %d, list_data.size = %d\n", *size, node->list_data.size);
+			return;
+		}
 
 		*size = (uint32_t)node->list_data.size;
-		memcpy(data, node->list_data.data, (size_t)*size);
+		memcpy(data, node->list_data.data, (size_t)*size);/* unsafe_function_ignore: memcpy */
 
 		list_del_init(&node->list_node);
 		kfree(node);
@@ -611,18 +589,18 @@ static void volte_get_encrypted_data(int8_t *data, uint32_t *size)
 {
 	struct voice_proxy_data_node *node = NULL;
 
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	loge("volte_get_encrypted_data\n");
 	if (!list_empty_careful(&encrypted_queue)) {
 		node = list_first_entry(&encrypted_queue,
 						struct voice_proxy_data_node,
 						list_node);/*lint !e826*/
 
-		BUG_ON(*size < (uint32_t)node->list_data.size);/*lint !e730*/
+		if (*size < (uint32_t)node->list_data.size) {
+			loge("Size is invalid, size = %d, list_data.size = %d\n", *size, node->list_data.size);
+			return;
+		}
 
 		*size = (uint32_t)node->list_data.size;
-		memcpy(data, node->list_data.data, (size_t)*size);
+		memcpy(data, node->list_data.data, (size_t)*size);/* unsafe_function_ignore: memcpy */
 
 		list_del_init(&node->list_node);
 		kfree(node);
@@ -639,12 +617,10 @@ static void volte_get_encrypted_data(int8_t *data, uint32_t *size)
 
 static void volte_handle_decrypted_ntf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	logi("msg id ID_PROXY_VOICE_LTE_RX_NTF\n");
-	loge("volte_handle_decrypted_ntf\n");
-
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	if (!data || !size || !msg_id) {
+		loge("handle_decrypted_ntf fail, param is NULL!\n");
+		return;
+	}
 
 	voice_proxy_set_send_sign(priv.first_plaintext, &priv.plaintext_cnf, &priv.plaintext_stamp);
 
@@ -655,37 +631,28 @@ static void volte_handle_decrypted_ntf(int8_t *data, uint32_t *size, uint16_t *m
 	}
 	*msg_id = ID_PROXY_VOICE_LTE_RX_NTF;
 
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf(data, *size);
 }
 
 static void volte_handle_decrypted_cnf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	logi("msg id ID_VOICE_PROXY_LTE_RX_CNF\n");
-	loge("volte_handle_decrypted_cnf\n");
-
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	if (!data || !size || !msg_id) {
+		loge("handle_decrypted_cnf fail, param is NULL!\n");
+		return;
+	}
 
 	priv.plaintext_cnf = true;
 	priv.plaintext_stamp = voice_proxy_get_time_ms();
 
 	volte_get_decryped_data(data, size);
 	*msg_id = ID_PROXY_VOICE_LTE_RX_NTF;
-
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf(data, *size);
 }
 
 static void volte_handle_encrypted_ntf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	logi("msg id ID_PROXY_VOICE_LTE_TX_NTF\n");
-	loge("volte_handle_encrypted_ntf\n");
-
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	if (!data || !size || !msg_id) {
+		loge("handle_encrypted_ntf fail, param is NULL!\n");
+		return;
+	}
 
 	voice_proxy_set_send_sign(priv.first_ciphertext, &priv.ciphertext_cnf, &priv.ciphertext_stamp);
 
@@ -696,18 +663,14 @@ static void volte_handle_encrypted_ntf(int8_t *data, uint32_t *size, uint16_t *m
 	}
 	*msg_id = ID_PROXY_VOICE_LTE_TX_NTF;
 
-	loge("debug_test_buf %d, %s, %s", __LINE__, __FUNCTION__, __FILE__);
-	debug_test_buf(data, *size);
 }
 
 static void volte_handle_encrypted_cnf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	logi("msg id ID_VOICE_PROXY_LTE_TX_CNF\n");
-	loge("volte_handle_encrypted_cnf\n");
-
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	if (!data || !size || !msg_id) {
+		loge("handle_encrypted_cnf fail, param is NULL!\n");
+		return;
+	}
 
 	priv.ciphertext_cnf = true;
 	priv.ciphertext_stamp = voice_proxy_get_time_ms();
@@ -718,8 +681,8 @@ static void volte_handle_encrypted_cnf(int8_t *data, uint32_t *size, uint16_t *m
 
 static int volte_probe(struct platform_device *pdev)
 {
-	int32_t ret;
-	memset(&priv, 0, sizeof(priv));
+	int32_t ret = 0;
+	memset(&priv, 0, sizeof(priv));/* unsafe_function_ignore: memset */
 
 	logi("voice proxy volte prob,pdev name[%s]\n", pdev->name);
 
@@ -731,24 +694,23 @@ static int volte_probe(struct platform_device *pdev)
 
 	volte_sign_init();
 
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_RX_NTF, volte_receive_undecrypt_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_TX_NTF, volte_receive_unencrypt_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_RX_CNF, volte_receive_decrypted_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_TX_CNF, volte_receive_encrypted_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_PROXY_VOICE_LTE_RX_NTF, volte_handle_decrypted_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_PROXY_VOICE_LTE_TX_NTF, volte_handle_encrypted_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_VOICE_PROXY_LTE_RX_CNF, volte_handle_decrypted_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_VOICE_PROXY_LTE_TX_CNF, volte_handle_encrypted_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_RX_NTF, volte_receive_undecrypt_ntf);
 
-	voice_proxy_register_sign_init_callback(volte_sign_init, &priv.sign_handle);
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_TX_NTF, volte_receive_unencrypt_ntf);
+
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_RX_CNF, volte_receive_decrypted_cnf);
+
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_LTE_TX_CNF, volte_receive_encrypted_cnf);
+
+	voice_proxy_register_cmd_callback(ID_PROXY_VOICE_LTE_RX_NTF, volte_handle_decrypted_ntf);
+
+	voice_proxy_register_cmd_callback(ID_PROXY_VOICE_LTE_TX_NTF, volte_handle_encrypted_ntf);
+
+	voice_proxy_register_cmd_callback(ID_VOICE_PROXY_LTE_RX_CNF, volte_handle_decrypted_cnf);
+
+	voice_proxy_register_cmd_callback(ID_VOICE_PROXY_LTE_TX_CNF, volte_handle_encrypted_cnf);
+
+	voice_proxy_register_sign_init_callback(volte_sign_init);
 
 	return ret;
 }
@@ -768,7 +730,7 @@ static int volte_remove(struct platform_device *pdev)
 	voice_proxy_deregister_cmd_callback(ID_VOICE_PROXY_LTE_RX_CNF);
 	voice_proxy_deregister_cmd_callback(ID_VOICE_PROXY_LTE_TX_CNF);
 
-	voice_proxy_deregister_sign_init_callback(priv.sign_handle);
+	voice_proxy_deregister_sign_init_callback(volte_sign_init);
 
 	return 0;
 }

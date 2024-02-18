@@ -30,6 +30,8 @@
 #include "rdr_hisi_audio_codec.h"
 #include "rdr_hisi_audio_soc.h"
 
+/*lint -e730*/
+
 
 struct rdr_audio_des_s {
 	struct rdr_register_module_result audio_info;
@@ -41,7 +43,7 @@ static struct rdr_audio_des_s s_rdr_audio_des;
 
 static int create_dir(char *path)
 {
-	int fd = -1;
+	long fd;
 
 	BUG_ON(NULL == path);
 
@@ -50,15 +52,14 @@ static int create_dir(char *path)
 		BB_PRINT_PN("need create dir %s\n", path);
 		fd = sys_mkdir(path, 0770);
 		if (fd < 0) {
-			BB_PRINT_ERR("create dir %s failed, fd:%d\n",
-					path, fd);
+			BB_PRINT_ERR("create dir %s failed, fd:%ld\n", path, fd);
 			return -EBADF;
 		}
-		BB_PRINT_PN("create dir %s successed, fd: %d\n", path, fd);
+		BB_PRINT_PN("create dir %s successed, fd: %ld\n", path, fd);
 	}
 
 	/* change dir limit root-system */
-	if (bbox_chown((const char *)path, ROOT_UID, SYSTEM_GID, false)) {
+	if (bbox_chown((const char *)path, ROOT_UID, SYSTEM_GID, false)) {/*lint !e747*/
 		BB_PRINT_ERR("[%s], chown %s dir failed\n", __func__, path);
 	}
 
@@ -89,10 +90,10 @@ static int rdr_audio_create_dir(const char *path)
 	return 0;
 }
 
-static int rdr_audio_loopwrite_open(char *name, int *pfd)
+static int rdr_audio_loopwrite_open(char *name, unsigned int *pfd)
 {
-	int ret = 0;
-	int fd = -1;
+	int ret;
+	int fd;
 
 	BUG_ON(NULL == pfd);
 	BUG_ON(NULL == name);
@@ -105,62 +106,59 @@ static int rdr_audio_loopwrite_open(char *name, int *pfd)
 
 	/* sys_access() return 0:success, return ~0:error */
 	if (!(sys_access(name, 0))) {
-		ret = sys_unlink(name);
+		ret = (int)sys_unlink(name);
 		if (ret) {
 			BB_PRINT_ERR("remove file fail, name: %s, ret: %d\n", name, ret);
 			return ret;
 		}
 	}
 
-	fd = sys_open(name, O_CREAT | O_RDWR, 0660);
+	fd = (int)sys_open(name, O_CREAT | O_RDWR, 0660);
 	if (fd < 0) {
 		BB_PRINT_ERR("create and open file fail, name: %s, fd: %d\n", name, fd);
 		return -EBADF;
 	}
 
-	*pfd = fd;
+	*pfd = (unsigned int)fd;
 
 	return ret;
 }
 
-static int rdr_audio_loopwrite_append(int fd, void *address, u32 length)
+static int rdr_audio_loopwrite_append(unsigned int fd, void *address, u32 length)
 {
-	int bytes = 0;
+	long bytes;
 
-	BUG_ON(fd < 0);
 	BUG_ON(NULL == address);
 	BUG_ON(0 == length);
 
-	bytes = sys_write(fd, address, length);
+	bytes = sys_write(fd, address, (unsigned long)length);
 	if (bytes != length) {
-		BB_PRINT_ERR("write data failed, ret: %d\n", bytes);
+		BB_PRINT_ERR("write data failed, ret: %ld\n", bytes);
 		return -EINVAL;
 	}
 
 	return 0;
 }
 
-static void rdr_audio_loopwrite_close(int fd)
+static void rdr_audio_loopwrite_close(unsigned int fd)
 {
-	int ret = 0;
-
-	BUG_ON(fd < 0);
+	long ret;
 
 	ret = sys_fsync(fd);
 	if (ret < 0)
-		pr_err("[%s]sys_fsync failed, ret is %d\n", __func__, ret);
+		pr_err("[%s]sys_fsync failed, ret is %ld\n", __func__, ret);
 
 	ret = sys_close(fd);
 	if (ret)
-		BB_PRINT_ERR("close file failed, ret: %d\n", ret);
+		BB_PRINT_ERR("close file failed, ret: %ld\n", ret);
 
 	return;
 }
 
 int rdr_audio_write_file(char *name, char *data, u32 size)
 {
-	int ret = 0;
-	int fd = -1;
+	int ret;
+	unsigned int fd = 0;
 	mm_segment_t oldfs;
 
 	BUG_ON(NULL == name);
@@ -168,7 +166,7 @@ int rdr_audio_write_file(char *name, char *data, u32 size)
 	BUG_ON(0 == size);
 
 	oldfs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	ret = rdr_audio_loopwrite_open(name, &fd);
 	if (ret) {
@@ -182,7 +180,7 @@ int rdr_audio_write_file(char *name, char *data, u32 size)
 		BB_PRINT_ERR("write %s fail\n", name);
 
 	/* change file limit root-system */
-	if (bbox_chown((const char *)name, ROOT_UID, SYSTEM_GID, false)) {
+	if (bbox_chown((const char *)name, ROOT_UID, SYSTEM_GID, false)) {/*lint !e747*/
 		BB_PRINT_ERR("[%s], chown %s file failed\n", __func__, name);
 	}
 
@@ -211,21 +209,21 @@ void rdr_audio_dump_log(u32 modid, u32 etype, u64 coreid,
 	BB_PRINT_DBG(" coreid:         [0x%llx]\n", coreid);
 	BB_PRINT_DBG(" exce tpye:      [0x%x]\n",   etype);
 	BB_PRINT_DBG(" path name:      [%s]\n",     pathname);
-	BB_PRINT_DBG(" dump start:     [0x%llx]\n", s_rdr_audio_des.audio_info.log_addr);
+	BB_PRINT_DBG(" dump start:     [0x%pK]\n", (void *)s_rdr_audio_des.audio_info.log_addr);
 	BB_PRINT_DBG(" dump len:       [%d]\n",     s_rdr_audio_des.audio_info.log_len);
 	BB_PRINT_DBG(" nve:            [0x%llx]\n", s_rdr_audio_des.audio_info.nve);
 	BB_PRINT_DBG(" callback:       [0x%pK]\n",   pfn_cb);
 	BB_PRINT_DBG(" ====================================\n");
 
-	if (((modid >= RDR_AUDIO_SOC_MODID_START) && (modid <= RDR_AUDIO_SOC_MODID_END))
+	if (((modid >= (unsigned int)RDR_AUDIO_SOC_MODID_START) && (modid <= RDR_AUDIO_SOC_MODID_END))
 		|| ((modid >= RDR_AUDIO_REBOOT_MODID_START) && (modid <= RDR_AUDIO_REBOOT_MODID_END))) {
-		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, pathname);
+		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, "%s", pathname);
 		rdr_audio_soc_dump(modid, s_rdr_audio_des.soc_pathname, pfn_cb);
 	} else if ((modid >= RDR_AUDIO_CODEC_MODID_START) && (modid <= RDR_AUDIO_CODEC_MODID_END)) {
-		snprintf(s_rdr_audio_des.codec_pathname, RDR_FNAME_LEN, pathname);
+		snprintf(s_rdr_audio_des.codec_pathname, RDR_FNAME_LEN, "%s", pathname);
 		rdr_audio_codec_dump(modid, s_rdr_audio_des.codec_pathname, pfn_cb);
-	} else if (modid == RDR_MODEM_CP_MOD_ID || modid == RDR_MODEM_CP_RESET_3RD_MOD_ID) {
-		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, pathname);
+	} else if (modid >= (unsigned int)HISI_BB_MOD_CP_START && modid <= (unsigned int)HISI_BB_MOD_CP_END) {
+		snprintf(s_rdr_audio_des.soc_pathname, RDR_FNAME_LEN, "%s", pathname);
 		BB_PRINT_PN("modem reset soc hifi dump = %s, begin\n", s_rdr_audio_des.soc_pathname);
 		rdr_audio_soc_dump(modid, s_rdr_audio_des.soc_pathname, pfn_cb);
 		BB_PRINT_PN("modem reset soc hifi dump = %s, end\n", s_rdr_audio_des.soc_pathname);
@@ -247,7 +245,7 @@ void rdr_audio_reset(u32 modid, u32 etype, u64 coreid)
 	BB_PRINT_DBG(" exce tpye:	   [0x%x]\n",	etype);
 	BB_PRINT_DBG(" ====================================\n");
 
-	if (modid >= RDR_AUDIO_SOC_MODID_START && modid <= RDR_AUDIO_SOC_MODID_END) {
+	if (modid >= (unsigned int)RDR_AUDIO_SOC_MODID_START && modid <= RDR_AUDIO_SOC_MODID_END) {
 		rdr_audio_soc_reset(modid, etype, coreid);
 	} else if (modid >= RDR_AUDIO_CODEC_MODID_START && modid <= RDR_AUDIO_CODEC_MODID_END) {
 		rdr_audio_codec_reset(modid, etype, coreid);
@@ -266,7 +264,7 @@ void rdr_audio_reset(u32 modid, u32 etype, u64 coreid)
 
 static int rdr_audio_register_core(void)
 {
-	int ret = 0;
+	int ret;
 	struct rdr_module_ops_pub module_ops;
 
 	BB_PRINT_START();
@@ -275,7 +273,7 @@ static int rdr_audio_register_core(void)
 	module_ops.ops_reset = rdr_audio_reset;
 
 	/* <0 error, >=0 success */
-	ret = rdr_register_module_ops(RDR_HIFI, &module_ops, &s_rdr_audio_des.audio_info);
+	ret = rdr_register_module_ops((u64)RDR_HIFI, &module_ops, &s_rdr_audio_des.audio_info);
 	if (ret < 0) {
 		BB_PRINT_ERR("rdr register hifi module ops error\n");
 		ret = -EBUSY;
@@ -297,17 +295,17 @@ static int rdr_audio_register_exception(void)
 
 	/* ===sochifi exception register begin=== */
 	memset(&einfo, 0, sizeof(struct rdr_exception_info_s));
-	einfo.e_modid = RDR_AUDIO_SOC_MODID_START;
+	einfo.e_modid = (unsigned int)RDR_AUDIO_SOC_MODID_START;
 	einfo.e_modid_end = RDR_AUDIO_SOC_MODID_END;
 	einfo.e_process_priority = RDR_WARN;
 	einfo.e_reboot_priority = RDR_REBOOT_NO;
 
 	/* 标志位e_notify_core_mask中填0, RDR框架中会判断是否为0, 是0时不启动RDR框架中的导出LOG操作, 确认人:刘海龙 */
-	einfo.e_notify_core_mask = 0;
+	einfo.e_notify_core_mask = RDR_HIFI;
 	einfo.e_reset_core_mask = RDR_HIFI;
-	einfo.e_reentrant = RDR_REENTRANT_DISALLOW;
+	einfo.e_reentrant = (unsigned int)RDR_REENTRANT_DISALLOW;
 	einfo.e_exce_type = SOCHIFI_S_EXCEPTION;
-	einfo.e_upload_flag = RDR_UPLOAD_YES;
+	einfo.e_upload_flag = (unsigned int)RDR_UPLOAD_YES;
 	einfo.e_from_core = RDR_HIFI;
 	memcpy(einfo.e_from_module, "RDR_SOCHIFI_WATCHDOG", sizeof("RDR_SOCHIFI_WATCHDOG"));
 	memcpy(einfo.e_desc, "RDR_SOCHIFI watchdog timeout.",
@@ -330,9 +328,9 @@ static int rdr_audio_register_exception(void)
 	einfo.e_reboot_priority = RDR_REBOOT_NO;
 	einfo.e_notify_core_mask = RDR_HIFI;
 	einfo.e_reset_core_mask = RDR_HIFI;
-	einfo.e_reentrant = RDR_REENTRANT_DISALLOW;
+	einfo.e_reentrant = (unsigned int)RDR_REENTRANT_DISALLOW;
 	einfo.e_exce_type = CODECHIFI_S_EXCEPTION;
-	einfo.e_upload_flag = RDR_UPLOAD_YES;
+	einfo.e_upload_flag = (unsigned int)RDR_UPLOAD_YES;
 	einfo.e_from_core = RDR_HIFI;
 	memcpy(einfo.e_from_module, "RDR_CODECHIFI_WATCHDOG", sizeof("RDR_CODECHIFI_WATCHDOG"));
 	memcpy(einfo.e_desc, "RDR_CODECHIFI watchdog timeout.",
@@ -378,7 +376,7 @@ static int rdr_audio_register_exception(void)
 
 static int rdr_audio_init_early(void)
 {
-	int ret = 0;
+	int ret;
 
 	ret = rdr_audio_register_exception();
 	if (ret) {
@@ -397,7 +395,7 @@ static int rdr_audio_init_early(void)
 
 static int __init rdr_audio_init(void)
 {
-	int ret = 0;
+	int ret;
 
 	BB_PRINT_START();
 
@@ -432,7 +430,7 @@ static void __exit rdr_audio_exit(void)
 	return;
 }
 
-
+/*lint -e528 -e753*/
 module_init(rdr_audio_init);
 module_exit(rdr_audio_exit);
 

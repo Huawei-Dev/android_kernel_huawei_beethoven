@@ -16,10 +16,10 @@
 #include <linux/kthread.h>
 #include <linux/notifier.h>
 #include <linux/wakelock.h>
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 
 #include <linux/hisi/hi64xx/hi64xx_resmgr.h>
-
+/*lint -e429 -e454 -e455*/
 
 enum pll_rel_state {
 	REL_IDLE,
@@ -28,7 +28,7 @@ enum pll_rel_state {
 };
 
 #define PLL_LOCK_MAX_RETRY  5
-extern struct dsm_client *dsm_audio_client;
+
 
 struct hi64xx_resmgr_priv {
 	struct hi64xx_resmgr resmgr;
@@ -197,10 +197,7 @@ static void _lock_pll(struct hi64xx_resmgr_priv *priv, enum hi64xx_pll_type pll_
 
 	if (!pll_locked) {
 		pr_err("failed to lock pll[%d]\n", pll_type);
-		if (!dsm_client_ocuppy(dsm_audio_client)) {
-			dsm_client_record(dsm_audio_client, "64xx codec failed to lock pll after retry\n");
-			dsm_client_notify(dsm_audio_client, DSM_HI6402_PLL_CANNOT_LOCK);
-		}
+		audio_dsm_report_info(AUDIO_CODEC, DSM_HI6402_PLL_CANNOT_LOCK, "64xx codec failed to lock pll after retry\n");
 		/* Anyway, turn on the pll to provide clock */
 		(void)_turn_on_pll(priv, pll_type);
 	}
@@ -684,6 +681,22 @@ int hi64xx_resmgr_force_release_micbias(struct hi64xx_resmgr *resmgr)
 	return _release_micbias(priv, true);
 }
 EXPORT_SYMBOL(hi64xx_resmgr_force_release_micbias);
+
+void hi64xx_resmgr_hs_high_resistence_enable(struct hi64xx_resmgr *resmgr, bool enable)
+{
+	struct hi64xx_resmgr_priv* priv = (struct hi64xx_resmgr_priv*)resmgr;
+	if (NULL == resmgr) {
+		pr_err("hi64xx_resmgr_hs_high_resistence_enable: NULL pointer.\n");
+		return;
+	}
+
+	if (priv->config.hi64xx_hs_high_resistance_enable) {
+		priv->config.hi64xx_hs_high_resistance_enable(priv->codec, enable);
+	}
+
+	return;
+}
+EXPORT_SYMBOL(hi64xx_resmgr_hs_high_resistence_enable);
 
 void hi64xx_resmgr_pm_get_clk(void)
 {

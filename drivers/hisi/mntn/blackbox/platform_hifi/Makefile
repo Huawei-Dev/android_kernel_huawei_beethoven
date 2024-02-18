@@ -8,3 +8,4 @@ EXTRA_CFLAGS += -Idrivers/hisi/mntn/blackbox/
 
 EXTRA_CFLAGS += -DRDR_CODECDSP
 EXTRA_CFLAGS += -DRDR_SOCHIFI
+ccflags-y += -Idrivers/devkit/audiokit/

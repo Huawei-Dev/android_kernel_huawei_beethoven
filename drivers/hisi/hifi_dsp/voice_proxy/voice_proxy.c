@@ -36,6 +36,10 @@
 
 #define DTS_COMP_VOICE_PROXY_NAME "hisilicon,voice_proxy"
 
+#ifndef UNUSED_PARAMETER
+#define UNUSED_PARAMETER(x) (void)(x)
+#endif
+
 struct hifi_msg_para {
 	uint16_t msg_id;
 };
@@ -79,121 +83,136 @@ struct voice_proxy_priv {
 
 	struct task_struct *write_thread;
 
-	int32_t msg_callbacks_size;
-	int32_t cmd_callbacks_size;
-	int32_t sign_init_callbacks_size;
-
 	mailbox_send_msg_cb send_mailbox_msg;
 	read_mailbox_msg_cb read_mailbox_msg;
 };
 
 static struct voice_proxy_priv priv;
 
-int voice_proxy_register_msg_callback(uint16_t msg_id, voice_proxy_msg_cb callback)
+void voice_proxy_register_msg_callback(uint16_t msg_id, voice_proxy_msg_cb callback)
 {
 	int32_t i;
 
-	BUG_ON(NULL == callback);/*lint !e730*/
+	if (!callback) {
+		loge("register_msg_callback fail, param callback is NULL!\n");
+		return;
+	}
 
-	for (i = 0; i < priv.msg_callbacks_size; i++) {
-		if (message_callbacks[i].msg_id == msg_id) {
-			loge("msg id:0x%x has exist, register fail\n", msg_id);
-			return -EINVAL;
+	for (i = 0; i < MESSAGE_CALLBACKS_SIZE; i++) {
+		if (!message_callbacks[i].msg_id) {
+			message_callbacks[i].msg_id = msg_id;
+			message_callbacks[i].callback = callback;
+			return;
 		}
 	}
 
-	message_callbacks[priv.msg_callbacks_size].msg_id = msg_id;
-	message_callbacks[priv.msg_callbacks_size].callback = callback;
-	priv.msg_callbacks_size++;
+	loge("register_msg_callback fail, message_callbacks is full!\n");
 
-	return 0;
+	return;
 }
 
 void voice_proxy_deregister_msg_callback(uint16_t msg_id)
 {
-	int32_t i, j;
+	int32_t i;
 
-	for (i = 0; i < priv.msg_callbacks_size; i++) {
+	for (i = 0; i < MESSAGE_CALLBACKS_SIZE; i++) {
 		if (message_callbacks[i].msg_id == msg_id) {
-			for (j = i + 1; j < priv.msg_callbacks_size; j++) {
-				message_callbacks[j - 1].msg_id = message_callbacks[j].msg_id;
-				message_callbacks[j - 1].callback = message_callbacks[j].callback;
-			}
-			break;
+			message_callbacks[i].msg_id = 0;
+			message_callbacks[i].callback = 0;
+			return;
 		}
 	}
 
-	priv.msg_callbacks_size--;
+	loge("deregister_msg_callback fail, msg_id is invalid!\n");
+
+	return;
 }
 
-int voice_proxy_register_cmd_callback(uint16_t msg_id, voice_proxy_cmd_cb callback)
+void voice_proxy_register_cmd_callback(uint16_t msg_id, voice_proxy_cmd_cb callback)
 {
 	int32_t i;
 
-	BUG_ON(NULL == callback);/*lint !e730*/
+	if (!callback) {
+		loge("register_cmd_callback fail, param callback is NULL!\n");
+		return;
+	}
 
-	for (i = 0; i < priv.cmd_callbacks_size; i++) {
-		if (command_callbacks[i].msg_id == msg_id) {
-			loge("msg id:0x%x has exist, register fail\n", msg_id);
-			return -EINVAL;
+	for (i = 0; i < COMMAND_CALLBACKS_SIZE; i++) {
+		if (!command_callbacks[i].msg_id) {
+			command_callbacks[i].msg_id = msg_id;
+			command_callbacks[i].callback = callback;
+			return;
 		}
 	}
 
-	command_callbacks[priv.cmd_callbacks_size].msg_id = msg_id;
-	command_callbacks[priv.cmd_callbacks_size].callback = callback;
-	priv.cmd_callbacks_size++;
+	loge("register_cmd_callback fail, command_callbacks is full!\n");
 
-	return 0;
+	return;
 }
 
 void voice_proxy_deregister_cmd_callback(uint16_t msg_id)
 {
-	int32_t i, j;
-
-	for (i = 0; i < priv.cmd_callbacks_size; i++) {
-		if (command_callbacks[i].msg_id == msg_id) {
-			for (j = i + 1; j < priv.cmd_callbacks_size; j++) {
-				command_callbacks[j - 1].msg_id = command_callbacks[j].msg_id;
-				command_callbacks[j - 1].callback = command_callbacks[j].callback;
-			}
-			break;
-		}
-	}
-
-	if (priv.cmd_callbacks_size == i) {
-		loge("invalid msg_id\n");
-	}
-
-	priv.cmd_callbacks_size--;
-}
-
-void voice_proxy_register_sign_init_callback(voice_proxy_sign_init_cb callback, int32_t *index)
-{
-	BUG_ON(NULL == callback);/*lint !e730*/
-	BUG_ON(NULL == index);/*lint !e730*/
-
-	sign_init_callbacks[priv.sign_init_callbacks_size].callback = callback;
-	*index = priv.sign_init_callbacks_size;
-	priv.sign_init_callbacks_size++;
-}
-
-void voice_proxy_deregister_sign_init_callback(int32_t index)
-{
 	int32_t i;
 
-	for (i = 0; i < priv.sign_init_callbacks_size; i++) {
-		if (i == index) {
-			sign_init_callbacks[i].callback = NULL;
-			break;
+	for (i = 0; i < COMMAND_CALLBACKS_SIZE; i++) {
+		if (command_callbacks[i].msg_id == msg_id) {
+			command_callbacks[i].msg_id = 0;
+			command_callbacks[i].callback = 0;
+			return;
 		}
 	}
+
+	loge("deregister_cmd_callback fail, invalid msg_id\n");
+
+	return;
+}
+
+void voice_proxy_register_sign_init_callback(voice_proxy_sign_init_cb callback)
+{
+	int32_t i = 0;
+
+	if (!callback) {
+		loge("register_sign_init_callback fail, param callback is NULL!\n");
+		return;
+	}
+
+	for (i = 0; i < SIGN_INIT_CALLBACKS_SIZE; i++) {
+		if (!sign_init_callbacks[i].callback) {
+			sign_init_callbacks[i].callback = callback;
+			return;
+		}
+	}
+
+	loge("register_sign_init_callback fail, sign_init_callbacks is full!\n");
+
+	return;
+}
+
+void voice_proxy_deregister_sign_init_callback(voice_proxy_sign_init_cb callback)
+{
+	int32_t i = 0;
+	if (!callback) {
+		loge("deregister_sign_init_callback, param callback is NULL!\n");
+		return;
+	}
+
+	for (i = 0; i < SIGN_INIT_CALLBACKS_SIZE; i++) {
+		if (sign_init_callbacks[i].callback == callback) {
+			sign_init_callbacks[i].callback = NULL;
+			return;
+		}
+	}
+
+	loge("deregister_sign_init_callback fail, sign_init_callbacks is full");
+
+	return;
 }
 
 static void write_sign_init(void)
 {
 	int32_t i;
 
-	for (i = 0; i < priv.sign_init_callbacks_size; i++) {
+	for (i = 0; i < SIGN_INIT_CALLBACKS_SIZE; i++) {
 		if (sign_init_callbacks[i].callback)
 			sign_init_callbacks[i].callback();
 	}
@@ -214,15 +233,17 @@ void voice_proxy_set_send_sign(bool first, bool *cnf, int64_t *timestamp)
 {
 	int64_t cur_timestamp = 0;
 
-	BUG_ON(NULL == cnf);/*lint !e730*/
-	BUG_ON(NULL == timestamp);/*lint !e730*/
+	if (!cnf || !timestamp) {
+		loge("set_send_sign fail, param is NULL!\n");
+		return;
+	}
 
 	if (first) {
 		*timestamp = voice_proxy_get_time_ms();
 	} else {
 		cur_timestamp = voice_proxy_get_time_ms();
 		if (TIME_OUT_MSEC < cur_timestamp - *timestamp) {
-			loge("time out:%lld \n", cur_timestamp - *timestamp);
+			//loge("time out:%lld \n", cur_timestamp - *timestamp);
 			*cnf = 1;
 			*timestamp = cur_timestamp;
 		}
@@ -235,13 +256,11 @@ int32_t voice_proxy_create_data_node(struct voice_proxy_data_node **node, int8_t
 
 	n = kzalloc(sizeof(*n) + size, GFP_ATOMIC);/*lint !e737*/
 	if (NULL == n) {
-		loge("kmalloc failed\n");
+		loge("kzalloc failed\n");
 		return -ENOMEM;
 	}
 
-	memset(n, 0, sizeof(*n) + size);/*lint !e737*/
-
-	memcpy(n->list_data.data, data, size);/*lint !e732 !e747*/
+	memcpy(n->list_data.data, data, size);/*lint !e732 !e747*//* unsafe_function_ignore: memcpy  */
 	n->list_data.size = size;
 	*node = n;
 
@@ -252,11 +271,15 @@ int32_t voice_proxy_mailbox_send_msg_cb(uint32_t mailcode, uint16_t msg_id, void
 {
 	int32_t ret;
 
-	BUG_ON(NULL == buf);/*lint !e730*/
+	if (!buf) {
+		loge("mailbox_send_msg_cb fail, param buf is NULL!\n");
+		return -EINVAL;
+	}
 
 	UNUSED_PARAMETER(msg_id);
+	//logi("msg_id :0x%x\n",msg_id);
 
-	ret = (int32_t)mailbox_send_msg((size_t)mailcode, buf, (size_t)size);
+	ret = (int)mailbox_send_msg((size_t)mailcode, buf, (size_t)size);
 	if (ret) {
 		loge("mailbox_send_msg fail\n");
 	}
@@ -268,11 +291,12 @@ static int32_t read_mailbox_msg_data_cb(void *mail_handle, int8_t *buf, int32_t 
 {
 	int32_t ret;
 
-	BUG_ON(NULL == mail_handle);/*lint !e730*/
-	BUG_ON(NULL == buf);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
+	if (!mail_handle || !buf || !size) {
+		loge("mailbox_msg_data_cb fail, param is NULL!\n");
+		return -EINVAL;
+	}
 
-	ret = (int32_t)mailbox_read_msg_data(mail_handle, (char *)buf, (unsigned int *)size);
+	ret = (int)mailbox_read_msg_data(mail_handle, (char *)buf, (unsigned int *)size);
 	if (ret) {
 		loge("mailbox_read_msg_data fail\n");
 	}
@@ -280,13 +304,14 @@ static int32_t read_mailbox_msg_data_cb(void *mail_handle, int8_t *buf, int32_t 
 	return ret;
 }
 
-static int32_t send_mailbox_cnf_msg(uint16_t msg_id)
+static int32_t send_mailbox_cnf_msg(uint16_t msg_id, uint16_t modem_no)
 {
 	int32_t ret = 0;
 	struct voice_proxy_confirm cmd_cnf;
 
-	memset(&cmd_cnf, 0, sizeof(cmd_cnf));
+	memset(&cmd_cnf, 0, sizeof(cmd_cnf));/* unsafe_function_ignore: memset  */
 	cmd_cnf.msg_id = msg_id;
+	cmd_cnf.modem_no = modem_no;
 	if (priv.send_mailbox_msg) {
 		/*call the mailbox to send the message to hifi*/
 		ret = priv.send_mailbox_msg(MAILBOX_MAILCODE_ACPU_TO_HIFI_VOICE_RT,
@@ -317,7 +342,8 @@ static void send_mailbox_cnf_work_queue(struct work_struct *work)
 		list_del_init(&command->list_node);
 		spin_unlock_bh(&priv.cnf_queue_lock);
 
-		ret = send_mailbox_cnf_msg(command->msg_id);
+		//logi("receive msg id:%d\n", command->msg_id);
+		ret = send_mailbox_cnf_msg(command->msg_id, command->modem_no);
 		if (ret) {
 			loge("send mailbox cnf msg fail\n");
 		}
@@ -330,27 +356,29 @@ static void send_mailbox_cnf_work_queue(struct work_struct *work)
 	spin_unlock_bh(&priv.cnf_queue_lock);
 }
 
-int32_t voice_proxy_add_work_queue_cmd(uint16_t msg_id)
+int32_t voice_proxy_add_work_queue_cmd(uint16_t msg_id, uint16_t modem_no)
 {
 	struct voice_proxy_cmd_node *command;
 
-	command = kmalloc(sizeof(*command), GFP_ATOMIC);
+	command = kzalloc(sizeof(*command), GFP_ATOMIC);
 	if (NULL == command) {
-		loge("command kmalloc fail\n");
+		loge("command kzalloc fail\n");
 		return -ENOMEM;
 	}
-	memset(command, 0, sizeof(*command));
 
 	command->msg_id = msg_id;
+	command->modem_no = modem_no;
+	//logi("msg id :0x%x\n",command->msg_id);
 
 	spin_lock_bh(&priv.cnf_queue_lock);
 	list_add_tail(&command->list_node, &confirm_queue);
 	spin_unlock_bh(&priv.cnf_queue_lock);
 
 	if (queue_work(priv.send_mailbox_cnf_wq, &priv.send_mailbox_cnf_work)) {
+		loge("msg_id 0x%x no send mailbox cnf queue work\n", msg_id);
 	}
 
-	return 0;
+	return 0;/*lint !e429*/
 }
 
 int32_t voice_proxy_add_data(voice_proxy_add_data_cb callback, int8_t *data, uint32_t size, uint16_t msg_id)
@@ -358,22 +386,23 @@ int32_t voice_proxy_add_data(voice_proxy_add_data_cb callback, int8_t *data, uin
 	int32_t ret;
 	struct voice_proxy_cmd_node *command;
 
-	BUG_ON(NULL == callback);/*lint !e730*/
-	BUG_ON(NULL == data);/*lint !e730*/
+	if (!callback || !data) {
+		loge("proxy_add_data fail, param is NULL!\n");
+		return -EINVAL;
+	}
 
-	command = kmalloc(sizeof(*command), GFP_ATOMIC);
+	command = kzalloc(sizeof(*command), GFP_ATOMIC);
 	if (NULL == command) {
-		loge("kmalloc failed\n");
+		loge("kzalloc failed\n");
 		return -ENOMEM;
 	}
-	memset(command, 0, sizeof(*command));
 
 	command->msg_id = msg_id;
 
 	spin_lock_bh(&priv.command_lock);
 	ret = callback(data, size);
-	if (ret < 0 && ret != -ENOMEM) {
-		loge("add data fail\n");
+	if (ret < 0) {
+		//loge("add data fail\n");
 		spin_unlock_bh(&priv.command_lock);
 		kfree(command);
                 return ret;
@@ -384,21 +413,21 @@ int32_t voice_proxy_add_data(voice_proxy_add_data_cb callback, int8_t *data, uin
 	spin_unlock_bh(&priv.command_lock);
 	wake_up(&priv.command_waitq);
 
-	return ret;
+	return ret;/*lint !e429*/
 }
 
 int32_t voice_proxy_add_cmd(uint16_t msg_id)
 {
 	struct voice_proxy_cmd_node *command;
 
-	command = kmalloc(sizeof(*command), GFP_ATOMIC);
+	command = kzalloc(sizeof(*command), GFP_ATOMIC);
 	if (NULL == command) {
-		loge("command kmalloc failed\n");
+		loge("command kzalloc failed\n");
 		return -ENOMEM;
 	}
-	memset(command, 0, sizeof(*command));
 
 	command->msg_id = msg_id;
+	//logi("msg_id :0x%x\n", command->msg_id);
 	spin_lock_bh(&priv.command_lock);
 
 	list_add_tail(&command->list_node, &proxy_command_queue);
@@ -407,7 +436,7 @@ int32_t voice_proxy_add_cmd(uint16_t msg_id)
 	spin_unlock_bh(&priv.command_lock);
 	wake_up(&priv.command_waitq);
 
-	return 0;
+	return 0;/*lint !e429*/
 }
 
 /*
@@ -417,13 +446,14 @@ int32_t voice_proxy_add_cmd(uint16_t msg_id)
  */
 static int32_t write_thread_get_data(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-        int32_t ret = 0;
-        int32_t i;
+	int32_t ret = 0;
+	int32_t i;
 	struct voice_proxy_cmd_node *command;
 
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	if (!data || !size || !msg_id) {
+		loge("write_thread_get_data fail, param is NULL!\n");
+		return -EINVAL;
+	}
 
 	if (list_empty_careful(&proxy_command_queue)) {
 		loge("proxy_command_queue is empty\n");
@@ -432,15 +462,16 @@ static int32_t write_thread_get_data(int8_t *data, uint32_t *size, uint16_t *msg
 
 	command = list_first_entry(&proxy_command_queue, struct voice_proxy_cmd_node, list_node);/*lint !e826*/
 
-	for (i = 0; i < priv.cmd_callbacks_size; i++) {
+	for (i = 0; i < COMMAND_CALLBACKS_SIZE; i++) {
 		if (command_callbacks[i].msg_id == command->msg_id) {
 			command_callbacks[i].callback(data, size, msg_id);
+			//logi("command [0x%x] handled\n", command->msg_id);
 			break;
 		}
 	}
 
-	if (i == priv.cmd_callbacks_size) {
-		loge("invalid msg id:0x%x:\n", command->msg_id);
+	if (COMMAND_CALLBACKS_SIZE == i) {
+		loge("write_thread_get_data fail, invalid msg id:0x%x:\n", command->msg_id);
 		ret = -EINVAL;
 	}
 
@@ -522,7 +553,7 @@ static int voice_proxy_write_thread(void *arg)
 	}
 
 	kfree(data);
-	data = NULL;
+        data = NULL;
 
 	return 0;/*lint !e438*/
 }
@@ -554,11 +585,9 @@ static void handle_mail(void *usr_para, void *mail_handle, uint32_t mail_len)
 
 	rev_msg = kzalloc(sizeof(*rev_msg), GFP_ATOMIC);
 	if (NULL == rev_msg) {
-		loge("rev_msg kmalloc failed\n");
+		loge("rev_msg kzalloc failed\n");
 		return;
 	}
-
-	memset(rev_msg, 0, sizeof(*rev_msg));
 
 	/*
 	 * mail_buf_len is a in para and a out para, the mail_len show the size which
@@ -566,15 +595,13 @@ static void handle_mail(void *usr_para, void *mail_handle, uint32_t mail_len)
 	 * need a preplanned allocated buffer to copy the mailbox buffer, and return the
 	 * practical size of buffer which copy from mailbox by mail_buf_len.
 	 */
-	rev_msg->mail_buf_len = (int32_t)mail_len;
+	rev_msg->mail_buf_len = (int)mail_len;
 
 	rev_msg->mail_buf = kzalloc((size_t)VOICE_PROXY_LIMIT_PARAM_SIZE, GFP_ATOMIC);
 	if (NULL == rev_msg->mail_buf) {
 		loge("malloc mail_buf failed\n");
 		goto ERR;
 	}
-
-	memset(rev_msg->mail_buf, 0, (size_t)VOICE_PROXY_LIMIT_PARAM_SIZE);
 
 	if (priv.read_mailbox_msg) {
 		ret_mail = priv.read_mailbox_msg(mail_handle, rev_msg->mail_buf, &rev_msg->mail_buf_len);
@@ -588,24 +615,21 @@ static void handle_mail(void *usr_para, void *mail_handle, uint32_t mail_len)
                 goto ERR;
 	}
 
-	if ((rev_msg->mail_buf_len <= 0) || (rev_msg->mail_buf_len > VOICE_PROXY_LIMIT_PARAM_SIZE)) {
-		loge("data length error! mail_size: %d\n", rev_msg->mail_buf_len);
-		goto ERR;
-	}
-
-	if ((uint32_t)rev_msg->mail_buf_len > mail_len) {
-		loge("ReadMailData mail_size(%d) > mail_len(%d)\n", rev_msg->mail_buf_len, mail_len);
-		goto ERR;
-	}
-
 	msg_para = (struct hifi_msg_para *)rev_msg->mail_buf;/*lint !e826*/
 	msg_id = msg_para->msg_id;
 
-	for (i = 0; i < priv.msg_callbacks_size; i++) {
+	//logi("ret_mail=%d, mail_buff_len=%d, msgID=0x%x\n", ret_mail, rev_msg->mail_buf_len, msg_id);
+
+	for (i = 0; i < MESSAGE_CALLBACKS_SIZE; i++) {
 		if (message_callbacks[i].msg_id == msg_id) {
 			message_callbacks[i].callback((int8_t *)rev_msg->mail_buf, (uint32_t)rev_msg->mail_buf_len);
+			//logi("message [0x%x] handled\n", msg_id);
 			break;
 		}
+	}
+
+	if (MESSAGE_CALLBACKS_SIZE == i) {
+		loge("handle_mail callback fail, msg_id is invalid!\n");
 	}
 
 ERR:
@@ -620,6 +644,7 @@ ERR:
 
 	cnt++;
 	UNUSED_PARAMETER(cnt);
+	//logi("handle_mail receive msg cnt:%d\n", cnt);
 
 	return;/*lint !e438*/
 }
@@ -628,9 +653,9 @@ static int32_t register_mailbox_msg_cb(mb_msg_cb callback)
 {
 	int32_t ret;
 
-	ret = (int32_t)mailbox_reg_msg_cb((size_t)MAILBOX_MAILCODE_HIFI_TO_ACPU_VOICE, callback, NULL);
+	ret = (int)mailbox_reg_msg_cb((size_t)MAILBOX_MAILCODE_HIFI_TO_ACPU_VOICE, callback, NULL);
 	if (ret) {
-		loge("hifi mailbox handle func register fail\n");
+		//loge("hifi mailbox handle func register fail\n");
 	}
 
 	return ret;
@@ -671,7 +696,7 @@ static void destory_thread(void)
 		wake_up(&priv.command_waitq);
 		priv.write_thread = NULL;
 	} else {
-		loge("write_thread is not exist\n");
+		//loge("write_thread is not exist\n");
 	}
 }
 
@@ -693,15 +718,13 @@ static int voice_proxy_probe(struct platform_device *pdev)
 {
 	int32_t ret;
 
-	memset(&priv, 0, sizeof(priv));
+	memset(&priv, 0, sizeof(priv));/* unsafe_function_ignore: memset */
 
 	priv.dev = &pdev->dev;
 
-	priv.command_wait_flag = 0;
+	//logi("hifi voice proxy prob,pdev name[%s]\n", pdev->name);
 
-	priv.msg_callbacks_size = 0;
-	priv.cmd_callbacks_size = 0;
-	priv.sign_init_callbacks_size = 0;
+	priv.command_wait_flag = 0;
 
 	spin_lock_init(&priv.command_lock);
 	spin_lock_init(&priv.cnf_queue_lock);
@@ -778,6 +801,8 @@ static struct platform_driver voice_proxy_driver = {
 static int __init voice_proxy_init( void )
 {
 	int32_t ret;
+
+	//printk("Audio:voice proxy init\n");
 
 	ret = platform_driver_register(&voice_proxy_driver);/*lint !e64*/
 	if (ret) {

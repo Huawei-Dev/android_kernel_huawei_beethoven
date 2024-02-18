@@ -356,7 +356,7 @@ int hi6403es_hifi_config_init(struct snd_soc_codec *codec,
 	dsp_config.wtd_irq_num = IRQ_WTD;
 	dsp_config.vld_irq_num = IRQ_CMD_VALID;
 	dsp_config.dump_ocram_addr = HI6403ES_DUMP_PANIC_STACK_ADDR;
-	dsp_config.dump_ocram_size = HI6403ES_DUMP_PANIC_STACK_SIZE;
+	dsp_config.dump_ocram_size = HI6403ES_DUMP_PANIC_STACK_SIZE + HI6403ES_DUMP_CPUVIEW_SIZE;
 	dsp_config.dump_log_addr = HI6403ES_SAVE_LOG_ADDR_ES;
 	dsp_config.dump_log_size = HI6403ES_SAVE_LOG_SIZE_ES;
 	dsp_config.ocram_start_addr = HI6403ES_OCRAM_BASE_ADDR;

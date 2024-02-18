@@ -16,6 +16,7 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 EXTRA_CFLAGS += -DENABLE_HI64XX_CODEC_DEBUG
 endif
 
+ccflags-y += -Idrivers/devkit/audiokit/
 obj-y += hi_cdc_ctrl.o
 obj-y += hi_cdc_ssi.o
 obj-y += hi64xx_resmgr.o

@@ -15,9 +15,9 @@
 
 #include "hi64xx_dsp_regs.h"
 
-/* |~0x10000000~~|~~0x10010000~~~|~0x10010080~|~~0x100100c0~~~|~0x10010140~|~0x10011140~~| */
-/* |~ring buffer~|~ap to dsp msg~|~ap dsp cmd~|~dsp to ap msg~|~mlib para~~|~panic stack~| */
-/* |~~~~~64k~~~~~|~~~128 byte~~~~|~~~64 byte~~|~~~128 byte~~~~|~~~~~4k~~~~~|~~~512 byte~~| */
+/* |~0x10000000~~|~~0x10010000~~~|~0x10010080~|~~0x100100c0~~~|~0x10010140~|~0x10011140~~|~~0x10011340~~| */
+/* |~ring buffer~|~ap to dsp msg~|~ap dsp cmd~|~dsp to ap msg~|~mlib para~~|~panic stack~|~dump cpuview~| */
+/* |~~~~~64k~~~~~|~~~128 byte~~~~|~~~64 byte~~|~~~128 byte~~~~|~~~~~4k~~~~~|~~~512 byte~~|~~~512 byte~~~| */
 #define HI6403ES_OCRAM_BASE_ADDR             (0x10000000)
 #define HI6403ES_ITCM_BASE_ADDR              (0x08000000)
 #define HI6403ES_DTCM_BASE_ADDR              (0x08010000)
@@ -32,6 +32,7 @@
 #define HI6403ES_DSP_TO_AP_MSG_SIZE          (0x80)
 #define HI6403ES_MLIB_PARA_MAX_SIZE          (0x1000)
 #define HI6403ES_DUMP_PANIC_STACK_SIZE       (0x200)      /* store panic static info */
+#define HI6403ES_DUMP_CPUVIEW_SIZE           (0x200)      /* store cpuview info */
 #define HI6403ES_SAVE_LOG_SIZE               (0x800)
 #define HI6403ES_SAVE_LOG_SIZE_ES            (0x4000)
 
@@ -41,6 +42,7 @@
 #define HI6403ES_DSP_TO_AP_MSG_ADDR          (HI6403ES_AP_DSP_CMD_ADDR + HI6403ES_AP_DSP_CMD_SIZE)
 #define HI6403ES_MLIBPARA_ADDR               (HI6403ES_DSP_TO_AP_MSG_ADDR + HI6403ES_DSP_TO_AP_MSG_SIZE)
 #define HI6403ES_DUMP_PANIC_STACK_ADDR       (HI6403ES_MLIBPARA_ADDR + HI6403ES_MLIB_PARA_MAX_SIZE)
+#define HI6403ES_DUMP_CPUVIEW_ADDR           (HI6403ES_DUMP_PANIC_STACK_ADDR + HI6403ES_DUMP_PANIC_STACK_SIZE)
 #define HI6403ES_SAVE_LOG_ADDR               (0x0802f800)
 #define HI6403ES_SAVE_LOG_ADDR_ES            (0x10058000)
 

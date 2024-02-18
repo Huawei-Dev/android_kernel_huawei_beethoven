@@ -142,7 +142,7 @@ static void hi64xx_img_bss_page_dl(uint32_t des_addr, uint32_t src_addr, uint32_
 							 hi64xx_hifi_read_reg(HI64xx_CX_CURR_CNT0(DMA_IMG_DL_CH)),
 							 hi64xx_hifi_read_reg(HI64xx_CX_CONFIG(DMA_IMG_DL_CH)));
 			if (0 != hi64xx_codec_dma_stop(DMA_IMG_DL_CH)) {
-				HI64XX_DSP_ERROR("section download error des_addr 0x%x\n", des_addr);
+				HI64XX_DSP_ERROR("section download error des_addr 0x%pK\n", (void *)(unsigned long)des_addr);
 				return;
 			}
 			break;
@@ -194,11 +194,15 @@ static void hi64xx_img_page_dl(uint32_t des_addr, uint32_t src_addr, uint32_t si
 
 			/* transfer timeout stop dma */
 			if (0 != hi64xx_codec_dma_stop(DMA_IMG_DL_CH)) {
-				HI64XX_DSP_ERROR("section download error des_addr 0x%x\n", des_addr);
+				slimbus_track_deactivate(SLIMBUS_DEVICE_HI6403, SLIMBUS_TRACK_IMAGE_LOAD, NULL);
+				hi64xx_hifi_reg_clr_bit(dl_data->dl_config.dspif_clk_en_addr,2);
+				HI64XX_DSP_ERROR("section download error des_addr 0x%pK\n", (void *)(unsigned long)des_addr);
 				return;
 			}
 			if(0 != hi64xx_soc_dma_stop(DMA_IMG_DL_CH)) {
-				HI64XX_DSP_ERROR("section download error des_addr 0x%x\n", des_addr);
+				slimbus_track_deactivate(SLIMBUS_DEVICE_HI6403, SLIMBUS_TRACK_IMAGE_LOAD, NULL);
+				hi64xx_hifi_reg_clr_bit(dl_data->dl_config.dspif_clk_en_addr,2);
+				HI64XX_DSP_ERROR("section download error des_addr 0x%pK\n", (void *)(unsigned long)des_addr);
 				return;
 			}
 			break;
@@ -212,6 +216,35 @@ static void hi64xx_img_page_dl(uint32_t des_addr, uint32_t src_addr, uint32_t si
 	if (ret)
 		HI64XX_DSP_WARNING("page dl return ret %d\n", ret);
 
+}
+
+static int hi64xx_hifi_check_load_addr(struct drv_hifi_image_sec *img_sec)
+{
+	if ((img_sec->des_addr >= hi64xx_misc_get_ocram_start_addr()
+		&& img_sec->des_addr < (hi64xx_misc_get_ocram_start_addr() + hi64xx_misc_get_ocram_size()))
+		|| (img_sec->des_addr >= hi64xx_misc_get_itcm_start_addr()
+		&& img_sec->des_addr < (hi64xx_misc_get_itcm_start_addr() + hi64xx_misc_get_itcm_size()))
+		|| (img_sec->des_addr >= hi64xx_misc_get_dtcm_start_addr()
+		&& img_sec->des_addr < (hi64xx_misc_get_dtcm_start_addr() + hi64xx_misc_get_dtcm_size()))) {
+		HI64XX_DSP_DEBUG("des_addr check ok\n");
+		return 0;
+	} else {
+		HI64XX_DSP_ERROR("des_addr check error, addr:%pK\n", (void *)(unsigned long)(img_sec->des_addr));
+		return -1;
+	}
+}
+
+static int hi64xx_hifi_check_section_size(struct drv_hifi_image_sec *img_sec)
+{
+	if (img_sec->size <= hi64xx_misc_get_ocram_size()
+		|| img_sec->size <= hi64xx_misc_get_itcm_size()
+		|| img_sec->size <= hi64xx_misc_get_dtcm_size()) {
+		HI64XX_DSP_DEBUG("section size check ok\n");
+		return 0;
+	} else {
+		HI64XX_DSP_ERROR("section size check error, size:%u\n", img_sec->size);
+		return -1;
+	}
 }
 
 /*
@@ -237,14 +270,25 @@ static int hi64xx_hifi_fw_section_head_check(struct drv_hifi_image_head *img_hea
 		return -1;
 	}
 
+	if (hi64xx_hifi_check_load_addr(img_sec)
+		|| hi64xx_hifi_check_section_size(img_sec)) {
+		HI64XX_DSP_ERROR("check load addr or section size error\n");
+		return -1;
+	}
+
 	return 0;
 }
 
 
 static int hi64xx_hifi_fw_head_check(struct drv_hifi_image_head *head)
 {
-	int i = 0;
+	unsigned int i = 0;
 	int ret = 0;
+
+	if (head->sections_num > HIFI_SEC_MAX_NUM) {
+		HI64XX_DSP_ERROR("section num error, %d\n", head->sections_num);
+		return -1;
+	}
 
 	for (i = 0; i < head->sections_num; i++) {
 		/* check the sections */
@@ -310,11 +354,11 @@ static void hi64xx_img_sec_dl_dma(uint32_t *src_addr, uint32_t des_addr, int typ
 	case DRV_HIFI_IMAGE_SEC_TYPE_CODE:
 	case DRV_HIFI_IMAGE_SEC_TYPE_DATA:
 		for (i = 0; i < size/4; i++) {
-			src_addr_v[2*i] = (src_addr[i]&0x0000ffff)<<16;
-			src_addr_v[2*i+1] = src_addr[i]&0xffff0000;
+			src_addr_v[2*i] = (src_addr[i]&0x0000ffff)<<16;/*lint !e679*/
+			src_addr_v[2*i+1] = src_addr[i]&0xffff0000;/*lint !e679*/
 		}
 
-		HI64XX_DSP_INFO("codec dma des phy addr:0x%x, size:0x%x\n", des_addr, size);
+		HI64XX_DSP_INFO("codec dma des phy addr:0x%pK, size:0x%x\n", (void *)(unsigned long)des_addr, size);
 
 		hi64xx_hifi_write_reg(HI64xx_CX_SRC_ADDR(DMA_IMG_DL_CH), HI6402_DSP_IF2);
 		hi64xx_hifi_write_reg(HI64xx_CX_CONFIG(DMA_IMG_DL_CH), 0x47711046);
@@ -328,13 +372,13 @@ static void hi64xx_img_sec_dl_dma(uint32_t *src_addr, uint32_t des_addr, int typ
 				dma_size = HI6402_DMA_PAGESIZE;
 			}
 			hi64xx_img_page_dl(des_addr + HI6402_DMA_PAGESIZE*i,
-							   (dl_data->src_dma_addr + HI6402_DMA_PAGESIZE*i*2),
+							   (dl_data->src_dma_addr + (uint32_t)(HI6402_DMA_PAGESIZE*i*2)),
 							   dma_size);
 		}
 		if(bytesleft > 0) {
 			HI64XX_DSP_INFO("reg write size:%d\n", bytesleft);
 			des_addr = des_addr + size - bytesleft;
-			hi64xx_img_sec_dl_reg(src_addr + (size - bytesleft)/4, des_addr, bytesleft,
+			hi64xx_img_sec_dl_reg(src_addr + (uint32_t)(size - bytesleft)/4, des_addr, bytesleft,
 									DRV_HIFI_IMAGE_SEC_TYPE_CODE);
 		}
 		break;
@@ -349,7 +393,7 @@ void hi64xx_hifi_download_slimbus(const struct firmware *fw)
 	struct drv_hifi_image_head *head = NULL;
 	uint32_t *src_addr;
 	uint32_t des_addr;
-	int i = 0;
+	unsigned int i = 0;
 
 	hi64xx_hifi_reg_write_bits(HI64xx_AUDIO_CLK_EN, 0x3, 0x3);
 
@@ -398,6 +442,7 @@ void hi64xx_hifi_download_slimbus(const struct firmware *fw)
 err:
 	if (soc_dma_vir) {
 		iounmap((void __iomem *)soc_dma_vir);
+		soc_dma_vir = 0;
 	}
 	slimbus_bus_configure(SLIMBUS_BUS_CONFIG_NORMAL);
 	hi64xx_hifi_reg_clr_bit(HI64xx_SLIM_CTRL1, 0);
@@ -410,7 +455,7 @@ void hi64xx_hifi_download(const struct firmware *fw, enum bustype_select bus_sel
 	struct drv_hifi_image_head *head = NULL;
 	unsigned int des_addr;
 	unsigned int *src_addr;
-	int i = 0;
+	unsigned int i = 0;
 	int ret = 0;
 
 	HI64XX_DSP_INFO("img dl++, size:[%zu] bus_sel:0x%x!\n", fw->size, bus_sel);
@@ -420,6 +465,7 @@ void hi64xx_hifi_download(const struct firmware *fw, enum bustype_select bus_sel
 		HI64XX_DSP_ERROR("img head is null\n");
 		return;
 	}
+
 	ret = hi64xx_hifi_fw_head_check(head);
 	if(0 != ret) {
 		HI64XX_DSP_ERROR("img head is invalid\n");
@@ -432,16 +478,16 @@ void hi64xx_hifi_download(const struct firmware *fw, enum bustype_select bus_sel
 	for (i = 0; i < head->sections_num; i++) {
 		src_addr = (unsigned int *)((char *)head + head->sections[i].src_offset);
 		des_addr = head->sections[i].des_addr;
-		HI64XX_DSP_DEBUG("hifi: sections_num = %d,des_addr = 0x%x, load_attib = %d, size = 0x%x,"
+		HI64XX_DSP_DEBUG("hifi: sections_num = %d,des_addr = 0x%pK, load_attib = %d, size = 0x%x,"
 				 " sn = %d, src_offset = 0x%x, type = %d\n", \
 				 head->sections_num,\
-				 head->sections[i].des_addr,\
+				 (void *)(unsigned long)(head->sections[i].des_addr),\
 				 head->sections[i].load_attib,\
 				 head->sections[i].size,\
 				 head->sections[i].sn,\
 				 head->sections[i].src_offset,\
 				 head->sections[i].type);
-		HI64XX_DSP_INFO("[0x%pK]->[0x%x]\n", src_addr, des_addr);
+		HI64XX_DSP_INFO("[0x%pK]->[0x%pK]\n", src_addr, (void *)(unsigned long)des_addr);
 		hi64xx_img_sec_dl_reg(src_addr, des_addr,
 							  head->sections[i].size, head->sections[i].type);
 	}
@@ -469,8 +515,12 @@ int hi64xx_hifi_img_dl_init(struct hi64xx_irq *irqmgr,
 
 	dl_data->src_addr_v = dma_alloc_coherent(dl_data->p_irq->dev,
 				image_down_size, &(dl_data->src_dma_addr), GFP_KERNEL);
-	if (!dl_data->src_addr_v)
+	if (!dl_data->src_addr_v) {
+		kfree(dl_data);
+		dl_data = NULL;
 		HI64XX_DSP_WARNING("dma alloc failed\n");
+		return -ENOMEM;
+	}
 
 	return 0;
 }

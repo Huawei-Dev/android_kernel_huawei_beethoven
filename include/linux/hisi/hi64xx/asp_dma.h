@@ -66,7 +66,7 @@
 
 #define ASP_DMA_LLI_LINK(uwAddr)		(((unsigned int)(unsigned long)(uwAddr) & 0xffffffe0UL) | (0x2UL))
 
-typedef int (*callback_t)(unsigned short int_type, unsigned int param);
+typedef int (*callback_t)(unsigned short int_type, unsigned long param, unsigned int dma_channel);
 
 enum {
     ASP_DMA_INT_TYPE_TC1 = 0,
@@ -84,12 +84,13 @@ struct dma_lli_cfg {
 	unsigned int src_addr;
 	unsigned int des_addr;
 	unsigned int config;
-};
+} __attribute__((aligned(32)));
 
+extern unsigned int _dmac_reg_read(unsigned int reg);
 extern int asp_dma_config(unsigned short dma_channel,
 			struct dma_lli_cfg *lli_cfg,
 			callback_t callback,
-			unsigned int para);
+			unsigned long para);
 extern int asp_dma_start(unsigned short dma_channel,
 			struct dma_lli_cfg *lli_cfg);
 extern void asp_dma_stop(unsigned short dma_channel);

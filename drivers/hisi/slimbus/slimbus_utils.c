@@ -27,10 +27,12 @@
 #include "slimbus_utils.h"
 #include "hi3630_asp_common.h"
 
-/*lint -e838 -e715*/
+/*lint -e838 -e715 -e573*/
 
 #define SLIMBUS_CLK_24576 (24576)
 #define SLIMBUS_CLK_21777 (21777)
+#define CLK_ASP_SUBSYS_PERI (415000)
+
 static int slimbus_freq_cnt = 0;
 static struct mutex slimbus_freq_mutex;
 static void __iomem *asp_reg_base_addr;
@@ -47,7 +49,6 @@ static void slimbus_reg_set_bit(void __iomem *reg_addr, unsigned int offset){
 	value |= (1 << offset);
 	writel(value, reg_addr);
 }
-
 
 static void slimbus_reg_write_bits(void __iomem *reg_addr, unsigned int value, unsigned int mask)
 {
@@ -157,15 +158,20 @@ void slimbus_module_enable(slimbus_device_info_t *dev, bool enable)
 		/* For FPGA */
 		if (SLIMBUS_RF_6144 == rf) {
 			/* IOMG slimbus clk*/
-			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + IOC_SYS_IOMG_011), 0x00000001);
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusclk_offset), 0x00000001);
 			/* IOMG slimbus data*/
-			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + IOC_SYS_IOMG_012), 0x00000001);
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusdata_offset), 0x00000001);
+			/* IOCG slimbus clk*/
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusclk_cfg_offset), 0x12);
+			/* IOCG slimbus data*/
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusdata_cfg_offset), 0x13);
+		} else {
+			/* IOCG slimbus clk drv 6ma slew rate*/
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusclk_cfg_offset), dev->slimbusclk_drv);
+			/* IOCG slimbus data drv 6ma pu pd*/
+			slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + dev->slimbusdata_cfg_offset), dev->slimbusdata_drv);
 		}
 
-		/* IOCG slimbus clk drv 6ma slew rate*/
-		slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + IOC_SYS_IOCG_013), dev->slimbusclk_drv);
-		/* IOCG slimbus data drv 6ma pu pd*/
-		slimbus_reg_write((void __iomem *)((uint64_t)ioc_base_addr + IOC_SYS_IOCG_014), dev->slimbusdata_drv);
 		iounmap(ioc_base_addr);
 
 		slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_RST_CTRLDIS_REG),		0xffffffff);
@@ -180,8 +186,12 @@ void slimbus_module_enable(slimbus_device_info_t *dev, bool enable)
 			/* SRC 480M divided to 43.55556M to avoid signal interference to GPS */
 			slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_CLK1_DIV_REG),		   div_siobclk);
 
-			/* Sel 480M_clk as clk src*/
-			slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_CLK_SEL_REG),			0x700070);
+			if (clk_asp_subsys == CLK_ASP_SUBSYS_PERI) {
+				slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_CLK_SEL_REG),			0x700060);
+			} else {
+				/* Sel 480M_clk as clk src*/
+				slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_CLK_SEL_REG),			0x700070);
+			}
 
 			/* bit24:gt_clk_ppll0_slimbus disable */
 			slimbus_reg_write((asp_reg_base_addr + HI3630_CFG_R_GATE_DIS_REG),		 0x1000000);

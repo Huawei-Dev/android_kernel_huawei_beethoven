@@ -69,6 +69,8 @@ static int snd_pcm_hw_params_old_user(struct snd_pcm_substream *substream,
 #endif
 static int snd_pcm_open(struct file *file, struct snd_pcm *pcm, int stream);
 
+extern void snd_pcm_reset_pre_time(struct snd_pcm_substream *substream);
+
 /*
  *
  */
@@ -1520,6 +1522,7 @@ static int snd_pcm_do_reset(struct snd_pcm_substream *substream, int state)
 		runtime->status->hw_ptr % runtime->period_size;
 	runtime->silence_start = runtime->status->hw_ptr;
 	runtime->silence_filled = 0;
+	snd_pcm_reset_pre_time(substream);
 	return 0;
 }
 

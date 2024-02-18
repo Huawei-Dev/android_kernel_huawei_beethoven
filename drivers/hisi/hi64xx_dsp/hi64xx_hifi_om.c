@@ -277,7 +277,7 @@ static const char* _get_pos_name(hook_pos pos)
 
 	return "UNKNOW";
 }
-
+/*lint -e429*/
 static int _add_data_to_list(struct hook_runtime *runtime)
 {
 	int ret = 0;
@@ -315,7 +315,7 @@ err_exit:
 
 	return ret;
 }
-
+/*lint +e429*/
 static int _alloc_hook_buffer_fama(unsigned int hook_id)
 {
 	struct hook_runtime *runtime = NULL;
@@ -363,7 +363,6 @@ static int _alloc_hook_buffer_fama(unsigned int hook_id)
 
 	return 0;
 }
-
 
 static int _hook_runtime_config(unsigned int hook_id)
 {
@@ -471,7 +470,7 @@ static int _rm_hook_dir(char *path)
 			break;
 
 		dirent = (struct linux_dirent *)(buf + bpos);
-		for (bpos = 0; bpos < bufsize; bpos += dirent->d_reclen) {
+		for (bpos = 0; bpos < (unsigned int)bufsize; bpos += dirent->d_reclen) {
 			dirent = (struct linux_dirent *)(buf + bpos);
 			d_type = *(buf + bpos + dirent->d_reclen - 1);
 
@@ -483,6 +482,7 @@ static int _rm_hook_dir(char *path)
 					|| !strncmp(dirent->d_name, "...", sizeof("...")))
 					continue;
 
+				// cppcheck-suppress *
 				(void)_rm_hook_dir(fullname);
 			} else if (d_type == DT_REG) {
 				sys_unlink(fullname);
@@ -532,7 +532,7 @@ static int _get_dir_count(char *path)
 	}
 
 	dirent = (struct linux_dirent *)(buf + bpos);
-	for (bpos = 0; bpos < bufsize; bpos += dirent->d_reclen) {
+	for (bpos = 0; bpos < (unsigned int)bufsize; bpos += dirent->d_reclen) {
 		dirent = (struct linux_dirent *)(buf + bpos);
 		count++;
 	}
@@ -581,7 +581,7 @@ static long long _get_dir_size(char *path)
 			break;
 
 		dirent = (struct linux_dirent *)(buf + bpos);
-		for (bpos = 0; bpos < bufsize; bpos += dirent->d_reclen) {
+		for (bpos = 0; bpos < (unsigned int)bufsize; bpos += dirent->d_reclen) {
 			dirent = (struct linux_dirent *)(buf + bpos);
 			d_type = *(buf + bpos + dirent->d_reclen - 1);
 
@@ -597,6 +597,7 @@ static long long _get_dir_size(char *path)
 					|| !strncmp(dirent->d_name, "...", sizeof("...")))
 					continue;
 
+				// cppcheck-suppress *
 				size += _get_dir_size(fullname);
 			} else if (d_type == DT_REG) {
 				size += stat.size;
@@ -625,7 +626,7 @@ static void _get_dir_name(char *dir_name, size_t size)
 	memset(&tv, 0, sizeof(tv));
 
 	do_gettimeofday(&tv);
-	tv.tv_sec -= sys_tz.tz_minuteswest * 60;
+	tv.tv_sec -= (long)sys_tz.tz_minuteswest * 60;
 	rtc_time_to_tm(tv.tv_sec, &tm);
 
 	snprintf(dir_name, size, "%s%04d%02d%02d%02d%02d%02d/",/* [false alarm] */
@@ -701,7 +702,7 @@ static int _create_hook_dir(void)
 	BUG_ON(NULL == priv);
 
 	old_fs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	if (_create_full_dir(priv->hook_path)) {
 		ret = -EFAULT;
@@ -784,7 +785,7 @@ int hi64xx_hifi_create_hook_dir(const char *path)
 	strncpy(tmp_path, path,  sizeof(tmp_path) -1);
 
 	old_fs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	if (_create_full_dir(tmp_path)) {
 		ret = -EFAULT;
@@ -845,12 +846,12 @@ static void _dump_runtime(struct hook_runtime *runtime)
 	if (!lli_cfg_a || !lli_cfg_b)
 		return;
 
-	HI64XX_DSP_INFO("A::a count:0x%x, src addr:0x%x, dest addr:0x%x, config:0x%x, lli:0x%x\n",
-				lli_cfg_a->a_count, lli_cfg_a->src_addr, lli_cfg_a->des_addr,
+	HI64XX_DSP_INFO("A::a count:0x%x, src addr:0x%pK, dest addr:0x%pK, config:0x%x, lli:0x%x\n",
+				lli_cfg_a->a_count, (void *)(unsigned long)(lli_cfg_a->src_addr), (void *)(unsigned long)(lli_cfg_a->des_addr),
 				lli_cfg_a->config, lli_cfg_a->lli);
 
-	HI64XX_DSP_INFO("B::a count:0x%x, src addr:0x%x, dest addr:0x%x, config:0x%x, lli:0x%x\n",
-				lli_cfg_b->a_count, lli_cfg_b->src_addr, lli_cfg_b->des_addr,
+	HI64XX_DSP_INFO("B::a count:0x%x, src addr:0x%pK, dest addr:0x%pK, config:0x%x, lli:0x%x\n",
+				lli_cfg_b->a_count, (void *)(unsigned long)(lli_cfg_b->src_addr), (void *)(unsigned long)(lli_cfg_b->des_addr),
 				lli_cfg_b->config, lli_cfg_b->lli);
 
 	HI64XX_DSP_INFO("dma size:%d, dma channel:%d\n",
@@ -914,7 +915,7 @@ void hi64xx_hifi_dump_to_file(char *buf, unsigned int size, char *path)
 
 	vfs_llseek(fp, 0L, SEEK_END);
 
-	if(vfs_write(fp, buf, size, &fp->f_pos) < 0) {
+	if(vfs_write(fp, buf, size, &fp->f_pos) < 0) {/*lint !e613*/
 		HI64XX_DSP_ERROR("write file fail.\n");
 	}
 
@@ -1038,7 +1039,7 @@ static void _parse_dsp_data(void *data, struct hook_runtime *runtime)
 		buffer += (runtime->size / HOOK_AP_DSP_DMA_TIMES) / sizeof(unsigned int);
 	}
 }
-
+/*lint -e429*/
 static int _parse_pos_info(void *data, struct hook_runtime *runtime)
 {
 	struct hi64xx_om_priv *priv = om_priv;
@@ -1100,7 +1101,7 @@ static int _parse_pos_info(void *data, struct hook_runtime *runtime)
 
 	return 0;
 }
-
+/*lint +e429*/
 static void _data_verify(struct data_flow *data,
 			struct hook_runtime *runtime)
 {
@@ -1113,6 +1114,7 @@ static void _data_verify(struct data_flow *data,
 	if (VERIFY_DEFAULT == runtime->verify_state) {
 		pos = _get_verify_pos(data->addr, runtime->size);
 		if (pos == runtime->size) {
+			HI64XX_DSP_INFO("do not find verify head.\n");
 			return;
 		}
 
@@ -1283,12 +1285,14 @@ static int _right_data_parse_thread(void *p)
 
 static int _left_dma_irq_handler(
 			unsigned short int_type,
-			unsigned int para)
+			unsigned long para,
+			unsigned int dma_channel)
 {
 	struct hi64xx_om_priv *priv = om_priv;
 	struct hook_runtime *runtime = NULL;
 
 	BUG_ON(NULL == priv);
+	UNUSED_PARAMETER(dma_channel);
 
 	if ((ASP_DMA_INT_TYPE_TC1 != int_type)
 		&& (ASP_DMA_INT_TYPE_TC2 != int_type)) {
@@ -1305,12 +1309,14 @@ static int _left_dma_irq_handler(
 
 static int _right_dma_irq_handler(
 			unsigned short int_type,
-			unsigned int para)
+			unsigned long para,
+			unsigned int dma_channel)
 {
 	struct hi64xx_om_priv *priv = om_priv;
 	struct hook_runtime *runtime = NULL;
 
 	BUG_ON(NULL == priv);
+	UNUSED_PARAMETER(dma_channel);
 
 	if ((ASP_DMA_INT_TYPE_TC1 != int_type)
 		&& (ASP_DMA_INT_TYPE_TC2 != int_type)) {
@@ -1349,7 +1355,7 @@ static int _om_hook_start(unsigned int hook_id)
 
 	asp_dma_config(runtime->channel,
 				runtime->lli_cfg[PCM_SWAP_BUFF_A],
-				callback, 0);
+				callback, (unsigned long)0);
 	asp_dma_start(runtime->channel,
 				runtime->lli_cfg[PCM_SWAP_BUFF_A]);
 
@@ -1509,6 +1515,9 @@ int hi64xx_hifi_om_hook_start(void)
 	struct data_cfg *data_cfg = &slim_data_cfg[HOOK_LEFT];
 
 	BUG_ON(NULL == priv);
+
+	if (!priv->is_eng)
+		return -EPERM;
 
 	if (priv->started || !priv->standby)
 		return -EBUSY;

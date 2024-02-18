@@ -34,18 +34,21 @@
 #include "hifi_lpp.h"
 #include "hifi_om.h"
 #include "drv_mailbox_msg.h"
-#include <dsm/dsm_pub.h>
+#include "hisi_rproc.h"
+#include <dsm_audio/dsm_audio.h>
 #include <linux/hisi/rdr_pub.h>
 
 /*lint -e773*/
 #define HI_DECLARE_SEMAPHORE(name) \
 	struct semaphore name = __SEMAPHORE_INITIALIZER(name, 0)
-HI_DECLARE_SEMAPHORE(hifi_log_sema);
+HI_DECLARE_SEMAPHORE(hifi_log_sema);/*lint !e64 !e570 !e651*/
 /*lint +e773*/
 struct hifi_om_s g_om_data;
 
 #define MAX_LEVEL_STR_LEN 32
 #define UNCONFIRM_ADDR (0)
+#define UNUSED_PARAMETER(x) (void)(x)
+
 static struct hifi_dsp_dump_info s_dsp_dump_info[] = {
 	{DSP_NORMAL, DUMP_DSP_LOG, FILE_NAME_DUMP_DSP_LOG, UNCONFIRM_ADDR, (DRV_DSP_UART_TO_MEM_SIZE-DRV_DSP_UART_TO_MEM_RESERVE_SIZE)},
 	{DSP_NORMAL, DUMP_DSP_BIN, FILE_NAME_DUMP_DSP_BIN, UNCONFIRM_ADDR, HIFI_DUMP_BIN_SIZE},
@@ -109,13 +112,15 @@ static struct hifi_effect_info_stru effect_algo[] = {
 
 static  void hifi_om_voice_bsd_work_handler(struct work_struct *work);
 static  void hifi_om_show_audio_detect_info(struct work_struct *work);
+static  void hifi_om_show_voice_3a_info(struct work_struct *work);
 
 static struct hifi_om_work_info work_info[] = {
 	{HIFI_OM_WORK_VOICE_BSD, "hifi_om_work_voice_bsd", hifi_om_voice_bsd_work_handler, {0}},
 	{HIFI_OM_WORK_AUDIO_OM_DETECTION, "hifi_om_work_audio_om_detect", hifi_om_show_audio_detect_info, {0}},
+	{HIFI_OM_WORK_VOICE_3A, "hifi_om_work_voice_3a", hifi_om_show_voice_3a_info, {0}},
 };
 
-extern struct dsm_client *dsm_audio_client;
+static unsigned int dsm_notify_limit = 0x10;
 
 static void hifi_get_time_stamp(char *timestamp_buf, unsigned int len)
 {
@@ -124,14 +129,14 @@ static void hifi_get_time_stamp(char *timestamp_buf, unsigned int len)
 
 	BUG_ON(NULL == timestamp_buf);
 
-	memset(&tv, 0, sizeof(struct timeval));
-	memset(&tm, 0, sizeof(struct rtc_time));
+	memset(&tv, 0, sizeof(struct timeval));/* unsafe_function_ignore: memset */
+	memset(&tm, 0, sizeof(struct rtc_time));/* unsafe_function_ignore: memset */
 
 	do_gettimeofday(&tv);
-	tv.tv_sec -= sys_tz.tz_minuteswest * 60;
+	tv.tv_sec -= (long)sys_tz.tz_minuteswest * 60;
 	rtc_time_to_tm(tv.tv_sec, &tm);
 
-	snprintf(timestamp_buf, len, "%04d%02d%02d%02d%02d%02d",
+	snprintf(timestamp_buf, len, "%04d%02d%02d%02d%02d%02d",/* unsafe_function_ignore: snprintf */
 		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
 		tm.tm_hour, tm.tm_min, tm.tm_sec);
 
@@ -147,7 +152,7 @@ static int hifi_chown(char *path, uid_t user, gid_t group)
 		return -1;
 
 	old_fs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	ret = (int)sys_chown((const char __user *)path, user, group);
 	if (ret) {
@@ -170,7 +175,7 @@ static int hifi_create_dir(char *path)
 	}
 
 	old_fs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	fd = sys_access(path, 0);
 	if (0 != fd) {
@@ -207,7 +212,7 @@ static int hifi_om_create_log_dir(char *path)
 	if (0 == sys_access(path, 0))
 		return 0;
 
-	memset(cur_path, 0, HIFI_DUMP_FILE_NAME_MAX_LEN);
+	memset(cur_path, 0, HIFI_DUMP_FILE_NAME_MAX_LEN);/* unsafe_function_ignore: memset */
 
 	if (*path != '/')
 		return -1;
@@ -230,24 +235,21 @@ static int hifi_om_create_log_dir(char *path)
 
 int hifi_om_get_voice_bsd_param(void __user * uaddr)
 {
-	int ret = OK;
 	int work_id = HIFI_OM_WORK_VOICE_BSD;
 	struct hifi_om_work *om_work = NULL;
 	unsigned char data[MAIL_LEN_MAX] = {'\0'};
 	unsigned int data_len = 0;
 	struct voice_bsd_param_hsm param;
 
-	memset(&param, 0, sizeof(param));
-	if (copy_from_user(&param, uaddr, sizeof(param))) {
+	memset(&param, 0, sizeof(param));/* unsafe_function_ignore: memset */
+	if (try_copy_from_user(&param, uaddr, sizeof(param))) {
 		loge("copy_from_user failed\n");
-		ret = -EFAULT;
-		goto exit;
+		return -EFAULT;
 	}
 
 	if (!param.pdata) {
 		loge("user buffer is null\n");
-		ret = -EINVAL;
-		goto exit;
+		return -EINVAL;
 	}
 
 	spin_lock_bh(&work_info[work_id].ctl.lock);
@@ -255,29 +257,28 @@ int hifi_om_get_voice_bsd_param(void __user * uaddr)
 		om_work = list_entry(work_info[work_id].ctl.list.next, struct hifi_om_work, om_node);
 
 		data_len = om_work->data_len;
-		memcpy(data, om_work->data, om_work->data_len);
+		memcpy(data, om_work->data, om_work->data_len);/* unsafe_function_ignore: memcpy */
 
 		list_del(&om_work->om_node);
 		kzfree(om_work);
+	} else {
+		spin_unlock_bh(&work_info[work_id].ctl.lock);
+		return -EAGAIN;
 	}
 	spin_unlock_bh(&work_info[work_id].ctl.lock);
 
 	if (param.data_len < data_len) {
 		loge("userspace len(%u) is less than data_len(%u)\n", param.data_len, data_len);
-		ret = -EINVAL;
-		goto exit;
+		return -EINVAL;
 	}
 
-	if (copy_to_user((void __user *)param.pdata, data, data_len)) {
+	if (try_copy_to_user((void __user *)param.pdata, data, data_len)) {
 		loge("copy_to_user failed\n");
-		ret = -EFAULT;
-		goto exit;
+		return -EFAULT;
 	}
 	logd("size(%u)copy to user success\n", data_len);
 
-exit:
-
-	return ret;
+	return 0;
 }
 
 static void hifi_om_voice_bsd_work_handler(struct work_struct *work)
@@ -294,7 +295,7 @@ static void hifi_om_voice_bsd_work_handler(struct work_struct *work)
 
 	return;
 }
-
+/*lint -e429*/
 void hifi_om_rev_data_handle(int work_id, const unsigned char *addr, unsigned int len)
 {
 	struct hifi_om_work *work = NULL;
@@ -309,7 +310,7 @@ void hifi_om_rev_data_handle(int work_id, const unsigned char *addr, unsigned in
 		loge("malloc size %zu failed\n", sizeof(*work) + len);
 		return;
 	}
-	memcpy(work->data, addr, len);
+	memcpy(work->data, addr, len);/* unsafe_function_ignore: memcpy */
 	work->data_len = len;
 
 	spin_lock_bh(&work_info[work_id].ctl.lock);
@@ -322,7 +323,7 @@ void hifi_om_rev_data_handle(int work_id, const unsigned char *addr, unsigned in
 
 	return;
 }
-
+/*lint +e429*/
 static void hifi_om_show_audio_detect_info(struct work_struct *work)
 {
 	int work_id = HIFI_OM_WORK_AUDIO_OM_DETECTION;
@@ -339,16 +340,16 @@ static void hifi_om_show_audio_detect_info(struct work_struct *work)
 		om_work = list_entry(work_info[work_id].ctl.list.next, struct hifi_om_work, om_node);
 
 		data_len = om_work->data_len;
-		memcpy(data, om_work->data, om_work->data_len);
+		memcpy(data, om_work->data, om_work->data_len);/* unsafe_function_ignore: memcpy */
 
 		list_del(&om_work->om_node);
 		kzfree(om_work);
 	}
 	spin_unlock_bh(&work_info[work_id].ctl.lock);
 
-	memset(&hifi_om_info, 0, sizeof(hifi_om_info));
-	memset(&mcps_info, 0, sizeof(mcps_info));
-	memset(&update_buff_delay_info, 0, sizeof(update_buff_delay_info));
+	memset(&hifi_om_info, 0, sizeof(hifi_om_info));/* unsafe_function_ignore: memset */
+	memset(&mcps_info, 0, sizeof(mcps_info));/* unsafe_function_ignore: memset */
+	memset(&update_buff_delay_info, 0, sizeof(update_buff_delay_info));/* unsafe_function_ignore: memset */
 
 	hifi_msg_type = *(unsigned int *)data;
 
@@ -358,7 +359,7 @@ static void hifi_om_show_audio_detect_info(struct work_struct *work)
 			logw("unavailable data from hifi, data_len: %u\n", data_len);
 			return;
 		}
-		memcpy(&hifi_om_info, data, sizeof(hifi_om_info));
+		memcpy(&hifi_om_info, data, sizeof(hifi_om_info));/* unsafe_function_ignore: memcpy */
 
 		hifi_om_cpu_load_info_show(&hifi_om_info);
 		break;
@@ -367,7 +368,7 @@ static void hifi_om_show_audio_detect_info(struct work_struct *work)
 			logw("unavailable data from hifi, data_len: %u\n", data_len);
 			return;
 		}
-		memcpy(&mcps_info, data, sizeof(mcps_info));
+		memcpy(&mcps_info, data, sizeof(mcps_info));/* unsafe_function_ignore: memcpy */
 
 		hifi_om_effect_mcps_info_show(&mcps_info);
 		break;
@@ -376,7 +377,7 @@ static void hifi_om_show_audio_detect_info(struct work_struct *work)
 			logw("unavailable data from hifi, data_len: %u\n", data_len);
 			return;
 		}
-		memcpy(&update_buff_delay_info, data, sizeof(update_buff_delay_info));
+		memcpy(&update_buff_delay_info, data, sizeof(update_buff_delay_info));/* unsafe_function_ignore: memcpy */
 
 		hifi_om_update_buff_delay_info_show(&update_buff_delay_info);
 		break;
@@ -388,61 +389,45 @@ static void hifi_om_show_audio_detect_info(struct work_struct *work)
 	return;
 }
 
-int hifi_get_dmesg(void __user *arg)
+static void hifi_om_show_voice_3a_info(struct work_struct *work)
 {
-	int ret = OK;
-	unsigned int len = 0;
-	struct misc_io_dump_buf_param dump_info;
-	void __user * dump_info_user_buf = NULL;
+	int work_id = HIFI_OM_WORK_VOICE_3A;
+	struct hifi_om_work *om_work = NULL;
+	unsigned char data[MAIL_LEN_MAX] = {'\0'};
+	unsigned int data_len = 0;
+	unsigned int hifi_msg_type = 0;
+	struct voice_3a_om_stru  voice_3a_om_info;
+	UNUSED_PARAMETER(work);
 
-	len = (unsigned int)(*g_om_data.dsp_log_cur_addr);
-	if (len > DRV_DSP_UART_TO_MEM_SIZE)
-	{
-		loge("len is larger: %d(%d), don't dump log\n", len, DRV_DSP_UART_TO_MEM_SIZE);
-		return 0;
+	spin_lock_bh(&work_info[work_id].ctl.lock);
+	if (!list_empty(&work_info[work_id].ctl.list)) {
+		om_work = list_entry(work_info[work_id].ctl.list.next, struct hifi_om_work, om_node);/*lint !e826*/
+
+		data_len = om_work->data_len;
+		memcpy(data, om_work->data, om_work->data_len);/*lint !e747*/ /* unsafe_function_ignore: memcpy */
+
+		list_del(&om_work->om_node);
+		kzfree(om_work);
 	}
+	spin_unlock_bh(&work_info[work_id].ctl.lock);
 
-	if (copy_from_user(&dump_info, arg, sizeof(struct misc_io_dump_buf_param))) {
-		loge("copy_from_user fail, don't dump log\n");
-		return 0;
-	}
+	hifi_msg_type = *(unsigned int *)data;/*lint !e838*/
 
-	if (dump_info.buf_size == 0) {
-		loge("input buf size is zero, don't dump log\n");
-		return 0;
-	}
-
-	if (len > dump_info.buf_size) {
-		logw("input buf size smaller, input buf size: %d, log size: %d, contiue to dump using smaller size\n", dump_info.buf_size, len);
-		len = dump_info.buf_size;
-	}
-
-	dump_info_user_buf = INT_TO_ADDR(dump_info.user_buf_l, dump_info.user_buf_h);
-	if (!dump_info_user_buf) {
-		loge("input dump buff addr is null\n");
-		return 0;
-	}
-	logi("get msg: len:%d from:%pK to:%pK.\n", len, s_dsp_dump_info[0].data_addr, dump_info_user_buf);
-
-	s_dsp_dump_info[0].data_addr = g_om_data.dsp_log_addr;
-
-	ret = copy_to_user(dump_info_user_buf, s_dsp_dump_info[0].data_addr, len);
-	if (OK != ret) {
-		loge("copy_to_user fail: %d\n", ret);
-		len -= ret;
-	}
-
-	if (dump_info.clear) {
-		*g_om_data.dsp_log_cur_addr = DRV_DSP_UART_TO_MEM_RESERVE_SIZE;
-		if(s_dsp_dump_info[0].data_len > DRV_DSP_UART_TO_MEM_SIZE) {
-			loge("s_dsp_dump_info[0].data_len is larger than DRV_DSP_UART_TO_MEM_SIZE\n");
-			len = 0;
-		} else {
-			memset(s_dsp_dump_info[0].data_addr, 0, s_dsp_dump_info[0].data_len);
+	switch (hifi_msg_type) {
+	case HIFI_3A_INFO_MSG:
+		if ((sizeof(voice_3a_om_info)) != data_len) {
+			logw("unavailable data from hifi, data_len: %u\n", data_len);
+			return;
 		}
+		memcpy(&voice_3a_om_info, data, sizeof(voice_3a_om_info));/* unsafe_function_ignore: memcpy */
+		audio_dsm_report_info(AUDIO_CODEC, DSM_SOC_HIFI_3A_ERROR, "3a error type:%d error:%d\n", hifi_msg_type, voice_3a_om_info.recv_msg);
+		break;
+	default:
+		logi("type(%d), not support\n", hifi_msg_type);
+		break;
 	}
 
-	return (int)len;
+	return;
 }
 
 static void hifi_dump_dsp(DUMP_DSP_INDEX index)
@@ -470,7 +455,7 @@ static void hifi_dump_dsp(DUMP_DSP_INDEX index)
 	char* is_exception	= "i'm exception.\n";
 	char* not_panic		= "i'm ok.\n";
 
-	memset(path_name, 0, HIFI_DUMP_FILE_NAME_MAX_LEN);
+	memset(path_name, 0, HIFI_DUMP_FILE_NAME_MAX_LEN);/* unsafe_function_ignore: memset */
 
 	if (down_interruptible(&g_om_data.dsp_dump_sema) < 0) {
 		loge("acquire the semaphore error.\n");
@@ -486,11 +471,11 @@ static void hifi_dump_dsp(DUMP_DSP_INDEX index)
 
 	if(index == OCRAM_BIN)
 	{
-		s_dsp_dump_info[index].data_addr = (unsigned char*)ioremap_wc(HIFI_OCRAM_BASE_ADDR, HIFI_IMAGE_OCRAMBAK_SIZE);
+		s_dsp_dump_info[index].data_addr = (char*)ioremap_wc(HIFI_OCRAM_BASE_ADDR, HIFI_IMAGE_OCRAMBAK_SIZE);
 	}
 	if(index == TCM_BIN)
 	{
-		s_dsp_dump_info[index].data_addr = (unsigned char*)ioremap_wc(HIFI_TCM_BASE_ADDR, HIFI_IMAGE_TCMBAK_SIZE);
+		s_dsp_dump_info[index].data_addr = (char*)ioremap_wc(HIFI_TCM_BASE_ADDR, HIFI_IMAGE_TCMBAK_SIZE);
 	}
 
 	if (NULL == s_dsp_dump_info[index].data_addr) {
@@ -501,14 +486,14 @@ static void hifi_dump_dsp(DUMP_DSP_INDEX index)
 	data_addr = s_dsp_dump_info[index].data_addr;
 
 	fs = get_fs();
-	set_fs(KERNEL_DS);
+	set_fs(KERNEL_DS);/*lint !e501*/
 
 	ret = hifi_om_create_log_dir(LOG_PATH_HIFI_LOG);
 	if (0 != ret) {
 		goto END;
 	}
 
-	snprintf(path_name, HIFI_DUMP_FILE_NAME_MAX_LEN, "%s%s", LOG_PATH_HIFI_LOG, file_name);
+	snprintf(path_name, HIFI_DUMP_FILE_NAME_MAX_LEN, "%s%s", LOG_PATH_HIFI_LOG, file_name);/* unsafe_function_ignore: snprintf */
 
 	ret = vfs_stat(path_name, &file_stat);
 	if (ret < 0) {
@@ -532,36 +517,36 @@ static void hifi_dump_dsp(DUMP_DSP_INDEX index)
 		now = current_kernel_time();
 		rtc_time_to_tm(now.tv_sec, &cur_tm);
 
-		memset(tmp_buf, 0, sizeof(tmp_buf));
-		tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "%04d-%02d-%02d %02d:%02d:%02d.\n",
+		memset(tmp_buf, 0, sizeof(tmp_buf));/* unsafe_function_ignore: memset */
+		tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "%04d-%02d-%02d %02d:%02d:%02d.\n",/* unsafe_function_ignore: snprintf */
 								cur_tm.tm_year+1900, cur_tm.tm_mon+1,
 								cur_tm.tm_mday, cur_tm.tm_hour,
 								cur_tm.tm_min, cur_tm.tm_sec);
-		vfs_write(fp, tmp_buf, tmp_len, &fp->f_pos);
+		vfs_write(fp, tmp_buf, tmp_len, &fp->f_pos);/*lint !e613*/
 
 		/*write exception no*/
-		memset(tmp_buf, 0, sizeof(tmp_buf));
+		memset(tmp_buf, 0, sizeof(tmp_buf));/* unsafe_function_ignore: memset */
 		err_no = (unsigned int)(*(g_om_data.dsp_exception_no));
 		if (err_no != 0xFFFFFFFF) {
-			tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "the exception no: %u.\n", err_no);
+			tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "the exception no: %u.\n", err_no);/* unsafe_function_ignore: snprintf */
 		} else {
-			tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "%s", "hifi is fine, just dump log.\n");
+			tmp_len = snprintf(tmp_buf, sizeof(tmp_buf), "%s", "hifi is fine, just dump log.\n");/* unsafe_function_ignore: snprintf */
 		}
 
-		vfs_write(fp, tmp_buf, tmp_len, &fp->f_pos);
+		vfs_write(fp, tmp_buf, tmp_len, &fp->f_pos);/*lint !e613*/
 
 		/*write error type*/
 		if (0xdeadbeaf == *g_om_data.dsp_panic_mark) {
-			vfs_write(fp, is_panic, strlen(is_panic), &fp->f_pos);
+			vfs_write(fp, is_panic, strlen(is_panic), &fp->f_pos);/*lint !e613*/
 		} else if(0xbeafdead == *g_om_data.dsp_panic_mark){
-			vfs_write(fp, is_exception, strlen(is_exception), &fp->f_pos);
+			vfs_write(fp, is_exception, strlen(is_exception), &fp->f_pos);/*lint !e613*/
 		} else {
-			vfs_write(fp, not_panic, strlen(not_panic), &fp->f_pos);
+			vfs_write(fp, not_panic, strlen(not_panic), &fp->f_pos);/*lint !e613*/
 		}
 	}
 
 	/*write dsp info*/
-	if((write_size = vfs_write(fp, data_addr, data_len, &fp->f_pos)) < 0) {
+	if((write_size = vfs_write(fp, data_addr, data_len, &fp->f_pos)) < 0) {/*lint !e613*/
 		loge("write file fail.\n");
 	}
 
@@ -597,6 +582,7 @@ static void hifi_set_dsp_debug_level(unsigned int level)
 	*(unsigned int*)g_om_data.dsp_debug_level_addr = level;
 }
 
+
 static void hifi_create_procfs(void)
 {
 }
@@ -615,13 +601,19 @@ static int hifi_dump_dsp_thread(void *p)
 	unsigned int time_diff = 0;
 	unsigned int* hifi_info_addr = NULL;
 	unsigned int hifi_stack_addr = 0;
-	int i;
+	unsigned int i;
 
 	IN_FUNCTION;
 
 	while (!kthread_should_stop()) {
 		if (down_interruptible(&hifi_log_sema) != 0) {
 			loge("hifi_dump_dsp_thread wake up err.\n");
+		}
+		/*Do not create the /data/hisi_logs/running_trace/hifi_log/ folder*/
+		/*and files within when not in internal beta phase*/
+		if (EDITION_INTERNAL_BETA != bbox_check_edition()) {
+			loge("Not beta, Do not dump hifi\n");
+			continue;
 		}
 		time_now = (unsigned int)readl(g_om_data.dsp_time_stamp);
 		time_diff = time_now - g_om_data.pre_dsp_dump_timestamp;
@@ -635,9 +627,9 @@ static int hifi_dump_dsp_thread(void *p)
 		hifi_get_time_stamp(g_om_data.cur_dump_time, HIFI_DUMP_FILE_NAME_MAX_LEN);
 
 		if (exception_no < 40 && (exception_no != g_om_data.pre_exception_no)) {
-			logi("panic addr:0x%x, cur_pc:0x%x, pre_pc:0x%x, cause:0x%x\n", *(unsigned int*)(hifi_info_addr), *(unsigned int*)(hifi_info_addr+1), *(unsigned int*)(hifi_info_addr+2), *(unsigned int*)(hifi_info_addr+3));
+			logi("panic addr:0x%pK, cur_pc:0x%pK, pre_pc:0x%pK, cause:0x%x\n", (void *)(unsigned long)(*hifi_info_addr), (void *)(unsigned long)(*(hifi_info_addr+1)), (void *)(unsigned long)(*(hifi_info_addr+2)), *(unsigned int*)(unsigned long)(hifi_info_addr+3));
 			for( i = 0; i < (DRV_DSP_STACK_TO_MEM_SIZE/2)/sizeof(int)/4; i+=4){
-				logi("0x%x: 0x%08x 0x%08x 0x%08x 0x%08x\n", (hifi_stack_addr+i*4), *(hifi_info_addr+i),*(hifi_info_addr+1+i),*(hifi_info_addr+2+i),*(hifi_info_addr+i+3));
+				logi("0x%pK: 0x%pK 0x%pK 0x%pK 0x%pK\n", (void *)(long)(unsigned)(hifi_stack_addr+i*4), (void *)(unsigned long)(*(hifi_info_addr+i)),(void *)(unsigned long)(*(hifi_info_addr+1+i)),(void *)(unsigned long)(*(hifi_info_addr+2+i)),(void *)(unsigned long)(*(hifi_info_addr+i+3)));
 			}
 
 			hifi_dump_dsp(PANIC_LOG);
@@ -660,13 +652,6 @@ static int hifi_dump_dsp_thread(void *p)
 
 void hifi_dump_panic_log(void)
 {
-	/*Do not create the /data/hisi_logs/running_trace/hifi_log/ folder*/
-	/*and files within when not in internal beta phase*/
-	if (EDITION_INTERNAL_BETA != bbox_check_edition()) {
-		loge("Not beta, Do not dump hifi\n");
-		return;
-	}
-
 	if (!g_om_data.dsp_loaded) {
 		loge("hifi isn't loaded, errno: 0x%x .\n" , g_om_data.dsp_loaded_sign);
 		return;
@@ -709,18 +694,11 @@ int hifi_dsp_dump_hifi(void __user *arg)
 		return -1;
 	}
 
-	/*Do not create the /data/hisi_logs/running_trace/hifi_log/ folder*/
-	/*and files within when not in internal beta phase*/
-	if (EDITION_INTERNAL_BETA != bbox_check_edition()) {
-		loge("Not internal beta, Do not dump hifi\n");
-		return 0;
-	}
-
-	if (copy_from_user(&err_type, arg, sizeof(err_type))) {
+	if (try_copy_from_user(&err_type, arg, sizeof(err_type))) {
 		loge("copy_from_user fail, don't dump log\n");
 		return -1;
 	}
-	g_om_data.dsp_error_type = err_type;
+	g_om_data.dsp_error_type = err_type;/*lint !e64*/
 	g_om_data.force_dump_log = true;
 	up(&hifi_log_sema);
 
@@ -729,16 +707,21 @@ int hifi_dsp_dump_hifi(void __user *arg)
 
 void hifi_om_init(struct platform_device *pdev, unsigned char* hifi_priv_base_virt, unsigned char* hifi_priv_base_phy)
 {
-	int i = 0;
+	unsigned int i = 0;
 	BUG_ON(NULL == pdev);
 
 	BUG_ON(NULL == hifi_priv_base_virt);
 	BUG_ON(NULL == hifi_priv_base_phy);
 
-	memset(&g_om_data, 0, sizeof(struct hifi_om_s));
+	memset(&g_om_data, 0, sizeof(struct hifi_om_s));/* unsafe_function_ignore: memset */
 
 	g_om_data.dev = &pdev->dev;
-	g_om_data.debug_level = 2; /*info level*/
+
+	if (hifi_misc_get_platform_type() == HIFI_DSP_PLATFORM_FPGA)
+		g_om_data.debug_level = 0; /*err level*/
+	else
+		g_om_data.debug_level = 2; /*info level*/
+
 	g_om_data.reset_system = false;
 
 	g_om_data.dsp_time_stamp = (unsigned int*)ioremap(SYS_TIME_STAMP_REG, 0x4);
@@ -806,7 +789,7 @@ void hifi_om_init(struct platform_device *pdev, unsigned char* hifi_priv_base_vi
 
 void hifi_om_deinit(struct platform_device *dev)
 {
-	int i = 0;
+	unsigned int i = 0;
 
 	IN_FUNCTION;
 
@@ -847,15 +830,10 @@ void hifi_om_cpu_load_info_show(struct hifi_om_load_info_stru *hifi_om_info)
 	case HIFI_CPU_LOAD_LACK_PERFORMANCE:
 		logw("DDRFreq: %dM, CpuUtilization:%d%%, Lack of performance!!!\n", hifi_om_info->cpu_load_info.ddr_freq,hifi_om_info->cpu_load_info.cpu_load);
 		/*upload totally 16 times in every 16 times in case of flushing msg*/
-		/*stop upload because it's nothing but waste resource
-		if (unlikely((dsm_notify_limit <= 0x100) && (dsm_notify_limit & 0xF))) {
-			if (!dsm_client_ocuppy(dsm_audio_client)) {
-				dsm_client_record(dsm_audio_client, "DSM_SOC_HIFI_HIGH_CPU\n");
-				dsm_client_notify(dsm_audio_client, DSM_SOC_HIFI_HIGH_CPU);
-			}
+		if (unlikely((dsm_notify_limit % 0x10) == 0)) {/*lint !e730*/
+			audio_dsm_report_info(AUDIO_CODEC, DSM_SOC_HIFI_HIGH_CPU, "DSM_SOC_HIFI_HIGH_CPU\n");
 		}
 		dsm_notify_limit++;
-		*/
 		break;
 
 	default:
@@ -929,8 +907,8 @@ void hifi_om_effect_mcps_info_show(struct hifi_om_effect_mcps_stru *hifi_mcps_in
 
 void hifi_om_update_buff_delay_info_show(struct hifi_om_update_buff_delay_info *info)
 {
-
-	logw("Hifi continuous update play/capture buff delay : %d(0-play, 1-capture)\n", info->pcm_mode);
+	logw("hifi continuous update buff delay: mode = %d(0-play, 1-capture), device = %d(0-primary, 1-direct)\n",
+		info->pcm_mode, info->pcm_device);
 }
 
 

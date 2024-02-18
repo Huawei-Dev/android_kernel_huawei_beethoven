@@ -52,7 +52,7 @@ struct anc_hs_dev{
 
 struct anc_hs_ops {
     int (*anc_hs_dev_register)(struct anc_hs_dev *dev, void * codec_data);
-    int (*anc_hs_check_headset_pluged_in)(void);
+    bool (*anc_hs_check_headset_pluged_in)(void);
     void (*anc_hs_start_charge)(void);
     bool (*anc_hs_charge_detect)(int saradc_value, int headset_type);
     void (*anc_hs_stop_charge)(void);

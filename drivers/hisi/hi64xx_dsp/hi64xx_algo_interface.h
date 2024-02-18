@@ -64,18 +64,6 @@ enum ST_EVENT_ENUM
     ST_EVENT_MAX = 5,
 };
 
-enum EXTRA_OUTPUTINFO
-{
-    OUTPUT_MIXER_LEFT,
-    OUTPUT_MIXER_RIGHT,
-    OUTPUT_MIXER_INDEPENDNCE,
-    OUTPUT_STEREO,
-    OUTPUT_STEREO_SWITCH,
-    OUTPUT_SINGLE_LEFT_BEG,
-    OUTPUT_SINGLE_LEFT_END,
-    OUTPUT_PLAY_STOP_FADEOUT,
-    OUTPUT_NONE,
-};
 
 /************************************************ SOUNDTRIGGER COMMON END ************************************************/
 
@@ -102,5 +90,59 @@ enum DSM_PARA_ENUM
     MLIB_DSM_PARA_PRINT_MCPS,
     MLIB_DSM_PARA_DATA_HOOK,
 };
+enum EXTRA_OUTPUTINFO
+{
+    OUTPUT_MIXER_LEFT,
+    OUTPUT_MIXER_RIGHT,
+    OUTPUT_MIXER_INDEPENDNCE,
+    OUTPUT_STEREO,
+    OUTPUT_STEREO_SWITCH,
+    OUTPUT_SINGLE_LEFT_BEG,
+    OUTPUT_SINGLE_LEFT_END,
+    OUTPUT_PLAY_STOP_FADEOUT,
+    OUTPUT_MIXER_LEFT_NO_FADEINOUT,
+    OUTPUT_SCENE_CHANGE_FADEOUT,
+    OUTPUT_NONE,
+};
 /************************************************ DSM  PARA END************************************************/
+struct fade_param
+{
+    unsigned short fadeout_time;// multiple of 5ms, can be 0
+    unsigned short valley_time;// multiple of 5ms, can be 0
+    unsigned short fadein_time;// multiple of 5ms, can be 0
+    unsigned short fade_curve_type[2];// select fade curve type, default=0, [0] for fadeout, [1] for fadein
+};
+
+struct MlibParameterTfadsp
+{
+    short key;
+    union
+    {
+        short value;
+        struct
+        {
+            short algo_enable;
+            short output_flag;
+            short reserved[5];
+            char param[0];
+        };
+        struct fade_param tfa_fade_param;
+    };
+};
+enum TFADSP_KEY
+{
+    TFADSP_KEY_CONFIG,
+    TFADSP_SATFETY_STRATEGY_CONFIG,
+    TFADSP_CALIBRATION_CONFIG,
+    TFADSP_ENABLE,
+    TFADSP_PRINT_MCPS,
+    TFADSP_DEBUG,
+    TFADSP_FADE_CONFIG,
+};
+enum TFADSP_OUTPUT_FLAG
+{
+    TFADSP_OUTPUT_FLAG_MONO,
+    TFADSP_OUTPUT_FLAG_STEREO_LANDSCAPE,
+    TFADSP_OUTPUT_FLAG_STEREO_PORTRAIT,
+};
 #endif /* end of hi64xx_algo_interface.h */

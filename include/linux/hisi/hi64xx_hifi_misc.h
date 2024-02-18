@@ -28,6 +28,7 @@
 #define REDUNDANT   (-5)
 
 #define MSG_SEND_RETRIES 0
+#define HIFI_SEC_MAX_NUM 32
 
 #define INT_TO_ADDR(low,high) (void*) (unsigned long)((unsigned long long)(low) | ((unsigned long long)(high)<<32))
 #define GET_LOW32(x) (unsigned int)(((unsigned long long)(unsigned long)(x))&0xffffffffULL)
@@ -50,6 +51,8 @@ enum {
 	HI_FREQ_SCENE_DSP_DEBUG,
 	HI_FREQ_SCENE_MEM_CHECK,
 	HI_FREQ_SCENE_FASTTRANS,
+	HI_FREQ_SCENE_IR_LEARN,
+	HI_FREQ_SCENE_IR_TRANS,
 	HI_FREQ_SCENE_BUTT,
 };
 
@@ -86,9 +89,17 @@ struct misc_io_sync_param {
 	unsigned int para_size_out;
 };
 
+struct codec_io_dump_buf_param {
+	unsigned int user_buf_l;        /*User space allocated memory address*/
+	unsigned int user_buf_h;        /*User space allocated memory address*/
+	unsigned int clear;             /*clear current log buf*/
+	unsigned int buf_size;          /*User space allocated memory length*/
+};
+
 #define HI6402_HIFI_MISC_IOCTL_ASYNCMSG        _IOWR('A', 0x90, struct misc_io_async_param)
 #define HI6402_HIFI_MISC_IOCTL_SYNCMSG         _IOWR('A', 0x91, struct misc_io_sync_param)
 #define HI6402_HIFI_MISC_IOCTL_MLIB_TEST_MSG   _IOWR('A', 0x92, struct misc_io_sync_param)
+#define HI64XX_HIFI_MISC_IOCTL_CODEC_DISPLAY_MSG      _IOWR('A', 0x93, struct codec_io_dump_buf_param)
 
 /*
  *  dsp img download
@@ -119,7 +130,7 @@ struct drv_hifi_image_head {
 	char				time_stamp[24];            /* image time stamp */
 	unsigned int			image_size;            /* image size, bytes */
 	unsigned int			sections_num;          /* section number */
-	struct drv_hifi_image_sec	sections[32];      /* section head include section infomation */
+	struct drv_hifi_image_sec	sections[HIFI_SEC_MAX_NUM];      /* section head include section infomation */
 };
 
 enum pll_state {
@@ -216,6 +227,8 @@ struct hi64xx_dsp_ops {
 	void (*dsp_if_set_bypass)(unsigned int dsp_if_id, bool enable);
 	void (*mad_enable)(void);
 	void (*mad_disable)(void);
+	/*ir path*/
+	void (*ir_path_clean)(void);
 };
 
 struct hi64xx_dsp_config {
@@ -281,6 +294,7 @@ unsigned int hi64xx_misc_get_ocram_dump_addr(void);
 unsigned int hi64xx_misc_get_ocram_dump_size(void);
 unsigned int hi64xx_misc_get_log_dump_addr(void);
 unsigned int hi64xx_misc_get_log_dump_size(void);
+void hi64xx_hifi_dump_with_path(char *path);
 void hi64xx_misc_dump_reg(char *buf, const size_t size);
 void hi64xx_misc_dump_bin(const unsigned int addr, char *buf, const size_t len);
 int hi64xx_hifi_misc_suspend(void);
@@ -295,5 +309,11 @@ void hi64xx_hifi_misc_peri_unlock(void);
 int hi64xx_func_start_hook(struct krn_param_io_buf *param);
 int hi64xx_func_stop_hook(struct krn_param_io_buf *param);
 void hi64xx_stop_hook(void);
+unsigned int hi64xx_misc_get_ocram_start_addr(void);
+unsigned int hi64xx_misc_get_ocram_size(void);
+unsigned int hi64xx_misc_get_itcm_start_addr(void);
+unsigned int hi64xx_misc_get_itcm_size(void);
+unsigned int hi64xx_misc_get_dtcm_start_addr(void);
+unsigned int hi64xx_misc_get_dtcm_size(void);
 
 #endif/*__HI6402_DSP_H__*/

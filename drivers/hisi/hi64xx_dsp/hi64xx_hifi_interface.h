@@ -7,17 +7,10 @@ extern "C" {
 #endif
 #endif
 
-#if 0                                                                           /*_H2ASN_Skip*/
-#define DRV_SEND_DATA_STRU                                                      \
-    VOS_UINT32                              uwBufAddr;                          \
-    VOS_UINT32                              uwBufSize;                          \
-    VOS_UINT32                              uwDataSize;
-#else
 #define DRV_SEND_DATA_STRU                                                      \
     unsigned long                           uwBufAddr;                          \
     unsigned long                           uwBufSize;                          \
     unsigned long                           uwDataSize;
-#endif
 
 #define HIFI_AUDIO_PCM_COMP_COEF_LEN_MAX    (128)
 #define HOOK_PATH_MAX_LENGTH (200)
@@ -128,6 +121,8 @@ enum MLIB_PATH_ENUM
     MLIB_PATH_SMARTPA,
     MLIB_PATH_ANC,
     MLIB_PATH_ANC_DEBUG,
+    MLIB_PATH_IR_LEARN,
+    MLIB_PATH_IR_TRANS,
     MLIB_PATH_BUTT
 };
 typedef unsigned int MLIB_PATH_ENUM_UINT32;
@@ -145,9 +140,12 @@ enum MLIB_MODULE_ENUM
 	MLIB_MODULE_GOOGLE,      /* ok google */
 	MLIB_MODULE_DSM_STEREO,  /* stereo pa */
 	MLIB_MODULE_ANC,
+	MLIB_MODULE_TFADSP,
+	MLIB_MODULE_TFADSP_STEREO,
+	MLIB_MODULE_PA_BYPASS,
 	MLIB_MODULE_BUTT,
 
-    MLIB_MODULE_BROADCAST   = 0xFFFFFFFF,
+	MLIB_MODULE_BROADCAST   = 0xFFFFFFFF,
 };
 typedef unsigned int MLIB_MODULE_ENUM_UINT32;
 
@@ -197,6 +195,13 @@ enum UART_MODE_ENUM
     UART_MODE_500K   = 1, /* for phone in mad mode */
     UART_MODE_6M     = 2, /* for phone in normal mode */
     UART_MODE_OFF    = 3, /* force writing log to 36K om buffer*/
+};
+
+enum IR_PARA_ID_ENUM
+{
+    IR_PARA_ID_CODE      = 0,
+    IR_PARA_ID_FREQUENCY = 1,
+    IR_PARA_ID_STATUS    = 2,
 };
 
 struct om_hook_para {

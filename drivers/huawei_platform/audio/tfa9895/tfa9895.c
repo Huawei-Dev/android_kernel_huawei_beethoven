@@ -118,6 +118,7 @@ static ssize_t tfa9895_write(struct file *file,
 	ret = tfa9895_i2c_write((char *)kern_buf, nbytes);
 	if (0 > ret) {
 		hwlog_err("%s: i2c write error %d", __func__, ret);
+		kfree(kern_buf);
 		return ret;
 	}
 

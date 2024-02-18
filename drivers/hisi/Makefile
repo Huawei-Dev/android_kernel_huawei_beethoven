@@ -7,6 +7,7 @@ obj-$(CONFIG_DRMDRIVER)			+= drmdriver/
 obj-$(CONFIG_HI3XXX_EFUSE)			+= efuse/
 obj-$(CONFIG_HISI_FLP)				+= flp/
 obj-$(CONFIG_HI6402_CODEC)			+= hi64xx/
+obj-$(CONFIG_HI6403_CODEC)			+= hi64xx/
 obj-$(CONFIG_HI6402_HIFI_MISC)		+= hi64xx_dsp/
 obj-$(CONFIG_HIFI_DSP_ONE_TRACK)		+= hifi_dsp/
 obj-$(CONFIG_HIFI_MAILBOX)			+= hifi_mailbox/

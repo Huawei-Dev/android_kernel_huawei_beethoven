@@ -28,14 +28,14 @@
 #include <linux/completion.h>
 #include <linux/workqueue.h>
 #include <linux/wakelock.h>
+#include <linux/version.h>
 
 #include "slimbus_drv.h"
 #include <linux/hisi/hilog.h>
 #include "slimbus.h"
+#include <dsm_audio/dsm_audio.h>
 
-#include <dsm/dsm_pub.h>
-
-/*lint -e715 -e838 -e730*/
+/*lint -e715 -e838 -e730 -e578 -e64 -e647 -e514 -e611*/
 
 #define RFC_MAX_DEVICES 						 32
 #define SOC_DEVICE_NUM							 3
@@ -219,33 +219,62 @@ static CSMI_DeviceClass CLBK_DeviceClassHandler(uint8_t logicalAddress)
 	return CSMI_DC_INTERFACE;
 }
 
-static void RFC_PrintIeStatus(CSMI_InformationElements *ie, uint8_t sourceLa)
+static void RFC_PrintIeCoreStatus(CSMI_InformationElements *ie, uint8_t sourceLa, CSMI_DeviceClass deviceClass)
 {
-	CSMI_DeviceClass deviceClass = CLBK_DeviceClassHandler(sourceLa);
-
 	if (ie->coreUnsprtdMsg || ie->coreDataTxCol || ie->coreReconfigObjection || ie->coreExError) {
 		SLIMBUS_DEV_LIMIT_INFO("Core: (0x%x,0x%x) UNSPRTD_MSG:%X DATA_TX_COL:%X RECONFIG_OBJECTION:%X EX_ERROR:%X \n",
 			deviceClass, sourceLa, ie->coreUnsprtdMsg, ie->coreDataTxCol, ie->coreReconfigObjection, ie->coreExError);
 	}
+
+	return;
+}
+
+static void RFC_PrintIeInterfaceStatus(CSMI_InformationElements *ie, uint8_t sourceLa, CSMI_DeviceClass deviceClass)
+{
 	if (ie->interfaceMcTxCol || ie->interfaceLostFs || ie->interfaceLostSfs || ie->interfaceLostMs || ie->interfaceDataSlotOverlap) {
 		SLIMBUS_DEV_LIMIT_INFO("Interface: (0x%x,0x%x) MC_TX_COL:%X LOST_FS:%X LOST_SFS:%X LOST_MS:%X DATA_SLOT_OVERLAP:%X\n",
 			deviceClass, sourceLa, ie->interfaceMcTxCol, ie->interfaceLostFs, ie->interfaceLostSfs, ie->interfaceLostMs, ie->interfaceDataSlotOverlap);
 	}
+
+	return;
+}
+
+static void RFC_PrintIeManagerStatus(CSMI_InformationElements *ie, uint8_t sourceLa, CSMI_DeviceClass deviceClass)
+{
 	if (ie->managerActiveManager) {
 		SLIMBUS_DEV_LIMIT_INFO("Manager: (0x%x,0x%x) ACTIVE_MANAGER:%X\n", deviceClass, sourceLa, ie->managerActiveManager);
 	}
+
+	return;
+}
+
+static void RFC_PrintIeFramerStatus(CSMI_InformationElements *ie, uint8_t sourceLa, CSMI_DeviceClass deviceClass)
+{
 	if (ie->framerQuality || ie->framerGcTxCol || ie->framerFiTxCol || ie->framerFsTxCol || ie->framerActiveFramer) {
 		SLIMBUS_DEV_LIMIT_INFO("Framer: (0x%x,0x%x) QUALITY:%X GC_TX_COL:%X FI_TX_COL:%X FS_TX_COL:%X ACTIVE_FRAMER:%X\n",
 			deviceClass, sourceLa, ie->framerQuality, ie->framerGcTxCol, ie->framerFiTxCol, ie->framerFsTxCol, ie->framerActiveFramer);
 	}
 
+	return;
+}
+
+
+static void RFC_PrintIeStatus(CSMI_InformationElements *ie, uint8_t sourceLa)
+{
+	CSMI_DeviceClass deviceClass = CLBK_DeviceClassHandler(sourceLa);
+
+	RFC_PrintIeCoreStatus(ie, sourceLa, deviceClass);
+
+	RFC_PrintIeInterfaceStatus(ie, sourceLa, deviceClass);
+
+	RFC_PrintIeManagerStatus(ie, sourceLa, deviceClass);
+
+	RFC_PrintIeFramerStatus(ie, sourceLa, deviceClass);
+
 	if (ie->interfaceLostFs || ie->interfaceLostSfs || ie->interfaceLostMs) {
 		if (dsm_notify_limit == SLIMBUS_LOSTMS_COUNT) {
 			slimbus_dump_state(SLIMBUS_DUMP_LOSTMS);
-			if (!dsm_client_ocuppy(dsm_audio_client)) {
-				dsm_client_record(dsm_audio_client, "DSM_HI6402_SLIMBUS_LOST_MS\n");
-				dsm_client_notify(dsm_audio_client, DSM_HI6402_SLIMBUS_LOST_MS);
-			}
+			audio_dsm_report_info(AUDIO_CODEC, DSM_HI6402_SLIMBUS_LOST_MS, "DSM_HI6402_SLIMBUS_LOST_MS\n");
 		}
 		dsm_notify_limit++;
 	}
@@ -863,8 +892,8 @@ int slimbus_drv_bus_configure(slimbus_bus_config_t *bus_config)
 
 	/* configure bus */
 	ret += csmiDrv->msgBeginReconfiguration(devm_slimbus_priv);
-        ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, (CSMI_ClockGear)bus_config->cg);
-        ret += csmiDrv->msgNextSubframeMode(devm_slimbus_priv, (CSMI_SubframeMode)bus_config->sm);
+	ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, bus_config->cg);
+	ret += csmiDrv->msgNextSubframeMode(devm_slimbus_priv, bus_config->sm);
 	ret += csmiDrv->msgReconfigureNow(devm_slimbus_priv);
 	if (ret) {
 		pr_err("Bus reconfiguration failed with error: %d\n", ret);
@@ -906,7 +935,11 @@ int slimbus_drv_request_info(uint8_t  targetLa, uint16_t address, slimbus_slice_
 	internalReply.ptr = valueRead;
 	internalReply.informationRequested = 1;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
 	reinit_completion(&internalReply.request_finish);
+#else
+	INIT_COMPLETION(internalReply.request_finish);
+#endif
 
 	/* create element code set byte address mode*/
 	elementCode = RFC_CreateElementCode(address, 1, (CSMI_SliceSize)sliceSize);
@@ -1031,7 +1064,11 @@ int slimbus_drv_element_read(uint8_t  targetLa, uint16_t address, slimbus_slice_
 	internalReply.ptr = valueRead;
 	slimbus_irq_state = 0;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
 	reinit_completion(&internalReply.read_finish);
+#else
+	INIT_COMPLETION(internalReply.read_finish);
+#endif
 
 	/* create element code set byte address mode*/
 	elementCode = RFC_CreateElementCode(address, 1, (CSMI_SliceSize)sliceSize);
@@ -1163,8 +1200,8 @@ int slimbus_drv_track_activate(slimbus_channel_property_t *channel, uint32_t ch_
 
 	for (i = 0; i < ch_num; i++) {
 		/* Configuring Data Channel */
-		ret += csmiDrv->msgNextDefineChannel(devm_slimbus_priv, channel[i].cn, (CSMI_TransportProtocol)channel[i].tp, channel[i].sd, channel[i].sl);
-		ret += csmiDrv->msgNextDefineContent(devm_slimbus_priv, channel[i].cn, channel[i].fl, (CSMI_PresenceRate)channel[i].pr, (CSMI_AuxFieldFormat)channel[i].af, (CSMI_DataType)channel[i].dt, channel[i].cl, channel[i].dl);
+		ret += csmiDrv->msgNextDefineChannel(devm_slimbus_priv, channel[i].cn, channel[i].tp, channel[i].sd, channel[i].sl);
+		ret += csmiDrv->msgNextDefineContent(devm_slimbus_priv, channel[i].cn, channel[i].fl, channel[i].pr, channel[i].af, channel[i].dt, channel[i].cl, channel[i].dl);
 		/* Activating Data Channel */
 		ret += csmiDrv->msgNextActivateChannel(devm_slimbus_priv, channel[i].cn);
 	}
@@ -1267,11 +1304,11 @@ int slimbus_drv_switch_framer(uint8_t  laif, uint16_t NCo, uint16_t NCi, slimbus
 		RFC_ClearEvents();
 		ret += csmiDrv->msgBeginReconfiguration(devm_slimbus_priv);
 		if (laif == slimbusDevices.framerLa[SLIMBUS_FRAMER_HI6402_ID]) {
-			ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, (CSMI_ClockGear)bus_config->cg);
+			ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, bus_config->cg);
 		}
 		ret += csmiDrv->msgNextActiveFramer(devm_slimbus_priv, laif, NCo, NCi);
 		if (laif == slimbusDevices.framerLa[SLIMBUS_FRAMER_SOC_ID]) {
-			ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, (CSMI_ClockGear)bus_config->cg);
+			ret += csmiDrv->msgNextClockGear(devm_slimbus_priv, bus_config->cg);
 		}
 		ret += csmiDrv->msgReconfigureNow(devm_slimbus_priv);
 		if (ret) {
@@ -1312,7 +1349,7 @@ int slimbus_drv_pause_clock(slimbus_restart_time_t newrestarttime)
 	udelay(300);
 	RFC_ClearEvents();
 	ret += csmiDrv->msgBeginReconfiguration(devm_slimbus_priv);
-	ret += csmiDrv->msgNextPauseClock(devm_slimbus_priv, (CSMI_RestartTime)newrestarttime);
+	ret += csmiDrv->msgNextPauseClock(devm_slimbus_priv, newrestarttime);
 	ret += csmiDrv->msgReconfigureNow(devm_slimbus_priv);
 	if (ret) {
 		pr_err("Bus switch framer failed with error: %d\n", ret);
@@ -1474,8 +1511,8 @@ int slimbus_drv_track_update(int cg, int sm, int track, uint32_t ch_num, slimbus
 		if (active_channel != NULL) {
 			for (j = 0; j < active_ch_num; j++) {
 				/* Configuring Data Channel */
-				ret += csmiDrv->msgNextDefineChannel(devm_slimbus_priv, active_channel[j].cn, (CSMI_TransportProtocol)active_channel[j].tp, active_channel[j].sd, active_channel[j].sl);
-				ret += csmiDrv->msgNextDefineContent(devm_slimbus_priv, active_channel[j].cn, active_channel[j].fl, (CSMI_PresenceRate)active_channel[j].pr, (CSMI_AuxFieldFormat)active_channel[j].af, (CSMI_DataType)active_channel[j].dt, active_channel[j].cl, active_channel[j].dl);
+				ret += csmiDrv->msgNextDefineChannel(devm_slimbus_priv, active_channel[j].cn, active_channel[j].tp, active_channel[j].sd, active_channel[j].sl);
+				ret += csmiDrv->msgNextDefineContent(devm_slimbus_priv, active_channel[j].cn, active_channel[j].fl, active_channel[j].pr, active_channel[j].af, active_channel[j].dt, active_channel[j].cl, active_channel[j].dl);
 				/* Activating Data Channel */
 				ret += csmiDrv->msgNextActivateChannel(devm_slimbus_priv, active_channel[j].cn);
 				msg_count = msg_count + 3;
@@ -1512,7 +1549,8 @@ void slimbus_drv_get_params_la(int track_type, uint8_t *source_la, uint8_t *sink
 {
 	switch (track_type) {
 	case SLIMBUS_TRACK_AUDIO_PLAY:
-	case SLIMBUS_TRACK_HIRES_PLAY:
+	case SLIMBUS_TRACK_DIRECT_PLAY:
+	case SLIMBUS_TRACK_FAST_PLAY:
 		break;
 	case SLIMBUS_TRACK_AUDIO_CAPTURE:
 		*source_la = HI64XX_LA_GENERIC_DEVICE;

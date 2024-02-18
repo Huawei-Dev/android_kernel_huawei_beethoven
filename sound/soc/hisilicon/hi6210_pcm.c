@@ -106,7 +106,7 @@ __DRV_AUDIO_MAILBOX_WORK__   : leave mailbox's work to workqueue
 /*****************************************************************************
   2 宏定义
  *****************************************************************************/
-
+#define UNUSED_PARAMETER(x) (void)(x)
 #define HI6210_PCM "hi6210-hifi"
 /*
  * PLAYBACK SUPPORT FORMATS
@@ -171,6 +171,8 @@ __DRV_AUDIO_MAILBOX_WORK__   : leave mailbox's work to workqueue
 
 #undef NULL
 #define NULL ((void *)0)
+
+#define ALSA_TIMEOUT_MILLISEC 30
 
 #define PCM_DMA_BUF_PLAYBACK_LEN    (0x00030000)
 #define PCM_DMA_BUF_0_PLAYBACK_BASE (PCM_PLAY_BUFF_LOCATION)
@@ -357,6 +359,7 @@ static int hi6210_notify_pcm_set_buf( struct snd_pcm_substream *substream );
 #ifdef CONFIG_SND_TEST_AUDIO_PCM_LOOP
 static irq_rt_t hi6210_notify_recv_isr( void *usr_para, void *mail_handle,  unsigned int mail_len );
 #endif
+
 #ifdef __DRV_AUDIO_MAILBOX_WORK__
 static irq_rt_t hi6210_mb_intr_handle(unsigned short pcm_mode,
 		struct snd_pcm_substream *substream);
@@ -457,7 +460,7 @@ static irq_rt_t hi6210_intr_handle_pb(struct snd_pcm_substream *substream)
 	avail = (snd_pcm_uframes_t)snd_pcm_playback_hw_avail(substream->runtime);
 	if(avail < rt_period_size)
 	{
-		logd("End, avail(%d)< rt_period_size(%d)\n", (int)avail, rt_period_size);
+		logw("avail(%d)< rt_period_size(%d)\n", (int)avail, (int)rt_period_size);
 		return IRQ_HDD_SIZE;
 	}
 	else
@@ -712,6 +715,82 @@ static int hi6210_mailbox_send_data( void *pmsg_body, unsigned int msg_len,
 #endif
 	return (int)ret;
 }
+
+
+static void print_pcm_timeout(unsigned int pre_time, const char *print_type, unsigned int time_delay)
+{
+	unsigned int  delay_time;
+	unsigned int  curr_time;
+
+	if (hifi_misc_get_platform_type() != HIFI_DSP_PLATFORM_ASIC) {
+		return;
+	}
+
+	curr_time = (unsigned int)mailbox_get_timestamp();
+	delay_time = curr_time - pre_time;
+
+	if (delay_time > (HI6210_WORK_DELAY_1MS * time_delay)) {
+		logw("[%d]:%s, delaytime %u.\n", mailbox_get_timestamp(), print_type, delay_time);
+	}
+}
+
+static long get_snd_current_millisec(void)
+{
+	struct timeval last_update;
+	long curr_time;
+
+	do_gettimeofday(&last_update);
+	curr_time = last_update.tv_sec * 1000 + last_update.tv_usec / 1000;
+	return curr_time;
+}
+
+void snd_pcm_print_timeout(struct snd_pcm_substream *substream, unsigned int timeout_type)
+{
+	long delay_time;
+	long curr_time;
+	const char *timeout_str[SND_TIMEOUT_TYPE_MAX] = {
+		"pcm write interval timeout",
+		"pcm write proc timeout",
+		"pcm read interval timeout"
+		"pcm read proc timeout"};
+
+	if (hifi_misc_get_platform_type() != HIFI_DSP_PLATFORM_ASIC) {
+		return;
+	}
+
+	if (substream == NULL) {
+		loge("[%s:%d] substream is null\n",  __FUNCTION__, __LINE__);
+		return;
+	}
+
+	if (timeout_type >= SND_TIMEOUT_TYPE_MAX) {
+		return;
+	}
+
+	curr_time = get_snd_current_millisec();
+	delay_time = curr_time - substream->runtime->pre_time;
+
+	if (delay_time > ALSA_TIMEOUT_MILLISEC && (substream->runtime->pre_time != 0)) {
+		logw("%s, delay time %ld ms.\n", timeout_str[timeout_type], delay_time);
+	}
+
+	if (timeout_type == SND_TIMEOUT_TYPE_WRITE_INTERVAL
+		|| timeout_type == SND_TIMEOUT_TYPE_READ_INTERVAL) {
+		substream->runtime->pre_time = curr_time;
+    }
+}
+EXPORT_SYMBOL(snd_pcm_print_timeout);
+
+void snd_pcm_reset_pre_time(struct snd_pcm_substream *substream)
+{
+	if (substream == NULL) {
+		loge("[%s:%d] substream is null\n",  __FUNCTION__, __LINE__);
+		return;
+	}
+
+	substream->runtime->pre_time = 0;
+}
+EXPORT_SYMBOL(snd_pcm_reset_pre_time);
 
 /*****************************************************************************
   函 数 名  : hi6210_notify_pcm_open
@@ -1042,15 +1121,15 @@ static irq_rt_t hi6210_notify_recv_isr( void *usr_para, void *mail_handle,  unsi
 	unsigned int mail_size          = mail_len;
 	unsigned int ret_mail           = MAILBOX_OK;
 	irq_rt_t ret                    = IRQ_NH;
-	unsigned int delay_time = 0;
-	unsigned int pre_time = 0;
-	unsigned int cur_time = 0;
+	unsigned int start_time = 0;
+	const char *print_type[2] = {"recv pcm msg timeout", "process pcm msg timeout"};
 
-	pre_time = (unsigned int)mailbox_get_timestamp();
+	UNUSED_PARAMETER(usr_para);
 
-	memset(&mail_buf, 0, sizeof(struct hifi_chn_pcm_period_elapsed));
+	start_time = (unsigned int)mailbox_get_timestamp();
+	memset(&mail_buf, 0, sizeof(struct hifi_chn_pcm_period_elapsed));/* unsafe_function_ignore: memset */
 
-	/*获取邮箱数据内容*/
+	/*get the data from mailbox*/
 #ifdef CONFIG_SND_TEST_AUDIO_PCM_LOOP
 	memcpy(&mail_buf, mail_handle, sizeof(struct hifi_chn_pcm_period_elapsed));
 #else
@@ -1088,10 +1167,14 @@ static irq_rt_t hi6210_notify_recv_isr( void *usr_para, void *mail_handle,  unsi
 
 	switch(mail_buf.msg_type) {
 		case HI_CHN_MSG_PCM_PERIOD_ELAPSED:
+			/* check if elapsed msg is timeout */
+			print_pcm_timeout(mail_buf.msg_timestamp, print_type[0], 10);
+
 			if (STATUS_STOPPING == prtd->status) {
 				logi("stopping ignore period\n");
 				break;
 			}
+
 			ret = hi6210_mb_intr_handle(mail_buf.pcm_mode, substream);
 			if (ret == IRQ_NH)
 				loge("mb msg handle err, ret : %d\n", ret);
@@ -1108,13 +1191,8 @@ static irq_rt_t hi6210_notify_recv_isr( void *usr_para, void *mail_handle,  unsi
 			loge("msg_type 0x%x\n", mail_buf.msg_type);
 			break;
 	}
-
-	cur_time = (unsigned int)mailbox_get_timestamp();
-	delay_time = HI6210_CYC_SUB(cur_time, pre_time, 0xffffffff);
-	if (delay_time > (HI6210_WORK_DELAY_1MS * 5)) {
-		logw("[%d]:this msg delayed %d slices, pcm mode:%d\n",
-			mailbox_get_timestamp(), delay_time, mail_buf.pcm_mode);
-	}
+	/* check if isr proc is timeout */
+	print_pcm_timeout(start_time, print_type[1], 20);
 
 	return ret;
 #else

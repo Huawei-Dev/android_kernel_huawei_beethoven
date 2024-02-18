@@ -38,6 +38,14 @@
 #include <sound/pcm_oss.h>
 #endif
 
+enum SND_TIMEOUT_TYPE {
+	SND_TIMEOUT_TYPE_WRITE_INTERVAL = 0,
+	SND_TIMEOUT_TYPE_WRITE_PROC,
+	SND_TIMEOUT_TYPE_READ_INTERVAL,
+	SND_TIMEOUT_TYPE_READ_PROC,
+	SND_TIMEOUT_TYPE_MAX,
+};
+
 /*
  *  Hardware (lowlevel) section
  */
@@ -440,6 +448,7 @@ struct snd_pcm_runtime {
 	/* -- OSS things -- */
 	struct snd_pcm_oss_runtime oss;
 #endif
+	long pre_time;
 };
 
 struct snd_pcm_group {		/* keep linked substreams */

@@ -29,7 +29,7 @@
 #include <linux/hisi/hilog.h>
 #include <dsm/dsm_pub.h>
 
-/*lint -e750 -e715 -e785*/
+/*lint -e750 -e715 -e785 -e574*/
 #define LOG_TAG "Slimbus_6402"
 
 extern slimbus_channel_property_t voice_down[SLIMBUS_VOICE_DOWN_CHANNELS];
@@ -90,7 +90,7 @@ static uint16_t sl_table[SLIMBUS_RF_MAX][SLIMBUS_TRACK_MAX][SLIMBUS_CHANNELS_MAX
 				{4, 4},						/* EC_REF */
 				{4},						/* sound trigger */
 				{6, 6},                                         /* debug */
-				{0, 0},                                         /* hires play*/
+				{0, 0},                                         /* direct play*/
 			},
 			/* 6.144M */
 			{
@@ -102,7 +102,7 @@ static uint16_t sl_table[SLIMBUS_RF_MAX][SLIMBUS_TRACK_MAX][SLIMBUS_CHANNELS_MAX
 				{0, 0},						/* EC_REF */
 				{0, 0},                                         /* sound trigger */
 				{0, 0},                                         /* debug */
-				{0, 0},                                         /* hires play*/
+				{0, 0},                                         /* direct play*/
 			},
 };
 

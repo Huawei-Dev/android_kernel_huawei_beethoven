@@ -24,13 +24,15 @@
 #include <sound/soc.h>
 
 #include "slimbus.h"
-/*lint -e750*/
+/*lint -e750 -e429*/
 /* pcm devices */
 #define SLIMBUS_DEV_AUDIO           0
-#define SLIMBUS_DEV_VOICE           1
-#define SLIMBUS_DEV_BT              2
-#define SLIMBUS_DEV_MODEM           3
-#define SLIMBUS_DEV_DSP_PB          4
+#define SLIMBUS_DEV_DIRECT_AUDIO    1
+#define SLIMBUS_DEV_FAST_AUDIO      2
+#define SLIMBUS_DEV_VOICE           3
+#define SLIMBUS_DEV_BT              4
+#define SLIMBUS_DEV_MODEM           5
+#define SLIMBUS_DEV_DSP_PB          6
 
 struct slimbus_dai_data {
     slimbus_track_param_t           hw_params;
@@ -106,7 +108,7 @@ static struct snd_soc_dai_driver slimbus_dai = {
     .playback = {
         .channels_min = 1,
         .channels_max = 2,
-        .rates = SNDRV_PCM_RATE_8000_96000,
+        .rates = SNDRV_PCM_RATE_8000_384000,
         .formats = SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S16_BE |
                SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S24_BE,
     },
@@ -154,10 +156,10 @@ static int slimbus_dai_module_remove(struct platform_device *pdev)
     struct device *dev = &pdev->dev;
     struct slimbus_dai_data *pdata = platform_get_drvdata(pdev);
 
-    devm_kfree(dev, pdata);
-    
     mutex_destroy(&pdata->lock);
-    
+
+    devm_kfree(dev, pdata);
+
     return 0;
 }
 

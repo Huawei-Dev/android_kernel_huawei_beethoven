@@ -29,7 +29,8 @@
 #include <linux/hisi/hi64xx/hi_cdc_ctrl.h>
 #include <linux/hisi/hi64xx/hi64xx_irq.h>
 #include <linux/hisi/hi64xx_hifi_misc.h>
-
+#include <linux/version.h>
+/*lint -e647 -e679 -e455 -e454 -e429*/
 #ifndef NO_IRQ
 #define NO_IRQ 0
 #endif
@@ -81,7 +82,7 @@ static irqreturn_t hi64xx_irq_handler(int irq, void *data)
 
 	wake_lock(&hi64xx_irq->wake_lock);
 	disable_irq_nosync(irq);
-	return IRQ_WAKE_THREAD;
+	return IRQ_WAKE_THREAD;/*lint !e454*/
 }
 
 static irqreturn_t hi64xx_irq_handler_thread(int irq, void *data)
@@ -110,19 +111,19 @@ static irqreturn_t hi64xx_irq_handler_thread(int irq, void *data)
 		/* get irq status */
 		pending = hi_cdcctrl_reg_read(hi64xx_irq->hi_cdc, hi64xx_irq->phy_irq_map.irq_regs[i]);
 		/* get irq status with irq mask status */
-		pending &= (~hi_cdcctrl_reg_read(hi64xx_irq->hi_cdc, hi64xx_irq->phy_irq_map.irq_mask_regs[i]));
+		pending &= (unsigned long)(~hi_cdcctrl_reg_read(hi64xx_irq->hi_cdc, hi64xx_irq->phy_irq_map.irq_mask_regs[i]));
 		/* clr all unmask irqs */
 		hi_cdcctrl_reg_write(hi64xx_irq->hi_cdc, hi64xx_irq->phy_irq_map.irq_regs[i], pending);
 
 		/* handle each irq */
 		if (pending)
 			for_each_set_bit(irq_index, &pending, HI64XX_IRQ_REG_BITS_NUM)
-					handle_nested_irq(hi64xx_irq->sub_irq_id[irq_index + irq_index_offset]);
+					handle_nested_irq(hi64xx_irq->sub_irq_id[irq_index + irq_index_offset]);/*lint !e679*/
 	}
 
 	mutex_unlock(&hi64xx_irq->sr_lock);
 	enable_irq(irq);
-	wake_unlock(&hi64xx_irq->wake_lock);
+	wake_unlock(&hi64xx_irq->wake_lock);/*lint !e455*/
 
 	return IRQ_HANDLED;
 }
@@ -181,7 +182,7 @@ static void hi64xx_irq_unmask(struct irq_data *d)
 
 	_irq_unmask(data, phy_irq);
 }
-
+/*lint -e455 -e454*/
 static void hi64xx_irq_bus_lock(struct irq_data *d)
 {
 	struct hi64xx_irq_platform_data *data = irq_data_get_irq_chip_data(d);
@@ -196,7 +197,7 @@ static void hi64xx_irq_bus_unlock(struct irq_data *d)
 
 	mutex_unlock(&data->irq_lock);
 }
-
+/*lint +e455 +e454*/
 static struct irq_chip hi64xx_irq_chip = {
 	.name = "hi64xx_irq",
 	.irq_mask = hi64xx_irq_mask,
@@ -215,7 +216,9 @@ static int hi64xx_irq_map(struct irq_domain *d, unsigned int virq,
 	irq_set_chip_data(virq, irq);
 	irq_set_chip(virq, &hi64xx_irq_chip);
 	irq_set_nested_thread(virq, true);
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,4,0)
+	set_irq_flags(virq, IRQF_VALID);
+#endif
 	return 0;
 }
 
@@ -286,6 +289,8 @@ int hi64xx_irq_init_irq(struct hi64xx_irq *hi64xx_data, struct hi64xx_irq_map *i
 
 	if (0 > ret) {
 		dev_err(data->hi64xx_irq.dev, "register irq fail! return is %d\n", ret);
+		if (data->domain)
+			irq_domain_remove(data->domain);
 	}
 
 	return ret;
@@ -297,6 +302,9 @@ void hi64xx_irq_deinit_irq(struct hi64xx_irq *hi64xx_data)
 	struct hi64xx_irq_platform_data * data =
 		(struct hi64xx_irq_platform_data *)hi64xx_data;
 	free_irq(data->irq_id, data);
+
+	if(data->domain)
+		irq_domain_remove(data->domain);
 }
 EXPORT_SYMBOL(hi64xx_irq_deinit_irq);
 
@@ -308,7 +316,7 @@ int hi64xx_irq_request_irq(struct hi64xx_irq *hi64xx_data, int phy_irq_id,
 	BUG_ON(NULL == hi64xx_data);
 	data = (struct hi64xx_irq_platform_data *)hi64xx_data;
 
-	if (phy_irq_id >= data->phy_irq_map.irq_num)
+	if ((phy_irq_id >= data->phy_irq_map.irq_num) || (phy_irq_id < 0))
 	{
 		pr_err("%s: physical irq id %d is out of the range\n", __FUNCTION__, phy_irq_id);
 		return -1;
@@ -416,7 +424,7 @@ static struct of_device_id of_hi64xx_irq_child_match_tbl[] = {
 	},
 	{ /* end */ }
 };
-
+/*lint -e429*/
 static int hi64xx_irq_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -458,7 +466,7 @@ static int hi64xx_irq_probe(struct platform_device *pdev)
 	dev_info(dev, "%s: probe ok\n", __FUNCTION__);
 	return 0;
 }
-
+/*lint +e429*/
 static int hi64xx_irq_remove(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -503,7 +511,7 @@ static int hi64xx_irq_suspend(struct platform_device *pdev, pm_message_t state)
 		return ret;
 	}
 
-	return ret;
+	return ret;/*lint !e454*/
 }
 
 static int hi64xx_irq_resume(struct platform_device *pdev)
@@ -523,7 +531,7 @@ static int hi64xx_irq_resume(struct platform_device *pdev)
 	if (ret)
 		dev_err(dev, "%s hifi misc resume failed!\n", __FUNCTION__);
 
-	mutex_unlock(&data->sr_lock);
+	mutex_unlock(&data->sr_lock);/*lint !e455*/
 
 	return ret;
 }

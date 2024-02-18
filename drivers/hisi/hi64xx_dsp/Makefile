@@ -1,6 +1,7 @@
 # hi6402 dsp device driver
 subdir-ccflags-y += -Wall -Werror
 
+ccflags-y += -Idrivers/devkit/audiokit/
 EXTRA_CFLAGS += -Idrivers/hisi/slimbus/
 EXTRA_CFLAGS += -Idrivers/hisi/hifi_dsp/
 EXTRA_CFLAGS += -Iinclude/linux/hisi/

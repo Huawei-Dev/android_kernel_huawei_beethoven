@@ -26,7 +26,7 @@
 #define IOCTL_ANC_HS_GET_HEADSET_CMD            _IOR('A', 0xFE, __u32)
 
 struct MLIBSetParaInfo {
-    short   msgID;
+    unsigned   short   msgID;
     short   reserve;
     int     uwPathID;
     int     uwModuleID;

@@ -56,6 +56,11 @@
 #define DMA_NORMAL_LEFT_CH_UNMASK	0x8
 #define DMA_NORMAL_RIGHT_CH_UNMASK	0x10
 
+#define DMA_FAST_LEFT_CH_NUM 	4
+#define DMA_FAST_RIGHT_CH_NUM	8
+#define DMA_NORMAL_LEFT_CH_NUM	3
+#define DMA_NORMAL_RIGHT_CH_NUM	7
+
 #define DMA_CH_INT_CLR 0x1
 #define DMA_ENABLE_BIT 0
 
@@ -99,16 +104,6 @@ enum dma_drv_state {
 enum soundtrigger_irq_state {
 	IRQ_ERR = 0,
 	IRQ_FINISH,
-	IRQ_FAST_LEFT_CHAN,
-	IRQ_FAST_RIGHT_CHAN,
-	IRQ_NORMAL_LEFT_CHAN,
-	IRQ_NORMAL_RIGHT_CHAN,
-};
-
-enum {
-	SOUNDTRIGGER_CMD_DMA_OPEN = 1,
-	SOUNDTRIGGER_CMD_DMA_CLOSE,
-	SOUNDTRIGGER_CMD_DMA_READY,
 };
 
 enum {
@@ -135,6 +130,10 @@ struct st_fast_status{
 #define INT_TO_ADDR(low,high) (void*) (unsigned long)((unsigned long long)(low) | ((unsigned long long)(high)<<32))
 
 #define HWLOCK_WAIT_TIME	50
+
+#define SOUNDTRIGGER_CMD_DMA_OPEN  _IO('S',  0x1)
+#define SOUNDTRIGGER_CMD_DMA_CLOSE  _IO('S',  0x2)
+#define SOUNDTRIGGER_CMD_DMA_READY  _IO('S',  0x3)
 
 int32_t hi64xx_soundtrigger_init(enum codec_hifi_type type);
 int32_t hi64xx_soundtrigger_dma_close(void);

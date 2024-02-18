@@ -7,14 +7,14 @@
 * it under the terms of the GNU General Public License version 2 as
 * published by the Free Software Foundation.
 */
-
+/*lint -e528 -e529 -e578 -e629 -e533 -e613 -e10*/
 #include <linux/module.h>
 #include <linux/miscdevice.h>
 #include <linux/ioctl.h>
 #include <linux/fs.h>
 #include <linux/of.h>
 #ifdef CONFIG_HUAWEI_DSM
-#include <dsm/dsm_pub.h>
+#include <dsm_audio/dsm_audio.h>
 #endif
 #include <huawei_platform/log/hw_log.h>
 #include <linux/platform_device.h>
@@ -45,14 +45,6 @@ static struct tfa98xx_ioctl_ops *tfa_io_ops;
 //static struct list_head tfa98xx_list;
 LIST_HEAD(tfa98xx_list);
 
-#ifdef CONFIG_HUAWEI_DSM
-static struct dsm_dev dsm_tfa98xx_smartpa = {
-	.name = "dsm_tfa98xx_smartpa",
-	.fops = NULL,
-	.buff_size = 1024,
-};
-struct dsm_client *tfa98xx_dclient;
-#endif
 
 struct tfa98xx_priv * tfa98xx_priv_data = NULL;
 enum rcv_switch_status {
@@ -123,6 +115,7 @@ void tfa98xx_list_del(struct tfa98xx_priv *tfa98xx)
 	kfree(tfa98xx);
 }
 
+/*lint -save -e* */
 void tfa98xx_list_del_all(void)
 {
 	struct list_head *pos = NULL;
@@ -134,7 +127,9 @@ void tfa98xx_list_del_all(void)
 		tfa98xx_list_del(p);
 	}
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 struct tfa98xx_priv *find_tfa98xx_by_type(struct list_head *tfa98xx, unsigned int type)
 {
 	struct list_head *pos = NULL;
@@ -151,7 +146,7 @@ struct tfa98xx_priv *find_tfa98xx_by_type(struct list_head *tfa98xx, unsigned in
 
 	return p;
 }
-
+/*lint -restore*/
 
 struct tfa98xx_priv *find_tfa98xx_by_dev(struct device *dev)
 {
@@ -169,7 +164,7 @@ struct tfa98xx_priv *find_tfa98xx_by_dev(struct device *dev)
 	return find_tfa98xx_by_type(&tfa98xx_list, type);
 }
 
-
+/*lint -save -e* */
 int get_tfa98xx_num(void)
 {
 	int i = 0;
@@ -181,13 +176,14 @@ int get_tfa98xx_num(void)
 
 	return i;
 }
+/*lint -restore*/
 
 struct list_head *get_tfa98xx_list_head(void)
 {
 	return &tfa98xx_list;
 }
 
-
+/*lint -save -e* */
 static int tfa98xx_open(struct inode *inode, struct file *filp)
 {
     hwlog_err("%s: get smartPA type from dts failed!!!\n", __func__);
@@ -196,8 +192,9 @@ static int tfa98xx_open(struct inode *inode, struct file *filp)
 	}
 	return tfa_io_ops->tfa98xx_open(inode, filp);
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 static int tfa98xx_release(struct inode *inode, struct file *filp)
 {
 	if (NULL == tfa_io_ops || NULL == tfa_io_ops->tfa98xx_release) {
@@ -205,8 +202,9 @@ static int tfa98xx_release(struct inode *inode, struct file *filp)
 	}
 	return tfa_io_ops->tfa98xx_release(inode, filp);
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 static int tfa98xx_do_ioctl(struct file *file, unsigned int cmd, void __user *p, int compat_mode)
 {
 	int ret = 0;
@@ -279,24 +277,34 @@ static int tfa98xx_do_ioctl(struct file *file, unsigned int cmd, void __user *p,
 			}
 			break;
 
+		case TFA98XX_SET_PARAM:
+			if(NULL == pUser)
+			{
+				return -EFAULT;
+			}
+			CHECK_IOCTL_OPS(tfa_io_ops, tfa98xx_set_param);
+			ret = tfa_io_ops->tfa98xx_set_param(tfa98xx, pUser);
+			break;
+
 		default:
 			hwlog_err("%s: cmd input is not support\n", __func__);
 			return -EFAULT;
 	}
 #ifdef CONFIG_HUAWEI_DSM
-	if (ret && !dsm_client_ocuppy(tfa98xx_dclient)) {
-		dsm_client_record(tfa98xx_dclient, "%s: ioctl error %d\n", __func__, ret);
-		dsm_client_notify(tfa98xx_dclient, DSM_SMARTPA_I2C_ERR);
+	if (ret) {
+		audio_dsm_report_info(AUDIO_SMARTPA, DSM_SMARTPA_I2C_ERR, "%s: ioctl error %d\n", __func__, ret);
 	}
 #endif
 	return ret;
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 static long tfa98xx_ioctl(struct file *file, unsigned int command, unsigned long arg)
 {
 	return (long)tfa98xx_do_ioctl(file, command, (void __user *)arg, 0);
 }
+/*lint -restore*/
 
 #ifdef CONFIG_COMPAT
 static long tfa98xx_ioctl_compat(struct file *file, unsigned int command, unsigned long arg)
@@ -324,7 +332,7 @@ static struct miscdevice tfa98xx_ctrl_miscdev = {
 	.fops =     &tfa98xx_ctrl_fops,
 };
 
-
+/*lint -save -e* */
 static int tfa98xx_ioctl_probe(struct platform_device *pdev)
 {
 	int ret = FAILED;
@@ -388,11 +396,6 @@ static int tfa98xx_ioctl_probe(struct platform_device *pdev)
 		hwlog_err("%s: can't register tfa98xx miascdev, ret:%d.\n", __func__, ret);
 		goto err_rcv_en2_gpio;
 	}
-#ifdef CONFIG_HUAWEI_DSM
-	if (!tfa98xx_dclient) {
-		tfa98xx_dclient = dsm_register_client(&dsm_tfa98xx_smartpa);
-	}
-#endif
 
 	return 0;
 
@@ -413,7 +416,9 @@ err_exit:
 	}
     return ret;
 }
+/*lint -restore*/
 
+/*lint -save -e* */
 static int tfa98xx_ioctl_remove(struct platform_device *pdev)
 {
 	int ret = 0;
@@ -429,18 +434,19 @@ static int tfa98xx_ioctl_remove(struct platform_device *pdev)
 		tfa98xx_priv_data = NULL;
 	}
 
-	misc_deregister(&tfa98xx_ctrl_miscdev);
+	 misc_deregister(&tfa98xx_ctrl_miscdev);
 
 	return ret;
 }
-
+/*lint -restore*/
 
 static const struct of_device_id tfa98xx_match[] = {
 	{ .compatible = "huawei,tfa98xx_ioctl", },
 	{},
 };
+/*lint -save -e* */
 MODULE_DEVICE_TABLE(of, tfa98xx_match);
-
+/*lint -restore*/
 
 static struct platform_driver tfa98xx_driver = {
 	.driver = {
@@ -452,7 +458,7 @@ static struct platform_driver tfa98xx_driver = {
 	.remove = tfa98xx_ioctl_remove,
 };
 
-
+/*lint -save -e* */
 static int __init tfa98xx_init(void)
 {
 	int ret = 0;
@@ -464,17 +470,20 @@ static int __init tfa98xx_init(void)
 
 	return ret;
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 static void __exit tfa98xx_exit(void)
 {
 	platform_driver_unregister(&tfa98xx_driver);
 
 }
+/*lint -restore*/
 
-
+/*lint -save -e* */
 device_initcall_sync(tfa98xx_init);
 module_exit(tfa98xx_exit);
+/*lint -restore*/
 
 MODULE_DESCRIPTION("TFA98XX misc device driver");
 MODULE_AUTHOR("zhujiaxin<zhujiaxin@huawei.com>");

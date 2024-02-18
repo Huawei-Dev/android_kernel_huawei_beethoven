@@ -13,6 +13,7 @@ enum hisi_jack_states {
 	HISI_JACK_HEADSET,	/* pluged 4-pole headset */
 	HISI_JACK_HEADPHONE,	/* pluged 3-pole headphone */
 	HISI_JACK_INVERT,	/* pluged invert 4-pole headset */
+	HISI_JACK_EXTERN_CABLE,	/* pluged extern cable,such as antenna cable*/
 };
 
 struct hi64xx_mbhc_config {
@@ -29,8 +30,13 @@ struct hi64xx_mbhc_config {
 	int btn_volume_up_max_voltage;
 	int btn_volume_down_min_voltage;
 	int btn_volume_down_max_voltage;
+	int hs_extern_cable_min_voltage;
+	int hs_extern_cable_max_voltage;
+	int hs_mbhc_vref_reg_value;
 	unsigned int hs_ctrl;
 	unsigned int coefficient; /* voltage coefficient*/
+	unsigned int irq_reg0;
+	bool hs_detect_extern_cable;
 };
 
 struct mbhc_reg {

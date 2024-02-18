@@ -8,7 +8,6 @@
  * published by the Free Software Foundation.
  */
 
-
 #ifndef _TFA98XX_H
 #define _TFA98XX_H
 
@@ -16,15 +15,11 @@
 
 typedef struct list_head tfa98xx_list_t;
 
-
-
 #define CHECK_IOCTL_OPS(ops, func) \
 do{\
     if(NULL == ops || NULL == ops->func)\
         return -1;\
 }while(0)
-
-
 
 #define FAILED -1
 
@@ -59,7 +54,6 @@ do{\
 #define TFA98XX_R_GET_GAINRAMP			_IOR('M', 0x26, __u32)
 #define TFA98XX_R_GET_REG_VAL				_IOR('M', 0x27, struct tfa98xx_reg_ops)
 
-
 /*Change M98925 related settings, nr from 0x40 to 0x7f*/
 #define TFA98XX_SET_VOLUME				_IOW('M', 0x40, __u32)
 #define TFA98XX_SET_DAIFORMAT				_IOW('M', 0x41, __u32)
@@ -69,19 +63,23 @@ do{\
 #define TFA98XX_SET_FILTERS				_IOW('M', 0x45, __u32)
 #define TFA98XX_SET_GAINRAMP				_IOW('M', 0x46, __u32)
 #define TFA98XX_SET_REG_VAL				_IOW('M', 0x47, struct tfa98xx_reg_ops)
+#define TFA98XX_SET_PARAM				_IOW('M', 0x48, struct tfa98xx_param)
 
-
+#define TFA98XX_PARAM_MAX_NUM			(100)
 struct tfa98xx_priv {
 	unsigned int gain;
 	unsigned int gain_incall;
 	unsigned int sysclk;
 	unsigned int type; //0:left, 1:right
+	unsigned int pa_elec_limit;//0:unlimited, 1:limit
+	int gpio_irq;
 	int gpio_reset;
 	int rcv_en1_gpio;
 	int rcv_en2_gpio;
 	u8 reg;
 	bool rcv_switch_support;
     bool iv_slot_change;
+    bool dcie_cfg;
     struct regmap *regmap;
     struct mutex  lock;
     struct list_head list;
@@ -92,12 +90,16 @@ struct tfa98xx_reg_ops{
 	unsigned int reg_val;
 };
 
-
 struct tfa98xx_gain_def {
 	unsigned int gain;
 	unsigned int gain_incall;
 };
 
+struct tfa98xx_param{
+	unsigned int l_num;
+	unsigned int r_num;
+	unsigned char aucData[TFA98XX_PARAM_MAX_NUM];
+};
 
 struct tfa98xx_ioctl_ops{
 	int  (*tfa98xx_set_slave)(struct list_head *tfa98xx);
@@ -122,6 +124,7 @@ struct tfa98xx_ioctl_ops{
 	int  (*tfa98xx_set_filters)(struct list_head *tfa98xx, unsigned int value);
 	int  (*tfa98xx_get_gainramp)(struct list_head *tfa98xx, unsigned int type, unsigned int *value);
 	int  (*tfa98xx_set_gainramp)(struct list_head *tfa98xx, unsigned int value);
+	int  (*tfa98xx_set_param)(struct list_head *tfa98xx, unsigned int __user *pUser);
 };
 
 enum tfa98xx_type{

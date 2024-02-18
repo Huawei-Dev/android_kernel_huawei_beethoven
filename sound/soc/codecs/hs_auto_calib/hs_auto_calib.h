@@ -22,12 +22,12 @@ typedef enum vol_interzone_type {
 struct calib_btn_voltage {/*mV*/
 	unsigned short key_up_min_value;
 	unsigned short key_up_max_value;
-	unsigned short key_play_min_value;
-	unsigned short key_play_max_value;
-	unsigned short key_forward_min_value;
-	unsigned short key_forward_max_value;
-	unsigned short key_back_min_value;
-	unsigned short key_back_max_value;
+	unsigned int key_play_min_value;
+	unsigned int key_play_max_value;
+	unsigned int key_forward_min_value;
+	unsigned int key_forward_max_value;
+	unsigned int key_back_min_value;
+	unsigned int key_back_max_value;
 	unsigned short key_3_pole_min_voltage;
 	unsigned short key_3_pole_max_voltage;
 	unsigned short key_4_pole_min_voltage;

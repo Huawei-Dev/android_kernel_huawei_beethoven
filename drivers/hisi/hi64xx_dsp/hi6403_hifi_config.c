@@ -239,7 +239,7 @@ static void hi6403_soundtrigger_fasttrans_ctrl(bool enable, bool fm)
 
 	if (enable) {
 		/* set S3 CTRL */
-		hi64xx_hifi_write_reg(HI6403_DSP_S3_CTRL_L, 0x0E);/* 192K */
+		hi64xx_hifi_reg_write_bits(HI6403_DSP_S3_CTRL_L, 0x06, 0x07);/* 192K */
 		/* DSP IF 5 */
 		hi64xx_hifi_write_reg(HI6403_DSP_S3_CTRL_H, 0x66);/* 192K */
 		/* use DSP IF5/DSP IF1 instead of PGA */
@@ -257,7 +257,7 @@ static void hi6403_soundtrigger_fasttrans_ctrl(bool enable, bool fm)
 		hi64xx_hifi_write_reg(HI6403_SLIM_CTRL_3, 0x44);/* 48K */
 	} else {
 		/* set S3 CTRL */
-		hi64xx_hifi_write_reg(HI6403_DSP_S3_CTRL_L, 0x00);/* 8K */
+		hi64xx_hifi_reg_write_bits(HI6403_DSP_S3_CTRL_L, 0x04, 0x07);/* 48K */
 		/* DSP IF 5 */
 		hi64xx_hifi_write_reg(HI6403_DSP_S3_CTRL_H, 0x00);/* 8K */
 		/* use DSP IF5/DSP IF1 instead of PGA */
@@ -384,6 +384,20 @@ static void hi6403_set_dsp_div(enum pll_state pll_state)
 	return;
 }
 
+static void hi6403_ir_study_path_clean(void)
+{
+	hi64xx_hifi_reg_write_bits(HI6403_SC_FS_ADC_REG, 0x0, 0x30);
+	hi64xx_hifi_reg_write_bits(HI6403_SC_CODEC_MUX_SEL1_3_REG, 0x0, 0x80);
+	hi64xx_hifi_reg_write_bits(HI64xx_SC_FS_S4_CTRL_H, 0x40, 0x70);
+	hi64xx_hifi_reg_write_bits(HI6403_DSPIF8_MUX_REG, 0x0, 0xF);
+	hi64xx_hifi_reg_write_bits(HI64xx_SC_FS_MISC_CTRL, 0x0, 0xE0);
+
+	/* HPF bypass for mic abnormal */
+	hi64xx_hifi_reg_write_bits(HI6403_ADC1L_R_REG, 0x0, 0x1);
+
+	return;
+}
+
 int hi6403_hifi_config_init(struct snd_soc_codec *codec,
 				struct hi64xx_resmgr *resmgr,
 				struct hi64xx_irq *irqmgr,
@@ -413,7 +427,7 @@ int hi6403_hifi_config_init(struct snd_soc_codec *codec,
 	dsp_config.wtd_irq_num = IRQ_WTD;
 	dsp_config.vld_irq_num = IRQ_CMD_VALID;
 	dsp_config.dump_ocram_addr = HI6403_DUMP_PANIC_STACK_ADDR;
-	dsp_config.dump_ocram_size = HI6403_DUMP_PANIC_STACK_SIZE;
+	dsp_config.dump_ocram_size = HI6403_DUMP_PANIC_STACK_SIZE + HI6403_DUMP_CPUVIEW_SIZE;
 	dsp_config.dump_log_addr = HI6403_SAVE_LOG_ADDR;
 	dsp_config.dump_log_size = HI6403_SAVE_LOG_SIZE;
 	dsp_config.ocram_start_addr = HI6403_OCRAM_BASE_ADDR;
@@ -439,6 +453,7 @@ int hi6403_hifi_config_init(struct snd_soc_codec *codec,
 	dsp_config.dsp_ops.mad_enable = hi6403_mad_enable;
 	dsp_config.dsp_ops.mad_disable = hi6403_mad_disable;
 	dsp_config.dsp_ops.set_dsp_div = hi6403_set_dsp_div;
+	dsp_config.dsp_ops.ir_path_clean = hi6403_ir_study_path_clean;
 
 	dl_config.dspif_clk_en_addr = HI6403_DSP_I2S_DSPIF_CLK_EN;
 

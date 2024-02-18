@@ -25,7 +25,7 @@
 #include <linux/io.h>
 #include <linux/pm_runtime.h>
 
-/*lint -e750 -e730 -e838 -e529 -e438 -e778 -e826 -e774 -e747 */
+/*lint -e750 -e730 -e838 -e529 -e438 -e778 -e826 -e774 -e747 -e527 -e456 -e454 -e455*/
 
 #define HI64XX_CFG_BASE_ADDR            0x20007000
 
@@ -187,7 +187,7 @@ void ssi_reg_write32(unsigned int reg, unsigned int val)
 	mutex_lock(&pdata->sr_rw_lock);
 
 	if (reg & 0x3) {
-		pr_err("%s:reg is 0x%x, it's not alignment!!\n", __FUNCTION__, reg);
+		pr_err("%s:reg is 0x%pK, it's not alignment!!\n", __FUNCTION__, (void *)(unsigned long)reg);
 		mutex_unlock(&pdata->sr_rw_lock);
 		return;
 	}
@@ -257,41 +257,41 @@ static int hi_cdcssi_probe(struct platform_device *pdev)
 	if (IS_ERR(priv->pctrl)) {
 		dev_err(dev, "could not get pinctrl\n");
 		ret = -EIO;
-		goto exit;
+		goto err_exit;
 	}
 
 	priv->pin_default = pinctrl_lookup_state(priv->pctrl, PINCTRL_STATE_DEFAULT);
 	if (IS_ERR(priv->pin_default)) {
 		dev_err(dev, "could not get default state (%li)\n" , PTR_ERR(priv->pin_default));
 		ret = -EIO;
-		goto exit;
+		goto err_exit;
 	}
 
 	priv->pin_idle = pinctrl_lookup_state(priv->pctrl, PINCTRL_STATE_IDLE);
 	if (IS_ERR(priv->pin_idle)) {
 		dev_err(dev, "could not get idle state (%li)\n", PTR_ERR(priv->pin_idle));
 		ret = -EIO;
-		goto exit;
+		goto err_exit;
 	}
 
 	if (pinctrl_select_state(priv->pctrl, priv->pin_default)) {
 		dev_err(dev, "could not set pins to default state\n");
 		ret = -EIO;
-		goto exit;
+		goto err_exit;
 	}
 
 	resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!resource) {
 		dev_err(dev, "get IORESOURCE_MEM failed\n");
 		ret = -ENXIO;
-		goto exit;
+		goto err_exit;
 	}
 
 	priv->ssi_base = ioremap(resource->start, resource_size(resource));
 	if (!priv->ssi_base) {
 		dev_err(dev, "remap base address %pK failed\n", (void*)resource->start);
 		ret = -ENXIO;
-		goto exit;
+		goto err_exit;
 	}
 	if (of_property_read_bool(dev->of_node, "pm_runtime_support"))
 		priv->pm_runtime_support = true;
@@ -307,7 +307,10 @@ static int hi_cdcssi_probe(struct platform_device *pdev)
 
 	return 0;
 
+err_exit:
+	clk_disable_unprepare(priv->codec_ssi_clk);
 exit:
+	mutex_destroy(&priv->sr_rw_lock);
 	return ret;
 }
 
@@ -328,11 +331,12 @@ static int hi_cdcssi_remove(struct platform_device *pdev)
 	iounmap(priv->ssi_base);
 	pinctrl_put(priv->pctrl);
 	clk_disable_unprepare(priv->codec_ssi_clk);
-	devm_kfree(dev, priv);
-
 	if (priv->pm_runtime_support) {
 		pm_runtime_set_suspended(dev);
 	}
+
+	mutex_destroy(&priv->sr_rw_lock);
+	devm_kfree(dev, priv);
 
 	return ret;
 }

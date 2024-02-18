@@ -47,14 +47,17 @@
 #include "bsp_drv_ipc.h"
 #include "hifi_om.h"
 #include <dsm/dsm_pub.h>
+#include "usbaudio_ioctl.h"
 
-
+/*lint -e1058*/
 #define DTS_COMP_HIFIDSP_NAME "hisilicon,k3hifidsp"
 #define FILE_PROC_DIRECTORY "hifidsp"
 #define SEND_MSG_TO_HIFI mailbox_send_msg
 #define RETRY_COUNT	3
+#define FPGA_TIMEOUT_LEN_MS 10000
+#define ASIC_TIMEOUT_LEN_MS 2000
 
-static DEFINE_SEMAPHORE(s_misc_sem);
+static DEFINE_SEMAPHORE(s_misc_sem);/*lint !e64 !e570 !e651*/
 
 LIST_HEAD(recv_sync_work_queue_head);
 LIST_HEAD(recv_proc_work_queue_head);
@@ -78,6 +81,9 @@ struct hifi_misc_priv {
 	spinlock_t	recv_proc_lock;
 	spinlock_t	pcm_read_lock;
 
+	struct mutex ioctl_mutex;
+	struct mutex proc_read_mutex;
+
 	struct completion	completion;
 	wait_queue_head_t	proc_waitq;
 	wait_queue_head_t	pcm_read_waitq;
@@ -96,6 +102,7 @@ struct hifi_misc_priv {
 
 	struct multi_mic multi_mic_ctrl;
 
+	enum hifi_dsp_platform_type platform_type;
 };
 static struct hifi_misc_priv s_misc_data;
 
@@ -147,11 +154,48 @@ static struct misc_msg_info msg_info[] = {
 {ID_AUDIO_AP_OM_DUMP_CMD, "ID_AUDIO_AP_OM_DUMP_CMD"},
 {ID_AUDIO_AP_FADE_OUT_REQ, "ID_AUDIO_AP_FADE_OUT_REQ"},
 {ID_AP_ENABLE_MODEM_LOOP_REQ, "ID_AP_ENABLE_MODEM_LOOP_REQ"},
+{ID_AP_ENABLE_AT_DSP_LOOP_REQ, "ID_AP_ENABLE_AT_DSP_LOOP_REQ"},
 {ID_AP_AUDIO_DYN_EFFECT_GET_PARAM, "ID_AP_AUDIO_DYN_EFFECT_GET_PARAM"},
 {ID_AP_AUDIO_DYN_EFFECT_GET_PARAM_CNF, "ID_AP_AUDIO_DYN_EFFECT_GET_PARAM_CNF"},
 {ID_AP_AUDIO_DYN_EFFECT_TRIGGER, "ID_AP_AUDIO_DYN_EFFECT_TRIGGER"},
+{ID_AP_HIFI_REQUEST_SET_PARA_CMD, "ID_AP_HIFI_REQUEST_SET_PARA_CMD"},
+{ID_AP_HIFI_REQUEST_GET_PARA_CMD, "ID_AP_HIFI_REQUEST_GET_PARA_CMD"},
+{ID_AP_HIFI_REQUEST_GET_PARA_CNF, "ID_AP_HIFI_REQUEST_GET_PARA_CNF"},
 };
 
+unsigned long try_copy_to_user(void __user *to, const void *from, unsigned long n)
+{
+	int try_times = 0;
+	unsigned long ret = 0;
+
+	while (try_times < RETRY_COUNT) {
+		ret = copy_to_user(to, from, n);
+		if (0 == ret)
+			break;
+
+		try_times++;
+		logw("copy to user fail ret %lu, retry %d times\n", ret, try_times);
+	}
+
+	return ret;
+}
+
+unsigned long try_copy_from_user(void *to, const void __user *from, unsigned long n)
+{
+	int try_times = 0;
+	unsigned long ret = 0;
+
+	while (try_times < RETRY_COUNT) {
+		ret = copy_from_user(to, from, n);
+		if (0 == ret)
+			break;
+
+		try_times++;
+		logw("copy from user fail ret %lu, retry %d times\n", ret, try_times);
+	}
+
+	return ret;
+}
 
 void sochifi_watchdog_send_event(void)
 {
@@ -178,7 +222,9 @@ static void hifi_misc_msg_info(unsigned short msg_id)
 
 	for (i = 0; i < size; i++) {
 		if (msg_info[i].msg_id == msg_id) {
-			logi("MSG: %s.\n", msg_info[i].info);
+			if (msg_id != ID_AP_AUDIO_PLAY_QUERY_TIME_REQ
+				&& msg_id != ID_AUDIO_AP_PLAY_QUERY_TIME_CNF)
+				logi("MSG: %s.\n", msg_info[i].info);
 			break;
 		}
 	}
@@ -252,6 +298,7 @@ END:
 static int hifi_misc_sync_write(unsigned char  *buff, unsigned int len)
 {
 	int ret = OK;
+	unsigned long wait_reult = 0;
 
 	IN_FUNCTION;
 
@@ -261,7 +308,11 @@ static int hifi_misc_sync_write(unsigned char  *buff, unsigned int len)
 		goto END;
 	}
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
 	reinit_completion(&s_misc_data.completion);
+#else
+	INIT_COMPLETION(s_misc_data.completion);
+#endif
 
 	/*调用核间通信接口发送数据，得到返回值ret*/
 	ret = SEND_MSG_TO_HIFI(MAILBOX_MAILCODE_ACPU_TO_HIFI_MISC, buff, len);
@@ -271,14 +322,17 @@ static int hifi_misc_sync_write(unsigned char  *buff, unsigned int len)
 		goto END;
 	}
 
-	ret = wait_for_completion_timeout(&s_misc_data.completion, msecs_to_jiffies(2000));
+	if (hifi_misc_get_platform_type() == HIFI_DSP_PLATFORM_FPGA)
+		wait_reult = wait_for_completion_timeout(&s_misc_data.completion, msecs_to_jiffies(FPGA_TIMEOUT_LEN_MS));
+	else
+		wait_reult = wait_for_completion_timeout(&s_misc_data.completion, msecs_to_jiffies(ASIC_TIMEOUT_LEN_MS));
 
 	s_misc_data.sn++;
 	if (unlikely(s_misc_data.sn & 0x10000000)){
 		s_misc_data.sn = 0;
 	}
 
-	if (!ret) {
+	if (!wait_reult) {
 		loge("wait completion timeout.\n");
 		hifi_dump_panic_log();
 		ret = ERROR;
@@ -315,6 +369,7 @@ static bool hifi_misc_local_process(unsigned short _msg_id)
 	case ID_AUDIO_AP_DP_CLK_EN_IND:
 	case ID_AUDIO_AP_VOICE_BSD_PARAM_CMD:
 	case ID_AUDIO_AP_OM_CMD:
+	case ID_AUDIO_AP_3A_CMD:
 		ret = true;
 		break;
 	default:
@@ -323,7 +378,7 @@ static bool hifi_misc_local_process(unsigned short _msg_id)
 
 	return ret;
 }
-
+/*lint -e429*/
 static void hifi_misc_mesg_process(void *cmd)
 {
 	unsigned int cmd_id = 0;
@@ -342,6 +397,10 @@ static void hifi_misc_mesg_process(void *cmd)
 		hifi_om_rev_data_handle(HIFI_OM_WORK_AUDIO_OM_DETECTION, hifi_om_rev_data->data,
 			hifi_om_rev_data->data_len);
 		break;
+	case ID_AUDIO_AP_3A_CMD:
+		hifi_om_rev_data_handle(HIFI_OM_WORK_VOICE_3A, hifi_om_rev_data->data,
+			hifi_om_rev_data->data_len);
+		break;
 	case ID_AUDIO_AP_VOICE_BSD_PARAM_CMD:
 		hifi_om_rev_data_handle(HIFI_OM_WORK_VOICE_BSD, hifi_om_rev_data->data,
 			hifi_om_rev_data->data_len);
@@ -356,10 +415,10 @@ static void hifi_misc_mesg_process(void *cmd)
 			loge("malloc fail\n");
 			break;
 		}
-		memset(dp_clk_cmd, 0, sizeof(struct dp_clk_request));
+		memset(dp_clk_cmd, 0, sizeof(struct dp_clk_request));/* unsafe_function_ignore: memset */
 
 		logi("multi mic cmd: 0x%x.\n", common_cmd->msg_id);
-		memcpy(&(dp_clk_cmd->dp_clk_msg), common_cmd, sizeof(struct common_hifi_cmd));
+		memcpy(&(dp_clk_cmd->dp_clk_msg), common_cmd, sizeof(struct common_hifi_cmd));/* unsafe_function_ignore: memcpy */
 
 		spin_lock_bh(&(s_misc_data.multi_mic_ctrl.cmd_lock));
 		list_add_tail(&dp_clk_cmd->dp_clk_node, &(s_misc_data.multi_mic_ctrl.cmd_queue));
@@ -375,6 +434,7 @@ static void hifi_misc_mesg_process(void *cmd)
 
 	return;
 }
+/*lint +e429*/
 /*****************************************************************************
  函 数 名  : hifi_misc_handle_mail
  功能描述  : Hifi MISC 设备双核通信接收中断处理函数
@@ -418,7 +478,7 @@ static void hifi_misc_handle_mail(void *usr_para, void *mail_handle, unsigned in
 		loge("recv kmalloc failed.\n");
 		goto ERR;
 	}
-	memset(recv, 0, sizeof(struct recv_request));
+	memset(recv, 0, sizeof(struct recv_request));/* unsafe_function_ignore: memset */
 
 	/* 设定SIZE */
 	recv->rev_msg.mail_buff_len = mail_len;
@@ -429,7 +489,7 @@ static void hifi_misc_handle_mail(void *usr_para, void *mail_handle, unsigned in
 		loge("recv->rev_msg.mail_buff kmalloc failed.\n");
 		goto ERR;
 	}
-	memset(recv->rev_msg.mail_buff, 0, mail_len);
+	memset(recv->rev_msg.mail_buff, 0, mail_len);/* unsafe_function_ignore: memset */
 
 	/* 将剩余内容copy透传到buff中 */
 	ret_mail = mailbox_read_msg_data(mail_handle, (char*)(recv->rev_msg.mail_buff), (unsigned int *)(&(recv->rev_msg.mail_buff_len)));
@@ -495,7 +555,7 @@ ERR:
 END:
 	OUT_FUNCTION;
 
-	return;
+	return;/*lint !e593*/
 }
 
 /*****************************************************************************
@@ -523,15 +583,14 @@ static int hifi_dsp_get_input_param(unsigned int usr_para_size, void *usr_para_a
 
 	IN_FUNCTION;
 
-	/*获取arg入参*/
-	para_size_in = usr_para_size + SIZE_CMD_ID;
-
 	/* 限制分配空间 */
-	if ((para_size_in > SIZE_LIMIT_PARAM) || (para_size_in <= SIZE_CMD_ID)) {
-		loge("para_size_in(%u) exceed LIMIT(%u/%u).\n", para_size_in, SIZE_CMD_ID, SIZE_LIMIT_PARAM);
+	if ((usr_para_size == 0) || (usr_para_size > SIZE_LIMIT_PARAM - SIZE_CMD_ID)) {
+		loge("usr_para_size(%u) exceed LIMIT(0/%u).\n", usr_para_size, SIZE_LIMIT_PARAM - SIZE_CMD_ID);
 		goto ERR;
 	}
 
+	/*获取arg入参*/
+	para_size_in = usr_para_size + SIZE_CMD_ID;
 	para_in = kzalloc(para_size_in, GFP_KERNEL);
 	if (NULL == para_in) {
 		loge("kzalloc fail.\n");
@@ -539,7 +598,7 @@ static int hifi_dsp_get_input_param(unsigned int usr_para_size, void *usr_para_a
 	}
 
 	if (NULL != usr_para_addr) {
-		if (copy_from_user(para_in , usr_para_addr, usr_para_size)) {
+		if (try_copy_from_user(para_in , usr_para_addr, usr_para_size)) {
 			loge("copy_from_user fail.\n");
 			goto ERR;
 		}
@@ -639,7 +698,7 @@ static int hifi_dsp_get_output_param(unsigned int krn_para_size, void *krn_para_
 
 	para_to = usr_para_addr;
 	para_n = krn_para_size;
-	if (para_n > SIZE_LIMIT_PARAM) {
+	if ((0 == para_n) || (SIZE_LIMIT_PARAM < para_n)) {
 		loge("para_n exceed limit (%d / %d).\n", para_n, SIZE_LIMIT_PARAM);
 		ret = -EINVAL;
 		goto END;
@@ -653,10 +712,9 @@ static int hifi_dsp_get_output_param(unsigned int krn_para_size, void *krn_para_
 
 	/* Copy data from kernel space to user space
 		to, from, n */
-	ret = copy_to_user(para_to, krn_para_addr, para_n);
-	if (OK != ret) {
-		loge("copy_to_user fail, ret is %d.\n", ret);
-		ret = ERROR;
+	if (try_copy_to_user(para_to, krn_para_addr, para_n)) {
+		loge("copy_to_user fail\n");
+		ret = COPYFAIL;
 		goto END;
 	}
 
@@ -694,7 +752,7 @@ static int hifi_dsp_async_cmd(unsigned long arg)
 
 	IN_FUNCTION;
 
-	if (copy_from_user(&param,(void*) arg, sizeof(struct misc_io_async_param))) {
+	if (try_copy_from_user(&param,(void*) arg, sizeof(struct misc_io_async_param))) {
 		loge("copy_from_user fail.\n");
 		ret = ERROR;
 		goto END;
@@ -721,7 +779,7 @@ static int hifi_dsp_async_cmd(unsigned long arg)
 	}
 
 	if (ID_AP_AUDIO_PLAY_UPDATE_BUF_CMD == *(unsigned short *)para_krn_in) {
-		wake_unlock(&s_misc_data.update_buff_wakelock);
+		wake_unlock(&s_misc_data.update_buff_wakelock);/*lint !e455*/
 	}
 
 END:
@@ -756,10 +814,12 @@ static int hifi_dsp_sync_cmd(unsigned long arg)
 	void __user *para_addr_in	= NULL;
 	void __user *para_addr_out = NULL;
 	struct recv_request *recv = NULL;
+	unsigned char * mail_buf = NULL;
+	unsigned int mail_len = 0;
 
 	IN_FUNCTION;
 
-	if (copy_from_user(&param,(void*) arg, sizeof(struct misc_io_sync_param))) {
+	if (try_copy_from_user(&param,(void*) arg, sizeof(struct misc_io_sync_param))) {
 		loge("copy_from_user fail.\n");
 		ret = ERROR;
 		goto END;
@@ -789,15 +849,24 @@ static int hifi_dsp_sync_cmd(unsigned long arg)
 		goto END;
 	}
 
+	mail_buf = kzalloc(SIZE_LIMIT_PARAM, GFP_KERNEL);
+	if (!mail_buf) {
+		loge("alloc mail buffer failed\n");
+		ret = -ENOMEM;
+		goto END;
+	}
+
 	/*将获得的rev_msg信息填充到出参arg*/
 	spin_lock_bh(&s_misc_data.recv_sync_lock);
 
 	if (!list_empty(&recv_sync_work_queue_head)) {
 		recv = list_entry(recv_sync_work_queue_head.next, struct recv_request, recv_node);
-		ret = hifi_dsp_get_output_param(recv->rev_msg.mail_buff_len- SIZE_CMD_ID, recv->rev_msg.mail_buff,
-						&param.para_size_out, para_addr_out);
-		if (OK != ret) {
-			loge("get_out ret=%d.\n", ret);
+		mail_len = recv->rev_msg.mail_buff_len - SIZE_CMD_ID;
+		if (mail_len <= SIZE_LIMIT_PARAM) {
+			memcpy(mail_buf, recv->rev_msg.mail_buff, mail_len);/* unsafe_function_ignore: memcpy */
+			ret = OK;
+		} else {
+			ret = -EINVAL;
 		}
 
 		list_del(&recv->recv_node);
@@ -807,13 +876,26 @@ static int hifi_dsp_sync_cmd(unsigned long arg)
 	}
 	spin_unlock_bh(&s_misc_data.recv_sync_lock);
 
-	if (copy_to_user((void*)arg, &param, sizeof(struct misc_io_sync_param))) {
-	        loge("copy_to_user fail.\n");
+	if (ret != OK) {
+		loge("mail buff error buf length:%u\n", mail_len);
+		goto END;
+	}
+	ret = hifi_dsp_get_output_param(mail_len, mail_buf, &param.para_size_out, para_addr_out);
+	if (OK != ret) {
+		loge("get output param fail, ret=%d.\n", ret);
+		goto END;
+	}
+
+	if (try_copy_to_user((void*)arg, &param, sizeof(struct misc_io_sync_param))) {
+		loge("copy_to_user fail.\n");
 		ret = COPYFAIL;
 		goto END;
 	}
 
 END:
+	if (mail_buf)
+		kfree(mail_buf);
+
 	/*释放krn入参*/
 	hifi_dsp_get_input_param_free(&para_krn_in);
 
@@ -844,7 +926,7 @@ static int hifi_dsp_get_phys_cmd(unsigned long arg)
 
 	IN_FUNCTION;
 
-	if (copy_from_user(&param,(void*) arg, sizeof(struct misc_io_get_phys_param))) {
+	if (try_copy_from_user(&param,(void*) arg, sizeof(struct misc_io_get_phys_param))) {
 		loge("copy_from_user fail.\n");
 		OUT_FUNCTION;
 		return ERROR;
@@ -856,7 +938,7 @@ static int hifi_dsp_get_phys_cmd(unsigned long arg)
 			para_addr_in = (unsigned long)(s_misc_data.hifi_priv_base_phy - HIFI_UNSEC_BASE_ADDR);
 			param.phys_addr_l = GET_LOW32(para_addr_in);
 			param.phys_addr_h = GET_HIG32(para_addr_in);
-			logd("para_addr_in = 0x%ld.\n", para_addr_in);
+			logd("para_addr_in = 0x%pK.\n", (void *)para_addr_in);
 			break;
 
 		default:
@@ -865,7 +947,7 @@ static int hifi_dsp_get_phys_cmd(unsigned long arg)
 			break;
 	}
 
-	if (copy_to_user((void*)arg, &param, sizeof(struct misc_io_get_phys_param))) {
+	if (try_copy_to_user((void*)arg, &param, sizeof(struct misc_io_get_phys_param))) {
 		loge("copy_to_user fail.\n");
 		ret = ERROR;
 	}
@@ -910,19 +992,22 @@ static int hifi_dsp_senddata_sync_cmd(unsigned long arg)
 	修改内容   : 新生成函数
 
 *****************************************************************************/
+/*lint -e429*/
 static int hifi_dsp_wakeup_read_thread(unsigned long arg)
 {
 	struct recv_request *recv = NULL;
 	struct misc_recmsg_param *recmsg = NULL;
+	unsigned int wake_cmd = (unsigned int)arg;
 	struct list_head *pos = NULL;
 	unsigned int node_count = 0;
-	unsigned int wake_cmd = (unsigned int)arg;
 
+	spin_lock_bh(&s_misc_data.recv_proc_lock);
 	list_for_each(pos, &recv_proc_work_queue_head) {/*lint !e838*/
 		node_count++;
 	}
+	spin_unlock_bh(&s_misc_data.recv_proc_lock);
 
-	if (node_count > MAX_NODE_COUNT) {
+	if (node_count >= MAX_NODE_COUNT) {
 		loge("too much work left in proc_work_queue, node count:%u\n", node_count);
 		return -EBUSY;
 	}
@@ -933,7 +1018,7 @@ static int hifi_dsp_wakeup_read_thread(unsigned long arg)
 		loge("recv kmalloc failed.\n");
 		return -ENOMEM;
 	}
-	memset(recv, 0, sizeof(struct recv_request));
+	memset(recv, 0, sizeof(struct recv_request));/* unsafe_function_ignore: memset */
 
 	wake_lock_timeout(&s_misc_data.hifi_misc_wakelock, HZ);
 
@@ -948,7 +1033,7 @@ static int hifi_dsp_wakeup_read_thread(unsigned long arg)
 		loge("recv->rev_msg.mail_buff kmalloc failed.\n");
 		return -ENOMEM;
 	}
-	memset(recv->rev_msg.mail_buff, 0, recv->rev_msg.mail_buff_len);
+	memset(recv->rev_msg.mail_buff, 0, recv->rev_msg.mail_buff_len);/* unsafe_function_ignore: memset */
 
 	recmsg = (struct misc_recmsg_param *)recv->rev_msg.mail_buff;
 	recmsg->msgID = ID_AUDIO_AP_PLAY_DONE_IND;
@@ -963,7 +1048,7 @@ static int hifi_dsp_wakeup_read_thread(unsigned long arg)
 
 	return OK;
 }
-
+/*lint +e429*/
 static int hifi_dsp_wakeup_pcm_read_thread(unsigned long arg)
 {
 	(void)arg;
@@ -1002,7 +1087,7 @@ static int hifi_dsp_write_param(unsigned long arg)
 
 	IN_FUNCTION;
 
-	if (copy_from_user(&para, (void*)arg, sizeof(struct misc_io_sync_param))) {
+	if (try_copy_from_user(&para, (void*)arg, sizeof(struct misc_io_sync_param))) {
 		loge("copy_from_user fail.\n");
 		ret = ERROR;
 		goto error1;
@@ -1025,10 +1110,8 @@ static int hifi_dsp_write_param(unsigned long arg)
 		goto error1;
 	}
 
-	ret = copy_from_user(hifi_param_vir_addr, (void __user *)para_addr_in, para.para_size_in);
-
-	if (ret != 0) {
-		loge("copy data to hifi error! ret = %d.\n", ret);
+	if (try_copy_from_user(hifi_param_vir_addr, (void __user *)para_addr_in, para.para_size_in)) {
+		loge("copy data to hifi error\n");
 		ret = ERROR;
 	}
 
@@ -1038,9 +1121,8 @@ static int hifi_dsp_write_param(unsigned long arg)
 		goto error1;
 	}
 
-	ret = copy_to_user((void __user *)para_addr_out, &ret, sizeof(ret));
-	if (ret) {
-		loge("copy data to user fail! ret = %d.\n", ret);
+	if (try_copy_to_user((void __user *)para_addr_out, &ret, sizeof(ret))) {
+		loge("copy data to user fail\n");
 		ret = ERROR;
 	}
 
@@ -1049,6 +1131,21 @@ error1:
 	return ret;
 }
 
+/*****************************************************************************
+ 函 数 名  : hifi_dsp_write_audio_effect_param
+ 功能描述  : 将用户态算法参数拷贝到HIFI中
+ 输入参数  : unsigned long arg : ioctl的入参
+ 输出参数  : 无
+ 返 回 值  : 成功:OK 失败:BUSY
+ 调用函数  :
+ 被调函数  :
+
+ 修改历史	   :
+  1.日	  期   : 2013年10月24日
+	作	  者   : 侯良军 00215385
+	修改内容   : 新生成函数
+
+*****************************************************************************/
 /*****************************************************************************
  函 数 名  : hifi_misc_open
  功能描述  : Hifi MISC 设备打开操作
@@ -1134,7 +1231,9 @@ static long hifi_misc_ioctl(struct file *fd,
 	switch(cmd) {
 		case HIFI_MISC_IOCTL_ASYNCMSG/*异步命令*/:
 			logd("ioctl: HIFI_MISC_IOCTL_ASYNCMSG.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_async_cmd((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 
 		case HIFI_MISC_IOCTL_SYNCMSG/*同步命令*/:
@@ -1163,34 +1262,39 @@ static long hifi_misc_ioctl(struct file *fd,
 
 		case HIFI_MISC_IOCTL_GET_PHYS/*获取*/:
 			logd("ioctl: HIFI_MISC_IOCTL_GET_PHYS.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_get_phys_cmd((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
-
 		case HIFI_MISC_IOCTL_WRITE_PARAMS : /* write algo param to hifi*/
+			logi("ioctl: HIFI_MISC_IOCTL_WRITE_PARAMS.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_write_param((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
-
-		case HIFI_MISC_IOCTL_DUMP_HIFI:
+        case HIFI_MISC_IOCTL_DUMP_HIFI:
 			logi("ioctl: HIFI_MISC_IOCTL_DUMP_HIFI.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_dump_hifi((void __user *)arg);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
-
-		case HIFI_MISC_IOCTL_DISPLAY_MSG:
-			logi("ioctl: HIFI_MISC_IOCTL_DISPLAY_MSG.\n");
-			ret = hifi_get_dmesg((void __user *)arg);
-			break;
-
 		case HIFI_MISC_IOCTL_GET_VOICE_BSD_PARAM:
 			logi("ioctl:HIFI_MISC_IOCTL_GET_VOICE_BSD_PARAM.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_om_get_voice_bsd_param(data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		case HIFI_MISC_IOCTL_WAKEUP_THREAD:
 			logi("ioctl: HIFI_MISC_IOCTL_WAKEUP_THREAD.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_wakeup_read_thread((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		case HIFI_MISC_IOCTL_WAKEUP_PCM_READ_THREAD: /*lint !e30 !e142*/
 			logi("ioctl: HIFI_MISC_IOCTL_WAKEUP_PCM_READ_THREAD.\n");
+			mutex_lock(&s_misc_data.ioctl_mutex);
 			ret = hifi_dsp_wakeup_pcm_read_thread((unsigned long)data32);
+			mutex_unlock(&s_misc_data.ioctl_mutex);
 			break;
 		default:
 			/*打印无该CMD类型*/
@@ -1226,16 +1330,17 @@ static int hifi_misc_mmap(struct file *file, struct vm_area_struct *vma)
 	phys_page_addr = (u64)s_misc_data.hifi_priv_base_phy >> PAGE_SHIFT;
 	size = ((unsigned long)vma->vm_end - (unsigned long)vma->vm_start);
 	logd("vma=0x%pK.\n", vma);
-	logd("size=%ld, vma->vm_start=%ld, end=%ld.\n", ((unsigned long)vma->vm_end - (unsigned long)vma->vm_start),
-		 (unsigned long)vma->vm_start, (unsigned long)vma->vm_end);
-	logd("phys_page_addr=0x%ld.\n", (unsigned long)phys_page_addr);
+	logd("size=%ld, vma->vm_start=%pK, end=%pK.\n", ((unsigned long)vma->vm_end - (unsigned long)vma->vm_start),
+		 (void *)(unsigned long)vma->vm_start, (void *)(unsigned long)vma->vm_end);
+	logd("phys_page_addr=0x%pK.\n", (void *)phys_page_addr);
+
+	if (size > HIFI_MUSIC_DATA_SIZE) {
+		loge("size error, size:%lu\n", size);
+		return ERROR;
+	}
 
 	vma->vm_page_prot = PAGE_SHARED;
 	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-
-	if (size > HIFI_MUSIC_DATA_SIZE) {
-		size = HIFI_MUSIC_DATA_SIZE;
-	}
 
 	ret = remap_pfn_range(vma,
 					vma->vm_start,
@@ -1296,6 +1401,8 @@ static ssize_t hifi_misc_proc_read(struct file *file, char __user *buf,
 		return -ENXIO;
 	}
 
+	mutex_lock(&s_misc_data.proc_read_mutex);
+
 	if (to_user_buf)
 		goto RETRY;
 
@@ -1304,6 +1411,7 @@ static ssize_t hifi_misc_proc_read(struct file *file, char __user *buf,
 		ret = wait_event_interruptible(s_misc_data.proc_waitq, s_misc_data.wait_flag!=0);
 		if (ret) {
 			logi("wait interrupted by a signal, ret: %d\n", ret);
+			mutex_unlock(&s_misc_data.proc_read_mutex);
 			return ret;
 		}
 		logi("wait_event_interruptible success.\n");
@@ -1332,7 +1440,7 @@ static ssize_t hifi_misc_proc_read(struct file *file, char __user *buf,
 				ret = -ENOMEM;
 				goto ERR;
 			}
-			memcpy(to_user_buf, recv->rev_msg.mail_buff, len);
+			memcpy(to_user_buf, recv->rev_msg.mail_buff, len);/* unsafe_function_ignore: memcpy */
 		}
 
 		list_del(&recv->recv_node);
@@ -1357,12 +1465,13 @@ RETRY:
 			loge("copy len[%u] bigger than count[%zu]\n", len, count);
 			kzfree(to_user_buf);
 			to_user_buf = NULL;
+			mutex_unlock(&s_misc_data.proc_read_mutex);
 			return -EINVAL;
 		}
 
-		ret = (int)copy_to_user(buf, to_user_buf, len);
+		ret = (int)try_copy_to_user(buf, to_user_buf, len);
 		if (ret != 0) {
-			loge("copy to user fail, ret : %d len : %u, retry_cnt: %d\n", ret, len, retry_cnt);
+			loge("copy to user fail, ret:%d, len:%u, retry_cnt:%d\n",ret, len, retry_cnt);
 			retry_cnt++;
 			ret = -EFAULT;
 		}
@@ -1375,11 +1484,13 @@ RETRY:
 		}
 	}
 
+	mutex_unlock(&s_misc_data.proc_read_mutex);
 	OUT_FUNCTION;
 	return ret;
 
 ERR:
 	spin_unlock_bh(&s_misc_data.recv_proc_lock);
+	mutex_unlock(&s_misc_data.proc_read_mutex);
 	return ret;
 
 }
@@ -1423,7 +1534,7 @@ static ssize_t hifi_misc_pcm_read(struct file *file, char __user *buf,
 
 	spin_unlock_bh(&s_misc_data.pcm_read_lock);
 
-	if (copy_to_user(buf, s_misc_data.hifi_priv_base_virt + (HIFI_PCM_UPLOAD_BUFFER_ADDR - HIFI_UNSEC_BASE_ADDR), count)) {
+	if (try_copy_to_user(buf, s_misc_data.hifi_priv_base_virt + (HIFI_PCM_UPLOAD_BUFFER_ADDR - HIFI_UNSEC_BASE_ADDR), count)) {
 		loge("pcm read copy_to_user fail\n");
 		return -EFAULT;
 	}
@@ -1469,12 +1580,12 @@ static void hifi_misc_proc_init( void )
 	}
 
 	/* Creating read/write "status" entry */
-	entry_hifi = proc_create("hifi", S_IRUSR|S_IRGRP|S_IROTH, hifi_misc_dir, &hifi_proc_fops);
+	entry_hifi = proc_create("hifi", 0440, hifi_misc_dir, &hifi_proc_fops);
 	if (!entry_hifi) {
 		loge("Unable to create /proc/hifidsp/hifi entry.\n");
 	}
 
-	entry_hifi_pcm_read = proc_create("hifi_pcm_read", S_IRUSR|S_IRGRP|S_IROTH, hifi_misc_dir, &hifi_pcm_read_fops);
+	entry_hifi_pcm_read = proc_create("hifi_pcm_read", 0440, hifi_misc_dir, &hifi_pcm_read_fops);
 	if (!entry_hifi_pcm_read) {
 		loge("Unable to create /proc/hifidsp/hifi_pcm_read entry.\n");
 	}
@@ -1496,14 +1607,14 @@ static int hifi_sr_event(struct notifier_block *this,
 	case PM_POST_HIBERNATION:
 	case PM_POST_SUSPEND:
 		logi("resume +.\n");
-		atomic_set(&s_hifi_in_suspend, 0);
+		atomic_set(&s_hifi_in_suspend, 0);/*lint !e446*/
 		logi("resume -.\n");
 		break;
 
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
 		logi("suspend +.\n");
-		atomic_set(&s_hifi_in_suspend, 1);
+		atomic_set(&s_hifi_in_suspend, 1);/*lint !e446*/
 		while (true) {
 			if (atomic_read(&s_hifi_in_saving)) {
 				msleep(100);
@@ -1523,7 +1634,7 @@ static int hifi_reboot_notifier(struct notifier_block *nb,
 		unsigned long foo, void *bar)
 {
 	logi("reboot +.\n");
-	atomic_set(&s_hifi_in_suspend, 1);
+	atomic_set(&s_hifi_in_suspend, 1);/*lint !e446*/
 	while (true) {
 		if (atomic_read(&s_hifi_in_saving)) {
 			msleep(100);
@@ -1542,7 +1653,7 @@ void hifi_get_log_signal(void)
 		if (atomic_read(&s_hifi_in_suspend)) {
 			msleep(100);
 		} else {
-			atomic_set(&s_hifi_in_saving, 1);
+			atomic_set(&s_hifi_in_saving, 1);/*lint !e446*/
 			break;
 		}
 	}
@@ -1551,7 +1662,7 @@ void hifi_get_log_signal(void)
 
 void hifi_release_log_signal(void)
 {
-	atomic_set(&s_hifi_in_saving, 0);
+	atomic_set(&s_hifi_in_saving, 0);/*lint !e446*/
 }
 
 int hifi_send_msg(unsigned int mailcode, void *data, unsigned int length)
@@ -1575,8 +1686,8 @@ void reset_audio_clk_work(struct work_struct *work)
 	unsigned short msg_id =  0;
 
 	while (!list_empty(&s_misc_data.multi_mic_ctrl.cmd_queue)) {
-		memset(&cmd_cnf, 0, sizeof(struct common_hifi_cmd));
-		memset(mesg, 0, sizeof(struct common_hifi_cmd));
+		memset(&cmd_cnf, 0, sizeof(struct common_hifi_cmd));/* unsafe_function_ignore: memset */
+		memset(mesg, 0, sizeof(struct common_hifi_cmd));/* unsafe_function_ignore: memset */
 
 		spin_lock_bh(&s_misc_data.multi_mic_ctrl.cmd_lock);
 
@@ -1588,7 +1699,7 @@ void reset_audio_clk_work(struct work_struct *work)
 				spin_unlock_bh(&s_misc_data.multi_mic_ctrl.cmd_lock);
 				return;
 			} else {
-				memcpy(mesg, &(dp_clk_cmd->dp_clk_msg), sizeof(struct common_hifi_cmd));
+				memcpy(mesg, &(dp_clk_cmd->dp_clk_msg), sizeof(struct common_hifi_cmd));/* unsafe_function_ignore: memcpy */
 			}
 
 			list_del(&dp_clk_cmd->dp_clk_node);
@@ -1653,6 +1764,38 @@ void reset_audio_clk_work(struct work_struct *work)
 
 	logi("%s--\n",__FUNCTION__);
 }
+
+static void hifi_misc_set_platform_type(struct platform_device *pdev, struct hifi_misc_priv *priv)
+{
+	const char *platform_type;
+
+	if (!pdev || !priv) {
+		printk("param error\n");
+		return;
+	}
+
+	priv->platform_type = HIFI_DSP_PLATFORM_ASIC;
+
+	if (!of_property_read_string(pdev->dev.of_node, "platform-type", &platform_type)) {
+		if (!strncmp(platform_type, "ASIC", strlen("ASIC"))) {
+			priv->platform_type = HIFI_DSP_PLATFORM_ASIC;
+			printk("platform type is ASIC\n");
+		} else if (!strncmp(platform_type, "FPGA", strlen("FPGA"))) {
+			priv->platform_type = HIFI_DSP_PLATFORM_FPGA;
+			printk("platform type is FPGA\n");
+		} else {
+			printk("get hifidsp platform type error, set defult type[ASIC]\n");
+		}
+	} else {
+		printk("get hifidsp property fail, set defult type[ASIC]\n");
+	}
+}
+
+enum hifi_dsp_platform_type hifi_misc_get_platform_type(void)
+{
+	return s_misc_data.platform_type;
+}
+
 /*****************************************************************************
  函 数 名  : hifi_misc_probe
  功能描述  : Hifi MISC设备探测注册函数
@@ -1674,8 +1817,15 @@ static int hifi_misc_probe (struct platform_device *pdev)
 
 	IN_FUNCTION;
 
-	memset(&s_misc_data, 0, sizeof(struct hifi_misc_priv));
+	printk("hifi pdev name[%s].\n", pdev->name);//can't use logx
 
+	ret = misc_register(&hifi_misc_device);
+	if (OK != ret) {
+		loge("hifi misc device register fail,ERROR is %d.\n", ret);
+		return ERROR;
+	}
+
+	memset(&s_misc_data, 0, sizeof(struct hifi_misc_priv));/* unsafe_function_ignore: memset */
 	s_misc_data.dev = &pdev->dev;
 
 	/* Register to get PM events */
@@ -1687,23 +1837,19 @@ static int hifi_misc_probe (struct platform_device *pdev)
 	s_hifi_reboot_nb.priority = -1;
 	(void)register_reboot_notifier(&s_hifi_reboot_nb);
 
-	s_misc_data.hifi_priv_base_virt = (unsigned char*)ioremap_wc(HIFI_UNSEC_BASE_ADDR, HIFI_UNSEC_REGION_SIZE);
+	hifi_misc_set_platform_type(pdev, &s_misc_data);
 
+	s_misc_data.hifi_priv_base_phy = (unsigned char*)HIFI_UNSEC_BASE_ADDR;
+	s_misc_data.hifi_priv_base_virt = (unsigned char*)ioremap_wc(HIFI_UNSEC_BASE_ADDR, HIFI_UNSEC_REGION_SIZE);
 	if (NULL == s_misc_data.hifi_priv_base_virt) {
 		printk("hifi ioremap_wc error.\n");//can't use logx
-		goto ERR;
+		goto err1;
 	}
-	s_misc_data.hifi_priv_base_phy = (unsigned char*)HIFI_MUSIC_DATA_LOCATION;
 
 	hifi_om_init(pdev, s_misc_data.hifi_priv_base_virt, s_misc_data.hifi_priv_base_phy);
 
-	printk("hifi pdev name[%s].\n", pdev->name);//can't use logx
-
-	ret = misc_register(&hifi_misc_device);
-	if (OK != ret) {
-		loge("hifi misc device register fail,ERROR is %d.\n", ret);
-		goto ERR;
-	}
+	//clear nv data region
+	memset(s_misc_data.hifi_priv_base_virt + (HIFI_AP_NV_DATA_ADDR - HIFI_UNSEC_BASE_ADDR), 0, HIFI_AP_NV_DATA_SIZE);/* unsafe_function_ignore: memset */
 
 	hifi_misc_proc_init();
 
@@ -1711,6 +1857,9 @@ static int hifi_misc_probe (struct platform_device *pdev)
 	spin_lock_init(&s_misc_data.recv_sync_lock);
 	spin_lock_init(&s_misc_data.recv_proc_lock);
 	spin_lock_init(&s_misc_data.pcm_read_lock);
+
+	mutex_init(&s_misc_data.ioctl_mutex);
+	mutex_init(&s_misc_data.proc_read_mutex);
 
 	/*初始化同步信号量*/
 	init_completion(&s_misc_data.completion);
@@ -1730,12 +1879,12 @@ static int hifi_misc_probe (struct platform_device *pdev)
 	ret = DRV_IPCIntInit();
 	if (OK != ret) {
 		loge("hifi ipc init fail.\n");
-		goto ERR;
+		goto err2;
 	}
 	ret = (int)mailbox_init();
 	if (OK != ret) {
 		loge("hifi mailbox init fail.\n");
-		goto ERR;
+		goto err2;
 	}
 
 	/* init 3mic reset clk workqueue */
@@ -1746,7 +1895,7 @@ static int hifi_misc_probe (struct platform_device *pdev)
 		create_singlethread_workqueue("multi_mic_reset_clk_wq");
 	if (!(s_misc_data.multi_mic_ctrl.reset_audio_dp_clk_wq)) {
 		pr_err("%s(%u) : workqueue create failed", __FUNCTION__,__LINE__);
-		goto ERR;
+		goto err3;
 	}
 	INIT_WORK(&s_misc_data.multi_mic_ctrl.reset_audio_dp_clk_work, reset_audio_clk_work);
 	s_misc_data.multi_mic_ctrl.audio_clk_state = HI6402_DP_CLK_ON;
@@ -1757,15 +1906,13 @@ static int hifi_misc_probe (struct platform_device *pdev)
 
 	if (OK != ret) {
 		loge("hifi mailbox handle func register fail.\n");
-		goto ERR;
+		goto err3;
 	}
 
 	OUT_FUNCTION;
 	return OK;
 
-ERR:
-	hifi_om_deinit(pdev);
-
+err3:
 	if (NULL != s_misc_data.hifi_priv_base_virt) {
 		iounmap(s_misc_data.hifi_priv_base_virt);
 		s_misc_data.hifi_priv_base_virt = NULL;
@@ -1776,6 +1923,15 @@ ERR:
 		destroy_workqueue(s_misc_data.multi_mic_ctrl.reset_audio_dp_clk_wq);
 	}
 
+err2:
+	wake_lock_destroy(&s_misc_data.hifi_misc_wakelock);
+	wake_lock_destroy(&s_misc_data.update_buff_wakelock);
+	mutex_destroy(&s_misc_data.ioctl_mutex);
+	mutex_destroy(&s_misc_data.proc_read_mutex);
+
+	hifi_om_deinit(pdev);
+
+err1:
 	unregister_pm_notifier(&s_hifi_sr_nb);
 	unregister_reboot_notifier(&s_hifi_reboot_nb);
 
@@ -1821,6 +1977,8 @@ static int hifi_misc_remove(struct platform_device *pdev)
 	/* wake lock destroy */
 	wake_lock_destroy(&s_misc_data.hifi_misc_wakelock);
 	wake_lock_destroy(&s_misc_data.update_buff_wakelock);
+	mutex_destroy(&s_misc_data.ioctl_mutex);
+	mutex_destroy(&s_misc_data.proc_read_mutex);
 
 	OUT_FUNCTION;
 	return OK;
@@ -1846,10 +2004,19 @@ static struct platform_driver hifi_misc_driver = {
 	.remove = hifi_misc_remove,
 };
 
-module_platform_driver(hifi_misc_driver);
+static int __init hifi_misc_init(void)
+{
+	return platform_driver_register(&hifi_misc_driver);
+}
 
+static void __exit hifi_misc_exit(void)
+{
+	platform_driver_unregister(&hifi_misc_driver);
+}
+
+fs_initcall_sync(hifi_misc_init);
+module_exit(hifi_misc_exit);
 
 MODULE_DESCRIPTION("hifi driver");
 MODULE_LICENSE("GPL");
-
 

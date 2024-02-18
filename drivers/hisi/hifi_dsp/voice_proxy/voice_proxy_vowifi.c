@@ -28,6 +28,10 @@
 
 #define VOICE_PROXY_WAKE_UP_VOWIFI_READ  _IO('P',  0x1)
 
+#ifndef UNUSED_PARAMETER
+#define UNUSED_PARAMETER(x) (void)(x)
+#endif
+
 LIST_HEAD(recv_vowifi_rx_queue);
 LIST_HEAD(send_vowifi_tx_queue);
 
@@ -53,14 +57,19 @@ struct vowifi_priv {
 	/* vowifi rx voice data time stamp*/
 	int64_t vowifi_rx_stamp;
 
-	/* this handle is get from voice proxy when register sign init callback*/
-	int32_t sign_handle;
+	struct mutex ioctl_mutex;
 };
 
 static struct vowifi_priv priv;
 
+struct voice_proxy_tx_notify {
+	unsigned short msg_id;
+	unsigned short modem_no;
+};
+
 static void vowifi_sign_init(void)
 {
+	//logi("Enter %s\n", __FUNCTION__);
 	priv.vowifi_rx_cnf = false;
 	priv.first_vowifi_rx = true;
 }
@@ -70,11 +79,9 @@ static int32_t vowifi_add_tx_data(int8_t *rev_buf, uint32_t buf_size)
 	int32_t ret;
 	struct voice_proxy_data_node *node = NULL;
 
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
-
 	if (priv.vowifi_tx_cnt > VOICE_PROXY_QUEUE_SIZE_MAX) {
-		loge("out of queue, vowifi_tx_cnt(%d)>QUEUE_SIZE_MAX(%d)\n",
-			 priv.vowifi_tx_cnt, VOICE_PROXY_QUEUE_SIZE_MAX);
+		/*loge("out of queue, vowifi_tx_cnt(%d)>QUEUE_SIZE_MAX(%d)\n",
+			 priv.vowifi_tx_cnt, VOICE_PROXY_QUEUE_SIZE_MAX);*/
 		spin_lock_bh(&priv.vowifi_read_lock);
 		priv.vowifi_read_wait_flag++;
 		spin_unlock_bh(&priv.vowifi_read_lock);
@@ -83,12 +90,13 @@ static int32_t vowifi_add_tx_data(int8_t *rev_buf, uint32_t buf_size)
 		return -ENOMEM;
 	}
 
-	ret = voice_proxy_create_data_node(&node, rev_buf, (int32_t)buf_size);
+	ret = voice_proxy_create_data_node(&node, rev_buf, (int)buf_size);
 	if (ret) {
-		loge("data_node kmalloc failed\n");
+		loge("data_node kzalloc failed\n");
 		return ret;
 	}
 
+	//logi("vowifi_tx_cnt:%d\n", priv.vowifi_tx_cnt);
 	spin_lock_bh(&priv.vowifi_read_lock);
 	list_add_tail(&node->list_node, &send_vowifi_tx_queue);
 	priv.vowifi_tx_cnt++;
@@ -103,18 +111,18 @@ static void vowifi_get_rx_data(int8_t *data, uint32_t *size)
 {
 	struct voice_proxy_data_node *node = NULL;
 
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-
 	if (!list_empty_careful(&recv_vowifi_rx_queue)) {
 		node = list_first_entry(&recv_vowifi_rx_queue,
 						struct voice_proxy_data_node,
 						list_node);/*lint !e826*/
 
-		BUG_ON(*size < (uint32_t)node->list_data.size);/*lint !e730*/
+		if (*size < (uint32_t)node->list_data.size) {
+			loge("Size is invalid, size = %d, list_data.size = %d\n", *size, node->list_data.size);
+			return;
+		}
 
 		*size = (uint32_t)node->list_data.size;
-		memcpy(data, node->list_data.data, (size_t)*size);
+		memcpy(data, node->list_data.data, (size_t)*size);/* unsafe_function_ignore: memcpy */
 
 		list_del_init(&node->list_node);
 		kfree(node);
@@ -133,7 +141,12 @@ static void vowifi_get_rx_data(int8_t *data, uint32_t *size)
 static void vowifi_receive_rctp_om_tx_ntf(int8_t *rev_buf, uint32_t buf_size)
 {
 	int32_t ret;
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
+	//loge("vowifi_receive_rctp_om_tx_ntf\n");
+
+	if (!rev_buf) {
+		loge("receive_rctp_om_tx_ntf fail, param rev_buf is NULL!\n");
+		return;
+	}
 
 	ret = vowifi_add_tx_data(rev_buf, buf_size);
 	if (ret) {
@@ -146,7 +159,11 @@ static void vowifi_receive_rctp_om_tx_ntf(int8_t *rev_buf, uint32_t buf_size)
 static void vowifi_receive_ajb_om_tx_ntf(int8_t *rev_buf, uint32_t buf_size)
 {
 	int32_t ret;
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
+	//loge("vowifi_receive_ajb_om_tx_ntf\n");
+	if (!rev_buf) {
+		loge("receive_ajb_om_tx_ntf fail, param rev_buf is NULL!\n");
+		return;
+	}
 
 	ret = vowifi_add_tx_data(rev_buf, buf_size);
 	if (ret) {
@@ -160,8 +177,14 @@ static void vowifi_receive_tx_ntf(int8_t *rev_buf, uint32_t buf_size)
 {
 	int32_t ret;
 	static int32_t cnt = 0;
+	struct voice_proxy_tx_notify *tx_msg;
 
-	BUG_ON(NULL == rev_buf);/*lint !e730*/
+	if (!rev_buf) {
+		loge("receive_tx_ntf fail, param rev_buf is NULL!\n");
+		return;
+	}
+
+	tx_msg = (struct voice_proxy_tx_notify *)rev_buf;
 
 	ret = vowifi_add_tx_data(rev_buf, buf_size);
 	if (ret) {
@@ -169,10 +192,11 @@ static void vowifi_receive_tx_ntf(int8_t *rev_buf, uint32_t buf_size)
 		return;
 	}
 
-	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_WIFI_TX_CNF);
+	voice_proxy_add_work_queue_cmd(ID_PROXY_VOICE_WIFI_TX_CNF, tx_msg->modem_no);
 
 	cnt++;
 	UNUSED_PARAMETER(cnt);
+	//logi("receive wifi rx ntf msg: cnt:%d\n", cnt);
 }
 
 static void vowifi_receive_rx_cnf(int8_t *rev_buf, uint32_t buf_size)
@@ -190,13 +214,17 @@ static void vowifi_receive_rx_cnf(int8_t *rev_buf, uint32_t buf_size)
 
 	cnt++;
 	UNUSED_PARAMETER(cnt);
+	//logi("receive wifi rx cnf msg: cnt:%d\n", cnt);
 }
 
 static void vowifi_handle_rx_ntf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	//logi("msg id ID_PROXY_VOICE_WIFI_RX_NTF\n");
+
+	if (!data || !size || !msg_id) {
+		loge("handle_rx_ntf fail, param is NULL!\n");
+		return;
+	}
 
 	voice_proxy_set_send_sign(priv.first_vowifi_rx, &priv.vowifi_rx_cnf, &priv.vowifi_rx_stamp);
 
@@ -210,9 +238,12 @@ static void vowifi_handle_rx_ntf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 
 static void vowifi_handle_rx_cnf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 {
-	BUG_ON(NULL == data);/*lint !e730*/
-	BUG_ON(NULL == size);/*lint !e730*/
-	BUG_ON(NULL == msg_id);/*lint !e730*/
+	//logi("msg id ID_VOICE_PROXY_WIFI_RX_CNF\n");
+
+	if (!data || !size || !msg_id) {
+		loge("handle_rx_cnf fail, param is NULL!\n");
+		return;
+	}
 
 	priv.vowifi_rx_cnf = true;
 	priv.vowifi_rx_stamp = voice_proxy_get_time_ms();
@@ -223,7 +254,7 @@ static void vowifi_handle_rx_cnf(int8_t *data, uint32_t *size, uint16_t *msg_id)
 
 static ssize_t vowifi_read(struct file *file, char __user *user_buf, size_t size, loff_t *ppos)
 {
-	int32_t ret = 0;
+	int ret = 0;
 	struct voice_proxy_data_node *node = NULL;
 
 	UNUSED_PARAMETER(ppos);
@@ -294,23 +325,21 @@ static int32_t vowifi_add_rx_data(int8_t *data, uint32_t size)
 	int32_t ret;
 	struct voice_proxy_data_node *node = NULL;
 
-	BUG_ON(NULL == data);/*lint !e730*/
-
 	if (priv.vowifi_rx_cnt > VOICE_PROXY_QUEUE_SIZE_MAX) {
 		loge("out of queue, rx cnt(%d)>(%d)\n", priv.vowifi_rx_cnt, VOICE_PROXY_QUEUE_SIZE_MAX);
 		return -ENOMEM;
 	}
 
-	ret = voice_proxy_create_data_node(&node, data, (int32_t)size);
+	ret = voice_proxy_create_data_node(&node, data, (int)size);
 	if (ret) {
-		loge("node kmalloc failed\n");
+		loge("node kzalloc failed\n");
 		return -EFAULT;
 	}
 
 	list_add_tail(&node->list_node, &recv_vowifi_rx_queue);
 	priv.vowifi_rx_cnt++;
 
-	return (int32_t)size;
+	return (int)size;
 }
 
 static ssize_t vowifi_write(struct file *filp, const char __user *buff, size_t size, loff_t *offp)
@@ -326,7 +355,7 @@ static ssize_t vowifi_write(struct file *filp, const char __user *buff, size_t s
 		return -EINVAL;
 	}
 
-	memset(data, 0, sizeof(data));
+	memset(data, 0, sizeof(data));/* unsafe_function_ignore: memset */
 	if (copy_from_user(data, buff, size)) {
 		loge("copy_from_user fail\n");
 		return -EFAULT;
@@ -338,7 +367,9 @@ static ssize_t vowifi_write(struct file *filp, const char __user *buff, size_t s
 		return -EFAULT;
 	}
 
-	return (int32_t)size;
+	//logi("write size = %zd\n", size);
+
+	return (int)size;
 }
 
 static void vowifi_wake_up_read(void)
@@ -356,22 +387,27 @@ static long vowifi_ioctl(struct file *fd, unsigned int cmd, unsigned long arg)
 	UNUSED_PARAMETER(fd);
 	UNUSED_PARAMETER(arg);
 
+	mutex_lock(&priv.ioctl_mutex);
 	switch (cmd) {
 		case VOICE_PROXY_WAKE_UP_VOWIFI_READ:/*lint !e845*/
+			//logi("receive VOICE_PROXY_WAKE_UP_VOWIFI_READ cmd\n");
 			vowifi_wake_up_read();
 			break;
 
 		default:
-			loge("ioctl: Invalid CMD = 0x%x\n", (int32_t)cmd);
+			//loge("ioctl: Invalid CMD = 0x%x\n", (int32_t)cmd);
 			ret = -EINVAL;
 			break;
 	}
+	mutex_unlock(&priv.ioctl_mutex);
 
 	return (long)ret;
 }
 
 static int vowifi_open(struct inode *finode, struct file *fd)
 {
+	//logi("Enter %s\n", __FUNCTION__);
+
 	UNUSED_PARAMETER(finode);
 	UNUSED_PARAMETER(fd);
 
@@ -380,6 +416,8 @@ static int vowifi_open(struct inode *finode, struct file *fd)
 
 static int vowifi_close(struct inode *node, struct file *filp)
 {
+	//logi("Enter %s\n", __FUNCTION__);
+
 	UNUSED_PARAMETER(node);
 	UNUSED_PARAMETER(filp);
 
@@ -410,14 +448,16 @@ static int vowifi_probe(struct platform_device *pdev)
 {
 	int32_t ret;
 
-	memset(&priv, 0, sizeof(priv));
+	memset(&priv, 0, sizeof(priv));/* unsafe_function_ignore: memset */
 
 	UNUSED_PARAMETER(pdev);
+	//printk("voice proxy vowifi prob,pdev name[%s]\n", pdev->name);
 
 	priv.vowifi_read_wait_flag = 0;
 
 	spin_lock_init(&priv.vowifi_read_lock);
 	init_waitqueue_head(&priv.vowifi_read_waitq);
+	mutex_init(&priv.ioctl_mutex);
 
 	ret = misc_register(&vowifi_misc_device);
 	if (ret) {
@@ -427,26 +467,28 @@ static int vowifi_probe(struct platform_device *pdev)
 
 	vowifi_sign_init();
 
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_RCTP_OM_INFO_NTF, vowifi_receive_rctp_om_tx_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_AJB_OM_INFO_NTF, vowifi_receive_ajb_om_tx_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_WIFI_TX_NTF, vowifi_receive_tx_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_msg_callback(ID_VOICE_PROXY_WIFI_RX_CNF, vowifi_receive_rx_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_PROXY_VOICE_WIFI_RX_NTF, vowifi_handle_rx_ntf);
-	BUG_ON(0 != ret);/*lint !e730*/
-	ret = voice_proxy_register_cmd_callback(ID_VOICE_PROXY_WIFI_RX_CNF, vowifi_handle_rx_cnf);
-	BUG_ON(0 != ret);/*lint !e730*/
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_RCTP_OM_INFO_NTF, vowifi_receive_rctp_om_tx_ntf);
 
-	voice_proxy_register_sign_init_callback(vowifi_sign_init, &priv.sign_handle);
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_AJB_OM_INFO_NTF, vowifi_receive_ajb_om_tx_ntf);
+
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_WIFI_TX_NTF, vowifi_receive_tx_ntf);
+
+	voice_proxy_register_msg_callback(ID_VOICE_PROXY_WIFI_RX_CNF, vowifi_receive_rx_cnf);
+
+	voice_proxy_register_cmd_callback(ID_PROXY_VOICE_WIFI_RX_NTF, vowifi_handle_rx_ntf);
+
+	voice_proxy_register_cmd_callback(ID_VOICE_PROXY_WIFI_RX_CNF, vowifi_handle_rx_cnf);
+
+
+	voice_proxy_register_sign_init_callback(vowifi_sign_init);
 
 	return ret;
 }
 
 static int vowifi_remove(struct platform_device *pdev)
 {
+	//logi("Enter %s\n", __FUNCTION__);
+
 	UNUSED_PARAMETER(pdev);
 
 	misc_deregister(&vowifi_misc_device);
@@ -456,7 +498,7 @@ static int vowifi_remove(struct platform_device *pdev)
 	voice_proxy_deregister_cmd_callback(ID_PROXY_VOICE_WIFI_RX_NTF);
 	voice_proxy_deregister_cmd_callback(ID_VOICE_PROXY_WIFI_RX_CNF);
 
-	voice_proxy_deregister_sign_init_callback(priv.sign_handle);
+	voice_proxy_deregister_sign_init_callback(vowifi_sign_init);
 
 	return 0;
 }
@@ -483,6 +525,8 @@ static struct platform_driver vowifi_driver = {
 static int __init vowifi_init( void )
 {
 	int32_t ret;
+
+	//printk("Audio:voice proxy vowifi init\n");
 
 	ret = platform_driver_register(&vowifi_driver);/*lint !e64*/
 	if (ret) {
