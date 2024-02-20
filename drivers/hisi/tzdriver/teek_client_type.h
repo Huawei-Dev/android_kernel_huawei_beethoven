@@ -13,44 +13,10 @@
 
 #include "teek_client_list.h"
 #include "teek_client_constants.h"
+#include <linux/types.h>
 
 #define TOKEN_SAVE_LEN    24
 
-/**
- * @ingroup TEEC_COMMON_DATA
- * 无符号整型定义
- */
-typedef unsigned int uint32_t;
-/**
- * @ingroup TEEC_COMMON_DATA
- * 有符号整型定义
- */
-typedef signed int int32_t;
-/**
- * @ingroup TEEC_COMMON_DATA
- * 无符号短整型定义
- */
-typedef unsigned short uint16_t;
-/**
- * @ingroup TEEC_COMMON_DATA
- * 有符号短整型定义
- */
-typedef signed short int16_t;
-/**
- * @ingroup TEEC_COMMON_DATA
- * 无符号字符型定义
- */
-typedef unsigned char uint8_t;
-/**
- * @ingroup TEEC_COMMON_DATA
- * 有符号字符型定义
- */
-typedef signed char int8_t;
-
-/**
- * @ingroup TEEC_COMMON_DATA
- * true值的定义
- */
 #ifndef true
 #define true    1
 #endif
