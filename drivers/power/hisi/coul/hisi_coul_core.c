@@ -1,16 +1,10 @@
-
-
 #include "hisi_coul_core.h"
 
 #ifdef CONFIG_HUAWEI_PLATFORM
-#include <huawei_platform/log/hw_log.h>
-#define HWLOG_TAG hisi_coul_core
-HWLOG_REGIST();
-#else
-#define hwlog_debug(fmt, args...)do { printk(KERN_DEBUG   "[hisi_coul_core]" fmt, ## args); } while (0)
-#define hwlog_info(fmt, args...) do { printk(KERN_INFO    "[hisi_coul_core]" fmt, ## args); } while (0)
-#define hwlog_warn(fmt, args...) do { printk(KERN_WARNING"[hisi_coul_core]" fmt, ## args); } while (0)
-#define hwlog_err(fmt, args...)  do { printk(KERN_ERR   "[hisi_coul_core]" fmt, ## args); } while (0)
+#define hwlog_debug(fmt, args...) do { } while (0)
+#define hwlog_info(fmt, args...) do { } while (0)
+#define hwlog_warn(fmt, args...) do { } while (0)
+#define hwlog_err(fmt, args...)  do { } while (0)
 #endif
 
 char* p_charger = NULL;/*0x34A10000~0x34A11000 is reserved for pmu coulomb, we use these to transfer coul information from fastboot to kernel,we add charger info*/
