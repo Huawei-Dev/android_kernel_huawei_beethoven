@@ -2039,7 +2039,11 @@ static int hisi_fb_probe(struct platform_device *pdev)
 
 		ret = of_property_read_u32(np, "dss_version_tag", &g_dss_version_tag);
 		if (ret) {
+#ifdef CONFIG_MALI_PLATFORM_HI3650
+			g_dss_version_tag = 0x4; // needed in order to match FB_ACCEL_HI365x
+#else
 			HISI_FB_ERR("failed to get g_dss_version_tag.\n");
+#endif
 		}
 		HISI_FB_INFO("g_dss_version_tag=0x%x.\n", g_dss_version_tag);
 
