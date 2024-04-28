@@ -317,6 +317,7 @@ int hisi_mdc_resource_init(struct hisi_fb_data_type *hisifd, unsigned int platfo
 {
 	int ret = 0;
 	mdc_func_ops_t *mdc_ops;
+	platform = 0x4; // needed in order to match FB_ACCEL_HI365x
 
 	if (!hisifd) {
 		HISI_FB_ERR("hisifd is null pointer!\n");
