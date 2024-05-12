@@ -54,6 +54,4 @@ usb_f_audio_source-y            := f_audio_source.o
 obj-$(CONFIG_USB_F_AUDIO_SRC)   += usb_f_audio_source.o
 usb_f_accessory-y               := f_accessory.o
 obj-$(CONFIG_USB_F_ACC)         += usb_f_accessory.o
-usb_f_gsi-y               	:= f_gsi.o rndis.o
-obj-$(CONFIG_USB_F_GSI)         += usb_f_gsi.o
 obj-y				+= function-hisi/

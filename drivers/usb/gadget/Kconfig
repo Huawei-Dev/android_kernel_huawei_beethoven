@@ -220,9 +220,6 @@ config USB_F_AUDIO_SRC
 config USB_F_ACC
 	tristate
 
-config USB_F_GSI
-	tristate
-
 config USB_F_BALONG_ACM
 	tristate
 
@@ -539,13 +536,6 @@ config USB_CONFIGFS_F_PRINTER
 
 	  For more information, see Documentation/usb/gadget_printer.txt
 	  which includes sample code for accessing the device file.
-
-config USB_CONFIGFS_F_GSI
-	bool "USB GSI function"
-	select USB_F_GSI
-	depends on USB_CONFIGFS
-	help
-	  Generic function driver to support h/w acceleration to IPA over GSI.
 
 config USB_CONFIGFS_BALONG_ACM
 	bool "HUAWEI BALONG ACM function"
