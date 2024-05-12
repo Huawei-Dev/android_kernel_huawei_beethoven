@@ -187,9 +187,6 @@ config USB_F_MASS_STORAGE
 config USB_F_FS
 	tristate
 
-config USB_F_FS_HDB
-	tristate
-
 config USB_F_UAC1
 	tristate
 
@@ -399,18 +396,6 @@ config USB_CONFIGFS_F_FS
 	bool "Function filesystem (FunctionFS)"
 	depends on USB_CONFIGFS
 	select USB_F_FS
-	help
-	  The Function Filesystem (FunctionFS) lets one create USB
-	  composite functions in user space in the same way GadgetFS
-	  lets one create USB gadgets in user space.  This allows creation
-	  of composite gadgets such that some of the functions are
-	  implemented in kernel space (for instance Ethernet, serial or
-	  mass storage) and other are implemented in user space.
-
-config USB_CONFIGFS_F_FS_HDB
-	bool "HDB Function filesystem (FunctionFS)"
-	depends on USB_CONFIGFS
-	select USB_F_FS_HDB
 	help
 	  The Function Filesystem (FunctionFS) lets one create USB
 	  composite functions in user space in the same way GadgetFS
