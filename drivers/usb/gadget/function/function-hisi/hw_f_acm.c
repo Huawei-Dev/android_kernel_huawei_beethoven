@@ -877,7 +877,7 @@ acm_bind(struct usb_configuration *c, struct usb_function *f)
 
 	acm_single_interface_desc.bInterfaceProtocol = ACM_GET_TYPE(acm);
 	status = usb_assign_descriptors(f, acm_fs_cur_function, acm_hs_cur_function,
-	                                acm_ss_cur_function);
+	                                acm_ss_cur_function, acm_ss_cur_function);
 	if (status)
 		goto fail;
 #if 0
