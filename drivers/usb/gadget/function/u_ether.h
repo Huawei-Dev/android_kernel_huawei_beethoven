@@ -231,6 +231,14 @@ int gether_get_host_addr_cdc(struct net_device *net, char *host_addr, int len);
 void gether_get_host_addr_u8(struct net_device *net, u8 host_mac[ETH_ALEN]);
 
 /**
+ * get_ether_addr_str - convert eth address to string
+ * @dev_addr: place to store eth address
+ * @str: place to store eth address string
+ * @len: length of the @host_addr buffer
+ */
+int get_ether_addr_str(u8 dev_addr[ETH_ALEN], char *str, int len);
+
+/**
  * gether_set_qmult - initialize an ethernet-over-usb link with a multiplier
  * @net: device representing this link
  * @qmult: queue multiplier

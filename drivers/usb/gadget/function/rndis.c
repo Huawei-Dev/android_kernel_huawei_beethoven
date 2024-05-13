@@ -78,7 +78,7 @@ MODULE_PARM_DESC (rndis_debug, "enable debugging");
 static DEFINE_IDA(rndis_ida);
 
 /* spin lock for response list */
-spinlock_t rndis_response_lock;
+DEFINE_SPINLOCK(rndis_response_lock);
 
 /* Driver Version */
 static const __le32 rndis_driver_version = cpu_to_le32(1);
@@ -698,8 +698,10 @@ static int rndis_reset_response(struct rndis_params *params,
 	u32 length;
 
 	/* drain the response queue */
+	spin_lock(&rndis_response_lock);
 	while ((xbuf = rndis_get_next_response(params, &length)))
 		rndis_free_response(params, xbuf);
+	spin_unlock(&rndis_response_lock);
 
 	r = rndis_add_response(params, sizeof(rndis_reset_cmplt_type));
 	if (!r)
@@ -789,8 +791,10 @@ void rndis_uninit(struct rndis_params *params)
 	params->state = RNDIS_UNINITIALIZED;
 
 	/* drain the response queue */
+	spin_lock(&rndis_response_lock);
 	while ((buf = rndis_get_next_response(params, &length)))
 		rndis_free_response(params, buf);
+	spin_unlock(&rndis_response_lock);
 }
 EXPORT_SYMBOL_GPL(rndis_uninit);
 
@@ -1083,7 +1087,9 @@ static rndis_resp_t *rndis_add_response(struct rndis_params *params, u32 length)
 	r->length = length;
 	r->send = 0;
 
-	list_add_tail(&r->list, &(params->resp_queue));
+	spin_lock(&rndis_response_lock);
+ 	list_add_tail(&r->list, &(params->resp_queue));
+	spin_unlock(&rndis_response_lock);
 	return r;
 }
 

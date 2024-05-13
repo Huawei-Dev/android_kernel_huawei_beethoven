@@ -1,5 +1,7 @@
 
+#include "u_ether.h"
 
+atomic_t hisi_uether_enable_flag = ATOMIC_INIT(0);
 extern struct device *create_function_device(char *name);
 static inline struct f_rndis_opts *
 f_rndis_opts_from_func_inst(const struct usb_function_instance *fi)
@@ -20,11 +22,15 @@ static ssize_t rndis_manufacturer_show(struct device *dev,
 static ssize_t rndis_manufacturer_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t size)
 {
-	if (size >= sizeof(manufacturer))
-		return -EINVAL;
-	if (sscanf(buf, "%s", manufacturer) == 1) /* [false alarm]:already check size */
-		return size;
-	return -1;
+	int len;
+
+	len = min(size, sizeof(manufacturer) - 1);
+
+	strncpy(manufacturer, buf, len);
+
+	manufacturer[len] = 0;
+
+	return size;
 }
 
 static DEVICE_ATTR(manufacturer, (S_IRUGO | S_IWUSR), rndis_manufacturer_show,
@@ -98,13 +104,15 @@ static ssize_t rndis_vendorID_store(struct device *dev,
 {
 	struct usb_function_instance *fi = dev_get_drvdata(dev);
 	struct f_rndis_opts *opts = f_rndis_opts_from_func_inst(fi);
-	int value;
+	unsigned int value;
 
-	if (sscanf(buf, "%04x", &value) == 1) {
-		opts->vendor_id = value;
-		return size;
+	if (kstrtou32(buf, 0, &value)) {
+		pr_err("[%s]read vendorID from input failed\n", __func__);
+		return -EINVAL;
 	}
-	return -EINVAL;
+
+	opts->vendor_id = value;
+	return size;
 }
 
 static DEVICE_ATTR(vendorID, (S_IRUGO | S_IWUSR), rndis_vendorID_show,
@@ -194,10 +202,17 @@ err_gether_setup:
 static int hisi_rndis_create_net(struct f_rndis_opts *opts,
 		struct usb_gadget *g)
 {
+#define HOST_ADD_LEN (18)
+	char addr[HOST_ADD_LEN];
+	char *host_addr = NULL;
 	if (!opts)
 		return -EINVAL;
+	if (get_ether_addr_str(host_ethaddr_record, addr, HOST_ADD_LEN) > 0) {
+		pr_info("use host_ethaddr_record %s\n", addr);
+		host_addr = addr;
+	}
 
-	opts->net = gether_setup_name(g, NULL, NULL,
+	opts->net = gether_setup_name(g, NULL, host_addr,
 			host_ethaddr_record, 10, "rndis");
 	if (IS_ERR(opts->net)) {
 		pr_err("[%s]: gether setup failed\n", __func__);
@@ -232,4 +247,14 @@ static void hisi_rndis_free_net(struct f_rndis_opts *opts)
 		free_netdev(opts->net);
 
 	opts->bound = false;
+}
+
+void hisi_uether_enable_set(int n)
+{
+	atomic_set(&hisi_uether_enable_flag, n);
+}
+
+int hisi_uether_enable_get(void)
+{
+	return atomic_read(&hisi_uether_enable_flag);
 }

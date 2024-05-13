@@ -403,6 +403,29 @@ static void f_midi_disable(struct usb_function *f)
 
 static int f_midi_snd_free(struct snd_device *device)
 {
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	struct f_midi *midi = device->device_data;
+	struct f_midi_opts *opts;
+	int i;
+
+	if (!midi)
+		return 0;
+
+	opts = container_of(midi->func.fi, struct f_midi_opts, func_inst);
+
+	mutex_lock(&opts->lock);
+	if (!opts->refcnt) {
+		INFO(midi, "f_midi function has been freed\n");
+		kfree(midi->id);
+		for (i = midi->in_ports - 1; i >= 0; --i)
+			kfree(midi->in_port[i]);
+		kfree(midi);
+	}
+	opts->snd_created = 0;
+	mutex_unlock(&opts->lock);
+
+	wake_up(&opts->free_snd_wq);
+#endif
 	return 0;
 }
 
@@ -662,12 +685,26 @@ static inline void f_midi_unregister_card(struct f_midi *midi)
 /* register as a sound "card" */
 static int f_midi_register_card(struct f_midi *midi)
 {
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	struct f_midi_opts *opts;
+	int ret;
+#endif
 	struct snd_card *card;
 	struct snd_rawmidi *rmidi;
 	int err;
 	static struct snd_device_ops ops = {
 		.dev_free = f_midi_snd_free,
 	};
+
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	opts = container_of(midi->func.fi, struct f_midi_opts, func_inst);
+	ret = wait_event_interruptible(opts->free_snd_wq,
+			(opts->snd_created == 0));
+	if (ret < 0) {
+		ERROR(midi, "wait snd_created to 0 failed\n");
+		return -EBUSY;
+	}
+#endif
 
 	err = snd_card_new(&midi->gadget->dev, midi->index, midi->id,
 			   THIS_MODULE, 0, &card);
@@ -682,6 +719,10 @@ static int f_midi_register_card(struct f_midi *midi)
 		ERROR(midi, "snd_device_new() failed: error %d\n", err);
 		goto fail;
 	}
+
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	opts->snd_created = 1;
+#endif
 
 	strcpy(card->driver, f_midi_longname);
 	strcpy(card->longname, f_midi_longname);
@@ -1171,6 +1212,10 @@ static struct usb_function_instance *f_midi_alloc_inst(void)
 	opts->in_ports = 1;
 	opts->out_ports = 1;
 
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	init_waitqueue_head(&opts->free_snd_wq);
+#endif
+
 	if (create_alsa_device(&opts->func_inst)) {
 		kfree(opts);
 		return ERR_PTR(-ENODEV);
@@ -1192,9 +1237,16 @@ static void f_midi_free(struct usb_function *f)
 	opts = container_of(f->fi, struct f_midi_opts, func_inst);
 	kfree(midi->id);
 	mutex_lock(&opts->lock);
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	if (!opts->snd_created) {
+#endif
+	kfree(midi->id);
 	for (i = opts->in_ports - 1; i >= 0; --i)
 		kfree(midi->in_port[i]);
 	kfree(midi);
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	}
+#endif
 	opts->func_inst.f = NULL;
 	--opts->refcnt;
 	mutex_unlock(&opts->lock);
@@ -1208,13 +1260,19 @@ static void f_midi_unbind(struct usb_configuration *c, struct usb_function *f)
 
 	DBG(cdev, "unbind\n");
 
+#ifndef CONFIG_HISI_USB_CONFIGFS
 	/* just to be sure */
 	f_midi_disable(f);
+#endif
 
 	card = midi->card;
 	midi->card = NULL;
 	if (card)
+#ifdef CONFIG_HISI_USB_CONFIGFS
+		snd_card_free_when_closed(card);
+#else
 		snd_card_free(card);
+#endif
 
 	usb_free_all_descriptors(f);
 }
