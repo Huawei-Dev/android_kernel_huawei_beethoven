@@ -12,7 +12,7 @@
 #include <linux/if_vlan.h>
 
 #include "u_ether.h"
-
+#include "function-hisi/f_rndis_hisi.h"
 
 /*
  * This component encapsulates the Ethernet link glue needed to provide
@@ -343,8 +343,13 @@ static void rx_complete(struct usb_ep *ep, struct usb_request *req)
 	int		status = req->status;
 	bool		queue = 0;
 
-	WARN_ON(!dev);
+	if (!hisi_uether_enable_get()) {
+		pr_err("rx_complete: bad uether\n");
+		return ;
+	}
+	
 	if (!dev) {
+		WARN_ON(!dev);
 		return;
 	}
 
@@ -566,6 +571,11 @@ static void tx_complete(struct usb_ep *ep, struct usb_request *req)
 	int length;
 	int retval;
 
+	if (!hisi_uether_enable_get()) {
+		pr_err("tx_complete: bad uether\n");
+		return;
+	}
+	
 	switch (req->status) {
 	default:
 		dev->net->stats.tx_errors++;
@@ -1018,7 +1028,7 @@ static int get_ether_addr(const char *str, u8 *dev_addr)
 	return 1;
 }
 
-static int get_ether_addr_str(u8 dev_addr[ETH_ALEN], char *str, int len)
+int get_ether_addr_str(u8 dev_addr[ETH_ALEN], char *str, int len)
 {
 	if (len < 18)
 		return -EINVAL;
@@ -1121,6 +1131,7 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g,
 	}
 
 #ifdef CONFIG_HISI_USB_CONFIGFS
+	hisi_uether_enable_set(1);
 	return net;
 #else
 	return dev;
@@ -1162,6 +1173,7 @@ struct net_device *gether_setup_name_default(const char *netname)
 	net->ethtool_ops = &ops;
 	SET_NETDEV_DEVTYPE(net, &gadget_type);
 
+	hisi_uether_enable_set(1);
 	return net;
 }
 EXPORT_SYMBOL_GPL(gether_setup_name_default);
@@ -1319,6 +1331,7 @@ void gether_cleanup(struct eth_dev *dev)
 	if (!dev)
 		return;
 
+	hisi_uether_enable_set(0);
 	unregister_netdev(dev->net);
 	flush_work(&dev->work);
 	free_netdev(dev->net);

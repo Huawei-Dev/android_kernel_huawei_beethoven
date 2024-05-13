@@ -3177,7 +3177,7 @@ static int fsg_bind(struct usb_configuration *c, struct usb_function *f)
 	fsg_ss_bulk_out_comp_desc.bMaxBurst = max_burst;
 
 	ret = usb_assign_descriptors(f, fsg_fs_function, fsg_hs_function,
-			fsg_ss_function, NULL);
+			fsg_ss_function, fsg_ss_function);
 	if (ret)
 		goto autoconf_fail;
 	pr_info("mass_storage IN/%s OUT/%s\n", fsg->bulk_in->name,

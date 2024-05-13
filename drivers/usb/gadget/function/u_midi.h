@@ -34,6 +34,10 @@ struct f_midi_opts {
 	 */
 	 struct mutex			lock;
 	 int				refcnt;
+#ifdef CONFIG_HISI_USB_CONFIGFS
+	 wait_queue_head_t		free_snd_wq;
+	 int				snd_created;
+#endif
 };
 
 #endif /* U_MIDI_H */
