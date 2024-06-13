@@ -13,7 +13,19 @@
 #define EVENT_LEFT	105
 #define EVENT_RIGHT	106
 #define EVENT_FINGER_UP     113
+#define EVENT_FINGER_DOWN   117
+#define EVENT_FINGER_IDENTIFY   118
+#define EVENT_IDENTIFY_END   119
+#define EVENT_FINGER_ENROLL   120
 
+#define KEY_MIN  0
+#define KEY_MAX  255
+
+#define FP_MAX_MODULE_INFO_LEN      5
+#define FP_MAX_SENSOR_ID_LEN        16
+#define FP_MAX_CHIP_INFO_LEN        50
+#define FP_DEFAULT_INFO_LEN         3
+#define FP_RETURN_SUCCESS           0
 
 //NAVIGATION_ADJUST_NOREVERSE: 默认值，适配后置指纹模组
 #define NAVIGATION_ADJUST_NOREVERSE 0
@@ -44,6 +56,15 @@ enum module_vendor_info
     MODULEID_HIGT,
     MODULEID_FLOATING,
 };
+
+// Defined in vendor/huawei/chipset_common/devkit/tpkit/huawei_ts_kit.h
+typedef enum {
+    TS_PEN_OUT_RANGE = 0,   /* pen out of range */
+    TS_PEN_IN_RANGE,        /* pen in range */
+
+    /* add event before here */
+    TS_EVENT_MAX,           /* max event type */
+} ts_notify_event_type;
 
 struct fp_data
 {
@@ -82,6 +103,9 @@ struct fp_data
     struct pinctrl* pctrl;
     struct pinctrl_state* pins_default;
     struct pinctrl_state* pins_idle;
+    char module_id[64];
+    bool irq_enabled;
+    unsigned int pen_anti_enable;
 };
 
 #ifdef CONFIG_LLT_TEST
@@ -98,6 +122,13 @@ struct LLT_fingprint_ops {
     int (*fingerprint_remove)(struct platform_device* pdev);
 };
 extern struct LLT_fingprint_ops LLT_fingerprint;
+#endif
+
+#if defined (CONFIG_HUAWEI_DSM)
+typedef struct fp_sensor_info {
+    unsigned int sensor_id;
+    char sensor_name[FP_MAX_SENSOR_ID_LEN];
+} fp_sensor_info;
 #endif
 
 #endif

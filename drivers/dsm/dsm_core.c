@@ -36,6 +36,41 @@ static struct work_struct dsm_work;
 static struct dsm_client *ext_dsm_client[EXTERN_DSM_CLIENT_MAX];
 static struct dsm_dev ext_dev[EXTERN_DSM_CLIENT_MAX];
 
+int dsm_update_client_vendor_info(struct dsm_dev *dev)
+{
+	int client_num = 0;
+	int is_found = -1;
+	int retval = -1;
+
+	if (dev == NULL || dev->name == NULL) {
+		DSM_LOG_ERR("dev or dev->name is NULL\n");
+		goto out;
+	}
+
+	mutex_lock(&g_dsm_server.mtx_lock);
+	for(client_num = 0; client_num < g_dsm_server.client_count; client_num++) {
+		is_found = strncmp(g_dsm_server.client_list[client_num]->client_name, dev->name, CLIENT_NAME_LEN);
+		if(!is_found) {
+			if(dev->ic_name && strncmp(g_dsm_server.client_list[client_num]->ic_name,
+					dev->ic_name, DSM_MAX_IC_NAME_LEN)) {
+				strncpy(g_dsm_server.client_list[client_num]->ic_name, dev->ic_name, DSM_MAX_IC_NAME_LEN-1);
+				g_dsm_server.client_list[client_num]->ic_name[DSM_MAX_IC_NAME_LEN-1] = '\0';
+			}
+			if(dev->module_name && strncmp(g_dsm_server.client_list[client_num]->module_name,
+					dev->module_name, DSM_MAX_MODULE_NAME_LEN)) {
+				strncpy(g_dsm_server.client_list[client_num]->module_name, dev->module_name, DSM_MAX_MODULE_NAME_LEN-1);
+				g_dsm_server.client_list[client_num]->module_name[DSM_MAX_MODULE_NAME_LEN-1] = '\0';
+			}
+			retval = 0;
+			break;
+		}
+	}
+	mutex_unlock(&g_dsm_server.mtx_lock);
+out:
+	return retval;
+}
+EXPORT_SYMBOL(dsm_update_client_vendor_info);
+
 struct dsm_client *dsm_register_client(struct dsm_dev *dev)
 {
 	int i;

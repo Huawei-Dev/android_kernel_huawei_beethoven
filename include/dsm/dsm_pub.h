@@ -532,6 +532,7 @@ int dsm_client_unocuppy(struct dsm_client *client);
 int dsm_client_record(struct dsm_client *client, const char *fmt, ...);
 int dsm_client_copy(struct dsm_client *client, void *src, int sz);
 void dsm_client_notify(struct dsm_client *client, int error_no);
+int dsm_update_client_vendor_info(struct dsm_dev *dev);
 #else
 static inline struct dsm_client *dsm_register_client (struct dsm_dev *dev)
 {
@@ -561,6 +562,10 @@ static inline int dsm_client_copy(struct dsm_client *client, void *src, int sz)
 static inline void dsm_client_notify(struct dsm_client *client, int error_no)
 {
 	return;
+}
+static inline int dsm_update_client_vendor_info(struct dsm_dev *dev)
+{
+	return 0;
 }
 #endif
 
