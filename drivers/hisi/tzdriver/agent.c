@@ -34,7 +34,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 
-#include "tee_client_constants.h"
+#include "teek_client_constants.h"
 #include "teek_ns_client.h"
 #include "smc.h"
 #include "agent.h"
@@ -42,9 +42,11 @@
 #include "tui.h"
 #include "securec.h"
 #include "tc_ns_log.h"
+#include "mailbox_mempool.h"
 
 #define HASH_FILE_MAX_SIZE 8192
 #define AGENT_BUFF_SIZE (4*1024)
+#define AGENT_MAX	32
 
 static struct list_head tee_agent_list;
 
@@ -54,16 +56,15 @@ struct __agent_control {
 };
 static struct __agent_control agent_control;
 
-
 int TC_NS_set_nativeCA_hash(unsigned long arg)
 {
 	int ret = 0;
 	TC_NS_SMC_CMD smc_cmd = { 0 };
-	TC_NS_Operation operation = { 0 };
 	uint8_t *inbuf = (uint8_t *)arg;
 	uint32_t buflen = 0;
 	uint8_t *buftotee = NULL;
-	unsigned char uuid[17] = { 0 };
+	struct mb_cmd_pack *mb_pack;
+
 	if (NULL == inbuf)
 		return -1;
 
@@ -81,33 +82,43 @@ int TC_NS_set_nativeCA_hash(unsigned long arg)
 		return -1;
 	}
 
-	buftotee = kzalloc(buflen, GFP_KERNEL);
-	if (ZERO_OR_NULL_PTR(buftotee)) {
+	buftotee = mailbox_alloc(buflen, 0);
+	if (!buftotee) {
 		tloge("failed to alloc memory!\n");
 		return -1; /*lint !e429 */
 	}
 
 	if (copy_from_user(buftotee, inbuf, buflen)) { /*lint !e613 !e668 */
 		tloge("copy from user failed\n");
-		kfree(buftotee);
+		mailbox_free(buftotee);
 		return -EFAULT;
 	}
-	operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT |
-			       (TEE_PARAM_TYPE_VALUE_INPUT << 4);
-	operation.params[0].value.a = (unsigned int)virt_to_phys(buftotee);
-	operation.params[0].value.b = (unsigned int)(virt_to_phys(buftotee) >> 32);
-	operation.params[1].value.a = buflen;
 
-	uuid[0] = 1;
-	smc_cmd.uuid_phys = virt_to_phys(uuid);
-	smc_cmd.uuid_h_phys = virt_to_phys(uuid) >> 32;
+	mb_pack = mailbox_alloc_cmd_pack();
+	if (!mb_pack) {
+		tloge("alloc cmd pack failed\n");
+		mailbox_free(buftotee);
+		return -ENOMEM;
+	}
+
+	mb_pack->operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT |
+				(TEE_PARAM_TYPE_VALUE_INPUT << 4);
+	mb_pack->operation.params[0].value.a = (unsigned int)virt_to_phys(buftotee);
+	mb_pack->operation.params[0].value.b = (unsigned int)(virt_to_phys(buftotee) >> 32); /*lint !e572*/
+	mb_pack->operation.params[1].value.a = buflen;
+
+	mb_pack->uuid[0] = 1;
+	smc_cmd.uuid_phys = virt_to_phys(mb_pack->uuid);
+	smc_cmd.uuid_h_phys = virt_to_phys(mb_pack->uuid) >> 32; /*lint !e572*/
 	smc_cmd.cmd_id = GLOBAL_CMD_ID_SET_CA_HASH;
-	smc_cmd.operation_phys = virt_to_phys(&operation);
-	smc_cmd.operation_h_phys = virt_to_phys(&operation) >> 32;
+	smc_cmd.operation_phys = virt_to_phys(&mb_pack->operation);
+	smc_cmd.operation_h_phys = virt_to_phys(&mb_pack->operation) >> 32; /*lint !e572*/
 
 	ret = TC_NS_SMC(&smc_cmd, 0);
 
-	kfree(buftotee);
+	mailbox_free(buftotee);
+	mailbox_free(mb_pack);
+
 	return ret;
 }
 
@@ -153,7 +164,7 @@ struct __smc_event_data *find_event_control(unsigned int agent_id)
 }
 
 
-unsigned int agent_process_work(TC_NS_SMC_CMD *smc_cmd, unsigned int agent_id)
+int agent_process_work(TC_NS_SMC_CMD *smc_cmd, unsigned int agent_id)
 {
 	struct __smc_event_data *event_data;
 
@@ -224,10 +235,12 @@ int TC_NS_wait_event(unsigned int agent_id)
 	event_data = find_event_control(agent_id);
 	tlogd("agent %u waits for command\n", agent_id);
 	if (event_data) {
+		get_agent_event(event_data);
 		/* wait event will return either 0 or -ERESTARTSYS so just
 		 * return it further to the ioctl handler */
 		ret = wait_event_interruptible(event_data->wait_event_wq,/*lint !e774 !e845 !e712 !e40*/
 					       event_data->ret_flag);
+		put_agent_event(event_data);
 	} else {
 	     return -EINVAL;
 	}
@@ -240,8 +253,9 @@ int TC_NS_sync_sys_time(TC_NS_Time *tc_ns_time)
 {
 	TC_NS_SMC_CMD smc_cmd = { 0 };
 	int ret = 0;
-	unsigned char uuid[17] = { 0 };
 	TC_NS_Time tmp_tc_ns_time = {0};
+	struct mb_cmd_pack *mb_pack = NULL;
+
 	if (!tc_ns_time) {
 		tloge("tc_ns_time is NULL input buffer\n");
 		return -EINVAL;
@@ -255,9 +269,15 @@ int TC_NS_sync_sys_time(TC_NS_Time *tc_ns_time)
 		return -EFAULT;
 	}
 
-	uuid[0] = 1;
-	smc_cmd.uuid_phys = virt_to_phys(uuid);
-	smc_cmd.uuid_h_phys = virt_to_phys(uuid) >> 32;
+	mb_pack = mailbox_alloc_cmd_pack();
+	if (!mb_pack) {
+		tloge("alloc mb pack failed\n");
+		return -ENOMEM;
+	}
+
+	mb_pack->uuid[0] = 1;
+	smc_cmd.uuid_phys = virt_to_phys(mb_pack->uuid);
+	smc_cmd.uuid_h_phys = virt_to_phys(mb_pack->uuid) >> 32; /*lint !e572*/
 	smc_cmd.cmd_id = GLOBAL_CMD_ID_ADJUST_TIME;
 	smc_cmd.err_origin = (unsigned int)tmp_tc_ns_time.seconds;
 	smc_cmd.ret_val = (unsigned int)tmp_tc_ns_time.millis;
@@ -265,6 +285,9 @@ int TC_NS_sync_sys_time(TC_NS_Time *tc_ns_time)
 	ret = TC_NS_SMC(&smc_cmd, 0);
 	if (ret)
 		tloge("tee adjust time failed, return error %x\n", ret);
+
+	mailbox_free(mb_pack);
+
 	return ret;
 }
 
@@ -272,6 +295,7 @@ int TC_NS_sync_sys_time(TC_NS_Time *tc_ns_time)
 int TC_NS_send_event_response(unsigned int agent_id)
 {
 	struct __smc_event_data *event_data = find_event_control(agent_id);
+	unsigned int ret;
 
 	if (TC_NS_get_uid() != 0) {
 		tloge("It is a fake tee agent\n");
@@ -280,14 +304,17 @@ int TC_NS_send_event_response(unsigned int agent_id)
 
 	tlogd("agent %u sends answer back\n", agent_id);
 	if (event_data && event_data->ret_flag) {
+		get_agent_event(event_data);
 		event_data->send_flag = 1;
 		event_data->ret_flag = 0;
 		/* Send the command back to the TA session waiting for it */
-		return TC_NS_POST_SMC(&event_data->cmd);
+		ret = TC_NS_POST_SMC(&event_data->cmd);
+		put_agent_event(event_data);
+
+		return ret;
 	}
 	return -EINVAL;
 }
-
 
 int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 			 TC_NS_Shared_MEM *shared_mem)
@@ -297,8 +324,7 @@ int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 	int ret = 0;
 	int find_flag = 0;
 	unsigned long flags;
-	unsigned char uuid[17] = { 0 };
-	TC_NS_Operation operation = { 0 };
+	struct mb_cmd_pack *mb_pack = NULL;
 
 	if (TC_NS_get_uid() != 0) {
 		tloge("It is a fake tee agent\n");
@@ -322,6 +348,7 @@ int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 			event_data->send_flag = 0;
 			event_data->owner = dev_file;
 			event_data->agent_alive = 1;
+			atomic_set(&event_data->usage, 1);
 			init_waitqueue_head(&(event_data->wait_event_wq));
 			init_waitqueue_head(&(event_data->send_response_wq));
 			ret = TEEC_SUCCESS;
@@ -336,17 +363,28 @@ int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 		goto error;
 	}
 
-	operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT | (TEE_PARAM_TYPE_VALUE_INPUT << 4);
-	operation.params[0].value.a = virt_to_phys(shared_mem->kernel_addr);
-	operation.params[0].value.b = virt_to_phys(shared_mem->kernel_addr) >> 32;
-	operation.params[1].value.a = shared_mem->len;
+	/* Obtain this share memory which SHALL be released in TC_NS_unregister_agent() */
+	get_sharemem_struct(shared_mem);
 
-	uuid[0] = 1;
-	smc_cmd.uuid_phys = virt_to_phys(uuid);
-	smc_cmd.uuid_h_phys = virt_to_phys(uuid) >> 32;
+	mb_pack = mailbox_alloc_cmd_pack();
+	if (!mb_pack) {
+		tloge("alloc mailbox failed\n");
+		ret = TEEC_ERROR_GENERIC;
+		put_sharemem_struct(shared_mem);
+		goto error;
+	}
+
+	mb_pack->operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT | (TEE_PARAM_TYPE_VALUE_INPUT << 4);
+	mb_pack->operation.params[0].value.a = virt_to_phys(shared_mem->kernel_addr);
+	mb_pack->operation.params[0].value.b = virt_to_phys(shared_mem->kernel_addr) >> 32; /*lint !e572*/
+	mb_pack->operation.params[1].value.a = shared_mem->len;
+
+	mb_pack->uuid[0] = 1;
+	smc_cmd.uuid_phys = virt_to_phys(mb_pack->uuid);
+	smc_cmd.uuid_h_phys = virt_to_phys(mb_pack->uuid) >> 32; /*lint !e572*/
 	smc_cmd.cmd_id = GLOBAL_CMD_ID_REGISTER_AGENT;
-	smc_cmd.operation_phys = virt_to_phys(&operation);
-	smc_cmd.operation_h_phys = virt_to_phys(&operation) >> 32;
+	smc_cmd.operation_phys = virt_to_phys(&mb_pack->operation);
+	smc_cmd.operation_h_phys = virt_to_phys(&mb_pack->operation) >> 32; /*lint !e572*/
 	smc_cmd.agent_id = agent_id;
 
 	ret = TC_NS_SMC(&smc_cmd, 0);
@@ -356,6 +394,7 @@ int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 			kzalloc(sizeof(struct __smc_event_data), GFP_KERNEL);
 		if (!event_data) {
 			ret = -ENOMEM;
+			put_sharemem_struct(shared_mem);
 			goto error;
 		}
 		event_data->agent_id = agent_id;
@@ -371,37 +410,45 @@ int TC_NS_register_agent(TC_NS_DEV_File *dev_file, unsigned int agent_id,
 
 		spin_lock_irqsave(&agent_control.lock, flags);
 		list_add_tail(&event_data->head, &agent_control.agent_list);
+		atomic_set(&event_data->usage, 1);
 		spin_unlock_irqrestore(&agent_control.lock, flags);
+	} else {
+		/* release share mem when sending smc failure. */
+		put_sharemem_struct(shared_mem);
 	}
 
 error:
-	return ret;
+	if (mb_pack)
+		mailbox_free(mb_pack);
+	return ret; /*lint !e429 */
 }
 
 
 int TC_NS_unregister_agent(unsigned int agent_id)
 {
 	struct __smc_event_data *event_data = NULL;
+	struct __smc_event_data *tmp_event = NULL;
+
 	int ret = 0;
 	int find_flag = 0;
 	unsigned long flags;
 	TC_NS_SMC_CMD smc_cmd = { 0 };
-	unsigned char uuid[17] = { 0 };
-	TC_NS_Operation operation = { 0 };
+	struct mb_cmd_pack *mb_pack = NULL;
 
 	if (TC_NS_get_uid() != 0) {
 		tloge("It is a fake tee agent\n");
 		return TEEC_ERROR_GENERIC;
 	}
 	if (AGENT_FS_ID == agent_id || AGENT_MISC_ID == agent_id ||
-	    AGENT_RPMB_ID == agent_id || AGENT_SOCKET_ID == agent_id ||
+	    TEE_RPMB_AGENT_ID == agent_id || AGENT_SOCKET_ID == agent_id ||
 	    TEE_TUI_AGENT_ID == agent_id) {
-		tloge("system agent is not allowed to unregister\n");
+		tloge("system agent is not allowed to unregister  agent_id=0x%x\n", agent_id);
 		return TEEC_ERROR_GENERIC;
 	}
 
 	spin_lock_irqsave(&agent_control.lock, flags);
-	list_for_each_entry(event_data, &agent_control.agent_list, head) {
+	list_for_each_entry_safe(event_data, tmp_event,
+							&agent_control.agent_list, head) {
 		if (event_data->agent_id == agent_id) {
 			find_flag = 1;
 			list_del(&event_data->head);
@@ -414,41 +461,86 @@ int TC_NS_unregister_agent(unsigned int agent_id)
 		tloge("agent is not found\n");
 		return TEEC_ERROR_GENERIC;
 	}
-	operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT;
-	operation.paramTypes = operation.paramTypes << 12;
-	operation.params[0].value.a = virt_to_phys(event_data->buffer->kernel_addr);
-	operation.params[0].value.b = virt_to_phys(event_data->buffer->kernel_addr) >> 32;
-	operation.params[1].value.a = event_data->buffer->len;
 
-	uuid[0] = 1;
-	smc_cmd.uuid_phys = virt_to_phys(uuid);
-	smc_cmd.uuid_h_phys = virt_to_phys(uuid) >> 32;
+	mb_pack = mailbox_alloc_cmd_pack();
+	if (!mb_pack) {
+		tloge("alloc mailbox failed\n");
+		return TEEC_ERROR_GENERIC;
+	}
+
+	get_agent_event(event_data);
+	mb_pack->operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT | (TEE_PARAM_TYPE_VALUE_INPUT << 4);
+	mb_pack->operation.params[0].value.a = virt_to_phys(event_data->buffer->kernel_addr);
+	mb_pack->operation.params[0].value.b = virt_to_phys(event_data->buffer->kernel_addr) >> 32; /*lint !e572*/
+	mb_pack->operation.params[1].value.a = SZ_4K;
+
+	mb_pack->uuid[0] = 1;
+	smc_cmd.uuid_phys = virt_to_phys(mb_pack->uuid);
+	smc_cmd.uuid_h_phys = virt_to_phys(mb_pack->uuid) >> 32; /*lint !e572*/
 	smc_cmd.cmd_id = GLOBAL_CMD_ID_UNREGISTER_AGENT;
-	smc_cmd.operation_phys = virt_to_phys(&operation);
-	smc_cmd.operation_h_phys = virt_to_phys(&operation) >> 32;
+	smc_cmd.operation_phys = virt_to_phys(&mb_pack->operation);
+	smc_cmd.operation_h_phys = virt_to_phys(&mb_pack->operation) >> 32; /*lint !e572*/
 	smc_cmd.agent_id = agent_id;
 
 	mutex_lock(&event_data->work_lock);
 	tlogd("Unregistering agent %u\n", agent_id);
 	ret = TC_NS_SMC(&smc_cmd, 0);
 	mutex_unlock(&event_data->work_lock);
+	/* Release the share memory obtained in TC_NS_register_agent() */
+	put_sharemem_struct(event_data->buffer);
+	put_agent_event(event_data);
 
-	kfree(event_data);
+	put_agent_event(event_data); /* paired with register_agent */
+	mailbox_free(mb_pack);
 
 	return ret;
 }
 
+bool TC_NS_is_system_agent_client(TC_NS_DEV_File *dev_file)
+{
+	struct __smc_event_data *event_data = NULL;
+	struct __smc_event_data *tmp = NULL;
+	bool system_agent = false;
+	unsigned long flags;
+
+	if (!dev_file)
+		return system_agent;
+
+	spin_lock_irqsave(&agent_control.lock, flags);
+	list_for_each_entry_safe(event_data, tmp,
+				 &agent_control.agent_list, head) {
+		if (event_data->owner == dev_file) {
+			system_agent = true;
+			break;
+		}
+	}
+	spin_unlock_irqrestore(&agent_control.lock, flags);
+
+	return system_agent;
+}
 
 int TC_NS_unregister_agent_client(TC_NS_DEV_File *dev_file)
 {
 	struct __smc_event_data *event_data = NULL;
 	struct __smc_event_data	*tmp = NULL;
+	unsigned int agent_id[AGENT_MAX] = {0};
+	unsigned int i = 0;
+	unsigned long flags;
 
+	spin_lock_irqsave(&agent_control.lock, flags);
 	list_for_each_entry_safe(event_data, tmp,
 				 &agent_control.agent_list, head) {
-		if (event_data->owner == dev_file)
-			TC_NS_unregister_agent(event_data->agent_id);
+		if ((event_data->owner == dev_file)
+				&& (i < AGENT_MAX))
+			agent_id[i++] = event_data->agent_id;
 	}
+	spin_unlock_irqrestore(&agent_control.lock, flags);
+
+	for (i = 0; i < AGENT_MAX; i++) {
+		if (agent_id[i])
+			TC_NS_unregister_agent(agent_id[i]);
+	}
+
 	return TEEC_SUCCESS;
 }
 static int def_tee_agent_work(void *instance)
@@ -491,26 +583,28 @@ static int def_tee_agent_run(struct tee_agent_kernel_ops *agent_instance)
 {
 	TC_NS_Shared_MEM *shared_mem = NULL;
 	TC_NS_DEV_File dev = {0};
-	long ret = 0;
+	int ret = 0;
 	int page_order = 8;
 
 	/*1. Allocate agent buffer */
-	shared_mem = tc_mem_allocate(&dev, (size_t)(unsigned)(AGENT_BUFF_SIZE * page_order));
+	shared_mem = tc_mem_allocate((size_t)(unsigned)(AGENT_BUFF_SIZE * page_order), true);
 	while ((IS_ERR(shared_mem)) && (page_order > 0)) {
 		page_order /= 2;
-		shared_mem = tc_mem_allocate(&dev, (size_t)(unsigned)(AGENT_BUFF_SIZE * page_order));
+		shared_mem = tc_mem_allocate((size_t)(unsigned)(AGENT_BUFF_SIZE * page_order), true);
 	}
 	if (IS_ERR(shared_mem)) {
 		tloge("allocate agent buffer fail\n");
 		ret = PTR_ERR(shared_mem);
 		goto out;
 	}
+
+	atomic_set(&shared_mem->usage, 1);
 	agent_instance->agent_buffer = shared_mem;
 
 	/*2. Register agent buffer to TEE */
 	ret = TC_NS_register_agent(&dev, agent_instance->agent_id, shared_mem);
 	if (ret) {
-		tloge("register agent buffer fail\n");
+		tloge("register agent buffer fail,ret =0x%x\n", ret);
 		ret = -1;
 		goto out;
 	}
@@ -528,8 +622,11 @@ static int def_tee_agent_run(struct tee_agent_kernel_ops *agent_instance)
 	return 0;
 
 out:
-	if (!IS_ERR_OR_NULL(shared_mem))
-		tc_mem_free(shared_mem);
+	if (!IS_ERR_OR_NULL(shared_mem)) {
+		tc_mem_free(shared_mem); /*lint !e668 */
+		agent_instance->agent_buffer = NULL;
+	}
+
 	return ret;
 }
 
@@ -544,6 +641,10 @@ static int def_tee_agent_stop(struct tee_agent_kernel_ops *agent_instance)
 		tloge("failed to unregister agent %d\n", agent_instance->agent_id);
 	if (!IS_ERR_OR_NULL(agent_instance->agent_thread))
 		kthread_stop(agent_instance->agent_thread);
+
+	/* release share mem obtained in def_tee_agent_run() */
+	put_sharemem_struct(agent_instance->agent_buffer);
+
 	return 0;
 }
 

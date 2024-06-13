@@ -15,8 +15,10 @@
 #include "teek_client_api.h"
 #include "teek_client_id.h"
 #include "teek_ns_client.h"
+#include "teek_client_constants.h"
 #include "tc_ns_log.h"
 #include "securec.h"
+#include "cfc.h"
 
 static TEEC_Result TEEK_Encode(TC_NS_ClientContext *cli_context,
 		 TEEC_UUID service_id,
@@ -162,7 +164,7 @@ static TEEC_Result TEEK_Encode(TC_NS_ClientContext *cli_context,
 		} else {
 			tloge("param_type[%d]=%d not correct\n",
 					param_cnt, param_type[param_cnt]);
-			return TEEC_ERROR_BAD_PARAMETERS;
+			return TEEC_ERROR_BAD_PARAMETERS; /*lint !e570*/
 		}
 	}
 	cli_context->paramTypes =
@@ -417,7 +419,7 @@ EXPORT_SYMBOL(TEEK_FinalizeContext);
  * Return:         TEEC_SUCCESS: success
  *                     other: failure
  */
-TEEC_Result TEEK_OpenSession(TEEC_Context *context,
+static TEEC_Result __TEEK_OpenSession(TEEC_Context *context,
 			     TEEC_Session *session,
 			     const TEEC_UUID *destination,
 			     uint32_t connectionMethod,
@@ -434,6 +436,8 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 	uint32_t param_type[4] = { 0 };
 	errno_t sret;
 
+	CFC_FUNC_ENTRY(TEEK_OpenSession);
+
 	tlogd("TEEK_OpenSession Started:\n");
 	/* connectionData current not used */
 	(void)(connectionData);
@@ -447,44 +451,50 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 	if (!context || !session || !destination || !operation
 			|| TEEC_LOGIN_IDENTIFY != connectionMethod) {
 		tloge("invalid input params\n");
-		return teec_ret;
+		goto cfc_ret_fail;
 	}
 	param_type[3] = TEEC_PARAM_TYPE_GET(operation->paramTypes, 3);
 	param_type[2] = TEEC_PARAM_TYPE_GET(operation->paramTypes, 2);
 	if (TEEC_MEMREF_TEMP_INPUT != param_type[3]
 			|| TEEC_MEMREF_TEMP_INPUT != param_type[2]) {
 		tloge("invalid param type 0x%x\n", operation->paramTypes);
-		return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		goto cfc_ret_fail;
 	}
 	if (NULL == operation->params[3].tmpref.buffer
 			|| NULL == operation->params[2].tmpref.buffer
 			|| 0 == operation->params[3].tmpref.size
 			|| 0 == operation->params[2].tmpref.size) {
 		tloge("invalid operation params(NULL)\n");
-		return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		goto cfc_ret_fail;
 	}
 	cli_login.method = TEEC_LOGIN_IDENTIFY;
 	dev_file = (TC_NS_DEV_File *)(context->dev);
 	if (!dev_file) {
 		tloge("invalid context->dev (NULL)\n");
-		return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		goto cfc_ret_fail;
 	}
 	dev_file->pkg_name_len = operation->params[3].tmpref.size;
 	if (operation->params[3].tmpref.size > (MAX_PACKAGE_NAME_LEN - 1)) {
-		return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		goto cfc_ret_fail;
 	} else {
 		sret = memset_s(dev_file->pkg_name, sizeof(dev_file->pkg_name),
 				0, MAX_PACKAGE_NAME_LEN);
 		if (EOK != sret) {
 			tloge("memset_s error sret is %d.\n", sret);
-			return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+			teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+			goto cfc_ret_fail;
 		}
 		sret = memcpy_s(dev_file->pkg_name, sizeof(dev_file->pkg_name),
 				operation->params[3].tmpref.buffer,
 				operation->params[3].tmpref.size);
 		if (EOK != sret) {
 			tloge("memcpy_s error sret is %d.\n", sret);
-			return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+			teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+			goto cfc_ret_fail;
 		}
 	}
 	dev_file->pub_key_len = 0;
@@ -493,7 +503,8 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 	teec_ret = TEEK_CheckOperation(operation);
 	if (TEEC_SUCCESS != teec_ret) {
 		tloge("operation is invalid\n");
-		return (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		teec_ret = (TEEC_Result)TEEC_ERROR_BAD_PARAMETERS;
+		goto cfc_ret_fail;
 	}
 
 	/* Paramters right, start execution */
@@ -505,9 +516,10 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 		    GLOBAL_CMD_ID_OPEN_SESSION, &cli_login, operation);
 	if (TEEC_SUCCESS != teec_ret) {
 		tloge("encode failed\n");
-		return teec_ret;
+		goto cfc_ret_fail;
 	}
 
+	cli_context.teec_token = session->teec_token;
 	ret = TC_NS_OpenSession(context->dev, &cli_context);
 	if (0 == ret) {
 		tlogd("open session success\n");
@@ -526,6 +538,8 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 			teec_ret = (TEEC_Result) TEEC_ERROR_OUT_OF_MEMORY;
 		else if (-EINVAL == ret)
 			teec_ret = (TEEC_Result) TEEC_ERROR_BAD_PARAMETERS;
+		else if (-ERESTARTSYS == ret)
+			teec_ret = (TEEC_Result) TEEC_CLIENT_INTR;
 		else
 			teec_ret = (TEEC_Result) TEEC_ERROR_GENERIC;
 		origin = TEEC_ORIGIN_COMMS;
@@ -542,7 +556,36 @@ TEEC_Result TEEK_OpenSession(TEEC_Context *context,
 	 */
 	if ((TEEC_SUCCESS != teec_ret) && (returnOrigin))
 		*returnOrigin = origin;
-	return teec_ret;
+
+	CFC_RETURN_SUCC(TEEK_OpenSession, 0, teec_ret);
+
+cfc_ret_fail:
+	CFC_RETURN_FAIL(TEEK_OpenSession, 0, teec_ret);
+}
+
+TEEC_Result TEEK_OpenSession(TEEC_Context *context,
+			     TEEC_Session *session,
+			     const TEEC_UUID *destination,
+			     uint32_t connectionMethod,
+			     const void *connectionData,
+			     TEEC_Operation *operation,
+			     uint32_t *returnOrigin)
+{
+	int i;
+	TEEC_Result ret;
+
+	/* Upvote for peripheral zone votage, needed by Coresight. */
+	cfc_prepare_clk_pm();
+	for (i = 0; i < 5; i++) {
+		ret = __TEEK_OpenSession(context, session, destination, connectionMethod,
+					 connectionData, operation, returnOrigin);
+		if (ret != (TEEC_Result) TEEC_CLIENT_INTR) {
+			cfc_unprepare_pm_clk();
+			return ret;
+		}
+	}
+	cfc_unprepare_pm_clk();
+	return ret;
 }
 EXPORT_SYMBOL(TEEK_OpenSession);
 
@@ -592,6 +635,7 @@ void TEEK_CloseSession(TEEC_Session *session)
 		return;
 	}
 
+	cli_context.teec_token = session->teec_token;
 	ret = TC_NS_CloseSession(session->context->dev, &cli_context);
 
 	if (0 == ret) {
@@ -602,6 +646,10 @@ void TEEK_CloseSession(TEEC_Session *session)
 		if (EOK != sret) {
 			tloge("memset_s error sret is %d.\n", sret);
 			/* TEEK_CloseSession is void so go on execute */
+		}
+		sret = memset_s(session->teec_token, TOKEN_SAVE_LEN, 0x00, TOKEN_SAVE_LEN);
+		if (EOK != sret) {
+			tloge("memset_s teec_token error ret value is %d.\n", sret);
 		}
 		session->ops_cnt = 0;
 		list_remove(&session->head);
@@ -665,6 +713,8 @@ TEEC_Result TEEK_InvokeCommand(TEEC_Session *session,
 		return teec_ret;
 	}
 
+	cli_context.teec_token = session->teec_token;
+
 	ret = TC_NS_Send_CMD(session->context->dev, &cli_context);
 	if (0 == ret) {
 		tlogd("invoke cmd success\n");
@@ -713,7 +763,7 @@ TEEC_Result TEEK_RegisterSharedMemory(TEEC_Context *context,
 				      TEEC_SharedMemory *sharedMem)
 {
 	tloge("TEEK_RegisterSharedMemory not supported\n");
-	return TEEC_ERROR_NOT_SUPPORTED;
+	return TEEC_ERROR_NOT_SUPPORTED; /*lint !e570*/
 }
 EXPORT_SYMBOL(TEEK_RegisterSharedMemory);
 
@@ -730,7 +780,7 @@ TEEC_Result TEEK_AllocateSharedMemory(TEEC_Context *context,
 				      TEEC_SharedMemory *sharedMem)
 {
 	tloge("TEEK_AllocateSharedMemory not supported\n");
-	return TEEC_ERROR_NOT_SUPPORTED;
+	return TEEC_ERROR_NOT_SUPPORTED; /*lint !e570*/
 }
 EXPORT_SYMBOL(TEEK_AllocateSharedMemory);
 

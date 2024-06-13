@@ -114,6 +114,7 @@ typedef struct tag_TC_NS_Operation {
 	TC_NS_Parameter params[4];
 	unsigned int    buffer_h_addr[4];
 	struct tag_TC_NS_Shared_MEM *sharemem[4];
+	void *mb_buffer[4];
 } TC_NS_Operation;
 
 typedef struct tag_TC_NS_Temp_Buf {
@@ -139,14 +140,27 @@ typedef struct  tag_TC_NS_SMC_CMD {
 	unsigned int event_nr;
 	unsigned int remap;
 	unsigned int uid;
+#ifdef SECURITY_AUTH_ENHANCE
+	unsigned int token_phys;
+	unsigned int token_h_phys;
+	unsigned int pid;
+	unsigned int params_phys;
+	unsigned int params_h_phys;
+#endif
+#ifdef CONFIG_TEE_CFC_ABI
+	unsigned int real_pid;
+#endif
 	bool started;
+#ifdef SECURITY_AUTH_ENHANCE
+	unsigned int chksum;
+#endif
 }__attribute__((__packed__)) TC_NS_SMC_CMD;
 
 typedef struct tag_TC_NS_Shared_MEM {
 	void *kernel_addr;
 	void *user_addr;
 	unsigned int len;
-	unsigned int from_mem_pool;
+	bool from_mailbox;
 	struct list_head head;
 	atomic_t usage;
 } TC_NS_Shared_MEM;
@@ -167,11 +181,81 @@ struct TC_wait_data {
 	int send_wait_flag;
 };
 
+#ifdef SECURITY_AUTH_ENHANCE
+/* Using AES-CBC algorithm to encrypt communication between secure world and
+   normal world.
+ */
+#define CIPHER_KEY_BYTESIZE 32   /* AES-256 key size */
+#define IV_BYTESIZE   16  /* AES-CBC encryption initialization vector size */
+#define CIPHER_BLOCK_BYTESIZE 16 /* AES-CBC cipher block size */
+#define SCRAMBLING_NUMBER 3
+#define CHKSUM_LENGTH  (sizeof(TC_NS_SMC_CMD) - sizeof(uint32_t))
+
+#define HASH_PLAINTEXT_SIZE (MAX_SHA_256_SZ + sizeof(struct encryption_head))
+#define HASH_PLAINTEXT_ALIGNED_SIZE \
+	ALIGN(HASH_PLAINTEXT_SIZE, CIPHER_BLOCK_BYTESIZE)
+
+enum SCRAMBLING_ID {
+	SCRAMBLING_TOKEN = 0,
+	SCRAMBLING_OPERATION = 1,
+	SCRAMBLING_CMDCRC = 2,
+	SCRAMBLING_MAX = SCRAMBLING_NUMBER
+};
+
+struct session_crypto_info {
+	uint8_t key[CIPHER_KEY_BYTESIZE]; /* AES-256 key */
+	uint8_t iv[IV_BYTESIZE]; /* AES-CBC encryption initialization vector */
+};
+
+struct session_secure_info {
+	uint32_t challenge_word;
+	uint32_t scrambling[SCRAMBLING_NUMBER];
+	struct session_crypto_info crypto_info;
+};
+
+#define MAGIC_SIZE 16
+#define MAGIC_STRING "Trusted-magic"
+
+/* One encrypted block, which is aligned with CIPHER_BLOCK_BYTESIZE bytes
+ * Head + Payload + Padding
+ */
+struct encryption_head {
+	int8_t magic[MAGIC_SIZE];
+	uint32_t crc;
+	uint32_t payload_len;
+};
+
+struct session_secure_params {
+	struct encryption_head head;
+	union {
+		struct {
+			uint32_t challenge_word;
+		} ree2tee;
+		struct {
+			uint32_t scrambling[SCRAMBLING_NUMBER];
+			struct session_crypto_info crypto_info;
+		} tee2ree;
+	} payload;
+};
+#endif
+
+#ifdef SECURITY_AUTH_ENHANCE
+typedef struct tag_TC_NS_Token {
+	/* 42byte, token_32byte + timestamp_8byte + kernal_api_1byte + sync_1byte*/
+	uint8_t *token_buffer;
+} TC_NS_Token;
+#endif
+
 typedef struct tag_TC_NS_Session {
 	unsigned int session_id;
 	struct list_head head;
 	struct TC_wait_data wait_data;
 	struct mutex ta_session_lock;
+#ifdef SECURITY_AUTH_ENHANCE
+	/* Session secure enhanced information */
+	struct session_secure_info secure_info;
+	TC_NS_Token tc_ns_token;
+#endif
 	atomic_t usage;
 } TC_NS_Session;
 
@@ -198,14 +282,39 @@ static inline void get_session_struct(struct tag_TC_NS_Session *session)
 static inline void put_session_struct(struct tag_TC_NS_Session *session)
 {
 	if (session) {
-		if (atomic_dec_and_test(&session->usage))
+		if (atomic_dec_and_test(&session->usage)) {
+#ifdef SECURITY_AUTH_ENHANCE
+			if (session->tc_ns_token.token_buffer) {
+				kfree(session->tc_ns_token.token_buffer);
+				session->tc_ns_token.token_buffer = NULL;
+				(void)session->tc_ns_token.token_buffer; /* avoid Codex warning */
+			}
+#endif
 			kfree(session);
+		}
 	}
 }
 
-TC_NS_Service *tc_find_service(struct list_head *services, char *uuid);
+TC_NS_Service *tc_find_service(struct list_head *services, unsigned char *uuid);
 TC_NS_Session *tc_find_session(struct list_head *session_list,
 			       unsigned int session_id);
+
+#ifdef SECURITY_AUTH_ENHANCE
+int set_encryption_head(struct encryption_head *head,
+			const uint8_t *data,
+			uint32_t len);
+int generate_encrypted_session_secure_params(uint8_t *enc_secure_params,
+	size_t enc_params_size);
+#define ENCRYPT 1
+#define DECRYPT 0
+
+int crypto_session_aescbc_key256(uint8_t *in, uint32_t in_len,
+                                 uint8_t *out, uint32_t out_len,
+                                 const uint8_t *key, uint8_t *iv,
+                                 uint32_t mode);
+int crypto_aescbc_cms_padding(uint8_t *plaintext, uint32_t plaintext_len,
+                              uint32_t payload_len);
+#endif
 
 int TC_NS_ClientOpen(TC_NS_DEV_File **dev_file, uint8_t kernel_api);
 int TC_NS_ClientClose(TC_NS_DEV_File *dev, int flag);

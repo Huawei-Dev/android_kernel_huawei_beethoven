@@ -9,12 +9,43 @@
 #ifndef _TEE_CLIENT_TYPE_H_
 #define _TEE_CLIENT_TYPE_H_
 
-#include "teek_client_constants.h"
-#include "teek_client_list.h"
+#define SECURITY_AUTH_ENHANCE
 
-#ifndef bool
-#define bool    uint8_t
-#endif
+#include "teek_client_list.h"
+#include "teek_client_constants.h"
+
+#define TOKEN_SAVE_LEN    24
+
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 无符号整型定义
+ */
+typedef unsigned int uint32_t;
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 有符号整型定义
+ */
+typedef signed int int32_t;
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 无符号短整型定义
+ */
+typedef unsigned short uint16_t;
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 有符号短整型定义
+ */
+typedef signed short int16_t;
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 无符号字符型定义
+ */
+typedef unsigned char uint8_t;
+/**
+ * @ingroup TEEC_COMMON_DATA
+ * 有符号字符型定义
+ */
+typedef signed char int8_t;
 
 /**
  * @ingroup TEEC_COMMON_DATA
@@ -97,6 +128,10 @@ typedef struct {
 	/**< 会话链表头  */
 	TEEC_Context *context;
 	/**< 指向会话所属的TEE环境  */
+#ifdef SECURITY_AUTH_ENHANCE
+	/* TOKEN_SAVE_LEN_24byte = token_16byte + timestamp_8byte */
+	uint8_t teec_token[TOKEN_SAVE_LEN];
+#endif
 } TEEC_Session;
 
 /**

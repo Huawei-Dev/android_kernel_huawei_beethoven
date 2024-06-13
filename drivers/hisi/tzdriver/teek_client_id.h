@@ -52,6 +52,8 @@ enum SVC_SECBOOT_CMD_ID {
 	SECBOOT_CMD_ID_VERIFY_DATA_TYPE_LOCAL,
 	SECBOOT_CMD_ID_BSP_MODEM_CALL,           /**< Secboot Task 执行对应函数*/
 	SECBOOT_CMD_ID_BSP_MODULE_VERIFY,        /**< Secboot Task modem module校验函数*/
+	SECBOOT_CMD_ID_BSP_ICC_OPEN_THREAD,      /**< Secboot Task icc open函数*/
+	SECBOOT_CMD_ID_BSP_RFILE_RW_THREAD,      /**< Secboot Task rfile thread函数*/
 };
 
 /**
@@ -59,6 +61,20 @@ enum SVC_SECBOOT_CMD_ID {
  *
  * 安全服务secboot支持的镜像类型
  */
+ /* 这个枚举的修改需要同步修改一下几个地方
+mbb tzdriver
+vendor/hisi/system/kernel/drivers/hisi/tzdriver/teek_client_id.h
+mbb secos
+vendor/hisi/system/secure_os/trustedcore/include/TEE/tee_common.h
+vendor/hisi/system/secure_os/trustedcore/platform/balong/include/bsp_param_cfg.h
+mbb、phone:ccore modem
+vendor/hisi/system/kernel/drivers/hisi/modem/drv/common/include/param_cfg_to_sec.h
+phone tzdriver
+vendor/hisi/ap/kernel/drivers/tzdriver/teek_client_id.h
+phone secos
+vendor/thirdparty/secure_os/trustedcore/include/TEE/tee_common.h
+vendor/thirdparty/secure_os/trustedcore/platform/kirin/secureboot/secboot.h
+*/
 enum SVC_SECBOOT_IMG_TYPE {
 	MODEM,
 	HIFI,
@@ -70,38 +86,6 @@ enum SVC_SECBOOT_IMG_TYPE {
 	MODEM_DTB,
     ISP,
 	SOC_MAX
-};
-/**
- * @ingroup  TEEC_COMMON_DATA
- *
- * 安全服务Global支持的命令ID
- */
-enum SVC_GLOBAL_CMD_ID {
-	GLOBAL_CMD_ID_INVALID = 0x0,	/**< 安全服务Global，无效的命令*/
-	GLOBAL_CMD_ID_BOOT_ACK,	   /**< 安全服务Global，启动应答*/
-	GLOBAL_CMD_ID_OPEN_SESSION,    /**< 安全服务Global，打开Session*/
-	GLOBAL_CMD_ID_CLOSE_SESSION,	/**< 安全服务Global，关闭Session*/
-	GLOBAL_CMD_ID_LOAD_SECURE_APP,
-	/**< 安全服务Global，动态加载安全应用*/
-	GLOBAL_CMD_ID_NEED_LOAD_APP,/**< 安全服务Global，判断是否是需要加载安全应用*/
-	GLOBAL_CMD_ID_REGISTER_AGENT,
-	/**< 安全服务Global，注册代理*/
-	GLOBAL_CMD_ID_UNREGISTER_AGENT,
-	/**< 安全服务Global，注销代理*/
-	GLOBAL_CMD_ID_REGISTER_NOTIFY_MEMORY,
-	/**< 安全服务Global，注册异步调用缓冲区*/
-	GLOBAL_CMD_ID_UNREGISTER_NOTIFY_MEMORY,
-	 /**< 安全服务Global，注销异步调用缓冲区*/
-	GLOBAL_CMD_ID_INIT_CONTENT_PATH,  /**< 安全服务Global，初始化content path*/
-	GLOBAL_CMD_ID_TERMINATE_CONTENT_PATH,
-	 /**< 安全服务Global，释放content path*/
-	GLOBAL_CMD_ID_ALLOC_EXCEPTION_MEM,
-	/**< 安全服务Global，分配异常信息保存空间*/
-	GLOBAL_CMD_ID_TEE_TIME,	    /**< 安全服务Global，获取安全OS的时间 */
-	GLOBAL_CMD_ID_TEE_INFO,	   /** tlogcat 靠靠OS  靠 */
-	GLOBAL_CMD_ID_KILL_TASK,   /** Global Task Kill session */
-	GLOBAL_CMD_ID_SET_CA_HASH,   /*set ca hash info*/
-	GLOBAL_CMD_ID_MAX,    /**< 安全服务Global，未支持的命令*/
 };
 
 #endif

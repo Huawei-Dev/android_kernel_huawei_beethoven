@@ -20,12 +20,13 @@
 #include <linux/slab.h>
 #include <linux/hisi/rdr_pub.h>
 #include "tee_rdr_register.h"
+#include "teek_client_constants.h"
 #include "tc_ns_client.h"
-#include "tee_client_constants.h"
 #include "teek_ns_client.h"
 #include "tc_ns_log.h"
 #include "smc.h"
 #include "securec.h"
+#include "mailbox_mempool.h"
 
 #define TEEOS_MODID HISI_BB_MOD_TEE_START
 #define TEEOS_MODID_END  HISI_BB_MOD_TEE_END
@@ -77,6 +78,7 @@ int teeos_register_exception(void)
 	    return ret_s;
 	}
 
+/*lint -save -e570*/
 	einfo.e_modid = TEEOS_MODID;
 	einfo.e_modid_end = TEEOS_MODID_END;
 	einfo.e_process_priority = RDR_ERR;
@@ -87,7 +89,7 @@ int teeos_register_exception(void)
 	einfo.e_exce_type = TEE_S_EXCEPTION;
 	einfo.e_from_core = RDR_TEEOS;
 	einfo.e_upload_flag = RDR_UPLOAD_YES;
-
+/*lint -restore*/
 	ret_s = memcpy_s(einfo.e_from_module, sizeof(einfo.e_from_module),
 			tee_module_name, sizeof(tee_module_name));
 	if (ret_s) {
@@ -115,10 +117,9 @@ int TC_NS_register_rdr_mem(void)
 {
 	TC_NS_SMC_CMD smc_cmd = {0};
 	int ret = 0;
-	unsigned char uuid[17] = {0};
-	TC_NS_Operation operation = {0};
 	u64 rdr_mem_addr;
 	unsigned int rdr_mem_len;
+	struct mb_cmd_pack *mb_pack;
 
 	ret = tee_rdr_register_core();
 	if (ret) {
@@ -130,20 +131,28 @@ int TC_NS_register_rdr_mem(void)
 	rdr_mem_addr = current_rdr_info.log_addr;
 	rdr_mem_len = current_rdr_info.log_len;
 
-	uuid[0] = 1;
-	smc_cmd.uuid_phys = virt_to_phys(uuid);
-	smc_cmd.uuid_h_phys = virt_to_phys(uuid) >> 32;
+	mb_pack = mailbox_alloc_cmd_pack();
+	if (!mb_pack) {
+		current_rdr_info.log_addr = 0x0;
+		current_rdr_info.log_len = 0;
+		return -ENOMEM;
+	}
+
+	mb_pack->uuid[0] = 1;
+	smc_cmd.uuid_phys = virt_to_phys(mb_pack->uuid);
+	smc_cmd.uuid_h_phys = virt_to_phys(mb_pack->uuid) >> 32; /*lint !e572*/
 	smc_cmd.cmd_id = GLOBAL_CMD_ID_REGISTER_RDR_MEM;
 
-	operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT | TEE_PARAM_TYPE_VALUE_INPUT << 4;
-	operation.params[0].value.a = rdr_mem_addr;
-	operation.params[0].value.b = rdr_mem_addr >> 32;
-	operation.params[1].value.a = rdr_mem_len;
+	mb_pack->operation.paramTypes = TEE_PARAM_TYPE_VALUE_INPUT | TEE_PARAM_TYPE_VALUE_INPUT << 4;
+	mb_pack->operation.params[0].value.a = rdr_mem_addr;
+	mb_pack->operation.params[0].value.b = rdr_mem_addr >> 32;
+	mb_pack->operation.params[1].value.a = rdr_mem_len;
 
-	smc_cmd.operation_phys = virt_to_phys(&operation);
-	smc_cmd.operation_h_phys = virt_to_phys(&operation) >> 32;
+	smc_cmd.operation_phys = virt_to_phys(&mb_pack->operation);
+	smc_cmd.operation_h_phys = virt_to_phys(&mb_pack->operation) >> 32; /*lint !e572*/
 
 	ret = TC_NS_SMC(&smc_cmd, 0);
+	mailbox_free(mb_pack);
 	if (ret) {
 	    tloge("Send rdr mem info failed.\n");
 	}

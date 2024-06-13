@@ -12,8 +12,8 @@
  *@ingroup TEEC_API
 */
 
-#ifndef _TEE_CLIENT_API_H_
-#define _TEE_CLIENT_API_H_
+#ifndef _TEEK_CLIENT_API_H_
+#define _TEEK_CLIENT_API_H_
 
 #include "teek_client_type.h"
 

@@ -8,7 +8,7 @@
 
 #define AGENT_FS_ID 0x46536673	/*FSfs*/
 #define AGENT_MISC_ID 0x4d495343	/*MISC*/
-#define AGENT_RPMB_ID 0x4abe6198	/*RPMB*/
+#define TEE_RPMB_AGENT_ID 0x4abe6198	/*RPMB*/
 #define AGENT_SOCKET_ID 0x69e85664	/*socket*/
 
 struct __smc_event_data *find_event_control(unsigned int agent_id);
@@ -26,6 +26,7 @@ struct __smc_event_data {
 	TC_NS_SMC_CMD cmd;
 	TC_NS_DEV_File *owner;
 	TC_NS_Shared_MEM *buffer;
+	atomic_t usage;
 };
 
 struct tee_agent_kernel_ops {
@@ -47,13 +48,25 @@ struct tee_agent_kernel_ops {
 	struct list_head list;
 };
 
+static inline void get_agent_event(struct __smc_event_data *event_data)
+{
+	if (event_data)
+		atomic_inc(&event_data->usage);
+}
 
+static inline void put_agent_event(struct __smc_event_data *event_data)
+{
+	if (event_data) {
+		if (atomic_dec_and_test(&event_data->usage))
+			kfree(event_data);
+	}
+}
 
 int agent_init(void);
 
 int agent_exit(void);
 
-unsigned int agent_process_work(TC_NS_SMC_CMD *smc_cmd, unsigned int agent_id);
+int agent_process_work(TC_NS_SMC_CMD *smc_cmd, unsigned int agent_id);
 
 int is_agent_alive(unsigned int agent_id);
 
@@ -78,6 +91,8 @@ int TC_NS_sync_sys_time(TC_NS_Time *tc_ns_time);
 
 int tee_agent_clear_work(TC_NS_ClientContext *context, unsigned int dev_file_id);
 int tee_agent_kernel_register(struct tee_agent_kernel_ops *new_agent);
+
+bool TC_NS_is_system_agent_client(TC_NS_DEV_File *dev_file);
 
 extern int mmc_blk_ioctl_rpmb_cmd(enum func_id id,
 						struct block_device *bdev,

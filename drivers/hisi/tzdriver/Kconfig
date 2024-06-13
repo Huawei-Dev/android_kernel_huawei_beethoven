@@ -35,12 +35,12 @@ config TEE_TUI_HI3650
 	help
 	  Trusted user interface diver
 
-config TEE_RANDOM
-	tristate "TEE based random driver"
+config TEE_TUI_KIRIN970
+	tristate "Trusted user interface driver for kirin970"
 	default n
 	depends on TZDRIVER
 	help
-	  TEE based random diver
+	  Trusted user interface diver
 
 config HISI_SPI_SMC
 	bool "hisi spi smc"
@@ -49,6 +49,39 @@ config HISI_SPI_SMC
 config HISI_SPI1_SMC
 	bool "hisi spi1 smc"
 	default n
+
+config SECS_POWER_CTRL
+	bool "secs power ctrl"
+	default n
+
+config TEE_CFC
+	bool "Enable CFC to protect TEE"
+	select PID_IN_CONTEXTIDR
+	select TEE_CFC_ABI
+	depends on ((!CORESIGHT) && (!CORESIGHT_SOURCE_ETM4X) && (!CORESIGHT_LINK_AND_SINK_TMC) && (!CONFIG_CORESIGHT_SINK_TPIU) && (!CONFIG_CORESIGHT_SINK_ETBV10) && (!CONFIG_CORESIGHT_LINKS_AND_SINKS) && (!CONFIG_HISI_CORESIGHT_TRACE))
+	default y
+	help
+	  Code in TZDriver in a continuous text section and use smc call
+	  to let TEEOS protect these code using DMSS. CoreSight based control
+	  flow certification should be applied.
+
+config TEE_CFC_ABI
+	bool "Enable CFC ABI"
+	default y
+	help
+	  TC_NS_SMC_CMD depends on TEEOS. If TEEOS selects FEATURE_CFC,
+	  TEE_CFC_ABI should be selected even if TEE_CFC is off.
+
+config TZDRIVER_CODE_ALIGN_SHIFT
+	int "Alignment of code in tzdriver"
+	range 16 19
+	default 19
+	depends on TEE_CFC
+	help
+	  Code of TZDriver should be aligned due to DMSS limitation.
+	  There are two DMSS. In Hi3660, we need align tzdriver in
+	  512kB physical memory boundry. In Hi3670 the limitation
+	  reduced to 64kB.
 
 source drivers/hisi/tzdriver/libhwsecurec/Kconfig
 

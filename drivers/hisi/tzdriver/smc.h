@@ -4,7 +4,7 @@
 #define _SMC_H_
 
 #include <linux/of_device.h>
-#include "tee_client_constants.h"
+#include "teek_client_constants.h"
 #include "teek_ns_client.h"
 
 enum TC_NS_CMD_type {
@@ -27,6 +27,6 @@ unsigned int TC_NS_SMC_WITH_NO_NR(TC_NS_SMC_CMD *cmd, uint8_t flags);
 unsigned int TC_NS_POST_SMC(TC_NS_SMC_CMD *cmd);
 
 void tc_smc_wakeup(void);
-int teeos_log_exception_archive(void);
+int teeos_log_exception_archive(unsigned int eventid, const char* exceptioninfo);
 
 #endif

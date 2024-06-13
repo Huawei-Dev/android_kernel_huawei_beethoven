@@ -21,6 +21,10 @@
 #define TUI_CMD_START_DELAY_WORK	7
 #define TUI_CMD_CANCEL_DELAY_WORK	8
 #define TUI_CMD_SEND_INPUT_WORK 9
+#define TUI_CMD_LOAD_UNUSUAL_TTF 10
+#define TUI_CMD_FREE_UNUSUAL_TTF_MEM	11
+#define TUI_CMD_FREE_UNUSUAL_TTF_MEM_AND_DISABLE	12
+
 
 #define TUI_DRV_NAME_MAX	32
 
@@ -129,6 +133,13 @@ struct tui_drv_node {
 	struct list_head list;
 };
 
+enum Ttf_File_Type {
+	/* The unusual ttf file */
+	unusual = 0x0,
+	/* The normal ttf file */
+	normal = 0x1
+};
+typedef enum Ttf_File_Type ttf_type;
 
 
 #ifdef CONFIG_TEE_TUI
@@ -150,7 +161,7 @@ void tui_poweroff_work_start(void);
 
 void set_tui_attach_device(unsigned int id);
 unsigned int tui_attach_device(void);
-int load_ttf_file(unsigned int ttf_file_size);
+int load_tui_font_file(ttf_type type);
 void do_ns_tui_release(void);
 #else
 static inline int init_tui(struct device *dev)
@@ -186,7 +197,7 @@ static inline unsigned int tui_attach_device(void)
 	return 0;
 }
 
-static inline int load_ttf_file(unsigned int ttf_file_size)
+static inline int load_tui_font_file(unsigned int ttf_file_size)
 {
 	return 0;
 }

@@ -3,6 +3,22 @@
 #ifndef _TC_NS_CLIENT_H_
 #define _TC_NS_CLIENT_H_
 
+#include "teek_client_type.h"
+
+#ifdef SECURITY_AUTH_ENHANCE
+#define SCRAMBLING_KEY_LEN    4
+#define TOKEN_BUFFER_LEN    42   /* token(32byte) + timestamp(8byte) + kernal_api(1byte) + sync(1byte)*/
+#define TIMESTAMP_BUFFER_INDEX    32
+#define KERNAL_API_INDEX    40
+#define SYNC_INDEX    41
+#define TIMESTAMP_LEN_DEFAULT \
+	((KERNAL_API_INDEX) - (TIMESTAMP_BUFFER_INDEX))
+#define KERNAL_API_LEN \
+	((TOKEN_BUFFER_LEN) - (KERNAL_API_INDEX))
+#define TIMESTAMP_SAVE_INDEX    16
+#endif
+
+
 typedef struct {
 	__u32 method;
 	__u32 mdata;
@@ -34,6 +50,9 @@ typedef struct {
 	TC_NS_ClientParam params[4];
 	__u32 paramTypes;
 	__u8 started;
+#ifdef SECURITY_AUTH_ENHANCE
+	void* teec_token;
+#endif
 } TC_NS_ClientContext;
 
 typedef struct {
@@ -41,13 +60,18 @@ typedef struct {
 	uint32_t millis;
 } TC_NS_Time;
 
+struct load_app_ioctl_struct {
+	TEEC_UUID uuid;
+	uint32_t file_size;
+	union {
+		char *file_buffer;
+		unsigned long long file_addr;
+	};
+};
+
 #define	vmalloc_addr_valid(kaddr) \
 	(((void *)(kaddr) >= (void *)VMALLOC_START) && \
 	((void *)(kaddr) < (void *)VMALLOC_END))
-
-#define IMG_LOAD_FIND_NO_DEV_ID  0xFFFF00A5
-#define IMG_LOAD_FIND_NO_SHARE_MEM 0xFFFF00A6
-#define IMG_LOAD_SECURE_RET_ERROR 0xFFFF00A7
 
 #define TST_CMD_01 (1)
 #define TST_CMD_02 (2)
@@ -74,7 +98,7 @@ typedef struct {
 #define TC_NS_CLIENT_IOCTL_UNREGISTER_AGENT \
 	_IOWR(TC_NS_CLIENT_IOC_MAGIC, 8, unsigned int)
 #define TC_NS_CLIENT_IOCTL_LOAD_APP_REQ \
-	_IOWR(TC_NS_CLIENT_IOC_MAGIC, 9, TC_NS_ClientContext)
+	_IOWR(TC_NS_CLIENT_IOC_MAGIC, 9, struct load_app_ioctl_struct)
 #define TC_NS_CLIENT_IOCTL_NEED_LOAD_APP \
 	_IOWR(TC_NS_CLIENT_IOC_MAGIC, 10, TC_NS_ClientContext)
 #define TC_NS_CLIENT_IOCTL_ALLOC_EXCEPTING_MEM \

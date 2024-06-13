@@ -69,7 +69,7 @@ int vsnprintf_s(char *strDest, size_t destMax, size_t count, const char *format,
 
 	if (destMax > count) {
 		retvalue = vsnprintf_helper(strDest, count + 1, format, arglist);
-		if (retvalue == -2) {
+		if (retvalue == -2) {  /* lsd add to keep dest buffer not destroyed 2014.2.18 */
 			/* the string has been truncated, return  -1 */
 			return -1;     /* to skip error handler,  return strlen(strDest) or -1 */
 		}
