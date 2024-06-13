@@ -444,6 +444,26 @@
 	MEM_KEEP(init.text)						\
 	MEM_KEEP(exit.text)						\
 
+#ifdef CONFIG_TEE_CFC
+#define CFC_TEXT							\
+		. = ALIGN(1 << CONFIG_TZDRIVER_CODE_ALIGN_SHIFT);	\
+		VMLINUX_SYMBOL(__cfc_area_start) = .;			\
+		VMLINUX_SYMBOL(__cfc_audit_start) = .;			\
+		*(.cfc.entries.text)					\
+		VMLINUX_SYMBOL(__cfc_audit_stop) = .;			\
+		*(.cfc.text)						\
+		. = ALIGN(1 << CONFIG_TZDRIVER_CODE_ALIGN_SHIFT);	\
+		VMLINUX_SYMBOL(__cfc_area_stop) = .;
+
+#define CFC_DATA							\
+		. = ALIGN(PAGE_SIZE);					\
+		VMLINUX_SYMBOL(__cfc_rules_start) = .;			\
+		*(.cfc.auditrules)					\
+		VMLINUX_SYMBOL(__cfc_rules_stop) = .;
+#else
+#define CFC_TEXT
+#define CFC_DATA
+#endif
 
 /* sched.text is aling to function alignment to secure we have same
  * address even at second ld pass when generating System.map */

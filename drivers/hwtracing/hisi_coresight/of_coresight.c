@@ -10,7 +10,6 @@
  * GNU General Public License for more details.
  */
 
-#include <linux/module.h>
 #include <linux/types.h>
 #include <linux/err.h>
 #include <linux/slab.h>
@@ -86,7 +85,7 @@ static int of_coresight_alloc_memory(struct device *dev,
 		return -ENOMEM;
 
 	/* Children connected to this component via @outports */
-	 pdata->child_names = devm_kzalloc(dev, pdata->nr_outport *
+	pdata->child_names = devm_kzalloc(dev, pdata->nr_outport *
 					  sizeof(*pdata->child_names),
 					  GFP_KERNEL);
 	if (!pdata->child_names)
@@ -189,50 +188,3 @@ struct coresight_platform_data *of_get_coresight_platform_data(
 	return pdata;
 }
 EXPORT_SYMBOL_GPL(of_get_coresight_platform_data);
-
-#define ETB_CLUSTER "cluster_etb"
-struct device_node * of_get_coresight_etb_data(
-				struct device *dev, struct device_node *node)
-{
-	uint32_t etb_len;
-	uint32_t nr_ctis;
-	struct device_node *child_node = NULL;
-
-	nr_ctis =0;
-	if (of_get_property(node, ETB_CLUSTER, &etb_len))
-		nr_ctis = etb_len/sizeof(uint32_t);
-	else
-		return ERR_PTR(-EINVAL);
-
-	if (nr_ctis) {
-		child_node = of_parse_phandle(node, ETB_CLUSTER,0);
-		if (!child_node)
-			return ERR_PTR(-EINVAL);
-	}
-	return child_node;
-}
-
-#define FUNNEL_CLUSTER "cluster_funnel"
-struct device_node * of_get_coresight_funnel_data(
-				struct device *dev, struct device_node *node)
-{
-	uint32_t etb_len;
-	uint32_t nr_ctis;
-	struct device_node *child_node = NULL;
-
-	nr_ctis =0;
-	if (of_get_property(node, FUNNEL_CLUSTER, &etb_len))
-		nr_ctis = etb_len/sizeof(uint32_t);
-	else
-		return ERR_PTR(-EINVAL);
-
-	if (nr_ctis) {
-		child_node = of_parse_phandle(node, FUNNEL_CLUSTER,0);
-		if (!child_node)
-			return ERR_PTR(-EINVAL);
-	}
-	return child_node;
-}
-
-
-
