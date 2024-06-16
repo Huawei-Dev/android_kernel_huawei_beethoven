@@ -292,11 +292,13 @@ static int maxim_do_ioctl(struct file *file, unsigned int cmd, void __user *p, i
 		case MAXIM_POWER_SPK_ON:
 			CHECK_IOCTL_OPS(max_io_ops, maxim_single_digital_mute);
 			ret = max_io_ops->maxim_single_digital_mute(maxim, MAXIM_L, MUTE_ON);
+			ret = max_io_ops->maxim_single_digital_mute(maxim, MAXIM_R, MUTE_ON);
 			break;
 
 		case MAXIM_POWER_SPK_OFF:
 			CHECK_IOCTL_OPS(max_io_ops, maxim_single_digital_mute);
 			ret = max_io_ops->maxim_single_digital_mute(maxim, MAXIM_L, MUTE_OFF);
+			ret = max_io_ops->maxim_single_digital_mute(maxim, MAXIM_R, MUTE_OFF);
 			break;
 
 		case MAXIM_POWER_REC_ON:
