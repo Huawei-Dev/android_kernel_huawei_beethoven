@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_mgmt_sta.h
-  版 本 号   : 初稿
-  作    者   : zhangheng
-  生成日期   : 2013年6月18日
-  最近修改   :
-  功能描述   : hmac_mgmt_sta.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __HMAC_MGMT_STA_H__
 #define __HMAC_MGMT_STA_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "hmac_vap.h"
@@ -37,71 +20,71 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_MGMT_STA_H
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 #define HMAC_WMM_QOS_PARAMS_HDR_LEN        8
 #define HMAC_WMM_QOSINFO_AND_RESV_LEN      2
 #define HMAC_WMM_AC_PARAMS_RECORD_LEN      4
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 /*****************************************************************************
-  4 全局变量声明
-*****************************************************************************/
-
-
-/*****************************************************************************
-  5 消息头定义
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  6 ????????
 *****************************************************************************/
 
-/* 加入请求参数 */
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+
+/* ???????????? */
 typedef struct
 {
-    mac_bss_dscr_stru   st_bss_dscr;            /* 要加入的bss网络 */
-    oal_uint16          us_join_timeout;        /* 加入超时 */
+    mac_bss_dscr_stru   st_bss_dscr;            /* ????????bss???? */
+    oal_uint16          us_join_timeout;        /* ???????? */
     oal_uint16          us_probe_delay;
 }hmac_join_req_stru;
 
-/* 认证请求参数 */
+/* ???????????? */
 typedef struct
 {
     oal_uint16                  us_timeout;
     oal_uint8                   auc_resv[2];
 }hmac_auth_req_stru;
 
-/* 关联请求参数 */
+/* ???????????? */
 typedef struct
 {
     oal_uint16                  us_assoc_timeout;
     oal_uint8                   auc_resv[2];
 }hmac_asoc_req_stru;
 
-/* 加入结果 */
+/* ???????? */
 typedef struct
 {
     hmac_mgmt_status_enum_uint8 en_result_code;
     oal_uint8                   auc_resv[3];
 }hmac_join_rsp_stru;
 
-/* 认证结果 */
+/* ???????? */
 typedef struct
 {
-    oal_uint8                   auc_peer_sta_addr[6];   /* mesh下peer station的地址 */
-    oal_uint16                  us_status_code;         /* 认证结果 */
+    oal_uint8                   auc_peer_sta_addr[6];   /* mesh??peer station?????? */
+    oal_uint16                  us_status_code;         /* ???????? */
 }hmac_auth_rsp_stru;
 
-/* 去关联原因 */
+/* ?????????? */
 typedef struct
 {
     hmac_mgmt_status_enum_uint8  en_disasoc_reason_code;
@@ -115,16 +98,16 @@ typedef struct
 }hmac_ap_start_rsp_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  hmac_sta_wait_join(hmac_vap_stru *pst_sta, oal_void *pst_msg);
 //extern oal_uint32  hmac_sta_wait_join_rx(hmac_vap_stru *pst_sta, oal_void *pst_msg);
@@ -166,7 +149,8 @@ extern oal_bool_enum_uint8  hmac_is_support_11grate(oal_uint8 *puc_rates, oal_ui
 extern oal_bool_enum_uint8  hmac_is_support_11brate(oal_uint8 *puc_rates, oal_uint8 uc_rate_num);
 extern oal_uint32 hmac_process_assoc_rsp(hmac_vap_stru *pst_hmac_sta, hmac_user_stru *pst_hmac_user, oal_uint8 *puc_mac_hdr, oal_uint8 *puc_payload, oal_uint16 us_msg_len);
 extern oal_uint8 * hmac_sta_find_ie_in_probe_rsp(mac_vap_stru *pst_mac_vap, oal_uint8 uc_eid, oal_uint16 *pus_index);
-
+extern oal_bool_enum_uint8 hmac_is_ht_mcs_set_valid(oal_uint8 *puc_ht_capability_info);
+extern oal_uint32 hmac_get_frame_body_len(oal_netbuf_stru *net_buf);
 #ifdef __cplusplus
     #if __cplusplus
         }

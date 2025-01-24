@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oal_net.c
-  版 本 号   : 初稿
-  作    者   : t00231215
-  生成日期   : 2012年11月30日
-  最近修改   :
-  功能描述   : to be delete
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年11月30日
-    作    者   : t00231215
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_net.h"
 #include "mac_frame.h"
@@ -59,7 +42,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #if (_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)
 
@@ -72,23 +55,9 @@ oal_sock_stru g_st_sock;
 #endif
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : oal_netbuf_is_dhcp_port
- 功能描述  : 判断是否是dhcp帧 port
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月27日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
  OAL_INLINE oal_bool_enum_uint8 oal_netbuf_is_dhcp_port(oal_udp_header_stru *pst_udp_hdr)
 {
     if (((OAL_HOST2NET_SHORT(pst_udp_hdr->source) == 68)
@@ -103,21 +72,7 @@ oal_sock_stru g_st_sock;
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_is_nd
- 功能描述  : 判断是否是nd帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月7日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 oal_netbuf_is_nd(oal_ipv6hdr_stru  *pst_ipv6hdr)
 {
     //oal_ipv6hdr_stru       *pst_ipv6hdr          = OAL_PTR_NULL;
@@ -141,21 +96,7 @@ oal_bool_enum_uint8 oal_netbuf_is_nd(oal_ipv6hdr_stru  *pst_ipv6hdr)
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_dhcp6
- 功能描述  : 判断是否是DHCP6帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月7日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 oal_netbuf_is_dhcp6(oal_ipv6hdr_stru  *pst_ipv6hdr)
 {
     //oal_ipv6hdr_stru       *pst_ipv6hdr          = OAL_PTR_NULL;
@@ -181,25 +122,7 @@ oal_bool_enum_uint8 oal_netbuf_is_dhcp6(oal_ipv6hdr_stru  *pst_ipv6hdr)
 
 
 #ifdef _PRE_WLAN_FEATURE_FLOWCTL
-/*****************************************************************************
- 函 数 名  : oal_netbuf_get_txtid
- 功能描述  : 从lan过来报文的业务识别
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年10月10日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-  2.日    期   : 2014年3月3日
-    作    者   : xiechunhui
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_netbuf_get_txtid(oal_netbuf_stru *pst_buf, oal_uint8 *puc_tos)
 {
     oal_ether_header_stru  *pst_ether_header;
@@ -213,25 +136,25 @@ oal_void  oal_netbuf_get_txtid(oal_netbuf_stru *pst_buf, oal_uint8 *puc_tos)
 	oal_tcp_header_stru    *pst_tcp;
 #endif
 
-    /* 获取以太网头 */
+    /* ???????????? */
     pst_ether_header = (oal_ether_header_stru *)oal_netbuf_data(pst_buf);
 
     switch (pst_ether_header->us_ether_type)
     {
-        /*lint -e778*//* 屏蔽Info -- Constant expression evaluates to 0 in operation '&' */
+        /*lint -e778*//* ????Info -- Constant expression evaluates to 0 in operation '&' */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IP):
-            /* 从IP TOS字段寻找优先级 */
+            /* ??IP TOS?????????????? */
             /*----------------------------------------------------------------------
-                tos位定义
+                tos??????
              ----------------------------------------------------------------------
             | bit7~bit5 | bit4 |  bit3  |  bit2  |   bit1   | bit0 |
-            | 包优先级  | 时延 | 吞吐量 | 可靠性 | 传输成本 | 保留 |
+            | ????????  | ???? | ?????? | ?????? | ???????? | ???? |
              ----------------------------------------------------------------------*/
-            pst_ip = (oal_ip_header_stru *)(pst_ether_header + 1);      /* 偏移一个以太网头，取ip头 */
+            pst_ip = (oal_ip_header_stru *)(pst_ether_header + 1);      /* ????????????????????ip?? */
 
             uc_tid = pst_ip->uc_tos >> WLAN_IP_PRI_SHIFT;
 #ifdef _PRE_WLAN_FEATURE_SCHEDULE
-            /* 对于chariot信令报文进行特殊处理，防止断流 */
+            /* ????chariot?????????????????????????????? */
             if (pst_ip->uc_protocol == MAC_TCP_PROTOCAL)
             {
                 pst_tcp = (oal_tcp_header_stru *)(pst_ip + 1);
@@ -246,14 +169,14 @@ oal_void  oal_netbuf_get_txtid(oal_netbuf_stru *pst_buf, oal_uint8 *puc_tos)
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IPV6):
-            /* 从IPv6 traffic class字段获取优先级 */
+            /* ??IPv6 traffic class?????????????? */
             /*----------------------------------------------------------------------
-                IPv6包头 前32为定义
+                IPv6???? ??32??????
              -----------------------------------------------------------------------
-            | 版本号 | traffic class   | 流量标识 |
-            | 4bit   | 8bit(同ipv4 tos)|  20bit   |
+            | ?????? | traffic class   | ???????? |
+            | 4bit   | 8bit(??ipv4 tos)|  20bit   |
             -----------------------------------------------------------------------*/
-            ul_ipv6_hdr = *((oal_uint32 *)(pst_ether_header + 1));  /* 偏移一个以太网头，取ip头 */
+            ul_ipv6_hdr = *((oal_uint32 *)(pst_ether_header + 1));  /* ????????????????????ip?? */
 
             ul_pri = (OAL_NET2HOST_LONG(ul_ipv6_hdr) & WLAN_IPV6_PRIORITY_MASK) >> WLAN_IPV6_PRIORITY_SHIFT;
 
@@ -272,18 +195,18 @@ oal_void  oal_netbuf_get_txtid(oal_netbuf_stru *pst_buf, oal_uint8 *puc_tos)
 #endif
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_VLAN):
-            /* 获取vlan tag的优先级 */
+            /* ????vlan tag???????? */
             pst_vlan_ethhdr = (oal_vlan_ethhdr_stru *)oal_netbuf_data(pst_buf);
 
             /*------------------------------------------------------------------
-                802.1Q(VLAN) TCI(tag control information)位定义
+                802.1Q(VLAN) TCI(tag control information)??????
              -------------------------------------------------------------------
             |Priority | DEI  | Vlan Identifier |
             | 3bit    | 1bit |      12bit      |
              ------------------------------------------------------------------*/
             us_vlan_tci = OAL_NET2HOST_SHORT(pst_vlan_ethhdr->h_vlan_TCI);
 
-            uc_tid = us_vlan_tci >> OAL_VLAN_PRIO_SHIFT;    /* 右移13位，提取高3位优先级 */
+            uc_tid = us_vlan_tci >> OAL_VLAN_PRIO_SHIFT;    /* ????13??????????3???????? */
 
             break;
 
@@ -292,28 +215,14 @@ oal_void  oal_netbuf_get_txtid(oal_netbuf_stru *pst_buf, oal_uint8 *puc_tos)
             break;
     }
 
-    /* 出参赋值 */
+    /* ???????? */
     *puc_tos = uc_tid;
 
     return;
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : oal_netbuf_is_tcp_ack
- 功能描述  : 判断ipv4 tcp报文是否为tcp ack
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月18日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 oal_netbuf_is_tcp_ack(oal_ip_header_stru  *pst_ip_hdr)
 {
     oal_tcp_header_stru    *pst_tcp_hdr;
@@ -335,27 +244,13 @@ oal_bool_enum_uint8 oal_netbuf_is_tcp_ack(oal_ip_header_stru  *pst_ip_hdr)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oal_netbuf_is_icmp
- 功能描述  : 判断ipv4 是否为icmp报文
- 输入参数  : pst_ip_hdr: IP报文头部
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月11日
-    作    者   : ywx282918
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 oal_netbuf_is_icmp(oal_ip_header_stru  *pst_ip_hdr)
 {
     oal_uint8  uc_protocol;
     uc_protocol = pst_ip_hdr->uc_protocol;
 
-    /* ICMP报文检查 */
+    /* ICMP???????? */
     if( MAC_ICMP_PROTOCAL == uc_protocol )
     {
         return OAL_TRUE;
@@ -366,21 +261,7 @@ oal_bool_enum_uint8 oal_netbuf_is_icmp(oal_ip_header_stru  *pst_ip_hdr)
 
 #ifdef _PRE_WLAN_FEATURE_OFFLOAD_FLOWCTL
 
-/*****************************************************************************
- 函 数 名  : mac_is_tcp_ack6
- 功能描述  : 判断ipv6 tcp报文是否为tcp ack
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月18日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 oal_netbuf_is_tcp_ack6(oal_ipv6hdr_stru  *pst_ipv6hdr)
 {
     oal_tcp_header_stru    *pst_tcp_hdr;
@@ -388,7 +269,7 @@ oal_bool_enum_uint8 oal_netbuf_is_tcp_ack6(oal_ipv6hdr_stru  *pst_ipv6hdr)
     oal_uint32              ul_tcp_hdr_len;
 
     pst_tcp_hdr     = (oal_tcp_header_stru *)(pst_ipv6hdr + 1);
-    ul_ip_pkt_len   = OAL_NET2HOST_SHORT(pst_ipv6hdr->payload_len); /*ipv6 净载荷, ipv6报文头部固定为40字节 */
+    ul_ip_pkt_len   = OAL_NET2HOST_SHORT(pst_ipv6hdr->payload_len); /*ipv6 ??????, ipv6??????????????40???? */
     ul_tcp_hdr_len  = (OAL_HIGH_HALF_BYTE(pst_tcp_hdr->uc_offset)) << 2;
 
     if (ul_tcp_hdr_len == ul_ip_pkt_len)
@@ -399,21 +280,7 @@ oal_bool_enum_uint8 oal_netbuf_is_tcp_ack6(oal_ipv6hdr_stru  *pst_ipv6hdr)
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_netbuf_select_queue
- 功能描述  : 为以太网来包选择合的subqueue入队
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月18日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
 {
     oal_ether_header_stru  *pst_ether_header;
@@ -430,38 +297,37 @@ oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
     oal_uint8               uc_tos;
     oal_uint8               us_queue = WLAN_NORMAL_QUEUE;
 
-    /* 获取以太网头 */
+    /* ???????????? */
     pst_ether_header = (oal_ether_header_stru *)oal_netbuf_data(pst_buf);
 
     switch (pst_ether_header->us_ether_type)
     {
-        /*lint -e778*//* 屏蔽Info -- Constant expression evaluates to 0 in operation '&' */
+        /*lint -e778*//* ????Info -- Constant expression evaluates to 0 in operation '&' */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IP):
 
-            pst_ip = (oal_ip_header_stru *)(pst_ether_header + 1);      /* 偏移一个以太网头，取ip头 */
+            pst_ip = (oal_ip_header_stru *)(pst_ether_header + 1);      /* ????????????????????ip?? */
 
-            /* 对udp报文区分qos入队 */
+            /* ??udp????????qos???? */
             if (MAC_UDP_PROTOCAL == pst_ip->uc_protocol)
             {
-                /* 从IP TOS字段寻找优先级 */
+                /* ??IP TOS?????????????? */
                 /*----------------------------------------------------------------------
-                    tos位定义
+                    tos??????
                  ----------------------------------------------------------------------
                 | bit7~bit5 | bit4 |  bit3  |  bit2  |   bit1   | bit0 |
-                | 包优先级  | 时延 | 吞吐量 | 可靠性 | 传输成本 | 保留 |
+                | ????????  | ???? | ?????? | ?????? | ???????? | ???? |
                  ----------------------------------------------------------------------*/
                 uc_tos = pst_ip->uc_tos >> WLAN_IP_PRI_SHIFT;
                 us_queue = WLAN_TOS_TO_HCC_QUEUE(uc_tos);
 
-                /* 如果是DHCP帧，则进入DATA_HIGH_QUEUE */
+                /* ??????DHCP??????????DATA_HIGH_QUEUE */
                 pst_udp_hdr = (oal_udp_header_stru *)(pst_ip + 1);
-                /* DTS2016122003967 增加dhcp不是分片报文的判断 */
                 if ((0 == (pst_ip->us_frag_off & 0xFF1F)) && (OAL_TRUE == oal_netbuf_is_dhcp_port(pst_udp_hdr)))
                 {
                     us_queue = WLAN_DATA_VIP_QUEUE;
                 }
             }
-            else if (MAC_TCP_PROTOCAL == pst_ip->uc_protocol) /* 区分TCP ack与TCP data报文 */
+            else if (MAC_TCP_PROTOCAL == pst_ip->uc_protocol) /* ????TCP ack??TCP data???? */
             {
                 if (OAL_TRUE == oal_netbuf_is_tcp_ack(pst_ip))
                 {
@@ -476,23 +342,23 @@ oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IPV6):
 
-            /* 从IPv6 traffic class字段获取优先级 */
+            /* ??IPv6 traffic class?????????????? */
             /*----------------------------------------------------------------------
-                IPv6包头 前32为定义
+                IPv6???? ??32??????
              -----------------------------------------------------------------------
-            | 版本号 | traffic class   | 流量标识 |
-            | 4bit   | 8bit(同ipv4 tos)|  20bit   |
+            | ?????? | traffic class   | ???????? |
+            | 4bit   | 8bit(??ipv4 tos)|  20bit   |
             -----------------------------------------------------------------------*/
-            pst_ipv6    = (oal_ipv6hdr_stru *)(pst_ether_header + 1); /* 偏移一个以太网头，取ip头 */
+            pst_ipv6    = (oal_ipv6hdr_stru *)(pst_ether_header + 1); /* ????????????????????ip?? */
             ul_ipv6_hdr = (*(oal_uint32 *)pst_ipv6);
 
-            if (MAC_UDP_PROTOCAL == pst_ipv6->nexthdr) /* UDP报文 */
+            if (MAC_UDP_PROTOCAL == pst_ipv6->nexthdr) /* UDP???? */
             {
                 ul_pri = (OAL_NET2HOST_LONG(ul_ipv6_hdr) & WLAN_IPV6_PRIORITY_MASK) >> WLAN_IPV6_PRIORITY_SHIFT;
                 uc_tos = (oal_uint8)(ul_pri >> WLAN_IP_PRI_SHIFT);
                 us_queue = WLAN_TOS_TO_HCC_QUEUE(uc_tos);
             }
-            else if (MAC_TCP_PROTOCAL == pst_ipv6->nexthdr) /* TCP报文 */
+            else if (MAC_TCP_PROTOCAL == pst_ipv6->nexthdr) /* TCP???? */
             {
                 if (OAL_TRUE == oal_netbuf_is_tcp_ack6(pst_ipv6))
                 {
@@ -505,13 +371,13 @@ oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
             }
 
 
-            /* 如果是ND帧，则进入WLAN_DATA_VIP_QUEUE队列缓存 */
+            /* ??????ND??????????WLAN_DATA_VIP_QUEUE???????? */
             else if (OAL_TRUE == oal_netbuf_is_nd((oal_ipv6hdr_stru *)(pst_ether_header + 1)))
             {
                 us_queue = WLAN_DATA_VIP_QUEUE;
             }
 
-            /* 如果是DHCPV6帧，则进入WLAN_DATA_VIP_QUEUE队列缓存 */
+            /* ??????DHCPV6??????????WLAN_DATA_VIP_QUEUE???????? */
             else if (OAL_TRUE == oal_netbuf_is_dhcp6((oal_ipv6hdr_stru *)(pst_ether_header + 1)))
             {
                 us_queue = WLAN_DATA_VIP_QUEUE;
@@ -519,16 +385,16 @@ oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PAE):
-            /* 如果是EAPOL帧，则进入VO队列发送 */
+            /* ??????EAPOL??????????VO???????? */
             us_queue = WLAN_DATA_VIP_QUEUE;
             break;
 
-        /* TDLS帧处理，建链保护，入高优先级TID队列 */
+        /* TDLS????????????????????????????TID???? */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_TDLS):
             us_queue = WLAN_DATA_VIP_QUEUE;
             break;
 
-        /* PPPOE帧处理，建链保护(发现阶段, 会话阶段)，入高优先级TID队列 */
+        /* PPPOE????????????????(????????, ????????)????????????TID???? */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PPP_DISC):
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PPP_SES):
             us_queue = WLAN_DATA_VIP_QUEUE;
@@ -542,24 +408,24 @@ oal_uint16 oal_netbuf_select_queue(oal_netbuf_stru *pst_buf)
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_VLAN):
 
-            /* 获取vlan tag的优先级 */
+            /* ????vlan tag???????? */
             pst_vlan_ethhdr = (oal_vlan_ethhdr_stru *)oal_netbuf_data(pst_buf);
 
             /*------------------------------------------------------------------
-                802.1Q(VLAN) TCI(tag control information)位定义
+                802.1Q(VLAN) TCI(tag control information)??????
              -------------------------------------------------------------------
             |Priority | DEI  | Vlan Identifier |
             | 3bit    | 1bit |      12bit      |
              ------------------------------------------------------------------*/
             us_vlan_tci = OAL_NET2HOST_SHORT(pst_vlan_ethhdr->h_vlan_TCI);
 
-            uc_tos = us_vlan_tci >> OAL_VLAN_PRIO_SHIFT;    /* 右移13位，提取高3位优先级 */
+            uc_tos = us_vlan_tci >> OAL_VLAN_PRIO_SHIFT;    /* ????13??????????3???????? */
             us_queue = WLAN_TOS_TO_HCC_QUEUE(uc_tos);
 
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_ARP):
-            /* 如果是ARP帧，则进入WLAN_DATA_VIP_QUEUE队列缓存 */
+            /* ??????ARP??????????WLAN_DATA_VIP_QUEUE???????? */
             us_queue = WLAN_DATA_VIP_QUEUE;
             break;
         /*lint +e778*/
@@ -579,11 +445,11 @@ oal_module_symbol(oal_netbuf_select_queue);
 
 #endif
 
-#if 0 /* hi1102 驱动Generic创建不成功，此方案后续再定位 */
+#if 0 /* hi1102 ????Generic???????????????????????????? */
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
-/*netlink attributes 可以通过枚举索引找到对应的类型
-*用户空间应用程序要传递这样的信息*/
+/*netlink attributes ??????????????????????????????
+*????????????????????????????????*/
 enum
 {
     DOC_EXMPL_A_UNSPEC,
@@ -592,7 +458,7 @@ enum
 };
 #define DOC_EXMPL_A_MAX (__DOC_EXMPL_A_MAX - 1)
 
-/*atribute policy就是定义各个属性的具体类型，参见net/netlink.h*/
+/*atribute policy????????????????????????????????net/netlink.h*/
 static struct nla_policy doc_exmpl_genl_policy[DOC_EXMPL_A_MAX + 1] = {
         [DOC_EXMPL_A_MSG] = {.type = NLA_NUL_STRING},
 };
@@ -601,8 +467,8 @@ static struct nla_policy doc_exmpl_genl_policy[DOC_EXMPL_A_MAX + 1] = {
 
 struct genl_info g_st_info;
 
-//generic netlink family 定义
-static struct genl_family doc_exmpl_genl_family = {// 1 定义family
+//generic netlink family ????
+static struct genl_family doc_exmpl_genl_family = {// 1 ????family
         .id = GENL_ID_GENERATE,
         .hdrsize = 0,
         .name = "HiSi_WIFI_EXCP",
@@ -611,7 +477,7 @@ static struct genl_family doc_exmpl_genl_family = {// 1 定义family
         .maxattr = DOC_EXMPL_A_MAX,
 };
 
-/*定义命令类型，用户空间以此来表明需要执行的命令*/
+/*??????????????????????????????????????????????*/
 enum
 {
     DOC_EXMPL_C_UNSPEC,
@@ -620,7 +486,7 @@ enum
 };
 #define DOC_EXMPL_C_MAX (__DOC_EXMPL_C_MAX - 1)
 
-//echo command handler,接收一个msg并回复
+//echo command handler,????????msg??????
 int doc_exmpl_echo(struct sk_buff *skb2, struct genl_info *info)
 {
     struct nlattr *na;
@@ -633,7 +499,7 @@ int doc_exmpl_echo(struct sk_buff *skb2, struct genl_info *info)
 
     oal_memcopy(&g_st_info, info, OAL_SIZEOF(*info));
 
-    //对于每个属性，genl_info的域attrs可以索引到具体结构，里面有payload
+    //??????????????genl_info????attrs??????????????????????????payload
     na = info->attrs[DOC_EXMPL_A_MSG];
     if(na)
     {
@@ -652,7 +518,7 @@ int doc_exmpl_echo(struct sk_buff *skb2, struct genl_info *info)
     if(!skb)
         goto error;
 
-    /*构建消息头，函数原型是
+    /*??????????????????????
     genlmsg_put(struct sk_buff *,int pid,int seq_number,
             struct genl_family *,int flags,u8 command_index);
     */
@@ -663,13 +529,13 @@ int doc_exmpl_echo(struct sk_buff *skb2, struct genl_info *info)
             goto error;
     }
 
-    //填充具体的netlink attribute:DOC_EXMPL_A_MSG，这是实际要传的数据
+    //??????????netlink attribute:DOC_EXMPL_A_MSG????????????????????
     rc = nla_put_string(skb, DOC_EXMPL_A_MSG, "This is a msg from kernel space!");
     if(rc != OAL_SUCC)
     goto error;
 
-    genlmsg_end(skb,msg_hdr);//消息构建完成
-    //单播发送给用户空间的某个进程
+    genlmsg_end(skb,msg_hdr);//????????????
+    //????????????????????????????
     rc = genlmsg_unicast(genl_info_net(info), skb, info->snd_portid);
     if(rc != OAL_SUCC)
     {
@@ -684,8 +550,8 @@ int doc_exmpl_echo(struct sk_buff *skb2, struct genl_info *info)
         return OAL_SUCC;
 }
 
-//将命令command echo和具体的handler对应起来
-static struct genl_ops doc_exmpl_genl_ops_echo = {// 2 定义operation
+//??????command echo????????handler????????
+static struct genl_ops doc_exmpl_genl_ops_echo = {// 2 ????operation
         .cmd = DOC_EXMPL_C_ECHO,
         .flags = 0,
         .policy = doc_exmpl_genl_policy,
@@ -693,18 +559,18 @@ static struct genl_ops doc_exmpl_genl_ops_echo = {// 2 定义operation
         .dumpit = NULL,
 };
 
-//内核入口，注册generic netlink family/operations
+//??????????????generic netlink family/operations
 oal_int genKernel_init(oal_void)
 {
     int rc;
     printk("apr--->Generic Netlink Example Module inserted.\n");
 
-    rc = genl_register_family(&doc_exmpl_genl_family);// 3 注册family
+    rc = genl_register_family(&doc_exmpl_genl_family);// 3 ????family
     if (rc != OAL_SUCC)
     {
         goto failure;
     }
-    rc = genl_register_ops(&doc_exmpl_genl_family, &doc_exmpl_genl_ops_echo);// 4 注册operation
+    rc = genl_register_ops(&doc_exmpl_genl_family, &doc_exmpl_genl_ops_echo);// 4 ????operation
     if (rc != OAL_SUCC)
     {
         printk("apr--->Register ops: %i\n",rc);
@@ -740,15 +606,15 @@ oal_void genKernel_exit(oal_void)
 
 
 /**
-* genl_msg_send_to_user - 通过generic netlink发送数据到netlink
+* genl_msg_send_to_user - ????generic netlink??????????netlink
 *
-* @data: 发送数据缓存
-* @len:  数据长度 单位：byte
-* @pid:  发送到的客户端pid <span style="color:#FF0000;"><strong>这个pid要从用户空间发来数据触发的doit中的info->snd_pid参数获得</strong></span>
+* @data: ????????????
+* @len:  ???????? ??????byte
+* @pid:  ??????????????pid <span style="color:#FF0000;"><strong>????pid??????????????????????????doit????info->snd_pid????????</strong></span>
 *
 * return:
-*    0:       成功
-*    -1:      失败
+*    0:       ????
+*    -1:      ????
 */
 oal_int genl_msg_send_to_user(oal_void *data, oal_int i_len)
 {
@@ -761,7 +627,7 @@ oal_int genl_msg_send_to_user(oal_void *data, oal_int i_len)
     if(!skb)
         goto error;
 
-    /*构建消息头，函数原型是
+    /*??????????????????????
     genlmsg_put(struct sk_buff *,int pid,int seq_number,
             struct genl_family *,int flags,u8 command_index);
     */
@@ -772,13 +638,13 @@ oal_int genl_msg_send_to_user(oal_void *data, oal_int i_len)
             goto error;
     }
 
-    //填充具体的netlink attribute:DOC_EXMPL_A_MSG，这是实际要传的数据
+    //??????????netlink attribute:DOC_EXMPL_A_MSG????????????????????
     rc = nla_put_string(skb, DOC_EXMPL_A_MSG, data);
     if(rc != OAL_SUCC)
         goto error;
 
-    genlmsg_end(skb,msg_hdr);//消息构建完成
-    //单播发送给用户空间的某个进程
+    genlmsg_end(skb,msg_hdr);//????????????
+    //????????????????????????????
     rc = genlmsg_unicast(genl_info_net(&g_st_info), skb, g_st_info.snd_portid);
     if(rc != OAL_SUCC)
     {
@@ -813,7 +679,7 @@ oal_int genl_msg_send_to_user(oal_void *data, oal_int i_len)
 oal_module_symbol(genKernel_init);
 oal_module_symbol(genKernel_exit);
 
-#endif /* hi1102 驱动Generic创建不成功，此方案后续再定位 */
+#endif /* hi1102 ????Generic???????????????????????????? */
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) && defined (_PRE_WLAN_FEATURE_DFR)
 
@@ -874,7 +740,7 @@ void dev_netlink_rev(oal_netbuf_stru *skb)
     if (pst_skb->len >= OAL_NLMSG_SPACE(0))
     {
         pst_nlh = oal_nlmsg_hdr(pst_skb);
-        /* 检测报文长度正确性 */
+        /* ?????????????????? */
         if (!OAL_NLMSG_OK(pst_nlh, pst_skb->len))
         {
             OAL_IO_PRINT("[ERROR]invaild netlink buff data packge data len = :%u,skb_buff data len = %u\n",
@@ -883,7 +749,7 @@ void dev_netlink_rev(oal_netbuf_stru *skb)
             return;
         }
         ul_len   = OAL_NLMSG_PAYLOAD(pst_nlh, 0);
-        /* 后续需要拷贝sizeof(st_msg_hdr),故判断之 */
+        /* ????????????sizeof(st_msg_hdr),???????? */
         if (ul_len < OAL_EXCP_DATA_BUF_LEN && ul_len >= sizeof(st_msg_hdr))
         {
             oal_memcopy(dev_excp_handler_data.data, OAL_NLMSG_DATA(pst_nlh), ul_len);

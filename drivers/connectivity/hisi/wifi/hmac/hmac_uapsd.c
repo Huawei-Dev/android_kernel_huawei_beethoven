@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_uapsd.c
-  版 本 号   : 初稿
-  作    者   : zourong
-  生成日期   : 2013年9月18日
-  最近修改   :
-  功能描述   : UAPSD hmac层处理
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年9月18日
-    作    者   : zourong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_spec.h"
 #include "mac_vap.h"
@@ -41,28 +24,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_UAPSD_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : hmac_uapsd_update_user_para
- 功能描述  : uapsd处理关联请求中的WMM IE
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月18日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void hmac_uapsd_update_user_para (oal_uint8  *puc_mac_hdr,oal_uint8  uc_sub_type,oal_uint32 ul_msg_len,
                                             hmac_user_stru *pst_hmac_user)
 {
@@ -96,7 +65,7 @@ oal_void hmac_uapsd_update_user_para (oal_uint8  *puc_mac_hdr,oal_uint8  uc_sub_
         }
     }
 
-    /*不存在WMM IE,直接返回*/
+    /*??????WMM IE,????????*/
     if ((OAL_FALSE == uc_found_wmm) || (OAL_PTR_NULL == puc_wmm_ie))
     {
         OAM_WARNING_LOG1(pst_hmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR, "Could not find WMM IE in assoc req,user_id[%d]\n", pst_hmac_user->st_user_base_info.us_assoc_id);
@@ -106,7 +75,7 @@ oal_void hmac_uapsd_update_user_para (oal_uint8  *puc_mac_hdr,oal_uint8  uc_sub_
     OAL_MEMZERO(&st_uapsd_status,  OAL_SIZEOF(mac_user_uapsd_status_stru));
     st_uapsd_status.uc_qos_info = puc_wmm_ie[HMAC_UAPSD_WME_LEN];
 
-    /* 8为WMM IE长度 */
+    /* 8??WMM IE???? */
     if (BIT0 == (puc_wmm_ie[HMAC_UAPSD_WME_LEN] & BIT0))
     {
         st_uapsd_status.uc_ac_trigger_ena[WLAN_WME_AC_VO] = 1;
@@ -140,7 +109,7 @@ oal_void hmac_uapsd_update_user_para (oal_uint8  *puc_mac_hdr,oal_uint8  uc_sub_
         uc_uapsd_flag |= MAC_USR_UAPSD_EN;
     }
 
-    /* 设置max SP长度 */
+    /* ????max SP???? */
     uc_max_sp = (puc_wmm_ie[HMAC_UAPSD_WME_LEN] >> 5) & 0x3;
     switch(uc_max_sp)
     {

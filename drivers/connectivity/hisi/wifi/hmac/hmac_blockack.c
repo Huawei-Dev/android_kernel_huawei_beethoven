@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_blockack.c
-  版 本 号   : 初稿
-  作    者   : houyin
-  生成日期   : 2014年11月25日
-  最近修改   :
-  功能描述   : AMPDU聚合、BA处理接口定义源文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年11月25日
-    作    者   : houyin
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_spec.h"
 #include "mac_vap.h"
@@ -40,26 +23,12 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_BLOCKACK_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : hmac_ba_buffer_frame_in_reorder
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC hmac_rx_buf_stru* hmac_ba_buffer_frame_in_reorder(hmac_ba_rx_stru* pst_ba_rx_hdl, oal_uint16 us_seq_num)
 {
     oal_uint16          us_buf_index;
@@ -84,21 +53,7 @@ OAL_STATIC hmac_rx_buf_stru* hmac_ba_buffer_frame_in_reorder(hmac_ba_rx_stru* ps
     return pst_rx_buf;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_send_frames_with_gap
- 功能描述  : 冲刷重排序缓冲区至给定的sequence number位置
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月25日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_ba_send_frames_with_gap(hmac_ba_rx_stru *pst_ba_rx_hdl, oal_netbuf_head_stru *pst_netbuf_header, oal_uint16 us_last_seqnum, mac_vap_stru *pst_vap)
 {
     oal_uint8            uc_num_frms  = 0;
@@ -151,24 +106,7 @@ OAL_STATIC oal_uint32  hmac_ba_send_frames_with_gap(hmac_ba_rx_stru *pst_ba_rx_h
     return uc_num_frms;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_send_frames_in_order
- 功能描述  : All MSDUs with sequence number starting from the
-             start of the BA-Rx window are processed in order and
-             are added to the list which will be passed up to hmac.
-             Processing is stopped when the first missing MSDU is encountered.
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint16  hmac_ba_send_frames_in_order(hmac_ba_rx_stru *pst_ba_rx_hdl, oal_netbuf_head_stru *pst_netbuf_header, mac_vap_stru *pst_vap)
 {
     oal_uint16          us_seq_num;
@@ -205,21 +143,7 @@ OAL_STATIC oal_uint16  hmac_ba_send_frames_in_order(hmac_ba_rx_stru *pst_ba_rx_h
     return us_seq_num;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_buffer_rx_frame
- 功能描述  : 将报文缓存至重排序队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月25日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  hmac_ba_buffer_rx_frame(hmac_ba_rx_stru *pst_ba_rx_hdl,
                                                                    hmac_rx_ctl_stru *pst_cb_ctrl,
                                                                    oal_netbuf_head_stru *pst_netbuf_header,
@@ -238,7 +162,7 @@ OAL_STATIC OAL_INLINE oal_void  hmac_ba_buffer_rx_frame(hmac_ba_rx_stru *pst_ba_
 
     /* Update the buffered receive packet details */
     pst_rx_netbuf->us_seq_num   = us_seq_num;
-    pst_rx_netbuf->uc_num_buf   = pst_cb_ctrl->st_rx_info.bit_buff_nums;  //标识该MPDU占用的netbuff个数，一般用于AMSDU
+    pst_rx_netbuf->uc_num_buf   = pst_cb_ctrl->st_rx_info.bit_buff_nums;  //??????MPDU??????netbuff??????????????AMSDU
     pst_rx_netbuf->ul_rx_time   = (oal_uint32)OAL_TIME_GET_STAMP_MS();
 
 #ifdef _PRE_DEBUG_MODE
@@ -272,21 +196,7 @@ OAL_STATIC OAL_INLINE oal_void  hmac_ba_buffer_rx_frame(hmac_ba_rx_stru *pst_ba_
 
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_reorder_rx_data
- 功能描述  : 将重排序队列中可以上传的报文加到buf链表的尾部
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  hmac_ba_reorder_rx_data(hmac_ba_rx_stru        *pst_ba_rx_hdl,
                                                         oal_netbuf_head_stru   *pst_netbuf_header,
                                                         mac_vap_stru           *pst_vap,
@@ -320,21 +230,7 @@ OAL_STATIC OAL_INLINE oal_void  hmac_ba_reorder_rx_data(hmac_ba_rx_stru        *
     }
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_flush_reorder_q
- 功能描述  : 冲刷重排序队列
- 输入参数  : pst_rx_ba: 接收会话句柄
- 输出参数  : pst_rx_ba: 接收会话句柄
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月15日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  hmac_ba_flush_reorder_q(hmac_ba_rx_stru *pst_rx_ba)
 {
     hmac_rx_buf_stru   *pst_rx_buf = OAL_PTR_NULL;
@@ -359,32 +255,18 @@ OAL_STATIC oal_void  hmac_ba_flush_reorder_q(hmac_ba_rx_stru *pst_rx_ba)
         OAM_WARNING_LOG1(0, OAM_SF_BA, "{hmac_ba_flush_reorder_q:: %d mpdu cnt left.}", pst_rx_ba->uc_mpdu_cnt);
     }
 }
-/*****************************************************************************
- 函 数 名  : hmac_ba_check_rx_aggr
- 功能描述  : 检查是否能做ba重排序处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年11月28日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint32  hmac_ba_check_rx_aggr(mac_vap_stru               *pst_vap,
                                              mac_ieee80211_frame_stru   *pst_frame_hdr)
 {
-    /* 该vap是否是ht */
+    /* ??vap??????ht */
     if (OAL_FALSE == pst_vap->pst_mib_info->st_wlan_mib_sta_config.en_dot11HighThroughputOptionImplemented)
     {
         OAM_INFO_LOG0(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_ba_check_rx_aggr::ht not supported by this vap.}");
         return OAL_FAIL;
     }
 
-    /* 判断该帧是不是qos帧 */
+    /* ??????????????qos?? */
     if ((WLAN_FC0_SUBTYPE_QOS | WLAN_FC0_TYPE_DATA) != ((oal_uint8 *)pst_frame_hdr)[0])
     {
         OAM_INFO_LOG0(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_ba_check_rx_aggr::not qos data.}");
@@ -394,21 +276,7 @@ OAL_STATIC OAL_INLINE oal_uint32  hmac_ba_check_rx_aggr(mac_vap_stru            
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_need_update_hw_baw
- 功能描述  : 判断是否需要更新硬件的BAW
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月16日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8  hmac_ba_need_update_hw_baw(hmac_ba_rx_stru *pst_ba_rx_hdl, oal_uint16 us_seq_num)
 {
     if ((OAL_TRUE == hmac_ba_seqno_lt(us_seq_num, pst_ba_rx_hdl->us_baw_start))
@@ -420,21 +288,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8  hmac_ba_need_update_hw_baw(hmac_ba_rx
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_filter_serv
- 功能描述  : 过滤ampdu的每一个mpdu 有未确认报文需要入重传队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 非OAL_SUCC:表示异常，后面处理直接Drop
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月25日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_ba_filter_serv(
                 mac_vap_stru               *pst_vap,
                 hmac_user_stru             *pst_hmac_user,
@@ -470,7 +324,7 @@ oal_uint32  hmac_ba_filter_serv(
         return OAL_SUCC;
     }
 
-    /* 考虑四地址情况获取报文的tid */
+    /* ????????????????????????tid */
     uc_is_tods    = mac_hdr_get_to_ds((oal_uint8 *)pst_frame_hdr);
     uc_is_from_ds = mac_hdr_get_from_ds((oal_uint8 *)pst_frame_hdr);
     en_is_4addr   = uc_is_tods && uc_is_from_ds;
@@ -489,26 +343,24 @@ oal_uint32  hmac_ba_filter_serv(
         return OAL_SUCC;
     }
 
-    /* 暂时保存BA窗口的序列号，用于鉴别是否有帧上报 */
+    /* ????????BA?????????????????????????????????? */
     us_baw_start_temp = pst_ba_rx_hdl->us_baw_start;
 
     us_seq_num = mac_get_seq_num((oal_uint8 *)pst_frame_hdr);
 
-    /*DTS2015083108367 兼容接收方向聚合和分片共存的情况 */
     if (OAL_TRUE == (oal_bool_enum_uint8)pst_frame_hdr->st_frame_control.bit_more_frag)
     {
         OAM_WARNING_LOG1(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_ba_filter_serv::We get a frag_frame[seq_num=%d] When BA_session is set UP!", us_seq_num);
         return OAL_SUCC;
     }
 
-    /* duplicate frame判断 */
+    /* duplicate frame???? */
     if (OAL_TRUE == hmac_ba_rx_seqno_lt(us_seq_num, pst_ba_rx_hdl->us_baw_start))
     {
-        /* 上次非定时器上报，直接删除duplicate frame帧，否则，直接上报 */
+        /* ??????????????????????????duplicate frame?????????????????? */
         if (OAL_FALSE == pst_ba_rx_hdl->en_timer_triggered)
         {
-            /* 确实已经收到该帧 */
-            /* DTS2016031104629 新增了bitmap记录收包 防止dup误丢包 */
+            /* ???????????????? */
             if (hmac_ba_isset(pst_ba_rx_hdl, us_seq_num))
             {
                 //OAM_WARNING_LOG2(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_ba_filter_serv::duplicate frame,us_seq_num=%d baw_start=%d.",
@@ -528,7 +380,7 @@ oal_uint32  hmac_ba_filter_serv(
         pst_ba_rx_hdl->us_baw_tail = us_seq_num;
     }
 
-    /* 接收到的帧的序列号等于BAW_START，并且缓存队列帧个数为0，则直接上报给HMAC */
+    /* ??????????????????????BAW_START??????????????????????0??????????????HMAC */
     if ((us_seq_num == pst_ba_rx_hdl->us_baw_start) && (0 == pst_ba_rx_hdl->uc_mpdu_cnt))
     {
         //OAM_TID_AMPDU_STATS_INCR(pst_tid_queue->pst_tid_ampdu_stat->ul_ba_recipient_direct_up_count, 1);
@@ -564,7 +416,7 @@ oal_uint32  hmac_ba_filter_serv(
         }
     }
 
-#if 0 /* 函数hmac_ba_need_update_hw_baw逻辑有误，且并未根据它的返回做任何实质性的操作，应是上移到hmac后的残留代码 */
+#if 0 /* ????hmac_ba_need_update_hw_baw??????????????????????????????????????????????????????????hmac???????????? */
     if (OAL_TRUE == hmac_ba_need_update_hw_baw(pst_ba_rx_hdl, us_seq_num))
     {
         OAM_WARNING_LOG0(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_ba_filter_serv::need to check mac ba ssn.}");
@@ -578,23 +430,7 @@ oal_uint32  hmac_ba_filter_serv(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_reorder_ba_rx_buffer_bar
- 功能描述  : This function reorders the Reciver buffer and sends frames to the higher
-             layer on reception of a Block-Ack-Request frame. It also updates the
-             receiver buffer window.
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月29日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void hmac_reorder_ba_rx_buffer_bar(hmac_ba_rx_stru *pst_rx_ba, oal_uint16 us_start_seq_num,  mac_vap_stru *pst_vap)
 {
     oal_netbuf_head_stru    st_netbuf_head;
@@ -606,7 +442,7 @@ oal_void hmac_reorder_ba_rx_buffer_bar(hmac_ba_rx_stru *pst_rx_ba, oal_uint16 us
         return;
     }
 
-    /* 针对 BAR 的SSN和窗口的start_num相等时，不需要移窗 */
+    /* ???? BAR ??SSN????????start_num?????????????????? */
     if(pst_rx_ba->us_baw_start == us_start_seq_num)
     {
         OAM_INFO_LOG0(0, OAM_SF_BA, "{hmac_reorder_ba_rx_buffer_bar::seq is equal to start num.}");
@@ -616,7 +452,7 @@ oal_void hmac_reorder_ba_rx_buffer_bar(hmac_ba_rx_stru *pst_rx_ba, oal_uint16 us
     oal_netbuf_list_head_init(&st_netbuf_head);
 
     uc_seqnum_pos = hmac_ba_seqno_bound_chk(pst_rx_ba->us_baw_start, pst_rx_ba->us_baw_end, us_start_seq_num);
-    /* 针对BAR的的SSN在窗口内才移窗 */
+    /* ????BAR????SSN?????????????? */
     if (DMAC_BA_BETWEEN_SEQLO_SEQHI == uc_seqnum_pos)
     {
         hmac_ba_send_frames_with_gap(pst_rx_ba, &st_netbuf_head, us_start_seq_num, pst_vap);
@@ -631,27 +467,13 @@ oal_void hmac_reorder_ba_rx_buffer_bar(hmac_ba_rx_stru *pst_rx_ba, oal_uint16 us
     }
     else if (DMAC_BA_GREATER_THAN_SEQHI == uc_seqnum_pos)
     {
-        /* 异常 */
+        /* ???? */
         OAM_WARNING_LOG3(pst_vap->uc_vap_id, OAM_SF_BA, "{hmac_reorder_ba_rx_buffer_bar::receive a bar and ssn is out of winsize, us_baw_start=%d us_baw_end=%d, us_seq_num=%d.}",
           pst_rx_ba->us_baw_start, pst_rx_ba->us_baw_end, us_start_seq_num);
     }
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_rx_prepare_bufflist
- 功能描述  : 从重排序队列中获取skb链
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月21日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_ba_rx_prepare_bufflist(hmac_vap_stru *pst_hmac_vap, hmac_rx_buf_stru *pst_rx_buf, oal_netbuf_head_stru *pst_netbuf_head)
 {
     oal_netbuf_stru     *pst_netbuf;
@@ -681,21 +503,7 @@ OAL_STATIC oal_uint32  hmac_ba_rx_prepare_bufflist(hmac_vap_stru *pst_hmac_vap, 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_send_reorder_timeout
- 功能描述  : 上报重排序队列中超时的报文
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月19日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_ba_send_reorder_timeout(hmac_ba_rx_stru *pst_rx_ba, hmac_vap_stru *pst_hmac_vap, hmac_ba_alarm_stru *pst_alarm_data,
                                                     oal_uint16 *pus_timeout)
 {
@@ -703,7 +511,7 @@ OAL_STATIC oal_uint32  hmac_ba_send_reorder_timeout(hmac_ba_rx_stru *pst_rx_ba, 
     oal_uint32                  ul_rx_timeout;
     oal_netbuf_head_stru        st_netbuf_head;
     oal_uint16                  us_baw_head;
-    oal_uint16                  us_baw_start;   /* 保存最初的窗口起始序列号 */
+    oal_uint16                  us_baw_start;   /* ???????????????????????? */
     hmac_rx_buf_stru           *pst_rx_buf;
     oal_uint8                   uc_buff_count = 0;
     oal_uint32                  ul_ret;
@@ -763,7 +571,7 @@ OAL_STATIC oal_uint32  hmac_ba_send_reorder_timeout(hmac_ba_rx_stru *pst_rx_ba, 
     oal_spin_unlock(&pst_rx_ba->st_ba_lock);
 #endif
 
-    /* 判断本次定时器超时是否有帧上报 */
+    /* ?????????????????????????????? */
     if (us_baw_start != pst_rx_ba->us_baw_start)
     {
         //hmac_ba_update_rx_baw(pst_rx_ba, us_baw_start);
@@ -777,21 +585,7 @@ OAL_STATIC oal_uint32  hmac_ba_send_reorder_timeout(hmac_ba_rx_stru *pst_rx_ba, 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_timeout_fn
- 功能描述  : ba会话超时处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月12日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
 {
     hmac_ba_rx_stru                    *pst_rx_ba;
@@ -828,6 +622,12 @@ oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
+    if ((MAC_USER_ALLOCED != pst_hmac_user->st_user_base_info.uc_is_user_alloced))
+    {
+        OAM_ERROR_LOG1(0, OAM_SF_BA, "{hmac_ba_timeout_fn::hmac_user have been freed. user idx %d.}", pst_alarm_data->us_mac_user_idx);
+        return OAL_ERR_CODE_USER_RES_CNT_ZERO;
+    }
+
     pst_mac_device = mac_res_get_dev(pst_vap->st_vap_base_info.uc_device_id);
     if (OAL_PTR_NULL == pst_mac_device)
     {
@@ -837,7 +637,6 @@ oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
 
 
 //    if (pst_mac_device->ul_core_id >= 1)
-    /* DTS2015030604659,这里要使用core num来作为判断  */
     if (pst_mac_device->ul_core_id >= WLAN_FRW_MAX_NUM_CORES)
     {
         OAM_ERROR_LOG1(0, OAM_SF_BA, "{hmac_ba_timeout_fn::core id %d overflow.}", pst_mac_device->ul_core_id);
@@ -877,7 +676,7 @@ oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
                                OAL_FALSE,
                                OAM_MODULE_ID_HMAC,
                                pst_mac_device->ul_core_id);
-#if 0  /*变量us_timeout_times没有使用，不再需要赋值*/
+#if 0  /*????us_timeout_times??????????????????????*/
         if (pst_alarm_data->us_timeout_times == pst_vap->us_del_timeout && pst_vap->us_del_timeout != 0)
         {
             //pst_dmac_user = (dmac_user_stru *)mac_res_get_dmac_user(pst_alarm_data->us_mac_user_idx);
@@ -889,7 +688,7 @@ oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
     }
     else
     {
-        /* tx ba不删除 */
+        /* tx ba?????? */
         FRW_TIMER_CREATE_TIMER(&(pst_hmac_user->ast_tid_info[uc_tid].st_ba_timer),
                                hmac_ba_timeout_fn,
                                pst_vap->us_rx_timeout[WLAN_WME_TID_TO_AC(uc_tid)],
@@ -902,30 +701,22 @@ oal_uint32  hmac_ba_timeout_fn(oal_void *p_arg)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_ba_reset_rx_handle
- 功能描述  : 重置rx ba结构体
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年12月5日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_ba_reset_rx_handle(mac_device_stru *pst_mac_device, hmac_ba_rx_stru **ppst_rx_ba, oal_uint8 uc_tid, oal_bool_enum_uint8 en_is_aging)
 {
     hmac_vap_stru    *pst_hmac_vap;
     hmac_user_stru   *pst_hmac_user;
     oal_bool_enum     en_need_del_lut = OAL_TRUE;
 
-    if (OAL_UNLIKELY((OAL_PTR_NULL == *ppst_rx_ba) || (OAL_TRUE != (*ppst_rx_ba)->en_is_ba)))
+    if (OAL_UNLIKELY((OAL_PTR_NULL == *ppst_rx_ba)))
     {
-        OAM_WARNING_LOG0(0, OAM_SF_BA, "{hmac_ba_reset_rx_handle::rx ba not set yet.}");
+        OAM_WARNING_LOG1(0, OAM_SF_BA, "{hmac_ba_reset_rx_handle::rx ba not set yet. uc_tid %d}", uc_tid);
+        return OAL_ERR_CODE_PTR_NULL;
+    }
+
+    if (OAL_TRUE != (*ppst_rx_ba)->en_is_ba)
+    {
+        OAM_WARNING_LOG2(0, OAM_SF_BA, "{hmac_ba_reset_rx_handle::tid %d, rx ba en_is_ba %d.}", uc_tid, (*ppst_rx_ba)->en_is_ba);
         return OAL_ERR_CODE_PTR_NULL;
     }
 
@@ -969,6 +760,9 @@ oal_uint32  hmac_ba_reset_rx_handle(mac_device_stru *pst_mac_device, hmac_ba_rx_
     pst_hmac_user = (hmac_user_stru *)mac_res_get_hmac_user((*ppst_rx_ba)->st_alarm_data.us_mac_user_idx);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_hmac_user))
     {
+        OAM_ERROR_LOG2(0, OAM_SF_BA, "{hmac_ba_reset_rx_handle::hmac_user is null.user_id %d, tid %d}",
+                        (*ppst_rx_ba)->st_alarm_data.us_mac_user_idx,
+                        uc_tid);
         return OAL_ERR_CODE_PTR_NULL;
     }
 
@@ -985,21 +779,7 @@ oal_uint32  hmac_ba_reset_rx_handle(mac_device_stru *pst_mac_device, hmac_ba_rx_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_mgmt_check_set_rx_ba_ok
- 功能描述  : 从空口接收ADDBA_REQ帧的处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月28日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
                 hmac_vap_stru     *pst_hmac_vap,
                 hmac_ba_rx_stru   *pst_ba_rx_info,
@@ -1007,12 +787,12 @@ oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
 {
     pst_ba_rx_info->uc_lut_index = DMAC_INVALID_BA_LUT_INDEX;
 
-    /* 立即块确认判断 */
+    /* ?????????????? */
     if (MAC_BA_POLICY_IMMEDIATE == pst_ba_rx_info->uc_ba_policy)
     {
         if (OAL_FALSE == pst_hmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.en_dot11ImmediateBlockAckOptionImplemented)
         {
-            /* 不支持立即块确认 */
+            /* ???????????????? */
             OAM_WARNING_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_BA, "{hmac_mgmt_check_set_rx_ba_ok::not support immediate Block Ack.}");
             return MAC_INVALID_REQ_PARAMS;
         }
@@ -1020,7 +800,7 @@ oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
         {
             if (pst_ba_rx_info->en_back_var != MAC_BACK_COMPRESSED)
             {
-                /* 不支持非压缩块确认 */
+                /* ?????????????????? */
                 OAM_WARNING_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_BA, "{hmac_mgmt_check_set_rx_ba_ok::not support non-Compressed Block Ack.}");
                 return MAC_REQ_DECLINED;
             }
@@ -1028,7 +808,7 @@ oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
     }
     else if (MAC_BA_POLICY_DELAYED == pst_ba_rx_info->uc_ba_policy)
     {
-        /* 延迟块确认不支持 */
+        /* ???????????????? */
         OAM_WARNING_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_BA, "{hmac_mgmt_check_set_rx_ba_ok::not support delayed Block Ack.}");
         return MAC_INVALID_REQ_PARAMS;
     }
@@ -1048,10 +828,10 @@ oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
     }
 #endif
 
-    /* 获取BA LUT INDEX */
+    /* ????BA LUT INDEX */
     pst_ba_rx_info->uc_lut_index = hmac_ba_get_lut_index(pst_device->auc_rx_ba_lut_idx_table, 0, HAL_MAX_BA_LUT_SIZE);
 
-        /* LUT index表已满 */
+        /* LUT index?????? */
     if (DMAC_INVALID_BA_LUT_INDEX == pst_ba_rx_info->uc_lut_index)
     {
         OAM_ERROR_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_BA, "{hmac_mgmt_check_set_rx_ba_ok::ba lut index table full.");
@@ -1061,21 +841,7 @@ oal_uint8  hmac_mgmt_check_set_rx_ba_ok(
     return MAC_SUCCESSFUL_STATUSCODE;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_up_rx_bar
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月3日
-    作    者   : h00217255
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hmac_up_rx_bar(hmac_vap_stru *pst_hmac_vap, dmac_rx_ctl_stru *pst_rx_ctl, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint8                 *puc_payload;
@@ -1089,7 +855,7 @@ oal_void  hmac_up_rx_bar(hmac_vap_stru *pst_hmac_vap, dmac_rx_ctl_stru *pst_rx_c
     pst_frame_hdr = (mac_ieee80211_frame_stru  *)mac_get_rx_cb_mac_hdr(&(pst_rx_ctl->st_rx_info));
     puc_sa_addr = pst_frame_hdr->auc_address2;
 
-    /*  获取用户指针 */
+    /*  ???????????? */
     pst_ta_user = mac_vap_get_hmac_user_by_addr(&(pst_hmac_vap->st_vap_base_info), puc_sa_addr);
     if (OAL_PTR_NULL == pst_ta_user)
     {
@@ -1097,7 +863,7 @@ oal_void  hmac_up_rx_bar(hmac_vap_stru *pst_hmac_vap, dmac_rx_ctl_stru *pst_rx_c
         return;
     }
 
-    /* 获取帧头和payload指针*/
+    /* ??????????payload????*/
     puc_payload = MAC_GET_RX_PAYLOAD_ADDR(&(pst_rx_ctl->st_rx_info), pst_netbuf);
 
     /*************************************************************************/

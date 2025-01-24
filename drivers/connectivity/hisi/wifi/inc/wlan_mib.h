@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wlan_mib.h
-  版 本 号   : 初稿
-  作    者   : huxiaotong
-  生成日期   : 2012年10月18日
-  最近修改   :
-  功能描述   : 定义所有MIB元素结构及其对应枚举 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年10月18日
-    作    者   : huxiaotong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __WLAN_MIB_H__
 #define __WLAN_MIB_H__
@@ -28,27 +11,27 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_types.h"
 #include "wlan_types.h"
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define WLAN_MIB_TOKEN_STRING_MAX_LENGTH    32      /* 支持与网管兼容的token的字符串最长长度，此定义后续可能与版本相关 */
-#define WLAN_HT_MCS_BITMASK_LEN             10      /* MCS bitmask长度为77位，加上3个保留位 */
+#define WLAN_MIB_TOKEN_STRING_MAX_LENGTH    32      /* ????????????????token?????????????????????????????????????????? */
+#define WLAN_HT_MCS_BITMASK_LEN             10      /* MCS bitmask??????77????????3???????? */
 
 /* Number of Cipher Suites Implemented */
 #define WLAN_PAIRWISE_CIPHER_SUITES         2
 #define WLAN_AUTHENTICATION_SUITES          2
 
-#define MAC_PAIRWISE_CIPHER_SUITES_NUM      2   /*表征WPA2有CCMP和TKIP两种加密套件，WPA有WEP和WEP104两种加密套件*/
-#define MAC_AUTHENTICATION_SUITE_NUM        2   /*表示RSN 认证方法数*/
+#define MAC_PAIRWISE_CIPHER_SUITES_NUM      2   /*????WPA2??CCMP??TKIP??????????????WPA??WEP??WEP104????????????*/
+#define MAC_AUTHENTICATION_SUITE_NUM        2   /*????RSN ??????????*/
 
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 /* RowStatus ::= TEXTUAL-CONVENTION                                         */
 /* The status column has six  values:`active', `notInService',`notReady',   */
@@ -716,7 +699,7 @@ typedef enum
 }wlan_mib_ap_lci_azimuth_type_enum;
 typedef oal_uint8 wlan_mib_ap_lci_azimuth_type_enum_uint8;
 
-/* dot11HTProtection 枚举定义 */
+/* dot11HTProtection ???????? */
 typedef enum
 {
     WLAN_MIB_HT_NO_PROTECTION           = 0,
@@ -728,7 +711,7 @@ typedef enum
 }wlan_mib_ht_protection_enum;
 typedef oal_uint8 wlan_mib_ht_protection_enum_uint8;
 
-/* VHT Capabilities Info field 最大MPDU长度枚举 */
+/* VHT Capabilities Info field ????MPDU???????? */
 typedef enum
 {
     WLAN_MIB_VHT_MPDU_3895  = 0,
@@ -739,12 +722,12 @@ typedef enum
 }wlan_mib_vht_mpdu_len_enum;
 typedef oal_uint8   wlan_mib_vht_mpdu_len_enum_uint8;
 
-/* VHT Capabilites Info field 支持带宽枚举 */
+/* VHT Capabilites Info field ???????????? */
 typedef enum
 {
-    WLAN_MIB_VHT_SUPP_WIDTH_80          = 0,    /* 不支持160或者80+80 */
-    WLAN_MIB_VHT_SUPP_WIDTH_160         = 1,    /* 支持160 */
-    WLAN_MIB_VHT_SUPP_WIDTH_80PLUS80    = 2,    /* 支持160和80+80 */
+    WLAN_MIB_VHT_SUPP_WIDTH_80          = 0,    /* ??????160????80+80 */
+    WLAN_MIB_VHT_SUPP_WIDTH_160         = 1,    /* ????160 */
+    WLAN_MIB_VHT_SUPP_WIDTH_80PLUS80    = 2,    /* ????160??80+80 */
 
     WLAN_MIB_VHT_SUPP_WIDTH_BUTT
 }wlan_mib_vht_supp_width_enum;
@@ -753,18 +736,18 @@ typedef oal_uint8   wlan_mib_vht_supp_width_enum_uint8;
 
 
 /*****************************************************************************
-    配置命令 ID
-    第一段  MIB 类配置
-    第二段  非MIB类配置
+    ???????? ID
+    ??????  MIB ??????
+    ??????  ??MIB??????
 *****************************************************************************/
 typedef enum
 {
     /************************************************************************
-        第一段 MIB 类配置
+        ?????? MIB ??????
     *************************************************************************/
     /* *********************dot11smt OBJECT IDENTIFIER ::= { ieee802dot11 1 }**************************/
     /* --  dot11StationConfigTable ::= { dot11smt 1 } */
-    WLAN_CFGID_STATION_ID                 = 0,              /* dot11StationID MacAddress, MAC地址 */
+    WLAN_CFGID_STATION_ID                 = 0,              /* dot11StationID MacAddress, MAC???? */
     WLAN_CFGID_BSS_TYPE                   = 4,              /* dot11DesiredBSSType INTEGER, */
     WLAN_CFGID_SSID                       = 5,              /* dot11DesiredSSID OCTET STRING, SIZE(0..32)*/
     WLAN_CFGID_BEACON_INTERVAL            = 6,              /* dot11BeaconPeriod Unsigned32, */
@@ -819,25 +802,25 @@ typedef enum
     /************************dot11MSGCF       OBJECT IDENTIFIER ::= { ieee802dot11 7} *********************/
 
     /************************************************************************
-        第二段 非MIB 类配置
+        ?????? ??MIB ??????
     *************************************************************************/
-    /* 以下为ioctl下发的命令 */
-    WLAN_CFGID_ADD_VAP             = 100,               /* 创建VAP */
-    WLAN_CFGID_START_VAP           = 101,               /* 启用VAP */
-    WLAN_CFGID_DEL_VAP             = 102,               /* 删除VAP */
-    WLAN_CFGID_DOWN_VAP            = 103,               /* 停用VAP */
-    WLAN_CFGID_MODE                = 105,               /* 模式: 包括协议 频段 带宽 */
-    WLAN_CFGID_CONCURRENT          = 106,               /* 设置并发用户数 */
+    /* ??????ioctl?????????? */
+    WLAN_CFGID_ADD_VAP             = 100,               /* ????VAP */
+    WLAN_CFGID_START_VAP           = 101,               /* ????VAP */
+    WLAN_CFGID_DEL_VAP             = 102,               /* ????VAP */
+    WLAN_CFGID_DOWN_VAP            = 103,               /* ????VAP */
+    WLAN_CFGID_MODE                = 105,               /* ????: ???????? ???? ???? */
+    WLAN_CFGID_CONCURRENT          = 106,               /* ?????????????? */
 #ifdef _PRE_WLAN_FEATURE_MONITOR
-    WLAN_CFGID_ADDR_FILTER         = 107,               /* 地址过滤 */
+    WLAN_CFGID_ADDR_FILTER         = 107,               /* ???????? */
 #endif
-    WLAN_CFGID_PROT_MODE           = 108,               /* 保护模式 */
-    WLAN_CFGID_AUTH_MODE           = 109,               /* 认证模式 */
+    WLAN_CFGID_PROT_MODE           = 108,               /* ???????? */
+    WLAN_CFGID_AUTH_MODE           = 109,               /* ???????? */
     WLAN_CFGID_NO_BEACON           = 110,
     WLAN_CFGID_TX_CHAIN            = 111,
     WLAN_CFGID_RX_CHAIN            = 112,
-    WLAN_CFGID_TX_POWER            = 113,               /* 传输功率 */
-    WLAN_CFGID_VAP_INFO            = 114,               /* 打印vap参数信息 */
+    WLAN_CFGID_TX_POWER            = 113,               /* ???????? */
+    WLAN_CFGID_VAP_INFO            = 114,               /* ????vap???????? */
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
     WLAN_CFGID_VAP_STATE_SYN       = 115,
 #endif
@@ -862,233 +845,232 @@ typedef enum
     //WLAN_CFGID_ADD_WEP_KEY         = 130,
     WLAN_CFGID_REMOVE_WEP_KEY      = 131,
     WLAN_CFGID_ADD_WEP_ENTRY       = 132,
-    /*认证加密模式配置*/
-    WLAN_CFGID_EVENT_SWITCH        = 144,               /* event模块开关 */
-    WLAN_CFGID_ETH_SWITCH          = 145,               /* 以太网帧收发开关 */
-    WLAN_CFGID_80211_UCAST_SWITCH  = 146,               /* 80211单播帧上报开关 */
+    /*????????????????*/
+    WLAN_CFGID_EVENT_SWITCH        = 144,               /* event???????? */
+    WLAN_CFGID_ETH_SWITCH          = 145,               /* ???????????????? */
+    WLAN_CFGID_80211_UCAST_SWITCH  = 146,               /* 80211?????????????? */
 #ifdef _PRE_DEBUG_MODE_USER_TRACK
-    WLAN_CFGID_USR_THRPUT_STAT     = 148,               /* 影响用户实时吞吐统计信息 */
+    WLAN_CFGID_USR_THRPUT_STAT     = 148,               /* ???????????????????????? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_TXOPPS
-    WLAN_CFGID_TXOP_PS_MACHW       = 151,               /* 配置mac txopps使能寄存器 */
+    WLAN_CFGID_TXOP_PS_MACHW       = 151,               /* ????mac txopps?????????? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
-    WLAN_CFGID_BTCOEX_STATUS_PRINT = 152,               /* 打印共存维测信息 */
+    WLAN_CFGID_BTCOEX_STATUS_PRINT = 152,               /* ???????????????? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_LTECOEX
     WLAN_CFGID_LTECOEX_MODE_SET    = 153,
 #endif
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    WLAN_CFGID_REPORT_VAP_INFO     = 159,               /* 上报vap信息 */
+    WLAN_CFGID_REPORT_VAP_INFO     = 159,               /* ????vap???? */
 #endif
 
 #ifdef _PRE_WLAN_DFT_STAT
-    WLAN_CFGID_PHY_STAT_EN         = 161,               /* 设置phy统计使能节点 */
-    WLAN_CFGID_DBB_ENV_PARAM       = 165,               /* 空口环境类参数上报或者停止上报 */
-    WLAN_CFGID_USR_QUEUE_STAT      = 166,               /* 用户tid队列和节能队列统计信息 */
-    WLAN_CFGID_VAP_STAT            = 167,               /* vap吞吐统计计信息 */
-    WLAN_CFGID_ALL_STAT            = 168,               /* 所有统计信息 */
+    WLAN_CFGID_PHY_STAT_EN         = 161,               /* ????phy???????????? */
+    WLAN_CFGID_DBB_ENV_PARAM       = 165,               /* ?????????????????????????????? */
+    WLAN_CFGID_USR_QUEUE_STAT      = 166,               /* ????tid?????????????????????? */
+    WLAN_CFGID_VAP_STAT            = 167,               /* vap?????????????? */
+    WLAN_CFGID_ALL_STAT            = 168,               /* ???????????? */
 #endif
 
-    WLAN_CFGID_RSSI_SWITCH                 = 169,       /* 打印接收报文的rssi信息的调试开关 */
-    WLAN_CFGID_80211_MCAST_SWITCH           = 170,      /* 80211组播\广播帧上报开关 */
-    WLAN_CFGID_PROBE_SWITCH                 = 171,      /* probe requese 和 probe response上报开关 */
-    WLAN_CFGID_GET_MPDU_NUM                 = 172,      /* 获取mpdu数目 */
+    WLAN_CFGID_RSSI_SWITCH                 = 169,       /* ??????????????rssi?????????????? */
+    WLAN_CFGID_80211_MCAST_SWITCH           = 170,      /* 80211????\?????????????? */
+    WLAN_CFGID_PROBE_SWITCH                 = 171,      /* probe requese ?? probe response???????? */
+    WLAN_CFGID_GET_MPDU_NUM                 = 172,      /* ????mpdu???? */
 #if 0
-    WLAN_CFGID_OTA_SWITCH                   = 174,      /* ota模块设置某一种具体的ota上报开关 */
+    WLAN_CFGID_OTA_SWITCH                   = 174,      /* ota????????????????????ota???????? */
 #endif
-    WLAN_CFGID_OTA_RX_DSCR_SWITCH           = 174,      /* ota模块设置ota接收描述符上报开关 */
-    WLAN_CFGID_OTA_BEACON_SWITCH            = 175,      /* 设置是否上报beacon帧的开关 */
-    WLAN_CFGID_OAM_OUTPUT_TYPE              = 176,      /* oam模块输出的位置 */
-    WLAN_CFGID_ADD_USER                     = 178,      /* 添加用户配置命令 */
-    WLAN_CFGID_DEL_USER                     = 179,      /* 删除用户配置命令 */
-    WLAN_CFGID_AMPDU_START                  = 180,      /* 开启AMPDU的配置命令 */
-    WLAN_CFGID_AMPDU_END                    = 181,      /* 关闭AMPDU的配置命令 */
-    WLAN_CFGID_AUTO_BA_SWITCH               = 182,      /* 自动建立BA会话 */
-    WLAN_CFGID_PROFILING_SWITCH             = 183,      /* 自动建立BA会话 */
-    WLAN_CFGID_ADDBA_REQ                    = 184,      /* 建立BA会话的配置命令 */
-    WLAN_CFGID_DELBA_REQ                    = 185,      /* 删除BA会话的配置命令 */
-    WLAN_CFGID_SET_LOG_LEVEL                = 186,      /* 设置LOG配置级别开关 */
-    WLAN_CFGID_SET_FEATURE_LOG              = 187,      /* 设置日志特性开关 */
-    WLAN_CFGID_SET_ALL_OTA                  = 188,      /* 设置所有用户帧上报的所有开关 */
-    WLAN_CFGID_SET_BEACON_OFFLOAD_TEST      = 189,      /* Beacon offload相关的测试，仅用于测试 */
-    WLAN_CFGID_SET_LOG_PM                   = 190,      /* 设置Device log 为pm模式 */
+    WLAN_CFGID_OTA_RX_DSCR_SWITCH           = 174,      /* ota????????ota?????????????????? */
+    WLAN_CFGID_OTA_BEACON_SWITCH            = 175,      /* ????????????beacon???????? */
+    WLAN_CFGID_OAM_OUTPUT_TYPE              = 176,      /* oam?????????????? */
+    WLAN_CFGID_ADD_USER                     = 178,      /* ???????????????? */
+    WLAN_CFGID_DEL_USER                     = 179,      /* ???????????????? */
+    WLAN_CFGID_AMPDU_START                  = 180,      /* ????AMPDU?????????? */
+    WLAN_CFGID_AMPDU_END                    = 181,      /* ????AMPDU?????????? */
+    WLAN_CFGID_AUTO_BA_SWITCH               = 182,      /* ????????BA???? */
+    WLAN_CFGID_PROFILING_SWITCH             = 183,      /* ????????BA???? */
+    WLAN_CFGID_ADDBA_REQ                    = 184,      /* ????BA?????????????? */
+    WLAN_CFGID_DELBA_REQ                    = 185,      /* ????BA?????????????? */
+    WLAN_CFGID_SET_LOG_LEVEL                = 186,      /* ????LOG???????????? */
+    WLAN_CFGID_SET_FEATURE_LOG              = 187,      /* ???????????????? */
+    WLAN_CFGID_SET_ALL_OTA                  = 188,      /* ???????????????????????????? */
+    WLAN_CFGID_SET_BEACON_OFFLOAD_TEST      = 189,      /* Beacon offload?????????????????????? */
+    WLAN_CFGID_SET_LOG_PM                   = 190,      /* ????Device log ??pm???? */
 
-    WLAN_CFGID_AMSDU_START                  = 191,      /* AMSDUA开启关闭 参数配置 */
-    WLAN_CFGID_SET_DHCP_ARP                 = 192,      /* 设置dhcp和arp上报的所有开关 */
-    WLAN_CFGID_SET_RANDOM_MAC_ADDR_SCAN     = 193,      /* 设置随机mac addr扫描开关 */
-    WLAN_CFGID_SET_RANDOM_MAC_OUI           = 194,      /* 设置随机mac oui */
-    WLAN_CFGID_LIST_AP                      = 200,      /* 列举扫描到的AP */
-    WLAN_CFGID_LIST_STA                     = 201,      /* 列举关联的STA */
-    WLAN_CFGID_DUMP_ALL_RX_DSCR             = 203,      /* 打印所有的接收描述符 */
-    WLAN_CFGID_START_SCAN                   = 204,      /* 触发初始扫描 */
-    WLAN_CFGID_START_JOIN                   = 205,      /* 触发加入认证并关联 */
-    WLAN_CFGID_START_DEAUTH                 = 206,      /* 触发去认证 */
-    WLAN_CFGID_DUMP_TIEMR                   = 207,      /* 打印所有timer的维测信息 */
-    WLAN_CFGID_KICK_USER                    = 208,      /* 去关联1个用户 */
-    WLAN_CFGID_PAUSE_TID                    = 209,      /* 暂停指定用户的指定tid */
-    WLAN_CFGID_SET_USER_VIP                 = 210,      /* 设置用户为VIP用户 */
-    WLAN_CFGID_SET_VAP_HOST                 = 211,      /* 设置VAP是否为host vap */
-    WLAN_CFGID_AMPDU_TX_ON                  = 212,      /* 开启或关闭ampdu发送功能 */
-    WLAN_CFGID_AMSDU_TX_ON                  = 213,      /* 开启或关闭ampdu发送功能 */
-    WLAN_CFGID_SEND_BAR                     = 215,      /* 指定用户的指定tid发送bar */
-    WLAN_CFGID_LIST_CHAN                    = 217,      /* 列举支持的管制域信道 */
-    WLAN_CFGID_REGDOMAIN_PWR                = 218,      /* 设置管制域功率 */
-    WLAN_CFGID_TXBF_SWITCH                  = 219,      /* 开启或关闭TXBF发送功能 */
-    WLAN_CFGID_FRAG_THRESHOLD_REG           = 221,      /* 设置分片门限长度 */
+    WLAN_CFGID_AMSDU_START                  = 191,      /* AMSDUA???????? ???????? */
+    WLAN_CFGID_SET_DHCP_ARP                 = 192,      /* ????dhcp??arp?????????????? */
+    WLAN_CFGID_SET_RANDOM_MAC_ADDR_SCAN     = 193,      /* ????????mac addr???????? */
+    WLAN_CFGID_SET_RANDOM_MAC_OUI           = 194,      /* ????????mac oui */
+    WLAN_CFGID_LIST_AP                      = 200,      /* ????????????AP */
+    WLAN_CFGID_LIST_STA                     = 201,      /* ??????????STA */
+    WLAN_CFGID_DUMP_ALL_RX_DSCR             = 203,      /* ???????????????????? */
+    WLAN_CFGID_START_SCAN                   = 204,      /* ???????????? */
+    WLAN_CFGID_START_JOIN                   = 205,      /* ?????????????????? */
+    WLAN_CFGID_START_DEAUTH                 = 206,      /* ?????????? */
+    WLAN_CFGID_DUMP_TIEMR                   = 207,      /* ????????timer?????????? */
+    WLAN_CFGID_KICK_USER                    = 208,      /* ??????1?????? */
+    WLAN_CFGID_PAUSE_TID                    = 209,      /* ??????????????????tid */
+    WLAN_CFGID_SET_USER_VIP                 = 210,      /* ??????????VIP???? */
+    WLAN_CFGID_SET_VAP_HOST                 = 211,      /* ????VAP??????host vap */
+    WLAN_CFGID_AMPDU_TX_ON                  = 212,      /* ??????????ampdu???????? */
+    WLAN_CFGID_AMSDU_TX_ON                  = 213,      /* ??????????ampdu???????? */
+    WLAN_CFGID_SEND_BAR                     = 215,      /* ??????????????tid????bar */
+    WLAN_CFGID_LIST_CHAN                    = 217,      /* ???????????????????? */
+    WLAN_CFGID_REGDOMAIN_PWR                = 218,      /* ?????????????? */
+    WLAN_CFGID_TXBF_SWITCH                  = 219,      /* ??????????TXBF???????? */
+    WLAN_CFGID_FRAG_THRESHOLD_REG           = 221,      /* ???????????????? */
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
-    WLAN_CFGID_RESUME_RX_INTR_FIFO          = 226,      /* 是否使能恢复RX INTR FIFO开关 */
+    WLAN_CFGID_RESUME_RX_INTR_FIFO          = 226,      /* ????????????RX INTR FIFO???? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_STA_PM
-    WLAN_CFGID_SET_PSM_PARAM                = 231,      /* STA 低功耗tbtt offset/listen interval配置 */
-    WLAN_CFGID_SET_STA_PM_ON                = 232,      /* STA低功耗开关接口 */
+    WLAN_CFGID_SET_PSM_PARAM                = 231,      /* STA ??????tbtt offset/listen interval???? */
+    WLAN_CFGID_SET_STA_PM_ON                = 232,      /* STA?????????????? */
 #endif
 
-    WLAN_CFGID_PACKET_XMIT                  = 240,      /* 发指定个数的报文 */
-    WLAN_CFGID_DUMP_BA_BITMAP               = 241,      /* 发指定个数的报文 */
-    WLAN_CFGID_VAP_PKT_STAT                 = 242,      /* vap统计信息 */
+    WLAN_CFGID_DUMP_BA_BITMAP               = 241,      /* ???????????????? */
+    WLAN_CFGID_VAP_PKT_STAT                 = 242,      /* vap???????? */
     WLAN_CFGID_TIMER_START                  = 244,
     WLAN_CFGID_SHOW_PROFILING               = 245,
     WLAN_CFGID_AMSDU_AMPDU_SWITCH           = 246,
-    WLAN_CFGID_COUNTRY                      = 247,      /* 设置国家码管制域信息 */
-    WLAN_CFGID_TID                          = 248,      /* 读取最新接收到数据帧的TID*/
+    WLAN_CFGID_COUNTRY                      = 247,      /* ???????????????????? */
+    WLAN_CFGID_TID                          = 248,      /* ??????????????????????TID*/
     WLAN_CFGID_RESET_HW                     = 249,      /* Reset mac&phy*/
-    WLAN_CFGID_UAPSD_DEBUG                  = 250,      /* UAPSD维测信息*/
-    WLAN_CFGID_DUMP_RX_DSCR                 = 251,      /* dump接收描述队列 */
-    WLAN_CFGID_DUMP_TX_DSCR                 = 252,      /* dump发送描述符队列 */
-    WLAN_CFGID_DUMP_MEMORY                  = 253,      /* dump内存 */
-    WLAN_CFGID_ALG_PARAM                    = 254,      /* 算法参数配置 */
-    WLAN_CFGID_BEACON_CHAIN_SWITCH          = 255,      /* 设置beacon帧发送策略，0为关闭双路轮流发送，1为开启 */
+    WLAN_CFGID_UAPSD_DEBUG                  = 250,      /* UAPSD????????*/
+    WLAN_CFGID_DUMP_RX_DSCR                 = 251,      /* dump???????????? */
+    WLAN_CFGID_DUMP_TX_DSCR                 = 252,      /* dump?????????????? */
+    WLAN_CFGID_DUMP_MEMORY                  = 253,      /* dump???? */
+    WLAN_CFGID_ALG_PARAM                    = 254,      /* ???????????? */
+    WLAN_CFGID_BEACON_CHAIN_SWITCH          = 255,      /* ????beacon????????????0????????????????????1?????? */
 #if 0
-    WLAN_CFGID_TDLS_PROHI                   = 256,      /* 设置TDLS prohibited, 0为不关闭，1为关闭 */
-    WLAN_CFGID_TDLS_CHASWI_PROHI            = 257,      /* 设置TDLS channel switch prohibited, 0为不关闭，1为关闭 */
+    WLAN_CFGID_TDLS_PROHI                   = 256,      /* ????TDLS prohibited, 0??????????1?????? */
+    WLAN_CFGID_TDLS_CHASWI_PROHI            = 257,      /* ????TDLS channel switch prohibited, 0??????????1?????? */
 #endif
-    WLAN_CFGID_2040_CHASWI_PROHI            = 258,      /* 设置2040 channel switch prohibited, 0为不禁止，1为禁止 */
-    WLAN_CFGID_2040_INTOLERANT              = 259,      /* 设置40MHz不允许位，0: 不允许运行40MHz，1: 允许运行40MHz */
-    WLAN_CFGID_2040_COEXISTENCE             = 260,      /* 设置20/40共存使能，0: 20/40共存使能，1: 20/40共存不使能 */
-    WLAN_CFGID_RX_FCS_INFO                  = 261,      /* 打印接收帧FCS解析信息 */
+    WLAN_CFGID_2040_CHASWI_PROHI            = 258,      /* ????2040 channel switch prohibited, 0??????????1?????? */
+    WLAN_CFGID_2040_INTOLERANT              = 259,      /* ????40MHz??????????0: ??????????40MHz??1: ????????40MHz */
+    WLAN_CFGID_2040_COEXISTENCE             = 260,      /* ????20/40??????????0: 20/40??????????1: 20/40?????????? */
+    WLAN_CFGID_RX_FCS_INFO                  = 261,      /* ??????????FCS???????? */
 
 #ifdef _PRE_WLAN_CHIP_TEST
-    WLAN_CFGID_SEND_FRAME                   = 262,      /* 指定用户发送控制帧或者管理帧 */
-    WLAN_CFGID_SEND_ACTION                  = 263,      /* 配置发送action帧 */
+    WLAN_CFGID_SEND_FRAME                   = 262,      /* ???????????????????????????? */
+    WLAN_CFGID_SEND_ACTION                  = 263,      /* ????????action?? */
 #if (_PRE_PMF_NOT_SUPPORT != _PRE_WLAN_FEATURE_PMF)
-    WLAN_CFGID_PMF_ENABLE                   = 264,      /* 配置强制使能pmf */
+    WLAN_CFGID_PMF_ENABLE                   = 264,      /* ????????????pmf */
 #endif
-    WLAN_CFGID_SET_RX_PN_REG                = 265,           /* 写接收PN */
-    WLAN_CFGID_SEND_PSPOLL                  = 266,      /* 配置命令发ps-poll */
-    WLAN_CFGID_SEND_NULLDATA                = 267,      /* 配置命令发null data */
-    WLAN_CFGID_CLEAR_ALL_STAT               = 268,      /* 清除所有统计信息，已包括: 中断统计 管理帧统计 */
-    WLAN_CFGID_SET_SOFT_RETRY               = 269,           /* 设置sft retry寄存器 */
-    WLAN_CFGID_LPM_TX_DATA                  = 270,      /* 发包测试命令*/
-    WLAN_CFGID_LPM_TX_PROBE_REQUEST         = 271,      /* 测试发probe request*/
-    WLAN_CFGID_LPM_CHIP_STATE               = 272,      /* 芯片休眠唤醒命令*/
-    WLAN_CFGID_LPM_SOC_MODE                 = 273,      /* soc低功耗测试模式设置*/
-    WLAN_CFGID_LPM_PSM_PARAM                = 274,      /* 芯片psm寄存器配置*/
-    WLAN_CFGID_LPM_SMPS_MODE                = 275,      /* 芯片smps模式配置*/
-    WLAN_CFGID_LPM_SMPS_STUB                = 276,      /* SMPS测试发包打桩*/
-    WLAN_CFGID_LPM_TXOP_PS_SET              = 277,      /* TXOP PS寄存器配置*/
-    WLAN_CFGID_REMOVE_LUT                   = 278,      /* 删除用户lut配置命令 */
-    WLAN_CFGID_LPM_TXOP_TX_STUB             = 279,      /* TXOP PS测试发包打桩*/
-    WLAN_CFGID_SET_COEX                     = 282,      /* 配置LTE共存开关 */
-    WLAN_CFGID_DFX_SWITCH                   = 284,      /* 配置DFX特性开关 */
-    WLAN_CFGID_OPEN_WMM_TEST                = 285,           /*芯片验证打开或者关闭wmm*/
+    WLAN_CFGID_SET_RX_PN_REG                = 265,           /* ??????PN */
+    WLAN_CFGID_SEND_PSPOLL                  = 266,      /* ??????????ps-poll */
+    WLAN_CFGID_SEND_NULLDATA                = 267,      /* ??????????null data */
+    WLAN_CFGID_CLEAR_ALL_STAT               = 268,      /* ????????????????????????: ???????? ?????????? */
+    WLAN_CFGID_SET_SOFT_RETRY               = 269,           /* ????sft retry?????? */
+    WLAN_CFGID_LPM_TX_DATA                  = 270,      /* ????????????*/
+    WLAN_CFGID_LPM_TX_PROBE_REQUEST         = 271,      /* ??????probe request*/
+    WLAN_CFGID_LPM_CHIP_STATE               = 272,      /* ????????????????*/
+    WLAN_CFGID_LPM_SOC_MODE                 = 273,      /* soc??????????????????*/
+    WLAN_CFGID_LPM_PSM_PARAM                = 274,      /* ????psm??????????*/
+    WLAN_CFGID_LPM_SMPS_MODE                = 275,      /* ????smps????????*/
+    WLAN_CFGID_LPM_SMPS_STUB                = 276,      /* SMPS????????????*/
+    WLAN_CFGID_LPM_TXOP_PS_SET              = 277,      /* TXOP PS??????????*/
+    WLAN_CFGID_REMOVE_LUT                   = 278,      /* ????????lut???????? */
+    WLAN_CFGID_LPM_TXOP_TX_STUB             = 279,      /* TXOP PS????????????*/
+    WLAN_CFGID_SET_COEX                     = 282,      /* ????LTE???????? */
+    WLAN_CFGID_DFX_SWITCH                   = 284,      /* ????DFX???????? */
+    WLAN_CFGID_OPEN_WMM_TEST                = 285,           /*????????????????????wmm*/
 #endif /* #ifdef _PRE_WLAN_CHIP_TEST */
-    WLAN_CFGID_ACS_CONFIG                   = 286,         /* ACS命令 */
-    WLAN_CFGID_SCAN_ABORT                   = 287,          /* 扫描终止 */
-    /* 以下命令为cfg80211下发的命令(通过内核) */
-    WLAN_CFGID_CFG80211_START_SCHED_SCAN        = 288,         /* 内核下发启动PNO调度扫描命令 */
-    WLAN_CFGID_CFG80211_STOP_SCHED_SCAN         = 289,         /* 内核下发停止PNO调度扫描命令 */
-    WLAN_CFGID_CFG80211_START_SCAN              = 290,         /* 内核下发启动扫描命令 */
-    WLAN_CFGID_CFG80211_START_CONNECT           = 291,         /* 内核下发启动JOIN(connect)命令 */
-    WLAN_CFGID_CFG80211_SET_CHANNEL             = 292,         /* 内核下发设置信道命令 */
-    WLAN_CFGID_CFG80211_SET_WIPHY_PARAMS        = 293,         /* 内核下发设置wiphy 结构体命令 */
-    WLAN_CFGID_CFG80211_CONFIG_BEACON           = 295,         /* 内核下发设置VAP信息 */
-    WLAN_CFGID_ALG                              = 296,         /* 算法配置命令 */
-    WLAN_CFGID_ACS_PARAM                        = 297,         /* ACS命令 */
-    WLAN_CFGID_RADARTOOL                        = 310,         /* DFS配置命令 */
+    WLAN_CFGID_ACS_CONFIG                   = 286,         /* ACS???? */
+    WLAN_CFGID_SCAN_ABORT                   = 287,          /* ???????? */
+    /* ??????????cfg80211??????????(????????) */
+    WLAN_CFGID_CFG80211_START_SCHED_SCAN        = 288,         /* ????????????PNO???????????? */
+    WLAN_CFGID_CFG80211_STOP_SCHED_SCAN         = 289,         /* ????????????PNO???????????? */
+    WLAN_CFGID_CFG80211_START_SCAN              = 290,         /* ???????????????????? */
+    WLAN_CFGID_CFG80211_START_CONNECT           = 291,         /* ????????????JOIN(connect)???? */
+    WLAN_CFGID_CFG80211_SET_CHANNEL             = 292,         /* ???????????????????? */
+    WLAN_CFGID_CFG80211_SET_WIPHY_PARAMS        = 293,         /* ????????????wiphy ?????????? */
+    WLAN_CFGID_CFG80211_CONFIG_BEACON           = 295,         /* ????????????VAP???? */
+    WLAN_CFGID_ALG                              = 296,         /* ???????????? */
+    WLAN_CFGID_ACS_PARAM                        = 297,         /* ACS???? */
+    WLAN_CFGID_RADARTOOL                        = 310,         /* DFS???????? */
 
-    /* BEGIN:以下命令为开源APP 程序下发的私有命令 */
-    WLAN_CFGID_GET_ASSOC_REQ_IE           = 311,         /* hostapd 获取ASSOC REQ 帧信息 */
-    WLAN_CFGID_SET_WPS_IE                 = 312,         /* hostapd 设置WPS 信息元素到VAP */
-    WLAN_CFGID_SET_RTS_THRESHHOLD         = 313,         /* hostapd 设置RTS 门限 */
-    WLAN_CFGID_SET_WPS_P2P_IE             = 314,         /* wpa_supplicant 设置WPS/P2P 信息元素到VAP */
-    /* END:以下命令为开源APP 程序下发的私有命令 */
+    /* BEGIN:??????????????APP ?????????????????? */
+    WLAN_CFGID_GET_ASSOC_REQ_IE           = 311,         /* hostapd ????ASSOC REQ ?????? */
+    WLAN_CFGID_SET_WPS_IE                 = 312,         /* hostapd ????WPS ??????????VAP */
+    WLAN_CFGID_SET_RTS_THRESHHOLD         = 313,         /* hostapd ????RTS ???? */
+    WLAN_CFGID_SET_WPS_P2P_IE             = 314,         /* wpa_supplicant ????WPS/P2P ??????????VAP */
+    /* END:??????????????APP ?????????????????? */
 #ifdef _PRE_DEBUG_MODE
-    WLAN_CFGID_SET_RXCH            = 317,           /* 设置接收通道 */
-    WLAN_CFGID_DYNC_TXPOWER        = 318,           /* 动态功率校准开关 */
+    WLAN_CFGID_SET_RXCH            = 317,           /* ???????????? */
+    WLAN_CFGID_DYNC_TXPOWER        = 318,           /* ???????????????? */
 #endif
-    WLAN_CFGID_ADJUST_PPM          = 319,           /* 设置PPM校准算法 */
-    WLAN_CFGID_USER_INFO           = 320,           /* 用户信息 */
-    WLAN_CFGID_SET_DSCR            = 321,           /* 配置用户信息 */
-    WLAN_CFGID_SET_RATE            = 322,           /* 设置non-HT速率 */
-    WLAN_CFGID_SET_MCS             = 323,           /* 设置HT速率 */
-    WLAN_CFGID_SET_MCSAC           = 324,           /* 设置VHT速率 */
-    WLAN_CFGID_SET_NSS             = 325,           /* 设置空间流个数 */
-    WLAN_CFGID_SET_RFCH            = 326,           /* 设置发射通道 */
-    WLAN_CFGID_SET_BW              = 327,           /* 设置带宽 */
-    WLAN_CFGID_SET_ALWAYS_TX       = 328,           /* 设置常发模式 */
-    WLAN_CFGID_SET_ALWAYS_RX       = 329,           /* 设置常发模式 */
-    WLAN_CFGID_GET_THRUPUT         = 330,           /* 获取芯片吞吐量信息*/
-    WLAN_CFGID_SET_FREQ_SKEW       = 331,           /* 设置频偏参数 */
-    WLAN_CFGID_REG_INFO            = 332,           /* 寄存器地址信息 */
-    WLAN_CFGID_REG_WRITE           = 333,           /* 写入寄存器信息 */
-    WLAN_CFGID_OPEN_ADDR4          = 336,           /* mac头为4地址*/
-    WLAN_CFGID_WMM_SWITCH          = 338,           /*打开或者关闭wmm*/
-    WLAN_CFGID_HIDE_SSID           = 339,           /*打开或者关闭隐藏ssid*/
-    WLAN_CFGID_CHIP_TEST_OPEN      = 340,           /* 打开芯片验证开关*/
+    WLAN_CFGID_ADJUST_PPM          = 319,           /* ????PPM???????? */
+    WLAN_CFGID_USER_INFO           = 320,           /* ???????? */
+    WLAN_CFGID_SET_DSCR            = 321,           /* ???????????? */
+    WLAN_CFGID_SET_RATE            = 322,           /* ????non-HT???? */
+    WLAN_CFGID_SET_MCS             = 323,           /* ????HT???? */
+    WLAN_CFGID_SET_MCSAC           = 324,           /* ????VHT???? */
+    WLAN_CFGID_SET_NSS             = 325,           /* ?????????????? */
+    WLAN_CFGID_SET_RFCH            = 326,           /* ???????????? */
+    WLAN_CFGID_SET_BW              = 327,           /* ???????? */
+    WLAN_CFGID_SET_ALWAYS_TX       = 328,           /* ???????????? */
+    WLAN_CFGID_SET_ALWAYS_RX       = 329,           /* ???????????? */
+    WLAN_CFGID_GET_THRUPUT         = 330,           /* ??????????????????*/
+    WLAN_CFGID_SET_FREQ_SKEW       = 331,           /* ???????????? */
+    WLAN_CFGID_REG_INFO            = 332,           /* ?????????????? */
+    WLAN_CFGID_REG_WRITE           = 333,           /* ?????????????? */
+    WLAN_CFGID_OPEN_ADDR4          = 336,           /* mac????4????*/
+    WLAN_CFGID_WMM_SWITCH          = 338,           /*????????????wmm*/
+    WLAN_CFGID_HIDE_SSID           = 339,           /*????????????????ssid*/
+    WLAN_CFGID_CHIP_TEST_OPEN      = 340,           /* ????????????????*/
 #ifdef _PRE_WLAN_PERFORM_STAT
-    /* 性能统计命令 */
-    WLAN_CFGID_PFM_STAT            = 341,           /* 性能统计命令 */
-    WLAN_CFGID_PFM_DISPLAY         = 342,           /* 性能打印命令 */
+    /* ???????????? */
+    WLAN_CFGID_PFM_STAT            = 341,           /* ???????????? */
+    WLAN_CFGID_PFM_DISPLAY         = 342,           /* ???????????? */
 #endif
-    WLAN_CFGID_SET_ALWAYS_TX_1102  = 343,           /* 设置1102常发模式 */
+    WLAN_CFGID_SET_ALWAYS_TX_1102  = 343,           /* ????1102???????? */
 
 #ifdef _PRE_WLAN_FEATURE_EDCA_OPT_AP
-    WLAN_CFGID_EDCA_OPT_SWITCH_AP    = 344,         /* 设置AP打开edca_opt模式 */
-    WLAN_CFGID_EDCA_OPT_CYCLE_AP     = 345,         /* 设置AP的edca调整周期 */
-    WLAN_CFGID_EDCA_OPT_SWITCH_STA   = 346,         /* 设置STA的edca优化开关 */
-    WLAN_CFGID_EDCA_OPT_WEIGHT_STA   = 347,         /* 设置STA的edca参数调整权重 */
+    WLAN_CFGID_EDCA_OPT_SWITCH_AP    = 344,         /* ????AP????edca_opt???? */
+    WLAN_CFGID_EDCA_OPT_CYCLE_AP     = 345,         /* ????AP??edca???????? */
+    WLAN_CFGID_EDCA_OPT_SWITCH_STA   = 346,         /* ????STA??edca???????? */
+    WLAN_CFGID_EDCA_OPT_WEIGHT_STA   = 347,         /* ????STA??edca???????????? */
 #endif
-    WLAN_CFGID_SET_RTS_PARAM               = 350,      /* 配置RTS速率 */
-    WLAN_CFGID_UPDTAE_PROT_TX_PARAM        = 351,      /* 更新保护模式相关的发送参数 */
+    WLAN_CFGID_SET_RTS_PARAM               = 350,      /* ????RTS???? */
+    WLAN_CFGID_UPDTAE_PROT_TX_PARAM        = 351,      /* ?????????????????????????? */
     WLAN_CFGID_SET_PROTECTION              = 352,
 
 #ifdef _PRE_WLAN_FEATURE_OFFLOAD_FLOWCTL
-    WLAN_CFGID_SET_FLOWCTL_PARAM           = 353,      /* 设置流控相关参数 */
-    WLAN_CFGID_GET_FLOWCTL_STAT            = 354,      /* 获取流控相关状态信息 */
-    WLAN_CFGID_GET_HIPKT_STAT              = 355,      /* 获取高优先级报文的统计情况 */
+    WLAN_CFGID_SET_FLOWCTL_PARAM           = 353,      /* ???????????????? */
+    WLAN_CFGID_GET_FLOWCTL_STAT            = 354,      /* ???????????????????? */
+    WLAN_CFGID_GET_HIPKT_STAT              = 355,      /* ?????????????????????????? */
 #endif
 
-    WLAN_CFGID_SET_MIB                 = 360,      /* 配置mib */
-    WLAN_CFGID_GET_MIB                 = 361,      /* 获取mib */
-    WLAN_CFGID_SET_AUTO_PROTECTION     = 362,      /* 设置auto protection开关 */
+    WLAN_CFGID_SET_MIB                 = 360,      /* ????mib */
+    WLAN_CFGID_GET_MIB                 = 361,      /* ????mib */
+    WLAN_CFGID_SET_AUTO_PROTECTION     = 362,      /* ????auto protection???? */
 
-    WLAN_CFGID_SEND_2040_COEXT         = 370,      /* 发送20/40共存管理帧 */
-    WLAN_CFGID_2040_COEXT_INFO         = 371,      /* VAP的所有20/40共存信息 */
-    WLAN_CFGID_GET_VERSION             = 375,      /* 获取版本 */
+    WLAN_CFGID_SEND_2040_COEXT         = 370,      /* ????20/40?????????? */
+    WLAN_CFGID_2040_COEXT_INFO         = 371,      /* VAP??????20/40???????? */
+    WLAN_CFGID_GET_VERSION             = 375,      /* ???????? */
 #ifdef _PRE_DEBUG_MODE
-    WLAN_CFGID_GET_ALL_REG_VALUE       = 376,      /* 获取所有寄存器的值 */
-    WLAN_CFGID_REPORT_AMPDU_STAT       = 377,      /* ampdu各种流程统计 */
+    WLAN_CFGID_GET_ALL_REG_VALUE       = 376,      /* ?????????????????? */
+    WLAN_CFGID_REPORT_AMPDU_STAT       = 377,      /* ampdu???????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_PROXYSTA
     WLAN_CFGID_SET_OMA                 = 380,
-    WLAN_CFGID_PROXYSTA_SWITCH         = 381,      /* proxysta模块开关 */
+    WLAN_CFGID_PROXYSTA_SWITCH         = 381,      /* proxysta???????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_DAQ
-    WLAN_CFGID_DATA_ACQ                = 390,      /* 数据采集 */
+    WLAN_CFGID_DATA_ACQ                = 390,      /* ???????? */
 #endif
-    WLAN_CFGID_SET_THRUPUT_BYPASS      = 391,      /* 设置thruput bypass维测点 */
+    WLAN_CFGID_SET_THRUPUT_BYPASS      = 391,      /* ????thruput bypass?????? */
 
 #ifdef _PRE_WLAN_FEATURE_OPMODE_NOTIFY
-    WLAN_CFGID_SET_OPMODE_NOTIFY        = 400,     /* 设置工作模式通知能力 */
+    WLAN_CFGID_SET_OPMODE_NOTIFY        = 400,     /* ???????????????????? */
     WLAN_CFGID_GET_USER_RSSBW           = 401,
 #endif
 
-    WLAN_CFGID_SET_VAP_NSS              = 410,     /* 设置VAP的接收空间流  */
+    WLAN_CFGID_SET_VAP_NSS              = 410,     /* ????VAP????????????  */
 
 #ifdef _PRE_WLAN_DFT_REG
         WLAN_CFGID_DUMP_REG             = 420,
@@ -1102,8 +1084,8 @@ typedef enum
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_CUSTOM_SECURITY
-    WLAN_CFGID_ADD_BLACK_LIST          = 440,        /* 添加黑名单 */
-    WLAN_CFGID_DEL_BLACK_LIST          = 441,        /* 删除黑名单 */
+    WLAN_CFGID_ADD_BLACK_LIST          = 440,        /* ?????????? */
+    WLAN_CFGID_DEL_BLACK_LIST          = 441,        /* ?????????? */
     WLAN_CFGID_BLACKLIST_MODE          = 442,
     WLAN_CFGID_BLACKLIST_SHOW          = 443,
     WLAN_CFGID_AUTOBLACKLIST_ON        = 444,
@@ -1116,21 +1098,21 @@ typedef enum
     WLAN_CFGID_ISOLATION_CLEAR         = 451,
     WLAN_CFGID_ISOLATION_SHOW          = 452,
 #endif
-#ifdef _PRE_WLAN_FEATURE_MCAST        /* 组播转单播 */
-    WLAN_CFGID_M2U_SNOOP_ON           = 453,         /* 组播转单播snoop开关 */
-    WLAN_ADD_M2U_DENY_TABLE           = 454,         /* 组播转单播黑名单 */
-    WLAN_CFGID_M2U_DENY_TABLE         = 455,         /* 清空组播转单播黑名单 */
-    WLAN_SHOW_M2U_SNOOP_TABLE         = 456,         /* show snoop表 */
-    WLAN_CFGID_IGMP_PACKET_XMIT       = 457,         /* 发送IGMP报文 */
+#ifdef _PRE_WLAN_FEATURE_MCAST        /* ?????????? */
+    WLAN_CFGID_M2U_SNOOP_ON           = 453,         /* ??????????snoop???? */
+    WLAN_ADD_M2U_DENY_TABLE           = 454,         /* ???????????????? */
+    WLAN_CFGID_M2U_DENY_TABLE         = 455,         /* ???????????????????? */
+    WLAN_SHOW_M2U_SNOOP_TABLE         = 456,         /* show snoop?? */
+    WLAN_CFGID_IGMP_PACKET_XMIT       = 457,         /* ????IGMP???? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_CUSTOM_SECURITY
-    WLAN_CFGID_ADD_BLACK_LIST_ONLY    = 458,        /* 添加到黑名单,不做check user和删除user行为 */
+    WLAN_CFGID_ADD_BLACK_LIST_ONLY    = 458,        /* ????????????,????check user??????user???? */
 #endif
 
-    WLAN_CFGID_WIFI_EN           = 460,              /* WIFI使能开关 */
-    WLAN_CFGID_PM_INFO           = 461,              /* PM信息*/
-    WLAN_CFGID_PM_EN             = 462,              /* PM开关*/
+    WLAN_CFGID_WIFI_EN           = 460,              /* WIFI???????? */
+    WLAN_CFGID_PM_INFO           = 461,              /* PM????*/
+    WLAN_CFGID_PM_EN             = 462,              /* PM????*/
 
 #ifdef _PRE_WLAN_FEATURE_PROXY_ARP
     WLAN_CFGID_PROXYARP_EN           = 470,
@@ -1142,56 +1124,56 @@ typedef enum
     WLAN_CFGID_GET_SMPS_INFO         = 473,
 #endif
 #endif
-    WLAN_CFGID_SET_AGGR_NUM          = 474,     /* 设置聚合个数 */
-    WLAN_CFGID_FREQ_ADJUST           = 475,     /* 频偏调整 */
+    WLAN_CFGID_SET_AGGR_NUM          = 474,     /* ???????????? */
+    WLAN_CFGID_FREQ_ADJUST           = 475,     /* ???????? */
 
-	WLAN_CFGID_SET_STBC_CAP          = 477,     /* 设置STBC能力 */
-    WLAN_CFGID_SET_LDPC_CAP          = 478,     /* 设置LDPC能力 */
+	WLAN_CFGID_SET_STBC_CAP          = 477,     /* ????STBC???? */
+    WLAN_CFGID_SET_LDPC_CAP          = 478,     /* ????LDPC???? */
 
-    WLAN_CFGID_VAP_CLASSIFY_EN       = 479,     /* VAP流等级开关 */
-    WLAN_CFGID_VAP_CLASSIFY_TID      = 480,     /* VAP流等级 */
+    WLAN_CFGID_VAP_CLASSIFY_EN       = 479,     /* VAP?????????? */
+    WLAN_CFGID_VAP_CLASSIFY_TID      = 480,     /* VAP?????? */
 
-    WLAN_CFGID_RESET_HW_OPERATE      = 481,     /* Reset 同步*/
-    WLAN_CFGID_SCAN_TEST             = 482,     /* 扫描模块测试命令 */
-    WLAN_CFGID_QUERY_STATION_STATS   = 483,		/* 信息上报查询命令*/
+    WLAN_CFGID_RESET_HW_OPERATE      = 481,     /* Reset ????*/
+    WLAN_CFGID_SCAN_TEST             = 482,     /* ???????????????? */
+    WLAN_CFGID_QUERY_STATION_STATS   = 483,		/* ????????????????*/
     WLAN_CFGID_CONNECT_REQ           = 484,     /*  */
-    WLAN_CFIGD_BGSCAN_ENABLE         = 485,      /* 禁用背景扫描命令 */
-    WLAN_CFGID_QUERY_RSSI            = 486,     /* 查询用户dmac rssi信息 */
-    WLAN_CFGID_QUERY_RATE            = 487,     /* 查询用户当前使用的tx rx phy rate */
+    WLAN_CFIGD_BGSCAN_ENABLE         = 485,      /* ???????????????? */
+    WLAN_CFGID_QUERY_RSSI            = 486,     /* ????????dmac rssi???? */
+    WLAN_CFGID_QUERY_RATE            = 487,     /* ??????????????????tx rx phy rate */
 
-    WLAN_CFGID_CFG80211_REMAIN_ON_CHANNEL           = 490,  /* 停止在指定信道 */
-    WLAN_CFGID_CFG80211_CANCEL_REMAIN_ON_CHANNEL    = 491,  /* 取消停止在指定信道 */
+    WLAN_CFGID_CFG80211_REMAIN_ON_CHANNEL           = 490,  /* ?????????????? */
+    WLAN_CFGID_CFG80211_CANCEL_REMAIN_ON_CHANNEL    = 491,  /* ?????????????????? */
 
-    WLAN_CFGID_DEVICE_MEM_LEAK        = 492,  /* device 侧mem leak打印接口 */
-    WLAN_CFGID_DEVICE_MEM_INFO        = 493,  /* device 侧mem 使用情况打印接口 */
+    WLAN_CFGID_DEVICE_MEM_LEAK        = 492,  /* device ??mem leak???????? */
+    WLAN_CFGID_DEVICE_MEM_INFO        = 493,  /* device ??mem ???????????????? */
 
 #ifdef _PRE_WLAN_FEATURE_STA_PM
-    WLAN_CFGID_SET_PS_MODE            = 494,     /* 设置pspoll mode */
+    WLAN_CFGID_SET_PS_MODE            = 494,     /* ????pspoll mode */
 #ifdef _PRE_PSM_DEBUG_MODE
-    WLAN_CFGID_SHOW_PS_INFO           = 495,    /* PSM状态查看 */
+    WLAN_CFGID_SHOW_PS_INFO           = 495,    /* PSM???????? */
 #endif
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_STA_UAPSD
-    WLAN_CFGID_SET_UAPSD_PARA         = 496,      /* 设置UAPSD参数 */
+    WLAN_CFGID_SET_UAPSD_PARA         = 496,      /* ????UAPSD???? */
 #endif
 
-    WLAN_CFGID_CFG80211_MGMT_TX        = 498,  /* 发送管理帧 */
+    WLAN_CFGID_CFG80211_MGMT_TX        = 498,  /* ?????????? */
     WLAN_CFGID_CFG80211_MGMT_TX_STATUS = 499,
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    WLAN_CFGID_THRUPUT_INFO            = 501, /* 吞吐量数据由dmac同步到hmac */
+    WLAN_CFGID_THRUPUT_INFO            = 501, /* ????????????dmac??????hmac */
 #endif
 #ifdef _PRE_WLAN_FEATURE_11D
-    WLAN_CFGID_SET_RD_IE_SWITCH        = 502,     /*设置是否根据关联ap设置sta的国家码*/
+    WLAN_CFGID_SET_RD_IE_SWITCH        = 502,     /*????????????????ap????sta????????*/
 #endif
-    WLAN_CFGID_COUNTRY_FOR_DFS         = 503,      /* 设置国家码管制域dfs信息 */
+    WLAN_CFGID_COUNTRY_FOR_DFS         = 503,      /* ????????????????dfs???? */
 #ifdef _PRE_WLAN_FEATURE_P2P
-    WLAN_CFGID_SET_P2P_PS_OPS               = 504,      /* 配置P2P OPS节能 */
-    WLAN_CFGID_SET_P2P_PS_NOA               = 505,      /* 配置P2P NOA节能 */
-    WLAN_CFGID_SET_P2P_PS_STAT              = 506,      /* 配置P2P 节能统计 */
+    WLAN_CFGID_SET_P2P_PS_OPS               = 504,      /* ????P2P OPS???? */
+    WLAN_CFGID_SET_P2P_PS_NOA               = 505,      /* ????P2P NOA???? */
+    WLAN_CFGID_SET_P2P_PS_STAT              = 506,      /* ????P2P ???????? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_HS20
-    WLAN_CFGID_SET_QOS_MAP             = 507,      /* 配置HotSpot 2.0 QoSMap参数*/
+    WLAN_CFGID_SET_QOS_MAP             = 507,      /* ????HotSpot 2.0 QoSMap????*/
 #endif
     WLAN_CFGID_UAPSD_UPDATE            = 510,
 #ifdef _PRE_WLAN_RF_110X_CALI_DPD
@@ -1206,19 +1188,19 @@ typedef enum
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST))
     WLAN_CFGID_SDIO_FLOWCTRL            = 523,
 #endif
-    WLAN_CFGID_NSS                      = 524,   /* 空间流信息的同步 */
+    WLAN_CFGID_NSS                      = 524,   /* ???????????????? */
 
 
 #ifdef _PRE_WLAN_FEATURE_ARP_OFFLOAD
-    WLAN_CFGID_ENABLE_ARP_OFFLOAD       = 526,   /* arp offload的配置事件 */
-    WLAN_CFGID_SET_IP_ADDR              = 527,   /* IPv4/IPv6地址的配置事件 */
-    WLAN_CFGID_SHOW_ARPOFFLOAD_INFO             = 528,   /* 打印device侧的IP地址 */
+    WLAN_CFGID_ENABLE_ARP_OFFLOAD       = 526,   /* arp offload?????????? */
+    WLAN_CFGID_SET_IP_ADDR              = 527,   /* IPv4/IPv6?????????????? */
+    WLAN_CFGID_SHOW_ARPOFFLOAD_INFO             = 528,   /* ????device????IP???? */
 #endif
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    WLAN_CFGID_CFG_VAP_H2D              = 529,  /* 配置vap下发device事件 */
-    WLAN_CFGID_HOST_DEV_INIT            = 530,  /* 下发初始化host dev init事件 */
-    WLAN_CFGID_HOST_DEV_EXIT            = 531,  /* 下发去初始化host dev exit事件 */
+    WLAN_CFGID_CFG_VAP_H2D              = 529,  /* ????vap????device???? */
+    WLAN_CFGID_HOST_DEV_INIT            = 530,  /* ??????????host dev init???? */
+    WLAN_CFGID_HOST_DEV_EXIT            = 531,  /* ????????????host dev exit???? */
 #endif
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
@@ -1226,20 +1208,20 @@ typedef enum
 #endif
 
 #ifdef _PRE_WLAN_TCP_OPT
-    WLAN_CFGID_GET_TCP_ACK_STREAM_INFO            = 533,   /* 显示TCP ACK 过滤统计值 */
-    WLAN_CFGID_TX_TCP_ACK_OPT_ENALBE            = 534,   /* 设置发送TCP ACK优化使能 */
-    WLAN_CFGID_RX_TCP_ACK_OPT_ENALBE            = 535,   /* 设置接收TCP ACK优化使能 */
-    WLAN_CFGID_TX_TCP_ACK_OPT_LIMIT            = 536,   /* 设置发送TCP ACK LIMIT */
-    WLAN_CFGID_RX_TCP_ACK_OPT_LIMIT            = 537,   /* 设置接收TCP ACK LIMIT  */
+    WLAN_CFGID_GET_TCP_ACK_STREAM_INFO            = 533,   /* ????TCP ACK ?????????? */
+    WLAN_CFGID_TX_TCP_ACK_OPT_ENALBE            = 534,   /* ????????TCP ACK???????? */
+    WLAN_CFGID_RX_TCP_ACK_OPT_ENALBE            = 535,   /* ????????TCP ACK???????? */
+    WLAN_CFGID_TX_TCP_ACK_OPT_LIMIT            = 536,   /* ????????TCP ACK LIMIT */
+    WLAN_CFGID_RX_TCP_ACK_OPT_LIMIT            = 537,   /* ????????TCP ACK LIMIT  */
 #endif
 
-    WLAN_CFGID_SET_MAX_USER             = 538,   /* 设置最大用户数*/
-    WLAN_CFGID_GET_STA_LIST             = 539,   /* 设置最大用户数*/
+    WLAN_CFGID_SET_MAX_USER             = 538,   /* ??????????????*/
+    WLAN_CFGID_GET_STA_LIST             = 539,   /* ??????????????*/
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
     WLAN_CFGID_BTCOEX_RX_DELBA_TRIGGER  = 540,
 #endif
 #ifdef _PRE_WLAN_DFT_STAT
-    WLAN_CFGID_SET_PERFORMANCE_LOG_SWITCH      = 541,      /* 设置性能打印控制开关 */
+    WLAN_CFGID_SET_PERFORMANCE_LOG_SWITCH      = 541,      /* ???????????????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_WAPI
@@ -1248,59 +1230,62 @@ typedef enum
 #endif
 
 #ifdef _PRE_WLAN_DFT_STAT
-    WLAN_CFGID_QUERY_ANI                = 544,   /* 查询VAP抗干扰参数 */
+    WLAN_CFGID_QUERY_ANI                = 544,   /* ????VAP?????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_ROAM
-    WLAN_CFGID_ROAM_ENABLE              = 550,   /* 漫游使能 */
-    WLAN_CFGID_ROAM_ORG                 = 551,   /* 漫游正交设置 */
-    WLAN_CFGID_ROAM_BAND                = 552,   /* 漫游频段设置 */
-    WLAN_CFGID_ROAM_START               = 553,   /* 漫游开始 */
-    WLAN_CFGID_ROAM_INFO                = 554,   /* 漫游打印 */
+    WLAN_CFGID_ROAM_ENABLE              = 550,   /* ???????? */
+    WLAN_CFGID_ROAM_ORG                 = 551,   /* ???????????? */
+    WLAN_CFGID_ROAM_BAND                = 552,   /* ???????????? */
+    WLAN_CFGID_ROAM_START               = 553,   /* ???????? */
+    WLAN_CFGID_ROAM_INFO                = 554,   /* ???????? */
     WLAN_CFGID_SET_ROAMING_MODE         = 555,
     WLAN_CFGID_SET_ROAM_TRIGGER         = 556,
     WLAN_CFGID_ROAM_HMAC_SYNC_DMAC      = 557,
     WLAN_CFGID_SET_FT_IES               = 558,
     WLAN_CFGID_ROAM_NOTIFY_STATE        = 559,
 #endif  //_PRE_WLAN_FEATURE_ROAM
-    WLAN_CFGID_CFG80211_SET_PMKSA    = 560,     /* 设置PMK缓存 */
-    WLAN_CFGID_CFG80211_DEL_PMKSA    = 561,     /* 删除PMK缓存 */
-    WLAN_CFGID_CFG80211_FLUSH_PMKSA  = 562,     /* 清空PMK缓存 */
+    WLAN_CFGID_CFG80211_SET_PMKSA    = 560,     /* ????PMK???? */
+    WLAN_CFGID_CFG80211_DEL_PMKSA    = 561,     /* ????PMK???? */
+    WLAN_CFGID_CFG80211_FLUSH_PMKSA  = 562,     /* ????PMK???? */
 
-    WLAN_CFGID_SET_PM_SWITCH            = 570,  /* 全局低功耗使能去使能*/
+    WLAN_CFGID_SET_PM_SWITCH            = 570,  /* ????????????????????*/
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
-    WLAN_CFGID_SET_DEVICE_FREQ          = 571,   /* 设置device主频*/
-    WLAN_CFGID_SET_DEVICE_FREQ_VALUE    = 572,   /* 定制化设置调频参数 */
-    WLAN_CFGID_SET_AUTO_FREQ_ENABLE     = 573,   /* 设置自动调频使能*/
+    WLAN_CFGID_SET_DEVICE_FREQ          = 571,   /* ????device????*/
+    WLAN_CFGID_SET_DEVICE_FREQ_VALUE    = 572,   /* ?????????????????? */
+    WLAN_CFGID_SET_AUTO_FREQ_ENABLE     = 573,   /* ????????????????*/
 #endif
 
 
 #ifdef _PRE_WLAN_FEATURE_20_40_80_COEXIST
-        WLAN_CFGID_2040BSS_ENABLE       = 574,   /* 20/40 bss判断使能开关 */
+        WLAN_CFGID_2040BSS_ENABLE       = 574,   /* 20/40 bss???????????? */
 #endif
     WLAN_CFGID_DESTROY_VAP              = 575,
 
-    WLAN_CFGID_SET_ANT            = 576,  /* 设置使用的天线 */
-    WLAN_CFGID_GET_ANT            = 577,  /* 获取天线状态 */
+    WLAN_CFGID_SET_ANT            = 576,  /* ?????????????? */
+    WLAN_CFGID_GET_ANT            = 577,  /* ???????????? */
 
     WLAN_CFGID_GREEN_AP_EN        = 578,
 #ifdef _PRE_WLAN_FEATURE_SMARTANT
-    WLAN_CFGID_GET_ANT_INFO       = 579,  /* 获取天线CHR信息 */
-    WLAN_CFGID_DOUBLE_ANT_SW      = 580,  /* 开关双天线算法 */
+    WLAN_CFGID_GET_ANT_INFO       = 579,  /* ????????CHR???? */
+    WLAN_CFGID_DOUBLE_ANT_SW      = 580,  /* ?????????????? */
 #endif
 
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
     /* HISI-CUSTOMIZE */
-    WLAN_CFGID_SET_LINKLOSS_THRESHOLD   = 600,      /* 配置linkloss门限 */
-    WLAN_CFGID_SET_ALL_LOG_LEVEL,                   /* 配置所有vap log level */
-    WLAN_CFGID_SET_D2H_HCC_ASSEMBLE_CNT,            /* 配置D2H SDIO聚合参数 */
-    WLAN_CFGID_SET_CHN_EST_CTRL,                    /* 配置WIFI PHY寄存器 */
-    WLAN_CFGID_SET_POWER_REF,                       /* 配置WIFI PHY寄存器 */
-    WLAN_CFGID_SET_PM_CFG_PARAM,                    /* 配置时钟 */
-    WLAN_CFGID_SET_CUS_RF,                          /* RF定制化 */
-    WLAN_CFGID_SET_CUS_DTS_CALI,                    /* DTS校准定制化 */
-    WLAN_CFGID_SET_CUS_NVRAM_PARAM,                 /* NVRAM参数定制化 */
-    WLAN_CFGID_LAUCH_CAP,                           /* 读取设备发射能力 */
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+    WLAN_CFGID_SET_BTCOEX_PS_SWITCH       = 599,      /* ????BTCOEX??????????????PS???? */
+#endif
+    WLAN_CFGID_SET_LINKLOSS_THRESHOLD   = 600,      /* ????linkloss???? */
+    WLAN_CFGID_SET_ALL_LOG_LEVEL,                   /* ????????vap log level */
+    WLAN_CFGID_SET_D2H_HCC_ASSEMBLE_CNT,            /* ????D2H SDIO???????? */
+    WLAN_CFGID_SET_CHN_EST_CTRL,                    /* ????WIFI PHY?????? */
+    WLAN_CFGID_SET_POWER_REF,                       /* ????WIFI PHY?????? */
+    WLAN_CFGID_SET_PM_CFG_PARAM,                    /* ???????? */
+    WLAN_CFGID_SET_CUS_RF,                          /* RF?????? */
+    WLAN_CFGID_SET_CUS_DTS_CALI,                    /* DTS?????????? */
+    WLAN_CFGID_SET_CUS_NVRAM_PARAM,                 /* NVRAM?????????? */
+    WLAN_CFGID_LAUCH_CAP,                           /* ???????????????? */
     /* HISI-CUSTOMIZE INFOS */
     WLAN_CFGID_SHOW_DEV_CUSTOMIZE_INFOS = 610,      /* show device customize info */
 #endif /* #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE */
@@ -1315,14 +1300,14 @@ typedef enum
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_TX_CLASSIFY_LAN_TO_WLAN
-    WLAN_CFGID_TX_CLASSIFY_LAN_TO_WLAN_SWITCH       = 614,         /* 设置业务识别功能开关 */
+    WLAN_CFGID_TX_CLASSIFY_LAN_TO_WLAN_SWITCH       = 614,         /* ???????????????????? */
 #endif
-    WLAN_CFGID_REDUCE_SAR               = 615,      /* 通过降低发射功率来降低SAR */
+    WLAN_CFGID_REDUCE_SAR               = 615,      /* ??????????????????????SAR */
 
-    WLAN_CFGID_DBB_SCALING_AMEND            = 616,           /* 调整dbb scaling值 */
+    WLAN_CFGID_DBB_SCALING_AMEND            = 616,           /* ????dbb scaling?? */
 #ifdef _PRE_WLAN_FEATURE_EQUIPMENT_TEST
-    WLAN_CFGID_CHIP_CHECK_SWITCH        = 617,      /* 芯片自检开关 */
-    WLAN_CFGID_SEND_CW_SIGNAL           = 618,      /* 发送单音 */
+    WLAN_CFGID_CHIP_CHECK_SWITCH        = 617,      /* ???????????? */
+    WLAN_CFGID_SEND_CW_SIGNAL           = 618,      /* ???????? */
 #endif
 #ifdef _PRE_WLAN_FEATURE_HILINK
     WLAN_CFGID_FBT_SET_MODE                 = 621,
@@ -1334,19 +1319,19 @@ typedef enum
     WLAN_CFGID_FBT_SCAN_INTERVAL            = 627,
     WLAN_CFGID_FBT_SCAN_CHANNEL             = 628,
     WLAN_CFGID_FBT_SCAN_REPORT_PERIOD       = 629,
-    WLAN_CFGID_SET_OKC_IE                   = 630,        /* hostapd 设置okc 信息元素到VAP */
-    WLAN_CFGID_FBT_KICK_USER                = 631,        /* hilink快速切换中剔除用户的处理 */
+    WLAN_CFGID_SET_OKC_IE                   = 630,        /* hostapd ????okc ??????????VAP */
+    WLAN_CFGID_FBT_KICK_USER                = 631,        /* hilink???????????????????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_DFR
 #ifdef _PRE_DEBUG_MODE
-    WLAN_CFGIG_DFR_ENABLE                   = 640,          /* 是否使能dfr开关 */
-    WLAN_CFGID_TRIG_PCIE_RESET              = 641,          /* 触发pcie复位 */
-    WLAN_CFGID_TRIG_LOSS_TX_COMP            = 642,          /* 触发丢失发送完成中断 */
+    WLAN_CFGIG_DFR_ENABLE                   = 640,          /* ????????dfr???? */
+    WLAN_CFGID_TRIG_PCIE_RESET              = 641,          /* ????pcie???? */
+    WLAN_CFGID_TRIG_LOSS_TX_COMP            = 642,          /* ???????????????????? */
 #endif
 #endif
 
-    WLAN_CFGID_PCIE_PM_LEVEL                = 643,
+    WLAN_CFGID_RX_FILTER_FRAG               = 643,
 
 #ifdef _PRE_WLAN_FEATURE_11K
     WLAN_CFGID_SEND_NEIGHBOR_REQ            = 644,
@@ -1355,47 +1340,48 @@ typedef enum
 #endif
     WLAN_CFGID_VOE_ENABLE                   = 647,
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-    WLAN_CFGID_SET_TXRX_CHAIN               = 648,          /* 设置收发通道 */
+    WLAN_CFGID_SET_TXRX_CHAIN               = 648,          /* ???????????? */
 #endif
 
-    WLAN_CFGID_VENDOR_CMD_GET_CHANNEL_LIST  = 650,          /* 1102 vendor cmd, 获取信道列表 */
+    WLAN_CFGID_VENDOR_CMD_GET_CHANNEL_LIST  = 650,          /* 1102 vendor cmd, ???????????? */
 
 #ifdef _PRE_WLAN_RF_CALI
-    WLAN_CFGID_AUTO_CALI                = 651,   /* 重校准 */
-    WLAN_CFGID_SET_CALI_VREF            = 652,   /* 校准参数设置 */
+    WLAN_CFGID_AUTO_CALI                = 651,   /* ?????? */
+    WLAN_CFGID_SET_CALI_VREF            = 652,   /* ???????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-    WLAN_CFGID_VOWIFI_INFO                  = 653,        /* host->device，VoWiFi模式配置; device->host,上报切换VoWiFi/VoLTE*/
-    WLAN_CFGID_VOWIFI_REPORT                = 654,        /* device->host,上报切换VoWiFi/VoLTE*/
+    WLAN_CFGID_VOWIFI_INFO                  = 653,        /* host->device??VoWiFi????????; device->host,????????VoWiFi/VoLTE*/
+    WLAN_CFGID_VOWIFI_REPORT                = 654,        /* device->host,????????VoWiFi/VoLTE*/
 #endif /* _PRE_WLAN_FEATURE_VOWIFI */
 
 #ifdef _PRE_WLAN_FEATURE_WMMAC
-    WLAN_CFGID_ADDTS_REQ                    = 657,      /* 发送ADDTS REQ的配置命令 */
-    WLAN_CFGID_DELTS                        = 658,      /* 发送DELTS的配置命令 */
-    WLAN_CFGID_REASSOC_REQ                  = 659,      /* 发送reassoc req 的配置命令*/
-    WLAN_CFGID_WMMAC_SWITCH                 = 660,      /* 设置WMMAC SWITCH开关的配置命令 */
+    WLAN_CFGID_ADDTS_REQ                    = 657,      /* ????ADDTS REQ?????????? */
+    WLAN_CFGID_DELTS                        = 658,      /* ????DELTS?????????? */
+    WLAN_CFGID_REASSOC_REQ                  = 659,      /* ????reassoc req ??????????*/
+    WLAN_CFGID_WMMAC_SWITCH                 = 660,      /* ????WMMAC SWITCH?????????????? */
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_IP_FILTER
-    WLAN_CFGID_IP_FILTER                  = 661,      /* 配置IP端口过滤的命令 */
+    WLAN_CFGID_IP_FILTER                  = 661,      /* ????IP?????????????? */
 #endif //_PRE_WLAN_FEATURE_IP_FILTER
 
 #ifdef _PRE_WLAN_DOWNLOAD_PM
-    WLAN_CFGID_SET_CUS_DOWNLOAD_RATE_LIMIT,           /* 限流参数定制化 */
+    WLAN_CFGID_SET_CUS_DOWNLOAD_RATE_LIMIT,           /* ?????????????? */
 #endif
+    WLAN_CFIGD_MCS_SET_CHECK_ENABLE,                  /* ????????mcs ?????? */
 
     /************************************************************************
-        第三段 非MIB的内部数据同步，需要严格受控
+        ?????? ??MIB????????????????????????????
     *************************************************************************/
     WLAN_CFGID_SET_MULTI_USER          = 2000,
     WLAN_CFGID_USR_INFO_SYN            = 2001,
     WLAN_CFGID_USER_ASOC_STATE_SYN     = 2002,
     WLAN_CFGID_INIT_SECURTIY_PORT      = 2004,
     WLAN_CFGID_USER_RATE_SYN           = 2005,
-    WLAN_CFGID_UPDATE_OPMODE           = 2006,   /* 更新opmode的相关信息 */
+    WLAN_CFGID_UPDATE_OPMODE           = 2006,   /* ????opmode?????????? */
 
-    WLAN_CFGID_USER_CAP_SYN            = 2007,   /* hmac向dmac同步mac user的cap能力信息 */
+    WLAN_CFGID_USER_CAP_SYN            = 2007,   /* hmac??dmac????mac user??cap???????? */
 
     WLAN_CFGID_SUSPEND_ACTION_SYN      = 2008,
 
@@ -1405,29 +1391,29 @@ typedef oal_uint16 wlan_cfgid_enum_uint16;
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* TBD 当前MIB表项还未稳定，暂不需要4字节对齐，待后续MIB项稳定后再来调整这些结构体 *//*lint -e958*//*lint -e959*/
-/* 是否需要该结构体表示变长的字符串，待确定 */
+/* TBD ????MIB??????????????????????4????????????????MIB?????????????????????????? *//*lint -e958*//*lint -e959*/
+/* ???????????????????????????????????????? */
 typedef struct
 {
-    oal_uint16 us_octet_nums;    /* 字节长度，此值为0时表示没有字符串信息 */
-    oal_uint8 *puc_octec_string; /* 字符串起始地址 */
+    oal_uint16 us_octet_nums;    /* ????????????????0???????????????????? */
+    oal_uint8 *puc_octec_string; /* ?????????????? */
 }wlan_mib_octet_string_stru;
 
 typedef struct
@@ -1463,7 +1449,7 @@ typedef struct
     oal_uint32          ul_dot11AuthenticationResponseTimeOut;          /* dot11AuthenticationResponseTimeOut Unsigned32, */
     //oal_bool_enum_uint8 en_dot11PrivacyOptionImplemented;               /* dot11PrivacyOptionImplemented TruthValue, */
     wlan_mib_pwr_mgmt_mode_enum_uint8           uc_dot11PowerManagementMode;                    /* dot11PowerManagementMode INTEGER, */
-    oal_uint8           auc_dot11DesiredSSID[32 + 1];                   /* dot11DesiredSSID OCTET STRING, SIZE(0..32)*//* +1预留\0 */
+    oal_uint8           auc_dot11DesiredSSID[32 + 1];                   /* dot11DesiredSSID OCTET STRING, SIZE(0..32)*//* +1????\0 */
     wlan_mib_desired_bsstype_enum_uint8  en_dot11DesiredBSSType;        /* dot11DesiredBSSType INTEGER, */
     //oal_uint8           auc_dot11OperationalRateSet[126];               /* dot11OperationalRateSet OCTET STRING,  (SIZE(1..126)*/
     oal_uint32          ul_dot11BeaconPeriod;                           /* dot11BeaconPeriod Unsigned32, */
@@ -2355,7 +2341,7 @@ typedef struct
     oal_uint8           auc_dot11WNMBssTransitRprtTargetBssid[6];       /* dot11WNMBssTransitRprtTargetBssid MacAddress,          */
     oal_uint8           auc_dot11WNMBssTransitRprtCandidateList[2304];  /* dot11WNMBssTransitRprtCandidateList OCTET STRING SIZE(0..2304) */
 
-    /* 备注: 没有找到 dot11WNMReport 15 */
+    /* ????: ???????? dot11WNMReport 15 */
 
     /* dot11WNMColocInterfReportTable ::= { dot11WNMReport 16 } */
     oal_uint32          ul_dot11WNMColocInterfRprtIndex;                /* dot11WNMColocInterfRprtIndex Unsigned32,             */
@@ -3729,7 +3715,7 @@ typedef struct
     wlan_mib_Dot11VHTTransmitBeamformingConfigEntry_stru st_wlan_mib_vht_txbf_config;
 
     /***************************************************************************
-        dot11Conformance OBJECT IDENTIFIER ::= { ieee802dot11 5 } (该组用于归类，暂不实现)
+        dot11Conformance OBJECT IDENTIFIER ::= { ieee802dot11 5 } (??????????????????????)
     ****************************************************************************/
 
     /***************************************************************************
@@ -3773,17 +3759,17 @@ typedef struct
 
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 
 #ifdef __cplusplus

@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_chan_mgmt.c
-  版 本 号   : 初稿
-  作    者   : mayuan
-  生成日期   : 2014年2月22日
-  最近修改   :
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年2月22日
-    作    者   : mayuan
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "hal_ext_if.h"
 #include "mac_ie.h"
@@ -45,12 +28,12 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_CHAN_MGMT_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 oal_uint32 dmac_dump_chan(mac_vap_stru *pst_mac_vap, oal_uint8* puc_param)
 {
@@ -102,21 +85,7 @@ oal_uint32 dmac_dump_chan(mac_vap_stru *pst_mac_vap, oal_uint8* puc_param)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_initiate_switch_to_new_channel
- 功能描述  : 发送Channel Switch Announcement帧，准备切换至新信道运行
- 输入参数  : pst_event_mem: 事件结构体指针
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年2月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_chan_initiate_switch_to_new_channel(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru                  *pst_event;
@@ -133,7 +102,7 @@ oal_uint32  dmac_chan_initiate_switch_to_new_channel(frw_event_mem_stru *pst_eve
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event          = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr      = &(pst_event->st_event_hdr);
     pst_ch_switch_info = (dmac_set_ch_switch_info_stru *)pst_event->auc_event_data;
@@ -154,39 +123,24 @@ oal_uint32  dmac_chan_initiate_switch_to_new_channel(frw_event_mem_stru *pst_eve
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 同步channel switch info */
+    /* ????channel switch info */
     pst_mac_vap->st_ch_switch_info.en_ch_switch_status    = pst_ch_switch_info->en_ch_switch_status;
     pst_mac_vap->st_ch_switch_info.uc_announced_channel   = pst_ch_switch_info->uc_announced_channel;
     pst_mac_vap->st_ch_switch_info.en_announced_bandwidth = pst_ch_switch_info->en_announced_bandwidth;
     pst_mac_vap->st_ch_switch_info.uc_ch_switch_cnt       = pst_ch_switch_info->uc_ch_switch_cnt;
     pst_mac_vap->st_ch_switch_info.en_csa_present_in_bcn  = pst_ch_switch_info->en_csa_present_in_bcn;
 
-    /* DTS2015122204079，发送CSA帧后及时更新Beacon帧*/
     dmac_encap_beacon(pst_dmac_vap, pst_dmac_vap->pauc_beacon_buffer[pst_dmac_vap->uc_beacon_idx], &(pst_dmac_vap->us_beacon_len));
 
     pst_mac_device->uc_csa_vap_cnt = pst_ch_switch_info->uc_csa_vap_cnt;
 
-    /* 发送 Channel Switch Announcement 帧 */
+    /* ???? Channel Switch Announcement ?? */
     return dmac_mgmt_send_csa_action(pst_dmac_vap, pst_dmac_vap->st_vap_base_info.st_ch_switch_info.uc_announced_channel,
                                      pst_dmac_vap->st_vap_base_info.st_ch_switch_info.uc_ch_switch_cnt,
                                      pst_dmac_vap->st_vap_base_info.st_ch_switch_info.en_announced_bandwidth);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_update_user_bandwidth
- 功能描述  : 更新ap下所有user的带宽
- 输入参数  : pst_dmac_vap: DMAC VAP结构体指针，指向AP
- 输出参数  : pst_dmac_vap: DMAC VAP结构体指针，指向ap
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月15日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_update_user_bandwidth(mac_vap_stru *pst_mac_vap)
 {
     wlan_bw_cap_enum_uint8    en_bwcap_ap;
@@ -225,47 +179,19 @@ oal_void  dmac_chan_update_user_bandwidth(mac_vap_stru *pst_mac_vap)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_scan_dfs_timeout
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月15日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_scan_dfs_timeout(void *p_arg)
 {
     mac_device_stru            *pst_mac_device;
 
     pst_mac_device = (mac_device_stru *)p_arg;
 
-    /* 使能雷达检测 */
+    /* ???????????? */
     hal_enable_radar_det(pst_mac_device->pst_device_stru, 1);
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_chan_select_real_channel
- 功能描述  : 存在两个up的vap,如果相同主信道,则根据最大带宽设置硬件寄存器
- 输入参数  : pst_mac_device : device结构体指针
- 输出参数  : pst_channel
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年3月15日
-    作    者   : zhangyu
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_chan_select_real_channel(mac_device_stru  *pst_mac_device, mac_channel_stru *pst_channel)
 {
     mac_vap_stru                *pst_mac_vap1;
@@ -292,23 +218,7 @@ oal_void dmac_chan_select_real_channel(mac_device_stru  *pst_mac_device, mac_cha
         }
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_chan_select_channel_mac
- 功能描述  : 设置SW/MAC/PHY/RF中的信道和带宽，使VAP工作在新信道上
- 输入参数  : pst_mac_vap : MAC VAP结构体指针
-             uc_channel  : 将要被设置的信道
-             en_bandwidth: 将要被设置的带宽模式
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年2月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_select_channel_mac(mac_vap_stru                        *pst_mac_vap,
                                        oal_uint8                            uc_channel,
                                        wlan_channel_bandwidth_enum_uint8    en_bandwidth)
@@ -336,7 +246,7 @@ oal_void  dmac_chan_select_channel_mac(mac_vap_stru                        *pst_
         return;
     }
 
-    /* 更新VAP下的主20MHz信道号、带宽模式、信道索引 */
+    /* ????VAP??????20MHz?????????????????????????? */
     ul_ret = mac_get_channel_idx_from_num(pst_mac_vap->st_channel.en_band, uc_channel, &uc_idx);
     if (OAL_SUCC != ul_ret)
     {
@@ -363,14 +273,14 @@ oal_void  dmac_chan_select_channel_mac(mac_vap_stru                        *pst_
         dmac_chan_update_user_bandwidth(pst_mac_vap);
     }
 #ifdef _PRE_WLAN_FEATURE_DFS
-    /* 使能去使能雷达检测 */
+    /* ?????????????????? */
     if ((WLAN_VAP_MODE_BSS_AP == pst_mac_vap->en_vap_mode)&&(OAL_TRUE == mac_dfs_get_dfs_enable(pst_mac_device)))
     {
         en_enable_dfs = mac_is_ch_in_radar_band(pst_mac_device->en_max_band, uc_idx);
         if (0 != pst_mac_device->us_dfs_timeout && OAL_TRUE ==en_enable_dfs)
         {
             hal_enable_radar_det(pst_mac_device->pst_device_stru, 0);
-            /* 启动定时器 */
+            /* ?????????? */
             FRW_TIMER_CREATE_TIMER(&pst_mac_device->st_dfs.st_dfs_radar_timer,
                                    dmac_mgmt_scan_dfs_timeout,
                                    pst_mac_device->us_dfs_timeout,
@@ -386,34 +296,20 @@ oal_void  dmac_chan_select_channel_mac(mac_vap_stru                        *pst_
     }
 #endif
 
-    /* 通知算法信道改变 */
+    /* ???????????????? */
     dmac_alg_cfg_channel_notify(pst_mac_vap, CH_BW_CHG_TYPE_MOVE_WORK);
 
-    /* 通知算法带宽改变 */
+    /* ???????????????? */
     dmac_alg_cfg_bandwidth_notify(pst_mac_vap, CH_BW_CHG_TYPE_MOVE_WORK);
 
-    /* 选择需要设置的信道信息 */
+    /* ?????????????????????? */
     dmac_chan_select_real_channel(pst_mac_device,&st_channel);
 
-    /* 切换信道 */ /* 带宽改变，由于仍工作于当前信道，不需要清除FIFO，标志记OAL_FALSE */
+    /* ???????? */ /* ??????????????????????????????????????????FIFO????????OAL_FALSE */
     dmac_mgmt_switch_channel(pst_mac_device, &st_channel, OAL_FALSE);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_select_chan_event_process
- 功能描述  : 处理从HMAC模块过来的信道设置请求事件
- 输入参数  : pst_event_mem: 事件结构体
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年2月26日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_chan_sync(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru           *pst_event;
@@ -429,7 +325,7 @@ oal_uint32  dmac_chan_sync(frw_event_mem_stru *pst_event_mem)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
     pst_set_chan  = (dmac_set_chan_stru *)pst_event->auc_event_data;
@@ -457,47 +353,19 @@ oal_uint32  dmac_chan_sync(frw_event_mem_stru *pst_event_mem)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_restart_network_after_switch
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_restart_network_after_switch(mac_device_stru *pst_mac_device, dmac_vap_stru *pst_dmac_vap)
 {
-    /* 在新信道上恢复Beacon帧的发送 */
+    /* ??????????????Beacon???????? */
     hal_vap_beacon_resume(pst_dmac_vap->pst_hal_vap);
 
-    /* 在新信道上恢复硬件的发送 */
+    /* ???????????????????????? */
     hal_set_machw_tx_resume(pst_dmac_vap->pst_hal_device);
 
    // OAM_INFO_LOG0(0, OAM_SF_ANY, "Transmitter is enabled!");
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_restart_network_after_switch
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_chan_restart_network_after_switch_event(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru       *pst_event;
@@ -515,7 +383,7 @@ oal_uint32  dmac_chan_restart_network_after_switch_event(frw_event_mem_stru *pst
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
 
-    /* 获取dmac vap结构的信息 */
+    /* ????dmac vap?????????? */
     pst_dmac_vap = (dmac_vap_stru *)mac_res_get_dmac_vap(pst_event_hdr->uc_vap_id);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_dmac_vap))
     {
@@ -524,7 +392,7 @@ oal_uint32  dmac_chan_restart_network_after_switch_event(frw_event_mem_stru *pst
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取device结构的信息 */
+    /* ????device?????????? */
     pst_mac_device   = mac_res_get_dev(pst_dmac_vap->st_vap_base_info.uc_device_id);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_mac_device))
     {
@@ -535,27 +403,13 @@ oal_uint32  dmac_chan_restart_network_after_switch_event(frw_event_mem_stru *pst
 
     dmac_chan_restart_network_after_switch(pst_mac_device, pst_dmac_vap);
 
-    /* mayuan TBD 这里看要不要调用此函数 */
+    /* mayuan TBD ?????????????????????? */
     //dmac_vap_resume_tx_by_chl(pst_mac_device, &(pst_dmac_vap->st_vap_base_info.st_channel));
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_switch_complete_notify
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_switch_complete_notify(mac_vap_stru *pst_mac_vap,
                                                     oal_bool_enum_uint8 en_check_cac)
 {
@@ -564,7 +418,7 @@ oal_void  dmac_switch_complete_notify(mac_vap_stru *pst_mac_vap,
     oal_uint32            ul_ret;
     dmac_set_chan_stru   *pst_set_chan;
 
-    /* 申请事件内存 */
+    /* ???????????? */
     // cppcheck-suppress * ignore Uninitialized variable: pst_set_chan
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(*pst_set_chan));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
@@ -576,7 +430,7 @@ oal_void  dmac_switch_complete_notify(mac_vap_stru *pst_mac_vap,
 
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
-    /* 填写事件头 */
+    /* ?????????? */
     // cppcheck-suppress * ignore Uninitialized variable: pst_set_chan
     FRW_EVENT_HDR_INIT(&(pst_event->st_event_hdr), \
                     FRW_EVENT_TYPE_WLAN_CRX, \
@@ -596,7 +450,7 @@ oal_void  dmac_switch_complete_notify(mac_vap_stru *pst_mac_vap,
     //OAM_INFO_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_2040, "{dmac_switch_complete_notify}");
     dmac_dump_chan(pst_mac_vap, (oal_uint8*)pst_set_chan);
 
-    /* 分发事件 */
+    /* ???????? */
     ul_ret = frw_event_dispatch_event(pst_event_mem);
     if (OAL_SUCC != ul_ret)
     {
@@ -607,27 +461,13 @@ oal_void  dmac_switch_complete_notify(mac_vap_stru *pst_mac_vap,
         return;
     }
 
-    /* 释放事件 */
+    /* ???????? */
     FRW_EVENT_FREE(pst_event_mem);
 }
 
 #ifdef _PRE_WLAN_FEATURE_DFS
 #ifdef _PRE_WLAN_FEATURE_OFFCHAN_CAC
-/*****************************************************************************
- 函 数 名  : dmac_dfs_switch_to_offchan
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月2日
-    作    者   : sunxiaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_dfs_switch_to_offchan_event_process(frw_event_mem_stru* pst_event_mem)
 {
     frw_event_stru           *pst_event;
@@ -643,7 +483,7 @@ oal_uint32  dmac_dfs_switch_to_offchan_event_process(frw_event_mem_stru* pst_eve
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
 
@@ -667,7 +507,7 @@ oal_uint32  dmac_dfs_switch_to_offchan_event_process(frw_event_mem_stru* pst_eve
 
     dmac_vap_pause_tx_by_chl(pst_mac_device, &(pst_mac_vap->st_channel));
 
-    /* 切换至offchan工作 */
+    /* ??????offchan???? */
     dmac_switch_channel_off(pst_mac_device, pst_mac_vap, &st_off_chan, pst_mac_device->st_dfs.st_dfs_info.uc_cts_duration);
     //dmac_mgmt_switch_channel(pst_mac_device, &st_off_chan);
 
@@ -676,21 +516,7 @@ oal_uint32  dmac_dfs_switch_to_offchan_event_process(frw_event_mem_stru* pst_eve
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_dfs_switch_back_event_process
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月2日
-    作    者   : sunxiaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_dfs_switch_back_event_process(frw_event_mem_stru* pst_event_mem)
 {
     frw_event_stru           *pst_event;
@@ -705,7 +531,7 @@ oal_uint32  dmac_dfs_switch_back_event_process(frw_event_mem_stru* pst_event_mem
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
 
@@ -717,7 +543,7 @@ oal_uint32  dmac_dfs_switch_back_event_process(frw_event_mem_stru* pst_event_mem
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 切换至home channel工作 */
+    /* ??????home channel???? */
     dmac_scan_switch_channel_back(pst_mac_device);
 
     pst_mac_device->st_dfs.st_dfs_info.uc_dmac_channel_flag = 0;
@@ -746,7 +572,7 @@ oal_uint32  dmac_dfs_test(frw_event_mem_stru* pst_dmac_event_mem)
     uc_device_id = pst_event_desc->st_event_hdr.uc_device_id;
     uc_vap_id    = pst_event_desc->st_event_hdr.uc_vap_id;
 
-    /* 注意: 雷达事件的具体内容在中断下半部读取 */
+    /* ????: ?????????????????????????????????? */
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(hal_radar_irq_reg_list_stru));
     if (OAL_PTR_NULL == pst_event_mem)
     {
@@ -757,7 +583,7 @@ oal_uint32  dmac_dfs_test(frw_event_mem_stru* pst_dmac_event_mem)
 
     pst_event_desc = (frw_event_stru *)pst_event_mem->puc_data;
 
-    /* 填写事件头 */
+    /* ?????????? */
     FRW_EVENT_HDR_INIT(&(pst_event_desc->st_event_hdr),
                        FRW_EVENT_TYPE_DMAC_MISC,
                        HAL_EVENT_DMAC_MISC_RADAR_DETECTED,
@@ -768,37 +594,21 @@ oal_uint32  dmac_dfs_test(frw_event_mem_stru* pst_dmac_event_mem)
                        uc_vap_id );
 
 
-    /* 读取雷达控制寄存器 */
+    /* ?????????????????? */
     pst_radar_det_info = (hal_radar_det_event_stru *)(pst_event_desc->auc_event_data);
     pst_radar_det_info->uc_radar_type = 1;
 
-    /* 事件分发 */
+    /* ???????? */
     frw_event_dispatch_event(pst_event_mem);
 
-    /* 释放事件内存 */
+    /* ???????????? */
     FRW_EVENT_FREE(pst_event_mem);
 
     return OAL_SUCC;
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_attempt_new_chan
- 功能描述  : 设置VAP转移置新信道工作
- 输入参数  : pst_dmac_vap: DMAC VAP结构体指针
-             uc_channel  : 新信道号
-             en_bandwidth: 新带宽模式
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年2月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_DFS
 oal_void  dmac_chan_attempt_new_chan(dmac_vap_stru                       *pst_dmac_vap,
                                      oal_uint8                            uc_channel,
@@ -814,18 +624,17 @@ oal_void  dmac_chan_attempt_new_chan(dmac_vap_stru                       *pst_dm
         return;
     }
 
-    /* 选择20/40/80MHz信道 */
-    //l00311403 TODO 需要考虑dbac场景下面的处理
+    /* ????20/40/80MHz???? */
     dmac_chan_select_channel_mac(&(pst_dmac_vap->st_vap_base_info), uc_channel, en_bandwidth);
 
 
-    /* 设置信道切换状态为 WLAN_CH_SWITCH_DONE(完成) */
+    /* ?????????????????? WLAN_CH_SWITCH_DONE(????) */
     pst_dmac_vap->st_vap_base_info.st_ch_switch_info.en_ch_switch_status = WLAN_CH_SWITCH_DONE;
 
     mac_vap_set_bssid(&(pst_dmac_vap->st_vap_base_info), mac_mib_get_StationID(&(pst_dmac_vap->st_vap_base_info)));
 
 
-    /* 上报信道切换完成事件 hmac判断是否需要CAC检测 */
+    /* ???????????????????? hmac????????????CAC???? */
     dmac_switch_complete_notify(&(pst_dmac_vap->st_vap_base_info), OAL_TRUE);
 
     if (mac_dfs_get_debug_level(pst_mac_device) & 0x1)
@@ -843,14 +652,12 @@ oal_void  dmac_chan_attempt_new_chan(dmac_vap_stru                       *pst_dm
 {
     mac_device_stru   *pst_mac_device;
 
-    /* 选择20/40/80MHz信道 */
-    //l00311403 TODO 需要考虑dbac场景下面的处理
+    /* ????20/40/80MHz???? */
     dmac_chan_select_channel_mac(&(pst_dmac_vap->st_vap_base_info), uc_channel, en_bandwidth);
 
-    /* DFS 是否需要重新扫描信道 */
+    /* DFS ???????????????????? */
 
-    /* 设置信道切换状态为 WLAN_CH_SWITCH_DONE(完成) */
-    //l00311403 要同步状态
+    /* ?????????????????? WLAN_CH_SWITCH_DONE(????) */
     pst_dmac_vap->st_vap_base_info.st_ch_switch_info.en_ch_switch_status = WLAN_CH_SWITCH_DONE;
 
     pst_mac_device = mac_res_get_dev(pst_dmac_vap->st_vap_base_info.uc_device_id);
@@ -861,15 +668,15 @@ oal_void  dmac_chan_attempt_new_chan(dmac_vap_stru                       *pst_dm
         return;
     }
 
-    /* CSA计数清零 */
+    /* CSA???????? */
     pst_mac_device->uc_csa_cnt = 0;
 
     mac_vap_set_bssid(&(pst_dmac_vap->st_vap_base_info), mac_mib_get_StationID(&(pst_dmac_vap->st_vap_base_info)));
 
-    /* 在新信道上恢复Beacon帧的发送 */
+    /* ??????????????Beacon???????? */
     hal_vap_beacon_resume(pst_dmac_vap->pst_hal_vap);
 
-    /* 在新信道上恢复硬件的发送 */
+    /* ???????????????????????? */
     hal_set_machw_tx_resume(pst_dmac_vap->pst_hal_device);
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
@@ -879,21 +686,7 @@ oal_void  dmac_chan_attempt_new_chan(dmac_vap_stru                       *pst_dm
 
 #endif   /* end of _PRE_WLAN_FEATURE_DFS */
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_disable_machw_tx
- 功能描述  : 禁止硬件发送(数据帧、ACK、RTS)
- 输入参数  : pst_mac_vap: MAC VAP结构体指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_disable_machw_tx(mac_vap_stru *pst_mac_vap)
 {
     mac_device_stru   *pst_mac_device;
@@ -906,33 +699,19 @@ oal_void  dmac_chan_disable_machw_tx(mac_vap_stru *pst_mac_vap)
         return;
     }
 
-    /* 禁止硬件发送 */
+    /* ???????????? */
     hal_set_machw_tx_suspend(pst_mac_device->pst_device_stru);
 
-    /* 禁止硬件回ack */
+    /* ??????????ack */
     hal_disable_machw_ack_trans(pst_mac_device->pst_device_stru);
 
-    /* 禁止硬件回cts */
+    /* ??????????cts */
     hal_disable_machw_cts_trans(pst_mac_device->pst_device_stru);
 
     OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_TX, "{dmac_chan_disable_machw_tx::tx disabled.}");
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_enable_machw_tx
- 功能描述  : 恢复硬件发送(数据帧、ACK、RTS)
- 输入参数  : pst_mac_vap: MAC VAP结构体指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_enable_machw_tx(mac_vap_stru *pst_mac_vap)
 {
     mac_device_stru   *pst_mac_device;
@@ -945,33 +724,19 @@ oal_void  dmac_chan_enable_machw_tx(mac_vap_stru *pst_mac_vap)
         return;
     }
 
-    /* 恢复硬件发送 */
+    /* ???????????? */
     hal_set_machw_tx_resume(pst_mac_device->pst_device_stru);
 
-    /* 恢复硬件回ack */
+    /* ??????????ack */
     hal_enable_machw_ack_trans(pst_mac_device->pst_device_stru);
 
-    /* 恢复硬件回cts */
+    /* ??????????cts */
     hal_enable_machw_cts_trans(pst_mac_device->pst_device_stru);
 
     OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_TX, "{dmac_chan_enable_machw_tx::tx enabled.}");
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_disable_machw_tx_event_process
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_chan_disable_machw_tx_event_process(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru           *pst_event;
@@ -986,7 +751,7 @@ oal_uint32  dmac_chan_disable_machw_tx_event_process(frw_event_mem_stru *pst_eve
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
 
@@ -998,27 +763,13 @@ oal_uint32  dmac_chan_disable_machw_tx_event_process(frw_event_mem_stru *pst_eve
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 禁止硬件的全部发送 */
+    /* ?????????????????? */
     dmac_chan_disable_machw_tx(pst_mac_vap);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_enable_machw_tx_event_process
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_chan_enable_machw_tx_event_process(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru           *pst_event;
@@ -1032,40 +783,24 @@ oal_uint32  dmac_chan_enable_machw_tx_event_process(frw_event_mem_stru *pst_even
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取事件、事件头以及事件payload结构体 */
+    /* ????????????????????????payload?????? */
     pst_event     = (frw_event_stru *)pst_event_mem->puc_data;
     pst_event_hdr = &(pst_event->st_event_hdr);
 
     pst_mac_vap   = (mac_vap_stru *)mac_res_get_mac_vap(pst_event_hdr->uc_vap_id);
 
-    /* 恢复硬件发送 */
+    /* ???????????? */
     dmac_chan_enable_machw_tx(pst_mac_vap);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_tx_complete_2040_coexist
- 功能描述  : 20/40共存发送完成中断处理，主要是AP发送完CSA frame，需要禁止硬件发送
- 输入参数  : pst_mac_device: device结构体指针
-             pst_hal_device: hal层device结构体指针
-             pst_netbuf    : 包含CSA frame的netbuf指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_tx_complete_2040_coexist(mac_device_stru *pst_mac_device, hal_to_dmac_device_stru *pst_hal_device, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint8       *puc_payload;
 
-    /* 当Channel Switch Announcement帧发送后，需要禁止硬件发送 */
+    /* ??Channel Switch Announcement?????????????????????????? */
     if (mac_ieeee80211_is_action(oal_netbuf_header(pst_netbuf)))
     {
     #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
@@ -1078,12 +813,12 @@ oal_void  dmac_chan_tx_complete_2040_coexist(mac_device_stru *pst_mac_device, ha
         {
             pst_mac_device->uc_csa_cnt++;
 
-            /* 当device下所有AP的CSA帧都发送完成后，挂起硬件发送 */
+            /* ??device??????AP??CSA???????????????????????????? */
             if (pst_mac_device->uc_csa_cnt == (pst_mac_device->uc_vap_num - pst_mac_device->uc_sta_num))
             {
                 //OAM_INFO_LOG0(0, OAM_SF_2040, "{dmac_chan_tx_complete_2040_coexist::machw tx suspend.}\r\n");
 
-                /* 挂起硬件发送 */
+                /* ???????????? */
                 hal_set_machw_tx_suspend(pst_hal_device);
             }
         }
@@ -1092,23 +827,7 @@ oal_void  dmac_chan_tx_complete_2040_coexist(mac_device_stru *pst_mac_device, ha
 
 #ifdef _PRE_WLAN_FEATURE_DFS
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-/*****************************************************************************
- 函 数 名  : dmac_chan_tx_complete_suspend_tx
- 功能描述  : CSA帧发送完成中断处理，主要是AP发送完CSA frame，需要禁止硬件发送
- 输入参数  : pst_mac_device: device结构体指针
-             pst_hal_device: hal层device结构体指针
-             pst_netbuf    : 包含CSA frame的netbuf指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_device,
                                            mac_vap_stru              *pst_mac_vap,
                                            hal_to_dmac_device_stru   *pst_hal_device,
@@ -1116,7 +835,7 @@ oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_de
 {
     oal_uint8     *puc_payload;
 
-    /* 当Channel Switch Announcement帧发送后，需要禁止硬件发送 */
+    /* ??Channel Switch Announcement?????????????????????????? */
     if (mac_ieeee80211_is_action(oal_netbuf_header(pst_netbuf)))
     {
         puc_payload = (oal_uint8 *)oal_netbuf_data(pst_netbuf);
@@ -1125,12 +844,12 @@ oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_de
         {
             pst_mac_device->uc_csa_vap_cnt--;
 
-            /* 当device下所有running AP的CSA帧都发送完成后，挂起硬件发送 */
+            /* ??device??????running AP??CSA???????????????????????????? */
             if (0 == pst_mac_device->uc_csa_vap_cnt)
             {
                 //OAM_INFO_LOG0(0, OAM_SF_DFS, "{dmac_chan_tx_complete_suspend_tx::machw tx suspend.}\r\n");
 
-                /* 挂起硬件发送 */
+                /* ???????????? */
                 hal_set_machw_tx_suspend(pst_hal_device);
 
                 if (mac_dfs_get_debug_level(pst_mac_device) & 0x1)
@@ -1143,23 +862,7 @@ oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_de
     }
 }
 #else
-/*****************************************************************************
- 函 数 名  : dmac_chan_tx_complete_suspend_tx
- 功能描述  : CSA帧发送完成中断处理，主要是AP发送完CSA frame，需要禁止硬件发送
- 输入参数  : pst_mac_device: device结构体指针
-             pst_hal_device: hal层device结构体指针
-             pst_netbuf    : 包含CSA frame的netbuf指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月20日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_device,
                                            mac_vap_stru              *pst_mac_vap,
                                            hal_to_dmac_device_stru   *pst_hal_device,
@@ -1169,7 +872,7 @@ oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_de
     oal_uint32     ul_chan_shutdown_time;
     oal_uint32     ul_delta_time_for_chan_shutdown;
 
-    /* 当Channel Switch Announcement帧发送后，需要禁止硬件发送 */
+    /* ??Channel Switch Announcement?????????????????????????? */
     if (mac_ieeee80211_is_action(oal_netbuf_data(pst_netbuf)))
     {
         puc_payload = (oal_uint8 *)oal_netbuf_data(pst_netbuf) + MAC_80211_FRAME_LEN;
@@ -1178,12 +881,12 @@ oal_void  dmac_chan_tx_complete_suspend_tx(mac_device_stru           *pst_mac_de
         {
             pst_mac_device->uc_csa_vap_cnt--;
 
-            /* 当device下所有running AP的CSA帧都发送完成后，挂起硬件发送 */
+            /* ??device??????running AP??CSA???????????????????????????? */
             if (0 == pst_mac_device->uc_csa_vap_cnt)
             {
                 //OAM_INFO_LOG0(0, OAM_SF_DFS, "{dmac_chan_tx_complete_suspend_tx::machw tx suspend.}\r\n");
 
-                /* 挂起硬件发送 */
+                /* ???????????? */
                 hal_set_machw_tx_suspend(pst_hal_device);
 
                 if (mac_dfs_get_debug_level(pst_mac_device) & 0x1)
@@ -1208,21 +911,7 @@ OAL_STATIC oal_void dmac_dfs_radar_detect_log(mac_device_stru *pst_mac_device, o
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_dfs_radar_detect_event
- 功能描述  : DMAC 雷达中断处理入口函数
- 输入参数  : pst_event_mem: 事件内存指针
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其它错误码
- 调用函数  :
- 被调函数  :
-             mayuan TBD，抛事件，抛什么东西需要确认，vap id, etc...
- 修改历史      :
-  1.日    期   : 2014年10月16日
-    作    者   : mayuan
-    修改内容   : 新生成函数
 
-*****************************************************************************/
 oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru             *pst_event;
@@ -1251,7 +940,7 @@ oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
     }
 
     pst_radar_det_info = (hal_radar_det_event_stru *)pst_event->auc_event_data;
-    /* 如果雷达检测没使能，则直接返回 */
+    /* ?????????????????????????????? */
     if (OAL_FALSE == mac_dfs_get_dfs_enable(pst_mac_device))
     {
         OAM_WARNING_LOG0(0, OAM_SF_DFS, "{dmac_dfs_radar_detect_event::[DFS]dfs is disabled.");
@@ -1261,7 +950,7 @@ oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
     if (mac_dfs_get_debug_level(pst_mac_device) & 0x1)
     {
         dmac_dfs_radar_detect_log(pst_mac_device, pst_radar_det_info->uc_radar_type, pst_event->st_event_hdr.uc_vap_id);
-        /* 记录雷达检测时间戳 */
+        /* ?????????????????? */
         pst_mac_device->st_dfs.st_dfs_info.ul_radar_detected_timestamp = (oal_uint32)OAL_TIME_GET_STAMP_MS();
     }
 
@@ -1271,7 +960,7 @@ oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
         return OAL_SUCC;
     }
 
-    /* 找一个running AP */
+    /* ??????running AP */
     for (uc_vap_idx = 0; uc_vap_idx < pst_mac_device->uc_vap_num; uc_vap_idx++)
     {
         pst_mac_vap = (mac_vap_stru *)mac_res_get_mac_vap(pst_mac_device->auc_vap_id[uc_vap_idx]);
@@ -1284,7 +973,7 @@ oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
         }
     }
 
-    /* 没找到 running AP，寻找是否有正在 start 的AP */
+    /* ?????? running AP???????????????? start ??AP */
     if (OAL_FALSE == en_found_running_ap)
     {
         for (uc_vap_idx = 0; uc_vap_idx < pst_mac_device->uc_vap_num; uc_vap_idx++)
@@ -1300,48 +989,28 @@ oal_uint32 dmac_dfs_radar_detect_event(frw_event_mem_stru *pst_event_mem)
         }
     }
 
-    /* 既没有正在 running 的 AP，也没有正在 start 的 AP，因此无需对雷达信道做出响应 */
+    /* ?????????? running ?? AP???????????? start ?? AP???????????????????????????? */
     if (((OAL_FALSE == en_found_running_ap) && (OAL_FALSE == en_found_starting_ap)) ||
         (OAL_PTR_NULL == pst_mac_vap))
     {
         return OAL_SUCC;
     }
 
-    /* 关闭硬件雷达检测 */
+    /* ???????????????? */
     hal_enable_radar_det(pst_mac_device->pst_device_stru, OAL_FALSE);
 
-    /* 更新事件头中的VAP ID */
+    /* ??????????????VAP ID */
     pst_event->st_event_hdr.uc_vap_id = pst_mac_vap->uc_vap_id;
 
     FRW_EVENT_HDR_MODIFY_PIPELINE_AND_SUBTYPE(&(pst_event->st_event_hdr), DMAC_MISC_SUB_TYPE_RADAR_DETECT);
 
-    /* 分发事件 */
+    /* ???????? */
     frw_event_dispatch_event(pst_event_mem);
 
     return OAL_SUCC;
 }
 #endif
-/*****************************************************************************
- 函 数 名  : dmac_ie_proc_wide_bandwidth_ie
- 功能描述  : 处理Wide Bandwidth Channel Switch IE
- 输入参数  : pst_mac_vap: MAC VAP结构体指针
-             puc_payload: 指向Wide Bandwidth Channel Switch IE的指针
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月20日
-    作    者   : s00304087
-    修改内容   : 上移HMAC
-  3.日    期   : 2016年4月7日
-    作    者   : l00280485
-    修改内容   : 下移DMAC
-*****************************************************************************/
 oal_uint32  dmac_ie_proc_wide_bandwidth_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_payload)
 {
     oal_uint8     uc_new_channel;
@@ -1356,7 +1025,7 @@ oal_uint32  dmac_ie_proc_wide_bandwidth_ie(mac_vap_stru *pst_mac_vap, oal_uint8 
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 非切换信道过程返回 */
+    /* ?????????????????? */
     if (OAL_FALSE == pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel)
     {
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{dmac_ie_proc_wide_bandwidth_ie::not waiting shit channel[%d]}",
@@ -1367,7 +1036,7 @@ oal_uint32  dmac_ie_proc_wide_bandwidth_ie(mac_vap_stru *pst_mac_vap, oal_uint8 
 
     uc_new_channel = pst_mac_vap->st_ch_switch_info.uc_new_channel;
 
-    /* 检查当前管制域是否支持该信道，如果不支持，则直接返回 */
+    /* ???????????????????????????????????????????????????? */
     ul_check = mac_is_channel_num_valid(pst_mac_vap->st_channel.en_band, uc_new_channel);
     if (OAL_SUCC != ul_check)
     {
@@ -1376,7 +1045,7 @@ oal_uint32  dmac_ie_proc_wide_bandwidth_ie(mac_vap_stru *pst_mac_vap, oal_uint8 
         return ul_check;
     }
 
-    /* IE长度检查 */
+    /* IE???????? */
     if (puc_payload[1] < MAC_WIDE_BW_CH_SWITCH_IE_LEN)
     {
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_ie_proc_wide_bandwidth_ie::invalid wide bw ch switch ie len[%d]}", puc_payload[1]);
@@ -1388,48 +1057,16 @@ oal_uint32  dmac_ie_proc_wide_bandwidth_ie(mac_vap_stru *pst_mac_vap, oal_uint8 
 
     if (uc_channel_width >= 1)
     {
-        // 2. 对于80M切换要区分fpga/asic
+        // 2. ????80M??????????fpga/asic
         pst_mac_vap->st_ch_switch_info.en_new_bandwidth = mac_get_bandwith_from_center_freq_seg0(uc_new_channel, uc_channel_center_freq_seg0);
     }
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_ie_proc_ch_switch_ie
- 功能描述  : 处理(Extended) Channel Switch Announcement IE
- 输入参数  : pst_mac_vap: MAC VAP结构体指针
-             puc_payload: 指向(Extended) Channel Switch Announcement IE的指针
-             en_eid_type: Element ID
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月12日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月20日
-    作    者   : s00304087
-    修改内容   : 上移HMAC
-  3.日    期   : 2016年4月7日
-    作    者   : l00280485
-    修改内容   : 下移DMAC
-*****************************************************************************/
-oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_payload, mac_eid_enum_uint8 en_eid_type)
+oal_uint32 dmac_get_csa_ie(mac_eid_enum_uint8 en_eid_type, oal_uint8 *puc_payload,
+    oal_uint8 *uc_ch_sw_mode, oal_uint8 *uc_new_chan, oal_uint8 *uc_sw_cnt)
 {
-    oal_uint8    uc_ch_sw_mode = 0;
-    oal_uint8    uc_new_chan   = 0;
-    oal_uint8    uc_sw_cnt     = 0;
-    oal_uint32   ul_check      = OAL_FAIL;
-
-    if (OAL_UNLIKELY((OAL_PTR_NULL == pst_mac_vap) || (OAL_PTR_NULL == puc_payload)))
-    {
-        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::param null.}");
-
-        return OAL_ERR_CODE_PTR_NULL;
-    }
-
     /*************************************************************************/
     /*                    Channel Switch Announcement element                */
     /* --------------------------------------------------------------------- */
@@ -1451,33 +1088,53 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
     {
         if (puc_payload[1] < MAC_CHANSWITCHANN_IE_LEN)
         {
-            OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::invalid chan switch ann ie len[%d]}", puc_payload[1]);
+            OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_get_csa_ie::invalid csa ie len[%d]}", puc_payload[1]);
             return OAL_FAIL;
         }
         /* Channel Switch Announcement element */
-        uc_ch_sw_mode = puc_payload[MAC_IE_HDR_LEN];
-        uc_new_chan   = puc_payload[MAC_IE_HDR_LEN + 1];
-        uc_sw_cnt     = puc_payload[MAC_IE_HDR_LEN + 2];
+        *uc_ch_sw_mode = puc_payload[MAC_IE_HDR_LEN];
+        *uc_new_chan   = puc_payload[MAC_IE_HDR_LEN + 1];
+        *uc_sw_cnt     = puc_payload[MAC_IE_HDR_LEN + 2];
     }
     else if (MAC_EID_EXTCHANSWITCHANN == en_eid_type)
     {
         if (puc_payload[1] < MAC_EXT_CHANSWITCHANN_IE_LEN)
         {
-            OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::invalid ext chan switch ann ie len[%d]}", puc_payload[1]);
+            OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_get_csa_ie::invalid ext csa ie len[%d]}", puc_payload[1]);
             return OAL_FAIL;
         }
         /* Extended Channel Switch Announcement element */
-        uc_ch_sw_mode = puc_payload[MAC_IE_HDR_LEN];
+        *uc_ch_sw_mode = puc_payload[MAC_IE_HDR_LEN];
         /* Skip New Operating Class = puc_payload[MAC_IE_HDR_LEN + 1]; */
-        uc_new_chan   = puc_payload[MAC_IE_HDR_LEN + 2];
-        uc_sw_cnt     = puc_payload[MAC_IE_HDR_LEN + 3];
+        *uc_new_chan   = puc_payload[MAC_IE_HDR_LEN + 2];
+        *uc_sw_cnt     = puc_payload[MAC_IE_HDR_LEN + 3];
     }
     else
     {
         return OAL_FAIL;
     }
+    return OAL_SUCC;
+}
 
-    /* 检查当前管制域是否支持该信道，如果不支持，则直接返回 */
+oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_payload, mac_eid_enum_uint8 en_eid_type)
+{
+    oal_uint8    uc_ch_sw_mode = 0;
+    oal_uint8    uc_new_chan   = 0;
+    oal_uint8    uc_sw_cnt     = 0;
+    oal_uint32   ul_check      = OAL_FAIL;
+
+    if (OAL_UNLIKELY((OAL_PTR_NULL == pst_mac_vap) || (OAL_PTR_NULL == puc_payload)))
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::param null.}");
+
+        return OAL_ERR_CODE_PTR_NULL;
+    }
+
+    if (OAL_SUCC != dmac_get_csa_ie(en_eid_type, puc_payload, &uc_ch_sw_mode, &uc_new_chan, &uc_sw_cnt)) {
+        return OAL_FAIL;
+    }
+
+    /* ???????????????????????????????????????????????????? */
     ul_check = mac_is_channel_num_valid(pst_mac_vap->st_channel.en_band, uc_new_chan);
     if (OAL_SUCC != ul_check)
     {
@@ -1486,19 +1143,24 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
         return ul_check;
     }
 
-    /* 第一次收到CSA,并且ap要求在信道切换完成前停止传输 */
+    if (OAL_TRUE == g_csa_scan_flag) {
+        OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::csa_scan not complete.}");
+        return OAL_FAIL;
+    }
+
+    /* ??????????CSA,????ap???????????????????????????? */
     if (OAL_FALSE == pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel)
     {
         if (1 == uc_ch_sw_mode)
         {
-            /* 禁止硬件的全部发送 */
+            /* ?????????????????? */
             dmac_chan_disable_machw_tx(pst_mac_vap);
         }
 
         pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel = OAL_TRUE;
 
     #ifdef _PRE_WLAN_FEATURE_STA_PM
-        /* 准备切信道,更新dtim,listen interval周期 按dtim 1唤醒产生tbtt中断 */
+        /* ??????????,????dtim,listen interval???? ??dtim 1????????tbtt???? */
         dmac_psm_update_dtime_period(pst_mac_vap,
                                     (oal_uint8)pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod,
                                     pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod);
@@ -1510,7 +1172,7 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
     }
     else
     {
-        /* cnt变化正常切信道 */
+        /* cnt?????????????? */
         if (pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt != uc_sw_cnt)
         {
             pst_mac_vap->st_ch_switch_info.uc_csa_rsv_cnt = 0;
@@ -1520,27 +1182,27 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
 
                 if (1 == uc_ch_sw_mode)
                 {
-                    /* 禁止硬件的全部发送 */
+                    /* ?????????????????? */
                     dmac_chan_disable_machw_tx(pst_mac_vap);
                 }
 
             #ifdef _PRE_WLAN_FEATURE_STA_PM
-                /* 恢复切信道时,更新dtim,listen interval周期 按dtim 1唤醒产生tbtt中断 */
+                /* ????????????,????dtim,listen interval???? ??dtim 1????????tbtt???? */
                 dmac_psm_update_dtime_period(pst_mac_vap,
                                             (oal_uint8)pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod,
                                             pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod);
             #endif
             }
 
-            pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt = uc_sw_cnt; //start cnt实时和ap的同步
+            pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt = uc_sw_cnt; //start cnt??????ap??????
         }
-        /* cnt不变化识别 */
+        /* cnt?????????? */
         else if ((pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt == uc_sw_cnt) &&
                 (OAL_FALSE == pst_mac_vap->st_ch_switch_info.bit_bad_ap))
         {
             pst_mac_vap->st_ch_switch_info.uc_csa_rsv_cnt++;
 
-            /* 如果连续uc_ch_swt_start_cnt次,ap没有对swt cnt变化,则置位,暂停此ap的信道切换 */
+            /* ????????uc_ch_swt_start_cnt??,ap??????swt cnt????,??????,??????ap?????????? */
             if (pst_mac_vap->st_ch_switch_info.uc_csa_rsv_cnt >= pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt)
             {
                 pst_mac_vap->st_ch_switch_info.uc_csa_rsv_cnt = 0;
@@ -1552,7 +1214,7 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
                                             pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod);
             #endif
 
-                dmac_chan_enable_machw_tx(pst_mac_vap); //恢复发送，防止问题ap发的beacon让停止发送
+                dmac_chan_enable_machw_tx(pst_mac_vap); //??????????????????ap????beacon??????????
 
                 OAM_WARNING_LOG4(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{lzhqi dmac_ie_proc_ch_switch_ie::rsv_cnt[%d],ap sw count=%d.channel=%d,waitting shifting[%d]}",
                                           pst_mac_vap->st_ch_switch_info.uc_csa_rsv_cnt,uc_sw_cnt,uc_new_chan,pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel);
@@ -1560,7 +1222,7 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
                 return OAL_FAIL;
             }
         }
-        /* 已识别是bad ap */
+        /* ????????bad ap */
         else
         {
             return OAL_FAIL;
@@ -1573,7 +1235,7 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
     OAM_WARNING_LOG4(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{dmac_ie_proc_ch_switch_ie::start count[%d],ap sw count=%d.channel=%d,waitting shifting[%d]}",
                                 pst_mac_vap->st_ch_switch_info.uc_ch_swt_start_cnt,uc_sw_cnt,uc_new_chan,pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel);
 
-    /* 如果"信道切换计数"等于0，则立即切换信道 */
+    /* ????"????????????"????0???????????????? */
     if (0 == pst_mac_vap->st_ch_switch_info.uc_new_ch_swt_cnt)
     {
         pst_mac_vap->st_ch_switch_info.en_channel_swt_cnt_zero = OAL_TRUE;
@@ -1582,30 +1244,7 @@ oal_uint32  dmac_ie_proc_ch_switch_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ie_check_csa_ie
- 功能描述  : 解析Beacon帧中是否存在(Extended) Channel Switch Announcement IE
- 输入参数  : pst_mac_vap : MAC VAP结构体指针
-             puc_payload : Beacon帧体
-             us_frame_len: Beacon帧体长度(不包括帧头)
-             us_offset   : 第一个IE在Beacon帧体中的偏移
- 输出参数  : 无
- 返 回 值  : OAL_TRUE : Beacon帧中存在(Extended) Channel Switch Announcement IE
-             OAL_FALSE: 其它
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月20日
-    作    者   : s00304087
-    修改内容   : 上移HMAC
-  2.日    期   : 2016年4月6日
-    作    者   : l00280485
-    修改内容   : 下移DMAC
-*****************************************************************************/
 oal_bool_enum_uint8  dmac_ie_check_csa_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_payload, oal_uint16 us_frame_len)
 {
     oal_uint16   us_index = 0;
@@ -1661,24 +1300,7 @@ oal_bool_enum_uint8  dmac_ie_check_csa_ie(mac_vap_stru *pst_mac_vap, oal_uint8 *
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chan_update_csw_info
- 功能描述  : STA侧处理Beacon帧中的(Extended) Channel Switch Announcement IE
- 输入参数  : pst_mac_vap : MAC VAP结构体指针，指向STA
-             puc_payload : Beacon帧体(不包含帧头)
-             us_frame_len: Beacon帧长(不包含帧头)
-             us_offset   : Beacon帧中第一个IE相对于帧体起始处的偏移
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_chan_update_csw_info(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_payload, oal_uint16 us_frame_len)
 {
     oal_bool_enum_uint8   en_csa_ie_present;
@@ -1690,10 +1312,10 @@ oal_void  dmac_chan_update_csw_info(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_pa
 
     en_csa_ie_present = dmac_ie_check_csa_ie(pst_mac_vap, puc_payload, us_frame_len);
 
-    /* en_waiting_for_ap目前未使用,作用是防止我们先切到了新信道,如果开了发送会所有包都发不成功 */
+    /* en_waiting_for_ap??????????,????????????????????????????,?????????????????????????????? */
     if (OAL_FALSE == en_csa_ie_present)
     {
-        /* 如果已经启动CSA切换，但Beacon帧中无CSA IE, 则停止CSA切换 */
+        /* ????????????CSA????????Beacon??????CSA IE, ??????CSA???? */
         if (OAL_TRUE == pst_mac_vap->st_ch_switch_info.en_waiting_to_shift_channel)
         {
             pst_mac_vap->st_ch_switch_info.uc_new_ch_swt_cnt = 0;

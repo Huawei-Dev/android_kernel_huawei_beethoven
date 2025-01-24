@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_UTIL_H__
 #define __OAL_UTIL_H__
 
@@ -7,30 +9,45 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_types.h"
 #include "oal_mm.h"
 #include "arch/oal_util.h"
+
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 
 #define OAL_VA_START            va_start
 #define OAL_VA_END              va_end
 
 #define OAL_VA_LIST             va_list
 
+/* ??????16 bit???? 32bit */
 #define OAL_MAKE_WORD16(lsb, msb) ((((oal_uint16)(msb) << 8) & 0xFF00) | (lsb))
 #define OAL_MAKE_WORD32(lsw, msw) ((((oal_uint32)(msw) << 16) & 0xFFFF0000) | (lsw))
 
+
+/* ???????????????????????????? */
 #define OAL_ROUNDUP(_old_len, _align)  ((((_old_len) + ((_align) - 1)) / (_align)) * (_align))
 
 /* increment with wrap-around */
 #define OAL_INCR(_l, _sz)   (_l)++; (_l) &= ((_sz) - 1)
 #define OAL_DECR(_l, _sz)   (_l)--; (_l) &= ((_sz) - 1)
 
+/* ???????? */
 #define OAL_SIZEOF                                  sizeof
 
+/* ???????????? */
 #define OAL_ARRAY_SIZE(_ast_array)                  (sizeof(_ast_array) / sizeof((_ast_array)[0]))
 
+/* ?????????? */
 #define OAL_GET_4BYTE_ALIGN_VALUE(_ul_size)         (((_ul_size) + 0x03) & (~0x03))
 
+/* ???????????????? */
 #define OAL_CURRENT_TASK     (current_thread_info()->task)
 
 #define OAL_SWAP_BYTEORDER_16(_val) ((((_val) & 0x00FF) << 8) + (((_val) & 0xFF00) >> 8))
@@ -57,26 +74,38 @@ extern "C" {
 
 #endif
 
+
+
 #ifndef atomic_inc_return
 #define oal_atomic_inc_return(a)    (0)
 #else
 #define oal_atomic_inc_return   atomic_inc_return
 #endif
 
+#if 0  /* ?????? */
+#ifndef current
+#define current (0)
+#endif
+#endif
+
+/* ?????? */
 #define OAL_MIN(_A, _B) (((_A) < (_B))? (_A) : (_B))
 
+/* ?????? */
 #define OAL_MAX(_A, _B) (((_A) > (_B))? (_A) : (_B))
 
 #define OAL_SUB(_A, _B) (((_A) > (_B))? ((_A) - (_B)) : (0))
 
 #define OAL_ABSOLUTE_SUB(_A, _B) (((_A) > (_B))? ((_A) - (_B)) : ((_B) - (_A)))
 
+/* ??????????????????????????????32-bit????????????*/
 #define OAL_REG_READ32(_addr)    \
         *((OAL_VOLATILE oal_uint32 *)(_addr))
 
 #define OAL_REG_READ16(_addr)    \
     *((OAL_VOLATILE oal_uint16 *)(_addr))
 
+/* ??????????????32-bit???????????????????? */
 #define OAL_REG_WRITE32(_addr, _val)    \
     (*((OAL_VOLATILE oal_uint32 *)(_addr)) = (_val))
 #define OAL_REG_WRITE16(_addr, _val)    \
@@ -89,6 +118,7 @@ extern "C" {
 #else
 #define OAL_IS_ALIGNED  IS_ALIGNED
 #endif
+
 
 /* Bit Values */
 #define BIT31                   ((oal_uint32)(1UL << 31))
@@ -127,8 +157,10 @@ extern "C" {
 
 #define BIT(nr)                 (1UL << (nr))
 
-#define OAL_BITS_PER_BYTE       8
+#define OAL_BITS_PER_BYTE       8   /* ????????????????bit???? */
 
+
+/* ?????? */
 #define OAL_WRITE_BITS(_data, _val, _bits, _pos)    do{\
         (_data) &= ~((((oal_uint32)1 << (_bits)) - 1) << (_pos));\
         (_data) |= (((_val) & (((oal_uint32)1 << (_bits)) - 1)) << (_pos));\
@@ -136,9 +168,32 @@ extern "C" {
 
 #define OAL_GET_BITS(_data, _bits, _pos)      (((_data) >> (_pos)) & (((oal_uint32)1 << (_bits)) - 1))
 
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
 #ifdef _PRE_CONFIG_HISI_PANIC_DUMP_SUPPORT
 typedef  struct _hwifi_panic_log_   hwifi_panic_log;
-typedef oal_int32 (* hwifi_panic_log_cb)(oal_void* data,oal_uint8*pst_buf,oal_int32 buf_len);
+typedef oal_int32 (* hwifi_panic_log_cb)(oal_void* data,char *pst_buf,oal_int32 buf_len);
 struct _hwifi_panic_log_
 {
     struct list_head list;
@@ -155,6 +210,19 @@ struct _hwifi_panic_log_
         }
 #endif
 
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 #ifdef _PRE_CONFIG_HISI_PANIC_DUMP_SUPPORT
 
 extern oal_void hwifi_panic_log_register(hwifi_panic_log* log, void* data);
@@ -165,6 +233,7 @@ OAL_STATIC OAL_INLINE oal_void hwifi_panic_log_dump(char* print_level)
 {
 }
 #endif
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_strtohex(const oal_int8 *c_string)
 {
@@ -186,10 +255,12 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_strtohex(const oal_int8 *c_string)
     return uc_ret;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_strtoaddr(const oal_int8 *pc_param, oal_uint8 *puc_mac_addr)
 {
     oal_uint8   uc_char_index;
 
+    /* ????mac????,16???????? */
     for (uc_char_index = 0; uc_char_index < 12; uc_char_index++)
     {
         if ((':' == *pc_param) || ('-' == *pc_param))
@@ -211,6 +282,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_strtoaddr(const oal_int8 *pc_param, oal_uint
 
 }
 
+
 OAL_STATIC OAL_INLINE oal_int  oal_memcmp(OAL_CONST oal_void *p_buf1, OAL_CONST oal_void *p_buf2, oal_uint32 ul_count)
 {
     return OAL_MEMCMP(p_buf1, p_buf2, ul_count);
@@ -221,11 +293,13 @@ OAL_STATIC OAL_INLINE oal_int  oal_strncmp(OAL_CONST oal_int8 *p_buf1, OAL_CONST
     return OAL_STRNCMP(p_buf1, p_buf2, ul_count);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint8  oal_get_random(oal_void)
 {
     /* TBD */
     return 1;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_gen_random(oal_uint32 ul_val, oal_uint8 us_rst_flag)
 {
@@ -238,6 +312,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_gen_random(oal_uint32 ul_val, oal_uint8 us_
 	return (oal_uint8) (ul_rand >> 24);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint8  oal_bit_get_num_one_byte(oal_uint8 uc_byte)
 {
 
@@ -247,6 +322,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_bit_get_num_one_byte(oal_uint8 uc_byte)
 
     return uc_byte;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint32  oal_bit_get_num_four_byte(oal_uint32 ul_byte)
 {
@@ -259,35 +335,42 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_bit_get_num_four_byte(oal_uint32 ul_byte)
     return ul_byte;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_bit_set_bit_one_byte(oal_uint8 *puc_byte, oal_bitops nr)
 {
     *puc_byte |= ((oal_uint8)(1 << nr));
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_bit_clear_bit_one_byte(oal_uint8 *puc_byte, oal_bitops nr)
 {
     *puc_byte &=(~((oal_uint8)(1 << nr)));
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_bit_set_bit_four_byte(oal_uint32 *pul_byte, oal_bitops nr)
 {
     *pul_byte |= ((oal_uint32)(1 << nr));
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_bit_clear_bit_four_byte(oal_uint32 *pul_byte, oal_bitops nr)
 {
     *pul_byte &= ~((oal_uint32)(1 << nr));
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_bit_set_bit_eight_byte(oal_uint64 *pull_byte, oal_bitops nr)
 {
     *pull_byte |= ((oal_uint64)1 << nr);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_bit_clear_bit_eight_byte(oal_uint64 *pull_byte, oal_bitops nr)
 {
     *pull_byte &= ~((oal_uint64)1 << nr);
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_bit_one_byte(oal_uint8 uc_byte)
 {
@@ -309,6 +392,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_bit_one_byte(oal_uint8 uc_by
     return uc_ret;
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_zero_one_byte(oal_uint8 uc_byte)
 {
     oal_uint8 uc_ret = 0;
@@ -329,6 +413,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_zero_one_byte(oal_uint8 uc_b
 
     return uc_ret;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_bit_four_byte(oal_uint32 ul_byte)
 {
@@ -371,6 +456,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_bit_four_byte(oal_uint32 ul_
     return uc_ret;
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_zero_four_byte(oal_uint32 ul_byte)
 {
     oal_uint8 uc_ret = 0;
@@ -409,6 +495,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_bit_find_first_zero_four_byte(oal_uint32 ul
     return uc_ret;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_set_mac_addr(oal_uint8 *puc_mac_addr1, oal_uint8 *puc_mac_addr2)
 {
     puc_mac_addr1[0] = puc_mac_addr2[0];
@@ -418,6 +505,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_set_mac_addr(oal_uint8 *puc_mac_addr1, oal_u
     puc_mac_addr1[4] = puc_mac_addr2[4];
     puc_mac_addr1[5] = puc_mac_addr2[5];
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_set_mac_addr_zero(oal_uint8 *puc_mac_addr)
 {
@@ -429,6 +517,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_set_mac_addr_zero(oal_uint8 *puc_mac_addr)
     puc_mac_addr[5] = 0;
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_compare_mac_addr(oal_uint8 *puc_mac_addr1, oal_uint8 *puc_mac_addr2)
 
 {
@@ -436,6 +525,7 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_compare_mac_addr(oal_uint8 *puc_mac_addr1,
     | (puc_mac_addr1[2] ^ puc_mac_addr2[2]) | (puc_mac_addr1[3] ^ puc_mac_addr2[3])
     | (puc_mac_addr1[4] ^ puc_mac_addr2[4]) | (puc_mac_addr1[5] ^ puc_mac_addr2[5]);
 }
+
 
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8  oal_cmp_seq_num(
                 oal_uint32   ul_seq_num1,
@@ -450,6 +540,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8  oal_cmp_seq_num(
 
     return OAL_FALSE;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32 oal_strcmp(const oal_int8 *pc_src, const oal_int8 *pc_dst)
 {
@@ -470,6 +561,7 @@ OAL_STATIC OAL_INLINE oal_int32 oal_strcmp(const oal_int8 *pc_src, const oal_int
 
     return l_ret;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int8 *oal_strim(oal_int8 *pc_s)
 {
@@ -498,6 +590,7 @@ OAL_STATIC OAL_INLINE oal_int8 *oal_strim(oal_int8 *pc_s)
     return pc_s;
 }
 
+
 OAL_STATIC OAL_INLINE oal_int8  *oal_strcat(oal_int8 *dest, const oal_int8 *src)
 {
     oal_int8   *pc_tmp;
@@ -516,6 +609,7 @@ OAL_STATIC OAL_INLINE oal_int8  *oal_strcat(oal_int8 *dest, const oal_int8 *src)
 
     return pc_tmp;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int8  *oal_strncat(oal_int8 *dest, const oal_int8 *src, oal_int32 l_cnt)
 {
@@ -545,10 +639,13 @@ OAL_STATIC OAL_INLINE oal_int8  *oal_strncat(oal_int8 *dest, const oal_int8 *src
     return pc_tmp;
 }
 
+
 OAL_STATIC OAL_INLINE oal_int8*  oal_strstr(oal_int8 *pc_s1, oal_int8 *pc_s2)
 {
     return OAL_STRSTR(pc_s1, pc_s2);
 }
+
+
 
 OAL_STATIC OAL_INLINE oal_uint32  oal_init_lut(oal_uint8  *puc_lut_index_table, oal_uint8 uc_bmap_len)
 {
@@ -561,6 +658,7 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_init_lut(oal_uint8  *puc_lut_index_table, 
 
     return OAL_SUCC;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_get_lut_index(
                 oal_uint8      *puc_lut_index_table,
@@ -604,6 +702,7 @@ OAL_STATIC OAL_INLINE oal_uint8  oal_get_lut_index(
     return (oal_uint8)us_max_lut_size;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_del_lut_index(oal_uint8 *puc_lut_index_table, oal_uint8 uc_idx)
 {
     oal_uint8 uc_byte = uc_idx / 8;
@@ -612,8 +711,10 @@ OAL_STATIC OAL_INLINE oal_void  oal_del_lut_index(oal_uint8 *puc_lut_index_table
     puc_lut_index_table[uc_byte] &= ~(oal_uint8)(1 << uc_bit);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32* oal_get_virt_addr(oal_uint32 *pul_phy_addr)
 {
+    /* ?????????????? */
     if (OAL_PTR_NULL == pul_phy_addr)
     {
         return pul_phy_addr;

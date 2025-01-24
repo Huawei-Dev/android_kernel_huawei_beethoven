@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_linux_netlink_acs.c
-  版 本 号   : 初稿
-  作    者   : w00196298
-  生成日期   : 2013年12月13日
-  最近修改   :
-  功能描述   : WAL NETLINK ACS接口
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年12月13日
-    作    者   : w00196298
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 #ifdef _PRE_SUPPORT_ACS
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_ext_if.h"
 #include "frw_ext_if.h"
@@ -44,7 +27,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_WAL_CONFIG_ACS_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 extern oal_void  oam_netlink_ops_register(oam_nl_cmd_enum_uint8 en_type, oal_uint32 (*p_func)(oal_uint8 *puc_data, oal_uint32 ul_len));
 extern oal_void  oam_netlink_ops_unregister(oam_nl_cmd_enum_uint8 en_type);
@@ -54,23 +37,9 @@ frw_timeout_stru g_st_acs_timer;
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : wal_acs_netlink_recv
- 功能描述  : 将WAL层的ACS命令接收函数挂接在内核NETLINK总入口上
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月13日
-    作    者   : wangshanbo
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_acs_netlink_recv(oal_uint8 *puc_data, oal_uint32 ul_len)
 {
     oal_uint32        ul_device_num;
@@ -81,30 +50,30 @@ oal_uint32  wal_acs_netlink_recv(oal_uint8 *puc_data, oal_uint32 ul_len)
 
     pst_acs_cmd_hdr = (mac_acs_cmd_stru *)puc_data;
 
-    /* 向所有DEVICE广播一份 */
+    /* ??????DEVICE???????? */
     for (ul_device_num = 0; ul_device_num < MAC_RES_MAX_DEV_NUM; ul_device_num++)
     {
         pst_mac_dev = mac_res_get_dev(ul_device_num);
 
-        /* 设备不存在 */
+        /* ?????????? */
         if (OAL_PTR_NULL == pst_mac_dev)
         {
             continue;
         }
 
-        /* 设备未初始化 */
+        /* ???????????? */
         if (OAL_FALSE == pst_mac_dev->en_device_state)
         {
             continue;
         }
 
-        /* ACS未使能 */
+        /* ACS?????? */
         if (OAL_PTR_NULL == pst_mac_dev->pst_acs)
         {
             continue;
         }
 
-        // note:假如没有任何业务VAP，则驱动收不到应用层的请求。
+        // note:????????????????VAP????????????????????????????
         pst_mac_vap = (mac_vap_stru *)mac_res_get_mac_vap(pst_mac_dev->auc_vap_id[0]);
         if (OAL_PTR_NULL == pst_mac_vap)
         {
@@ -122,21 +91,7 @@ oal_uint32  wal_acs_netlink_recv(oal_uint8 *puc_data, oal_uint32 ul_len)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_acs_response_event_handler
- 功能描述  : 处理来自HMAC的ACS响应事件，并通过NETLINK转发给APP
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月17日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wal_acs_response_event_handler(frw_event_mem_stru *pst_event_mem)
 {
     mac_acs_response_hdr_stru *pst_acs_resp_hdr;
@@ -161,21 +116,7 @@ oal_uint32 wal_acs_response_event_handler(frw_event_mem_stru *pst_event_mem)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_acs_timer_handler
- 功能描述  : WAL ACS的测试定时器到期处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月18日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_acs_timer_handler(void *p_arg)
 {
     oal_uint8   auc_buf[8];
@@ -189,52 +130,24 @@ oal_uint32  wal_acs_timer_handler(void *p_arg)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_linux_netlink_acs_init
- 功能描述  : ACS在WAL层的初始化，负责NETLINK钩子的挂接
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月16日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_acs_init(oal_void)
 {
     oam_netlink_ops_register(OAM_NL_CMD_ACS, wal_acs_netlink_recv);
-    /* 测试使用 */
+    /* ???????? */
 #if 0
     FRW_TIMER_CREATE_TIMER(&g_st_acs_timer,
                            wal_acs_timer_handler,
-                           2000,                    /* 2000ms触发一次 */
-                           OAL_PTR_NULL,            /* 无需传入参数 */
-                           OAL_TRUE,                /* 周期调用 */
+                           2000,                    /* 2000ms???????? */
+                           OAL_PTR_NULL,            /* ???????????? */
+                           OAL_TRUE,                /* ???????? */
                            OAM_MODULE_ID_WAL);
 #endif
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_acs_exit
- 功能描述  : ACS在WAL层的退出函数，负责释放资源
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月16日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wal_acs_exit(oal_void)
 {
     oam_netlink_ops_unregister(OAM_NL_CMD_ACS);

@@ -1,5 +1,3 @@
-#ifndef __BOARD_HI1102_H__
-#define __BOARD_HI1102_H__
 
 #ifdef __cplusplus
     #if __cplusplus
@@ -7,6 +5,9 @@
     #endif
 #endif
 
+
+#ifndef __BOARD_HI1102_H__
+#define __BOARD_HI1102_H__
 /*****************************************************************************
   1 Include other Head file
 *****************************************************************************/
@@ -23,17 +24,16 @@
 /*****************************************************************************
   5 EXTERN FUNCTION
 *****************************************************************************/
-extern int hi1102_get_board_gpio(void);
+extern int32 hi1102_get_board_gpio(void);
 extern void hi1102_free_board_power_gpio(void);
-extern int hi1102_board_wakeup_gpio_init(void);
+extern int32 hi1102_board_wakeup_gpio_init(void);
 extern void hi1102_free_board_wakeup_gpio(void);
+#endif
 
 #ifdef __cplusplus
     #if __cplusplus
             }
     #endif
-#endif
-
 #endif
 
 

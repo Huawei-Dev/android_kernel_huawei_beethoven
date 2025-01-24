@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_scan_test.c
-  版 本 号   : 初稿
-  作    者   : 王山博
-  生成日期   : 2014年4月21日
-  最近修改   :
-  功能描述   : 验证扫描模块的相关功能而开发的PRCO接口函数及处理函数
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年4月21日
-    作    者   : w00196298
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -24,7 +7,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "frw_ext_if.h"
@@ -37,7 +20,7 @@ extern "C" {
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_SCAN_TEST_C
-#if 0 /* 扫描上移到请求下发与结果上移到HMAC，DMAC不再支持原有的芯片测试代码 */
+#if 0 /* ??????????????????????????????HMAC??DMAC?????????????????????????? */
 #if defined(_PRE_WLAN_CHIP_TEST) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 #include <linux/types.h>
 #include <linux/fs.h>
@@ -48,7 +31,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 dmac_scanner_procfs_stru          g_st_scanner_record;
@@ -86,24 +69,10 @@ OAL_CONST oal_int8 *g_apc_func_name_map[] =
 extern oal_uint32 dmac_scan_add_req(mac_device_stru *pst_mac_device, mac_scan_req_stru *pst_scan_req);
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : Linux 的PROC 接口定义
- 功能描述  : Linux 的PROC实现所需的所有相关函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 dmac_scan_seq_show(struct seq_file *f, void *v)
 {
     dmac_scanner_procfs_stru *pst_scan_record = (dmac_scanner_procfs_stru *)v;
@@ -282,9 +251,9 @@ OAL_STATIC ssize_t dmac_scan_proc_write(struct file *file,
     }
 #endif
 
-    /* 解析命令 */
-    /* 命令格式(以字节为单位) */
-    /* scan_mode(1 byte) + scan_type(1 byte) + func_mode(1 byte) + band(1 byte) + channel_num(1byte) + 具体的信道列表(variable) */
+    /* ???????? */
+    /* ????????(????????????) */
+    /* scan_mode(1 byte) + scan_type(1 byte) + func_mode(1 byte) + band(1 byte) + channel_num(1byte) + ??????????????(variable) */
     st_scan_req.en_scan_mode = auc_buffer[1];
     st_scan_req.en_scan_type = auc_buffer[2];
     if (auc_buffer[3] & 0xf0)
@@ -332,7 +301,7 @@ OAL_STATIC ssize_t dmac_scan_proc_write(struct file *file,
             break;
         }
 
-        /* 提取信道列表 */
+        /* ???????????? */
         if (uc_num)
         {
             st_scan_req.uc_channel_nums += uc_num;
@@ -353,7 +322,7 @@ OAL_STATIC ssize_t dmac_scan_proc_write(struct file *file,
 
         uc_bidx -= uc_num;
 
-        /* 提交扫描请求 */
+        /* ???????????? */
         if (!uc_bidx)
         {
             oal_uint8  uc_tmp_i;
@@ -419,21 +388,7 @@ OAL_STATIC OAL_CONST struct file_operations dmac_scan_proc_fops = {
     .write      = dmac_scan_proc_write,
 };
 
-/*****************************************************************************
- 函 数 名  : dmac_scan_verify_update
- 功能描述  : SCAN验证功能更新统计变量的函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_scan_verify_update(oal_uint8 uc_scan_func, oal_uint8 uc_band, oal_uint8 uc_scan_type)
 {
     oal_uint8   uc_do_stats;
@@ -453,25 +408,11 @@ oal_void dmac_scan_verify_update(oal_uint8 uc_scan_func, oal_uint8 uc_band, oal_
     g_st_scanner_record.uc_enable_radar_det_cnt += (WLAN_BAND_5G == uc_band) && uc_do_radar_det;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_scan_verify_init
- 功能描述  : SCAN验证功能初始化函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_scan_verify_init(oal_void)
 {
 #if defined(_PRE_WLAN_CHIP_TEST) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
-    /* 创建PROC目录 */
+    /* ????PROC???? */
     g_pst_scan_proc_entry = SCANNER_CREATE_PROC_ENTRY(SCANNER_VERIFY_PROC_NAME, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH, NULL);
     if (OAL_PTR_NULL == g_pst_scan_proc_entry)
     {
@@ -480,7 +421,7 @@ oal_void  dmac_scan_verify_init(oal_void)
     }
 
     g_pst_scan_proc_entry->data  = 0;
-    g_pst_scan_proc_entry->nlink = 1;        /* linux创建proc默认值 */
+    g_pst_scan_proc_entry->nlink = 1;        /* linux????proc?????? */
     g_pst_scan_proc_entry->proc_fops  = &dmac_scan_proc_fops;
 
     OAL_MEMZERO(&g_st_scanner_record, OAL_SIZEOF(g_st_scanner_record));

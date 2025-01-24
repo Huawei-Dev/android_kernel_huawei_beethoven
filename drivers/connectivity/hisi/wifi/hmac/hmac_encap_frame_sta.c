@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_encap_frame_sta.c
-  版 本 号   : 初稿
-  作    者   : y00184180
-  生成日期   : 2013年6月28日
-  最近修改   :
-  功能描述   : STA模式组帧，HMAC层 STA特有帧的组帧文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年6月28日
-    作    者   : y00184180
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_spec.h"
 #include "wlan_mib.h"
@@ -43,29 +26,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_ENCAP_FRAME_STA_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : hmac_sta_check_need_set_ext_cap_ie
- 功能描述  : 判断是否需要在assoc req 中包含Extended Capability IE
- 输入参数  : pst_mac_vap: 指向vap
- 输出参数  : 无
- 返 回 值  : OAL_TRUE    需要包含Extended Capability IE
-             OAL_FALSE 不需要包含Extended Capability IE
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum hmac_sta_check_need_set_ext_cap_ie(mac_vap_stru *pst_mac_vap)
 {
     oal_uint8       *puc_ext_cap_ie;
@@ -81,22 +49,7 @@ OAL_STATIC oal_bool_enum hmac_sta_check_need_set_ext_cap_ie(mac_vap_stru *pst_ma
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_set_supported_rates_ie
- 功能描述  : 设置速率集
- 输入参数  : pst_hmac_sta: 指向vap
-             puc_buffer: 指向buffer
- 输出参数  : puc_ie_len: element的长度
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月12日
-    作    者   : zhangxiang
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hmac_set_supported_rates_ie_asoc_req(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc_buffer, oal_uint8 *puc_ie_len)
 {
 
@@ -130,22 +83,7 @@ oal_void  hmac_set_supported_rates_ie_asoc_req(hmac_vap_stru *pst_hmac_sta, oal_
 
     *puc_ie_len = MAC_IE_HDR_LEN + uc_nrates;
 }
-/*****************************************************************************
- 函 数 名  : mac_set_exsup_rates_ie
- 功能描述  : 填充extended supported rates信息
- 输入参数  : pst_hmac_sta: 指向vap
-             puc_buffer: 指向buffer
- 输出参数  : puc_ie_len: element的长度
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月12日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void hmac_set_exsup_rates_ie_asoc_req(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc_buffer, oal_uint8 *puc_ie_len)
 {
     oal_uint8         uc_nrates;
@@ -178,21 +116,7 @@ oal_void hmac_set_exsup_rates_ie_asoc_req(hmac_vap_stru *pst_hmac_sta, oal_uint8
     *puc_ie_len = MAC_IE_HDR_LEN + uc_nrates;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_mgmt_encap_asoc_req_sta
- 功能描述  : 组帧(Re)assoc
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月28日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc_req_frame, oal_uint8 *puc_curr_bssid)
 {
 
@@ -221,12 +145,12 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
         return us_asoc_rsq_len;
     }
 
-    /* 保存起始地址，方便计算长度*/
+    /* ??????????????????????????*/
     puc_req_frame_origin = puc_req_frame;
 
     pst_mac_vap = &(pst_hmac_sta->st_vap_base_info);
 
-    /* 获取device */
+    /* ????device */
     pst_mac_device = mac_res_get_dev(pst_mac_vap->uc_device_id);
     if (OAL_PTR_NULL == pst_mac_device)
     {
@@ -248,8 +172,8 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     /*                Set the fields in the frame header                     */
     /*************************************************************************/
 
-    /* 设置 Frame Control field */
-    /* 判断是否为reassoc操作 */
+    /* ???? Frame Control field */
+    /* ??????????reassoc???? */
     if (OAL_PTR_NULL != puc_curr_bssid)
     {
         mac_hdr_set_frame_control(puc_req_frame, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_REASSOC_REQ);
@@ -259,13 +183,13 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     {
         mac_hdr_set_frame_control(puc_req_frame, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_ASSOC_REQ);
     }
-    /* 设置 DA address1: AP MAC地址 (BSSID)*/
+    /* ???? DA address1: AP MAC???? (BSSID)*/
     oal_set_mac_addr(puc_req_frame + WLAN_HDR_ADDR1_OFFSET, pst_hmac_sta->st_vap_base_info.auc_bssid);
 
-    /* 设置 SA address2: dot11MACAddress */
+    /* ???? SA address2: dot11MACAddress */
     oal_set_mac_addr(puc_req_frame + WLAN_HDR_ADDR2_OFFSET, pst_hmac_sta->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
 
-    /* 设置 DA address3: AP MAC地址 (BSSID)*/
+    /* ???? DA address3: AP MAC???? (BSSID)*/
     oal_set_mac_addr(puc_req_frame + WLAN_HDR_ADDR3_OFFSET, pst_hmac_sta->st_vap_base_info.auc_bssid);
 
     puc_req_frame += MAC_80211_FRAME_LEN;
@@ -304,72 +228,70 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     mac_set_cap_info_sta((oal_void *)pst_mac_vap, puc_req_frame);
     puc_req_frame += MAC_CAP_INFO_LEN;
 
-    /* 设置 Listen Interval IE */
+    /* ???? Listen Interval IE */
     mac_set_listen_interval_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
-    /* Ressoc组帧设置Current AP address */
+    /* Ressoc????????Current AP address */
     if (OAL_PTR_NULL != puc_curr_bssid)
     {
         oal_set_mac_addr(puc_req_frame, puc_curr_bssid);
         puc_req_frame += OAL_MAC_ADDR_LEN;
     }
-    /* 设置 SSID IE */
+    /* ???? SSID IE */
     mac_set_ssid_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len, WLAN_FC0_SUBTYPE_ASSOC_REQ);
     puc_req_frame += uc_ie_len;
-    /*DTS2015052811128:在关联请求时使用扫描时保存的速率集 --z00285102*/
 #if  defined(_PRE_WIFI_DMT ) || (_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)
-    /* 设置 Supported Rates IE */
+    /* ???? Supported Rates IE */
     mac_set_supported_rates_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
-    /* 设置 Extended Supported Rates IE */
+    /* ???? Extended Supported Rates IE */
     mac_set_exsup_rates_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
 #else
-    /* 设置 Supported Rates IE */
+    /* ???? Supported Rates IE */
     hmac_set_supported_rates_ie_asoc_req(pst_hmac_sta, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
-    /* 设置 Extended Supported Rates IE */
+    /* ???? Extended Supported Rates IE */
     hmac_set_exsup_rates_ie_asoc_req(pst_hmac_sta, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 #endif
-    /* 设置 Power Capability IE */
+    /* ???? Power Capability IE */
     mac_set_power_cap_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
-    /* 设置 Supported channel IE */
+    /* ???? Supported channel IE */
     mac_set_supported_channel_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
-/* DTS2015030605900 为增加兼容性，02不使用驱动组装的wpa/wpa2 ie，使用上层下发的 */
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
 #if defined(_PRE_WLAN_FEATURE_WPA) || defined(_PRE_WLAN_FEATURE_WPA2)
     if (pst_hmac_sta->uc_80211i_mode == DMAC_RSNA_802_11I)
     {
-        /* 设置 RSN Capability IE */
+        /* ???? RSN Capability IE */
         mac_set_rsn_ie((oal_void *)pst_mac_vap, OAL_PTR_NULL, puc_req_frame, &uc_ie_len);
         puc_req_frame += uc_ie_len;
     }
     else if (pst_hmac_sta->uc_80211i_mode == DMAC_WPA_802_11I)
     {
-        /* 设置 WPA Capability IE */
+        /* ???? WPA Capability IE */
         mac_set_wpa_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
         puc_req_frame += uc_ie_len;
     }
 #endif /* defined (_PRE_WLAN_FEATURE_WPA) || defiend (_PRE_WLAN_FEATURE_WPA) */
 #endif
 
-    /* 填充WMM element */
+    /* ????WMM element */
     if (OAL_TRUE == pst_hmac_sta->uc_wmm_cap)
     {
         mac_set_wmm_ie_sta((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
         puc_req_frame += uc_ie_len;
     }
 
-    /* 设置 HT Capability IE  */
+    /* ???? HT Capability IE  */
     mac_set_ht_capabilities_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
 #ifdef _PRE_WLAN_FEATURE_TXBF
     if ((OAL_TRUE == pst_mac_vap->bit_ap_11ntxbf)
@@ -395,15 +317,14 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     }
 #endif //_PRE_WLAN_FEATURE_11K
 
-    /* 设置 Extended Capability IE */
-    /* DTS2017081707172: 如果AP 不包含Extended Capability IE，则在assoc req 中不包含该IE */
+    /* ???? Extended Capability IE */
     if (hmac_sta_check_need_set_ext_cap_ie(pst_mac_vap) == OAL_TRUE)
     {
         mac_set_ext_capabilities_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
         puc_req_frame += uc_ie_len;
     }
 
-    /* 设置 VHT Capability IE */
+    /* ???? VHT Capability IE */
     mac_set_vht_capabilities_ie((oal_void *) pst_mac_vap, puc_req_frame, &uc_ie_len);
     puc_req_frame += uc_ie_len;
 
@@ -419,7 +340,7 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
         mac_set_md_ie((oal_void *)pst_mac_vap, puc_req_frame, &uc_ie_len);
         puc_req_frame += uc_ie_len;
 
-        /* Reasoc中包含RIC-Req */
+        /* Reasoc??????RIC-Req */
         if (pst_hmac_sta->bit_reassoc_flag)
         {
             for (en_aci = WLAN_WME_AC_BE; en_aci < WLAN_WME_AC_BUTT; en_aci++)
@@ -459,9 +380,8 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     }
 #endif //_PRE_WLAN_FEATURE_ROAM
 
-    /* 填充P2P/WPS IE 信息 */
+    /* ????P2P/WPS IE ???? */
     mac_add_app_ie(pst_mac_vap, puc_req_frame, &us_app_ie_len, en_app_ie_type);
-    /* DTS2015021504247 P2P联调 解决发送的关联请求没有P2P WPS IE信息 */
     puc_req_frame += us_app_ie_len;
 
     us_asoc_rsq_len = (oal_uint32)(puc_req_frame - puc_req_frame_origin);
@@ -469,21 +389,7 @@ oal_uint32 hmac_mgmt_encap_asoc_req_sta(hmac_vap_stru *pst_hmac_sta, oal_uint8 *
     return us_asoc_rsq_len;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_mgmt_prepare_auth_req
- 功能描述  : 组seq = 1 的auth req帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月26日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint16  hmac_mgmt_encap_auth_req(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc_mgmt_frame)
 {
     oal_uint16      us_auth_req_len;
@@ -555,15 +461,15 @@ oal_uint16  hmac_mgmt_encap_auth_req(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc
         puc_mgmt_frame[MAC_80211_FRAME_LEN + 1] = ((us_auth_type & 0xFF00) >> 8);
     }
 
-    /* 设置 Authentication Transaction Sequence Number 为 1 */
+    /* ???? Authentication Transaction Sequence Number ?? 1 */
     puc_mgmt_frame[MAC_80211_FRAME_LEN + 2] = 0x01;
     puc_mgmt_frame[MAC_80211_FRAME_LEN + 3] = 0x00;
 
-    /* 设置 Status Code 为0. 这个包的这个字段没用 . */
+    /* ???? Status Code ??0. ???????????????????? . */
     puc_mgmt_frame[MAC_80211_FRAME_LEN + 4] = 0x00;
     puc_mgmt_frame[MAC_80211_FRAME_LEN + 5] = 0x00;
 
-    /* 设置 认证帧的长度 */
+    /* ???? ???????????? */
     us_auth_req_len = MAC_80211_FRAME_LEN + MAC_AUTH_ALG_LEN + MAC_AUTH_TRANS_SEQ_NUM_LEN +
                    MAC_STATUS_CODE_LEN;
 
@@ -602,21 +508,7 @@ oal_uint16  hmac_mgmt_encap_auth_req(hmac_vap_stru *pst_hmac_sta, oal_uint8 *puc
     return us_auth_req_len;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_prepare_auth_req_seq3
- 功能描述  : 为shared key准备seq = 3 的认证帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月27日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint16  hmac_mgmt_encap_auth_req_seq3(hmac_vap_stru *pst_sta, oal_uint8 *puc_mgmt_frame, oal_uint8 *puc_mac_hrd)
 {
     oal_uint8  *puc_data       = OAL_PTR_NULL;
@@ -641,7 +533,7 @@ oal_uint16  hmac_mgmt_encap_auth_req_seq3(hmac_vap_stru *pst_sta, oal_uint8 *puc
 
     mac_hdr_set_frame_control(puc_mgmt_frame, WLAN_FC0_SUBTYPE_AUTH);
 
-    /* 将帧保护字段置1 */
+    /* ??????????????1 */
     mac_set_wep(puc_mgmt_frame, 1);
 
     oal_set_mac_addr(((mac_ieee80211_frame_stru *)puc_mgmt_frame)->auc_address1, pst_sta->st_vap_base_info.auc_bssid);
@@ -664,11 +556,11 @@ oal_uint16  hmac_mgmt_encap_auth_req_seq3(hmac_vap_stru *pst_sta, oal_uint8 *puc
     /*                                                                       */
     /*************************************************************************/
 
-    /* 获取认证帧payload */
+    /* ??????????payload */
     us_index = MAC_80211_FRAME_LEN;
     puc_data = (oal_uint8 *)(puc_mgmt_frame + us_index);
 
-    /* 设置 认证帧的长度 */
+    /* ???? ???????????? */
     us_auth_req_len = MAC_80211_FRAME_LEN + MAC_AUTH_ALG_LEN + MAC_AUTH_TRANS_SEQ_NUM_LEN +
                       MAC_STATUS_CODE_LEN;
 
@@ -744,21 +636,7 @@ oal_uint16  hmac_mgmt_encap_auth_req_seq3(hmac_vap_stru *pst_sta, oal_uint8 *puc
 }
 
 #ifdef _PRE_WLAN_FEATURE_SMPS
-/*****************************************************************************
- 函 数 名  : hmac_mgmt_encap_smps_sta
- 功能描述  : Hmac组帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 帧长
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月16日
-    作    者   : z00241943
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_mgmt_encap_smps_sta(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_buffer)
 {
 
@@ -775,7 +653,7 @@ oal_uint32 hmac_mgmt_encap_smps_sta(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_bu
     /* --------------------------------------------------------------------  */
     /*                                                                       */
     /*************************************************************************/
-    /* 获取device */
+    /* ????device */
     pst_mac_device = mac_res_get_dev(pst_mac_vap->uc_device_id);
 
     if (OAL_PTR_NULL == pst_mac_device)
@@ -783,19 +661,19 @@ oal_uint32 hmac_mgmt_encap_smps_sta(mac_vap_stru *pst_mac_vap, oal_uint8 *puc_bu
         return 0;
     }
 
-    /* 设置 Frame Control field */
+    /* ???? Frame Control field */
     mac_hdr_set_frame_control(puc_buffer, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_ACTION);
 
-    /* 设置分片序号为0 */
+    /* ??????????????0 */
     mac_hdr_set_fragment_number(puc_buffer, 0);
 
-    /* 设置 address1(接收端): AP MAC地址 (BSSID)*/
+    /* ???? address1(??????): AP MAC???? (BSSID)*/
     oal_set_mac_addr(puc_buffer + WLAN_HDR_ADDR1_OFFSET, pst_mac_vap->auc_bssid);
 
-    /* 设置 address2(发送端): dot11StationID */
+    /* ???? address2(??????): dot11StationID */
     oal_set_mac_addr(puc_buffer + WLAN_HDR_ADDR2_OFFSET, pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
 
-    /* 设置 address3: AP MAC地址 (BSSID) */
+    /* ???? address3: AP MAC???? (BSSID) */
     oal_set_mac_addr(puc_buffer + WLAN_HDR_ADDR3_OFFSET, pst_mac_vap->auc_bssid);
 
     /*************************************************************************/

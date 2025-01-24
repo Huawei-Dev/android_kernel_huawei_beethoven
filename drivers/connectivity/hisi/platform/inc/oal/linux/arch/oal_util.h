@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_LINUX_UTIL_H__
 #define __OAL_LINUX_UTIL_H__
 
@@ -7,8 +9,14 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
+/*lint -e322*/
 #include <linux/compiler.h>
 #include <linux/kernel.h>
+#include <linux/version.h>
 #include <linux/kallsyms.h>
 #include <asm/string.h>
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
@@ -27,7 +35,12 @@ extern "C" {
 #include <linux/device.h>
 #include <linux/sysfs.h>
 #include <linux/etherdevice.h>  /* hi1102-cb for random mac address */
+/*lint +e322*/
 
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
+/* 32???????????????? */
 #define OAL_SWAP_BYTEORDER_32(_val)        \
         ((((_val) & 0x000000FF) << 24) +     \
         (((_val) & 0x0000FF00) << 8) +       \
@@ -36,19 +49,21 @@ extern "C" {
 
 #define OAL_CONST                                   const
 
+/* ????CORE ID */
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
 #define OAL_GET_CORE_ID()    (0)
-#else
+#else                                   /* ??offload???? */
 #ifdef _PRE_WLAN_FEATURE_SMP_SUPPORT
 #define OAL_GET_CORE_ID()    smp_processor_id()
 #else
-#define OAL_GET_CORE_ID()    (0)
+#define OAL_GET_CORE_ID()    (0)        /* ??????E5???????? */
 #endif
 #endif
 
 typedef oal_uint    oal_bitops;
 
 typedef struct file              oal_file_stru;
+typedef loff_t                   oal_file_pos;
 #define OAL_FILE_FAIL            OAL_PTR_NULL
 
 #define OAL_LIKELY(_expr)       likely(_expr)
@@ -56,12 +71,16 @@ typedef struct file              oal_file_stru;
 #define OAL_FUNC_NAME           __func__
 #define OAL_RET_ADDR            __builtin_return_address(0)
 
+/* ?????????????????????????????????????? */
 #define OAL_SPRINTF             snprintf
 
+/* ?????????? */
 #define OAL_RMB()               rmb()
 
+/* ?????????? */
 #define OAL_WMB()               wmb()
 
+/* ???????? */
 #define OAL_MB()                mb()
 
 #define OAL_OFFSET_OF          offsetof
@@ -82,6 +101,7 @@ typedef struct file              oal_file_stru;
 
 #define OAL_VSPRINTF            vsnprintf
 
+/* E5????????????????????host????????????MEM_BASE_ADDR???????? */
 #if(_PRE_TARGET_PRODUCT_TYPE_E5 == _PRE_CONFIG_TARGET_PRODUCT)
 extern oal_uint32 gul_dscr_fstvirt_addr;
 extern oal_uint32 gul_dscr_fstphy_addr;
@@ -101,6 +121,7 @@ extern oal_uint32 gul_dscr_fstphy_addr;
 #define OAL_DSCR_PHY_TO_VIRT(_phy_addr)     phys_to_virt((_phy_addr) + OAL_PLAT_MEM_BASE_ADDR)
 #endif
 
+/* ????????????????????????????,????netbuf?? */
 #define OAL_VIRT_TO_PHY_ADDR(_virt_addr)            (virt_to_phys(_virt_addr) - OAL_PLAT_MEM_BASE_ADDR)
 #define OAL_PHY_TO_VIRT_ADDR(_phy_addr)             phys_to_virt((_phy_addr) + OAL_PLAT_MEM_BASE_ADDR)
 
@@ -125,9 +146,48 @@ typedef struct kobject              oal_kobject;
 #define OAL_STRCMP                                  strcmp
 #define OAL_STRNCMP                                 strncmp
 
+
 /* #define oal_random_ether_addr(addr) random_ether_addr(addr) */
 
 /* hi1102-cb for sys interface  51/02 */
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 
 /* #define random_ether_addr(addr) eth_random_addr(addr) */
 /* static inline void eth_random_addr(u8 *addr) */
@@ -136,35 +196,42 @@ static OAL_INLINE void oal_random_ether_addr(oal_uint8 *addr)
    random_ether_addr(addr);
 }
 
+
 OAL_STATIC OAL_INLINE oal_bitops  oal_bit_atomic_test_and_set(oal_bitops nr, OAL_VOLATILE oal_bitops *p_addr)
 {
     return test_and_set_bit(nr, p_addr);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_bit_atomic_clear(oal_bitops nr, OAL_VOLATILE oal_bitops *p_addr)
 {
     clear_bit(nr, p_addr);
 }
 
+
 OAL_STATIC OAL_INLINE __attribute_const__ oal_uint16  oal_byteorder_host_to_net_uint16(oal_uint16 us_byte)
 {
     return htons(us_byte);
 }
+
 
 OAL_STATIC OAL_INLINE __attribute_const__ oal_uint16  oal_byteorder_net_to_host_uint16(oal_uint16 us_byte)
 {
     return ntohs(us_byte);
 }
 
+
 OAL_STATIC OAL_INLINE __attribute_const__ oal_uint32  oal_byteorder_host_to_net_uint32(oal_uint32 ul_byte)
 {
     return htonl(ul_byte);
 }
 
+
 OAL_STATIC OAL_INLINE __attribute_const__ oal_uint32  oal_byteorder_net_to_host_uint32(oal_uint32 ul_byte)
 {
     return ntohl(ul_byte);
 }
+
 
 OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_rw(const oal_int8 *pc_path)
 {
@@ -179,6 +246,7 @@ OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_rw(const oal_int8 *pc_path)
     return file;
 }
 
+
 OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_append(const oal_int8 *pc_path)
 {
     oal_file_stru* file;
@@ -191,6 +259,7 @@ OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_append(const oal_int8 *pc_pat
 
     return file;
 }
+
 
 OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_readonly(const oal_int8 *pc_path)
 {
@@ -205,6 +274,7 @@ OAL_STATIC OAL_INLINE oal_file_stru* oal_file_open_readonly(const oal_int8 *pc_p
     return file;
 }
 
+
 OAL_STATIC OAL_INLINE oal_file_stru* oal_file_write(oal_file_stru *file, oal_int8 *pc_string, oal_uint32 ul_length)
 {
     oal_int i_ret;
@@ -213,6 +283,7 @@ OAL_STATIC OAL_INLINE oal_file_stru* oal_file_write(oal_file_stru *file, oal_int
 
     return file;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32 oal_file_close(oal_file_stru *file)
 {
@@ -228,12 +299,31 @@ OAL_STATIC OAL_INLINE oal_int32 oal_file_close(oal_file_stru *file)
     }
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_file_read(oal_file_stru *file,
 		                                         oal_int8 *pc_buf,
 		                                         oal_uint32 ul_count)
 {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+    loff_t pos = 0;
+    return kernel_read(file, pc_buf, ul_count, &pos);
+#else
     return kernel_read(file, 0, pc_buf, ul_count);
+#endif
 }
+
+OAL_STATIC OAL_INLINE oal_int32  oal_file_read_ext(oal_file_stru *file,
+                                                oal_file_pos pos,
+                                                oal_int8 *pc_buf,
+                                                oal_uint32 ul_count)
+{
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+    return kernel_read(file, pc_buf, ul_count, &pos);
+#else
+    return kernel_read(file, pos, pc_buf, ul_count);
+#endif
+}
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_file_size(oal_uint32   *pul_file_size)
 {
@@ -251,6 +341,7 @@ OAL_STATIC OAL_INLINE oal_int32  oal_file_size(oal_uint32   *pul_file_size)
 
     return OAL_SUCC;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_atoi(const oal_int8 *c_string)
 {
@@ -279,10 +370,12 @@ OAL_STATIC OAL_INLINE oal_int32  oal_atoi(const oal_int8 *c_string)
     }
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_itoa(oal_int32 l_val, oal_int8 *c_string, oal_uint8 uc_strlen)
 {
     snprintf(c_string, uc_strlen, "%d", l_val);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int8 *oal_strtok(oal_int8 *pc_token, OAL_CONST oal_int8 *pc_delemit, oal_int8 **ppc_context)
 {
@@ -403,8 +496,10 @@ OAL_STATIC OAL_INLINE unsigned long long oal_simple_strtoull(const oal_int8 *cp,
     return result;
 }
 
+
 OAL_STATIC OAL_INLINE oal_int  oal_strtol(OAL_CONST oal_int8 *pc_nptr, oal_int8 **ppc_endptr, oal_int32 l_base)
 {
+    /* ???????? */
     while (' ' == (*pc_nptr))
     {
         pc_nptr++;
@@ -416,37 +511,46 @@ OAL_STATIC OAL_INLINE oal_int  oal_strtol(OAL_CONST oal_int8 *pc_nptr, oal_int8 
     return oal_simple_strtoull(pc_nptr, ppc_endptr, l_base);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_udelay(oal_uint u_loops)
 {
     udelay(u_loops);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_mdelay(oal_uint u_loops)
 {
     mdelay(u_loops);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_kallsyms_lookup_name(OAL_CONST oal_uint8 *uc_var_name)
 {
     return kallsyms_lookup_name(uc_var_name);
 }
 
+
+
 OAL_STATIC OAL_INLINE oal_void oal_dump_stack(oal_void)
 {
 #if(_PRE_CONFIG_TARGET_PRODUCT != _PRE_TARGET_PRODUCT_TYPE_WS835DMB)
+    //835????????dump_stack??????????????
     dump_stack();
 #endif
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_msleep(oal_uint32 ul_usecs)
 {
     msleep(ul_usecs);
 }
 
+
 OAL_STATIC OAL_INLINE oal_int8 *oal_strncpy(oal_int8 *pc_dest, OAL_CONST oal_int8 *pc_src, oal_uint32 ul_len)
 {
     return strncpy((oal_int8 *)pc_dest, pc_src, ul_len);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void oal_print_hex_dump(oal_uint8*addr, oal_int32 len, oal_int32 groupsize,oal_int8* pre_str)
 {

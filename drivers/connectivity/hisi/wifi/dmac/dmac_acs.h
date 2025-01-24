@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_acs.h
-  版 本 号   : 初稿
-  作    者   : wangshanbo
-  生成日期   : 2013年12月10日
-  最近修改   :
-  功能描述   : dmac_acs.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年12月10日
-    作    者   : wangshanbo
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_ACS_H__
 #define __DMAC_ACS_H__
@@ -29,7 +12,7 @@ extern "C" {
 #ifdef _PRE_SUPPORT_ACS
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "hal_ext_if.h"
@@ -42,18 +25,18 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_ACS_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 #define DMAC_ACS_REPLY_HDR_LEN                      12
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 typedef enum
 {
-    DMAC_ACS_SCAN_TYPE_BACKGROUND = 0,  /* 背景扫描，每个信道扫描时间较短 */
-    DMAC_ACS_SCAN_TYPE_FOREGROUND,      /* 初始扫描，每个信道扫描时间较长 */
+    DMAC_ACS_SCAN_TYPE_BACKGROUND = 0,  /* ?????????????????????????????? */
+    DMAC_ACS_SCAN_TYPE_FOREGROUND,      /* ?????????????????????????????? */
     DMAC_ACS_SCAN_TYPE_BUTT
 }dmac_acs_scan_type_enum;
 typedef oal_uint8 dmac_acs_scan_type_enum_uint8;
@@ -70,7 +53,7 @@ typedef enum
     DMAC_ACS_CMD_DO_DURATION_STATS,
     DMAC_ACS_CMD_BUTT,  // used as DMAC_ACS_RANK in app
 
-    /* 以下为DMAC向APP主动发送的消息 */
+    /* ??????DMAC??APP?????????????? */
     DMAC_ACS_NOTIFY_CREATE_VAP,
     DMAC_ACS_NOTIFY_DELETE_VAP,
     DMAC_ACS_NOTIFY_ADD_USER,
@@ -82,25 +65,25 @@ typedef enum
 }mac_acs_cmd_enum;
 typedef oal_uint8 dmac_acs_cmd_enum_uint8;
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 
-/* ACS中最优信道的描述结构 */
+/* ACS???????????????????? */
 typedef struct
 {
     oal_bool_enum_uint8               en_valid      : 1;
@@ -109,32 +92,32 @@ typedef struct
     oal_uint8                         uc_channel_number;
 }dmac_acs_channel_stru;
 
-/* VAP创建/删除主动发送信息结构，对应命令                   */
-/* DMAC_ACS_NOTIFY_CREATE_VAP 和 DMAC_ACS_NOTIFY_DELETE_VAP */
+/* VAP????/??????????????????????????????                   */
+/* DMAC_ACS_NOTIFY_CREATE_VAP ?? DMAC_ACS_NOTIFY_DELETE_VAP */
 typedef struct
 {
     oal_uint8                           auc_bssid[WLAN_MAC_ADDR_LEN];
-    wlan_vap_mode_enum_uint8            en_vap_mode; /* vap模式  */
+    wlan_vap_mode_enum_uint8            en_vap_mode; /* vap????  */
     oal_uint8                           uc_vap_id;
 
-    wlan_protocol_enum_uint8            en_protocol;                                    /* 工作的协议模式 */
-    wlan_channel_bandwidth_enum_uint8   en_bandwidth;     /* VAP创建时的初始带宽 */
-    oal_uint8                           uc_channel;       /* VAP的信道号 */
+    wlan_protocol_enum_uint8            en_protocol;                                    /* ?????????????? */
+    wlan_channel_bandwidth_enum_uint8   en_bandwidth;     /* VAP???????????????? */
+    oal_uint8                           uc_channel;       /* VAP???????? */
     wlan_bw_cap_enum_uint8              en_bandwidth_cap;
 }dmac_acs_vap_info_stru;
 
-/* USER关联/去关联主动发送信息结构，对应命令            */
-/* DMAC_ACS_NOTIFY_ADD_USER 和 DMAC_ACS_NOTIFY_DEL_USER */
+/* USER????/????????????????????????????????            */
+/* DMAC_ACS_NOTIFY_ADD_USER ?? DMAC_ACS_NOTIFY_DEL_USER */
 typedef struct
 {
-    oal_uint8                           auc_user_mac_addr[WLAN_MAC_ADDR_LEN];   /* user对应的MAC地址 */
+    oal_uint8                           auc_user_mac_addr[WLAN_MAC_ADDR_LEN];   /* user??????MAC???? */
     oal_uint16                          us_assoc_id;
 
     oal_uint8                           uc_assoc_vap_id;
     wlan_bw_cap_enum_uint8              en_cur_bandwidth      : 4;
-    wlan_protocol_enum_uint8            en_cur_protocol_mode  : 4; /* USER关联时协商的初始带宽 */
-    oal_uint8                           bit_bandwidth_cap:4,  /* USER的最大带宽能力 */
-                                        bit_spectrum_mgmt:1,  /* 是否支持频谱管理(CSA) */
+    wlan_protocol_enum_uint8            en_cur_protocol_mode  : 4; /* USER???????????????????? */
+    oal_uint8                           bit_bandwidth_cap:4,  /* USER?????????????? */
+                                        bit_spectrum_mgmt:1,  /* ????????????????(CSA) */
                                         bit_resv:3;
     oal_int8                            c_rx_rssi;         /* RSSI */
 }dmac_acs_user_info_stru;
@@ -149,14 +132,14 @@ typedef struct
     // user_info1 user_info2...
 }dmac_acs_net_info_stru;
 
-/* 配置信道/带宽主动发送信息结构，对应命令                      */
-/* DMAC_ACS_NOTIFY_CFG_CHANNEL 和 DMAC_ACS_NOTIFY_CFG_BANDWIDTH */
+/* ????????/??????????????????????????????                      */
+/* DMAC_ACS_NOTIFY_CFG_CHANNEL ?? DMAC_ACS_NOTIFY_CFG_BANDWIDTH */
 typedef struct
 {
     dmac_acs_vap_info_stru      st_vap_info;
 }dmac_acs_vap_channel_info_stru;
 
-/* ACS内部维护的USER信息结构 */
+/* ACS??????????USER???????? */
 typedef struct
 {
     oal_dlist_head_stru           st_dlist_head;
@@ -175,17 +158,17 @@ typedef struct
     oal_uint32      ul_rx_pkt_bytes;
 }dmac_acs_user_internal_stru;
 
-/* ACS内部维护的VAP信息结构 */
+/* ACS??????????VAP???????? */
 typedef struct
 {
-    oal_dlist_head_stru     st_dlist_head; /* VAP dlist 表头 */
+    oal_dlist_head_stru     st_dlist_head; /* VAP dlist ???? */
     oal_uint8               uc_vap_id;
     oal_uint8               uc_resv;
     oal_uint16              us_sta_num;
 
-    /* VAP最优备选信道结构 2G & 5G */
+    /* VAP???????????????? 2G & 5G */
     dmac_acs_channel_stru   ast_best_channel_per_band[WLAN_BAND_BUTT];
-    /* TBTT 切换计数 */
+    /* TBTT ???????? */
     oal_uint8               auc_tbtt_cnt[WLAN_BAND_BUTT];
 
     oal_uint8               auc_bssid[WLAN_MAC_ADDR_LEN];
@@ -195,17 +178,17 @@ typedef struct
     oal_dlist_head_stru     st_user_dlist_head;
 }dmac_acs_vap_internal_stru;
 
-/* 发现雷达主动发送信息结构，对应命令 */
+/* ?????????????????????????????????? */
 /* DMAC_ACS_NOTIFY_RADAR_DETECTED */
 typedef struct
 {
     oal_uint8                           uc_channel_number;
-    wlan_channel_bandwidth_enum_uint8   en_bandwidth_mode; /* 检测到雷达时的工作带宽 */
+    wlan_channel_bandwidth_enum_uint8   en_bandwidth_mode; /* ?????????????????????? */
     oal_uint8                           uc_radar_bw;
     oal_uint8                           uc_freq_offset;
 }dmac_acs_radar_info_stru;
 
-/* 可用信道信息结构，对应命令 */
+/* ?????????????????????????? */
 /* DMAC_ACS_CMD_GET_AVAIL_CHANNEL */
 typedef struct
 {
@@ -231,7 +214,7 @@ typedef struct acs_vap_perf_stat
     oal_uint32                    ul_rx_pkt_bytes;
 }acs_vap_perf_user_stat_stru;
 
-/* AP的性能参数回复结构， 对应命令 */
+/* AP???????????????????? ???????? */
 /* DMAC_ACS_CMD_GET_VAP_PERF_INFO */
 typedef struct
 {
@@ -247,7 +230,7 @@ typedef struct
 }dmac_acs_vap_perf_reply_stru;
 // acs_vap_perf_user_stat_stru  ast_user_stat[N];
 
-/* 来自APP的CSA命令结构 */
+/* ????APP??CSA???????? */
 typedef struct
 {
     oal_uint8           uc_band;
@@ -260,12 +243,12 @@ typedef struct
 }dmac_acs_csa_stru;
 typedef oal_void (*dmac_acs_cmd_handler_fn)(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd);
 
-// 信道更新和sta带宽改变二者不会同时使用
+// ??????????sta????????????????????????
 typedef struct
 {
-    oal_uint8           uc_2g_cnt;      // 2g 信道个数
-    oal_uint8           uc_5g_cnt;      // 5g 信道个数
-    oal_uint8           uc_bw_chg_sta_cnt;  // 带宽发送改变的sta个数
+    oal_uint8           uc_2g_cnt;      // 2g ????????
+    oal_uint8           uc_5g_cnt;      // 5g ????????
+    oal_uint8           uc_bw_chg_sta_cnt;  // ??????????????sta????
     oal_uint8           uc_chip_id  : 4;
     oal_uint8           uc_device_id : 4;
 }dmac_acs_selected_info_stru;
@@ -286,26 +269,26 @@ typedef struct
     oal_bool_enum_uint8     en_in_scan;
     oal_bool_enum_uint8     en_in_stats;
 
-    /* ACS最优信道结构 2G & 5G */
+    /* ACS???????????? 2G & 5G */
     dmac_acs_channel_stru             ast_best_channel_per_band[WLAN_BAND_BUTT];
 
-    /* 信道信息 相关数据 */
-    oal_uint8                         uc_csa_vap_cnt;        /* 有VAP处于CSA状态 */
+    /* ???????? ???????? */
+    oal_uint8                         uc_csa_vap_cnt;        /* ??VAP????CSA???? */
     oal_uint8                         auc_resv[3];
 
-    /* ACS 运行统计数据 */
+    /* ACS ???????????? */
     oal_uint32                        ul_mac_stats_time_us;
     oal_uint32                        ul_mac_free_time_us;
     oal_uint32                        ul_phy_free_power;
 
-    /* ACS 内部维护VAP链表 */
+    /* ACS ????????VAP???? */
     oal_dlist_head_stru               st_vap_dlist_head;
 
-    /* ACS 命令处理列表 */
+    /* ACS ???????????? */
     dmac_acs_cmd_handler_fn           apfn_cmd_handler[DMAC_ACS_CMD_BUTT];
 }dmac_acs_stru;
 
-/* 该表由ALG_AUTORATE定义，但DMAC不能直接引用，这里重新复制一个 */
+/* ??????ALG_AUTORATE????????DMAC?????????????????????????????? */
 typedef struct
 {
     oal_bool_enum_uint8                 en_short_gi;
@@ -342,17 +325,17 @@ typedef struct
 }dmac_acs_req_rescan_param_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  dmac_acs_init(mac_device_stru *pst_device);
 extern oal_uint32  dmac_acs_exit(mac_device_stru *pst_device);

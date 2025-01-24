@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_config.h
-  版 本 号   : 初稿
-  作    者   : zourong
-  生成日期   : 2013年1月8日
-  最近修改   :
-  功能描述   : dmac_config.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年1月8日
-    作    者   : zourong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_CONFIG_H__
 #define __DMAC_CONFIG_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -43,14 +26,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_CONFIG_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define DMAC_HIPRIV_CMD_NAME_MAX_LEN  16                             /* 字符串中每个单词的最大长度 */
-#define DMAC_RX_LPF_GAIN  6                             /* 字符串中每个单词的最大长度 */
-#define DMAC_DBM_CH  (-13)                             /* 字符串中每个单词的最大长度 */
-#define DMAC_SINGLE_DOUBLE_SWITCH_GAIN  (3)                             /* 字符串中每个单词的最大长度 */
-#define DMAC_RSSI_REF_DIFFERENCE  (20)                             /* 字符串中每个单词的最大长度 */
-#define DMAC_RADAR_REF_DIFFERENCE  (24)                             /* 字符串中每个单词的最大长度 */
+#define DMAC_HIPRIV_CMD_NAME_MAX_LEN  16                             /* ?????????????????????????? */
+#define DMAC_RX_LPF_GAIN  6                             /* ?????????????????????????? */
+#define DMAC_DBM_CH  (-13)                             /* ?????????????????????????? */
+#define DMAC_SINGLE_DOUBLE_SWITCH_GAIN  (3)                             /* ?????????????????????????? */
+#define DMAC_RSSI_REF_DIFFERENCE  (20)                             /* ?????????????????????????? */
+#define DMAC_RADAR_REF_DIFFERENCE  (24)                             /* ?????????????????????????? */
 
 #define DMAC_SET_NETBUF_CB(  evt_type, \
                             tx_usr_idx,  \
@@ -72,44 +55,44 @@ extern "C" {
          g_auc_legacy_rate_idx_table[(_un_nss_rate.st_legacy_rate.bit_legacy_rate)])
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* 信道与带宽模式映射 */
+/* ?????????????????? */
 typedef struct
 {
-    oal_uint8                           uc_channel;     /* 信道 */
-    wlan_channel_bandwidth_enum_uint8   en_bandwidth_40;/* 带宽 */
-    wlan_channel_bandwidth_enum_uint8   en_bandwidth_80;/* 带宽 */
+    oal_uint8                           uc_channel;     /* ???? */
+    wlan_channel_bandwidth_enum_uint8   en_bandwidth_40;/* ???? */
+    wlan_channel_bandwidth_enum_uint8   en_bandwidth_80;/* ???? */
     oal_uint8                           auc_resv;
 }dmac_config_channel_bw_map_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 extern oal_uint32  dmac_event_config_syn(frw_event_mem_stru *pst_event_mem);
 extern oal_uint32  dmac_config_set_qap_cwmin(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param);
@@ -176,7 +159,7 @@ extern oal_uint32 dmac_pkt_mem_opt_stat_event_process(frw_event_mem_stru *pst_ev
 #endif /* */
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
 extern oal_void dmac_config_update_rate_pow_table(oal_void);
-extern oal_void dmac_config_update_scaling_reg(oal_void);
+extern oal_void dmac_config_update_scaling_reg(oal_uint8 uc_device_id);
 extern oal_void dmac_config_update_dsss_scaling_reg(dmac_alg_tpc_user_distance_enum_uint8 en_dmac_device_distance_enum);
 #endif  /* _PRE_PLAT_FEATURE_CUSTOMIZE */
 extern oal_uint32  dmac_send_sys_event(mac_vap_stru *pst_mac_vap,

@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : mac_user.h
-  版 本 号   : 初稿
-  作    者   : huxiaotong
-  生成日期   : 2012年10月19日
-  最近修改   :
-  功能描述   : mac_user.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __MAC_USER_H__
 #define __MAC_USER_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "frw_ext_if.h"
@@ -41,39 +24,39 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_MAC_USER_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define MAC_ACTIVE_USER_IDX_BMAP_LEN        ((WLAN_ACTIVE_USER_MAX_NUM >> 3) + 1)   /* 活跃用户索引位图 */
-#define MAC_INVALID_RA_LUT_IDX              WLAN_ACTIVE_USER_MAX_NUM                /* 不可用的RA LUT IDX */
+#define MAC_ACTIVE_USER_IDX_BMAP_LEN        ((WLAN_ACTIVE_USER_MAX_NUM >> 3) + 1)   /* ???????????????? */
+#define MAC_INVALID_RA_LUT_IDX              WLAN_ACTIVE_USER_MAX_NUM                /* ????????RA LUT IDX */
 #define MAC_USER_INIT_STREAM        1
-#define MAC_INVALID_USER_ID         0xffff   /* 无效的user idx */
+#define MAC_INVALID_USER_ID         0xffff   /* ??????user idx */
 
-#define MAC_USER_FREED              0xff         /* USER资源未申请 */
-#define MAC_USER_ALLOCED            0x5a         /* USER已被申请 */
+#define MAC_USER_FREED              0xff         /* USER?????????? */
+#define MAC_USER_ALLOCED            0x5a         /* USER???????? */
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  5 消息头定义
-*****************************************************************************/
-
-
-/*****************************************************************************
-  6 消息定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  6 ????????
 *****************************************************************************/
-/* user tx参数，从架构分析文档获得成员 */
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+/* user tx???????????????????????????? */
 typedef struct
 {
     wlan_security_txop_params_stru       st_security;
@@ -81,52 +64,52 @@ typedef struct
 
 typedef struct
 {
-    oal_uint8        uc_rs_nrates;                                 /* 个数 */
-    oal_uint8        auc_rs_rates[WLAN_RATE_MAXSIZE];              /* 速率 */
+    oal_uint8        uc_rs_nrates;                                 /* ???? */
+    oal_uint8        auc_rs_rates[WLAN_RATE_MAXSIZE];              /* ???? */
 }mac_rate_stru;
 
 
 typedef struct
 {
-    oal_uint32  bit_spectrum_mgmt       : 1,        /* 频谱管理: 0=不支持, 1=支持 */
-                bit_qos                 : 1,        /* QOS: 0=非QOS站点, 1=QOS站点 */
-                bit_barker_preamble_mode: 1,        /* 供STA保存BSS中站点是否都支持short preamble， 0=支持， 1=不支持 */
-                bit_apsd                : 1,        /* 自动节能: 0=不支持, 1=支持 *//* 目前bit_apsd只有写没有读，wifi联盟已自己定义了WMM节能IE代替cap apsd功能 ,此处预留为后续可能出的兼容性问题提供接口 */
-                bit_pmf_active          : 1,        /* 管理帧加密使能开关*/
-                bit_erp_use_protect     : 1,        /* 供STA保存AP是否启用了ERP保护 */
+    oal_uint32  bit_spectrum_mgmt       : 1,        /* ????????: 0=??????, 1=???? */
+                bit_qos                 : 1,        /* QOS: 0=??QOS????, 1=QOS???? */
+                bit_barker_preamble_mode: 1,        /* ??STA????BSS????????????????short preamble?? 0=?????? 1=?????? */
+                bit_apsd                : 1,        /* ????????: 0=??????, 1=???? *//* ????bit_apsd??????????????wifi????????????????WMM????IE????cap apsd???? ,???????????????????????????????????????? */
+                bit_pmf_active          : 1,        /* ??????????????????*/
+                bit_erp_use_protect     : 1,        /* ??STA????AP??????????ERP???? */
                 bit_11ntxbf             : 1,
                 bit_proxy_arp           : 1,
                 bit_histream_cap        : 1,
                 bit_resv                : 23;
 }mac_user_cap_info_stru;
 
-/* user下ht相关信息 */
+/* user??ht???????? */
 typedef struct
 {
     /* ht cap */
     oal_bool_enum_uint8 en_ht_capable;                                /* HT capable              */
     oal_uint8           uc_max_rx_ampdu_factor;                       /* Max AMPDU Rx Factor     */
     oal_uint8           uc_min_mpdu_start_spacing;                    /* Min AMPDU Start Spacing */
-    oal_uint8           uc_htc_support;                               /* HTC 域支持              */
+    oal_uint8           uc_htc_support;                               /* HTC ??????              */
 
-    oal_uint16          bit_ldpc_coding_cap         : 1,              /* LDPC 编码 capability    */
-                        bit_supported_channel_width : 1,              /* STA 支持的带宽   0: 20Mhz, 1: 20/40Mhz  */
-                        bit_sm_power_save           : 2,              /* SM 省电模式             */
-                        bit_ht_green_field          : 1,              /* 绿野模式                */
-                        bit_short_gi_20mhz          : 1,              /* 20M下短保护间隔         */
-                        bit_short_gi_40mhz          : 1,              /* 40M下短保护间隔         */
+    oal_uint16          bit_ldpc_coding_cap         : 1,              /* LDPC ???? capability    */
+                        bit_supported_channel_width : 1,              /* STA ??????????   0: 20Mhz, 1: 20/40Mhz  */
+                        bit_sm_power_save           : 2,              /* SM ????????             */
+                        bit_ht_green_field          : 1,              /* ????????                */
+                        bit_short_gi_20mhz          : 1,              /* 20M????????????         */
+                        bit_short_gi_40mhz          : 1,              /* 40M????????????         */
                         bit_tx_stbc                 : 1,              /* Indicates support for the transmission of PPDUs using STBC */
-                        bit_rx_stbc                 : 2,              /* 支持 Rx STBC            */
+                        bit_rx_stbc                 : 2,              /* ???? Rx STBC            */
                         bit_ht_delayed_block_ack    : 1,              /* Indicates support for HT-delayed Block Ack opera-tion. */
                         bit_max_amsdu_length        : 1,              /* Indicates maximum A-MSDU length. */
-                        bit_dsss_cck_mode_40mhz     : 1,              /* 40M下 DSSS/CCK 模式     0:不使用 40M dsss/cck, 1: 使用 40M dsss/cck */
+                        bit_dsss_cck_mode_40mhz     : 1,              /* 40M?? DSSS/CCK ????     0:?????? 40M dsss/cck, 1: ???? 40M dsss/cck */
                         bit_resv                    : 1,
                         bit_forty_mhz_intolerant    : 1,              /* Indicates whether APs receiving this information or reports of this informa-tion are required to prohibit 40 MHz transmissions */
-                        bit_lsig_txop_protection    : 1;              /* 支持 L-SIG TXOP 保护    */
+                        bit_lsig_txop_protection    : 1;              /* ???? L-SIG TXOP ????    */
 
     oal_uint8           uc_rx_mcs_bitmask[WLAN_HT_MCS_BITMASK_LEN];   /* Rx MCS bitmask */
 
-    /* ht operation, VAP是STA, user是AP独有 */
+    /* ht operation, VAP??STA, user??AP???? */
     oal_uint8           uc_primary_channel;
 
     oal_uint8           bit_secondary_chan_offset             : 2,
@@ -148,38 +131,38 @@ typedef struct
 
     oal_uint8           auc_basic_mcs_set[16];
 
-	oal_uint32          bit_imbf_receive_cap                :   1,  /*隐式TxBf接收能力*/
-                        bit_receive_staggered_sounding_cap  :   1,  /*接收交错探测帧的能力*/
-                        bit_transmit_staggered_sounding_cap :   1,  /*发送交错探测帧的能力*/
-                        bit_receive_ndp_cap                 :   1,  /*接收NDP能力*/
-                        bit_transmit_ndp_cap                :   1,  /*发送NDP能力*/
-                        bit_imbf_cap                        :   1,  /*隐式TxBf能力*/
-                        bit_calibration                     :   2,  /*0=不支持，1=站点可以用CSI报告相应校准请求，但不能发起校准，2=保留，3=站点可以发起，也可以相应校准请求*/
-                        bit_exp_csi_txbf_cap                :   1,  /*应用CSI反馈进行TxBf的能力*/
-                        bit_exp_noncomp_txbf_cap            :   1,  /*应用非压缩矩阵进行TxBf的能力*/
-                        bit_exp_comp_txbf_cap               :   1,  /*应用压缩矩阵进行TxBf的能力*/
-                        bit_exp_csi_feedback                :   2,  /*0=不支持，1=延迟反馈，2=立即反馈，3=延迟和立即反馈*/
-                        bit_exp_noncomp_feedback            :   2,  /*0=不支持，1=延迟反馈，2=立即反馈，3=延迟和立即反馈*/
-                        bit_exp_comp_feedback               :   2,  /*0=不支持，1=延迟反馈，2=立即反馈，3=延迟和立即反馈*/
-                        bit_min_grouping                    :   2,  /*0=不分组，1=1,2分组，2=1,4分组，3=1,2,4分组*/
-                        bit_csi_bfer_ant_number             :   2,  /*CSI反馈时，bfee最多支持的beamformer天线数，0=1Tx天线探测，1=2Tx天线探测，2=3Tx天线探测，3=4Tx天线探测*/
-                        bit_noncomp_bfer_ant_number         :   2,  /*非压缩矩阵反馈时，bfee最多支持的beamformer天线数，0=1Tx天线探测，1=2Tx天线探测，2=3Tx天线探测，3=4Tx天线探测*/
-                        bit_comp_bfer_ant_number            :   2,  /*压缩矩阵反馈时，bfee最多支持的beamformer天线数，0=1Tx天线探测，1=2Tx天线探测，2=3Tx天线探测，3=4Tx天线探测*/
-                        bit_csi_bfee_max_rows               :   2,  /*bfer支持的来自bfee的CSI显示反馈的最大行数*/
-                        bit_channel_est_cap                 :   2,  /*信道估计的能力，0=1空时流，依次递增*/
+	oal_uint32          bit_imbf_receive_cap                :   1,  /*????TxBf????????*/
+                        bit_receive_staggered_sounding_cap  :   1,  /*????????????????????*/
+                        bit_transmit_staggered_sounding_cap :   1,  /*????????????????????*/
+                        bit_receive_ndp_cap                 :   1,  /*????NDP????*/
+                        bit_transmit_ndp_cap                :   1,  /*????NDP????*/
+                        bit_imbf_cap                        :   1,  /*????TxBf????*/
+                        bit_calibration                     :   2,  /*0=????????1=??????????CSI??????????????????????????????????2=??????3=????????????????????????????????*/
+                        bit_exp_csi_txbf_cap                :   1,  /*????CSI????????TxBf??????*/
+                        bit_exp_noncomp_txbf_cap            :   1,  /*??????????????????TxBf??????*/
+                        bit_exp_comp_txbf_cap               :   1,  /*????????????????TxBf??????*/
+                        bit_exp_csi_feedback                :   2,  /*0=????????1=??????????2=??????????3=??????????????*/
+                        bit_exp_noncomp_feedback            :   2,  /*0=????????1=??????????2=??????????3=??????????????*/
+                        bit_exp_comp_feedback               :   2,  /*0=????????1=??????????2=??????????3=??????????????*/
+                        bit_min_grouping                    :   2,  /*0=????????1=1,2??????2=1,4??????3=1,2,4????*/
+                        bit_csi_bfer_ant_number             :   2,  /*CSI????????bfee??????????beamformer????????0=1Tx??????????1=2Tx??????????2=3Tx??????????3=4Tx????????*/
+                        bit_noncomp_bfer_ant_number         :   2,  /*??????????????????bfee??????????beamformer????????0=1Tx??????????1=2Tx??????????2=3Tx??????????3=4Tx????????*/
+                        bit_comp_bfer_ant_number            :   2,  /*????????????????bfee??????????beamformer????????0=1Tx??????????1=2Tx??????????2=3Tx??????????3=4Tx????????*/
+                        bit_csi_bfee_max_rows               :   2,  /*bfer??????????bfee??CSI??????????????????*/
+                        bit_channel_est_cap                 :   2,  /*????????????????0=1????????????????*/
                         bit_reserved                        :   3;
 }mac_user_ht_hdl_stru;
 
 typedef struct
 {
-oal_uint16              us_max_mcs_1ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_2ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_3ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_4ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_5ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_6ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_7ss : 2,                             /* 一个空间流的MCS最大支持MAP */
-                        us_max_mcs_8ss : 2;                             /* 一个空间流的MCS最大支持MAP */
+oal_uint16              us_max_mcs_1ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_2ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_3ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_4ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_5ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_6ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_7ss : 2,                             /* ????????????MCS????????MAP */
+                        us_max_mcs_8ss : 2;                             /* ????????????MCS????????MAP */
 }mac_max_mcs_map_stru;
 
 typedef mac_max_mcs_map_stru mac_tx_max_mcs_map_stru;
@@ -197,19 +180,19 @@ typedef struct
                 bit_short_gi_160mhz         : 1,
                 bit_tx_stbc                 : 1,
                 bit_rx_stbc                 : 3,
-                bit_su_beamformer_cap       : 1,                       /* SU bfer能力，要过AP认证，必须填1 */
-                bit_su_beamformee_cap       : 1,                       /* SU bfee能力，要过STA认证，必须填1 */
-                bit_num_bf_ant_supported    : 3,                       /* SU时，最大接收NDP的Nsts，最小是1 */
-                bit_num_sounding_dim        : 3,                       /* SU时，表示Nsts最大值，最小是1 */
-                bit_mu_beamformer_cap       : 1,                       /* 不支持，set to 0 */
-                bit_mu_beamformee_cap       : 1,                       /* 不支持，set to 0 */
+                bit_su_beamformer_cap       : 1,                       /* SU bfer??????????AP????????????1 */
+                bit_su_beamformee_cap       : 1,                       /* SU bfee??????????STA????????????1 */
+                bit_num_bf_ant_supported    : 3,                       /* SU????????????NDP??Nsts????????1 */
+                bit_num_sounding_dim        : 3,                       /* SU????????Nsts??????????????1 */
+                bit_mu_beamformer_cap       : 1,                       /* ????????set to 0 */
+                bit_mu_beamformee_cap       : 1,                       /* ????????set to 0 */
                 bit_vht_txop_ps             : 1,
                 bit_htc_vht_capable         : 1,
                 bit_max_ampdu_len_exp       : 3,
                 bit_vht_link_adaptation     : 2,
                 bit_rx_ant_pattern          : 1,
                 bit_tx_ant_pattern          : 1,
-                bit_resv1                   : 2;                       /* 解析vht Capabilities IE: VHT Capabilities Info field */
+                bit_resv1                   : 2;                       /* ????vht Capabilities IE: VHT Capabilities Info field */
 
     mac_tx_max_mcs_map_stru     st_tx_max_mcs_map;
     mac_rx_max_mcs_map_stru     st_rx_max_mcs_map;
@@ -217,37 +200,37 @@ typedef struct
     oal_uint16  bit_rx_highest_rate : 13,
                 bit_resv2           : 3;
     oal_uint16  bit_tx_highest_rate : 13,
-                bit_resv3           : 3;                                /* 解析vht Capabilities IE: VHT Supported MCS Set field */
+                bit_resv3           : 3;                                /* ????vht Capabilities IE: VHT Supported MCS Set field */
 
     oal_bool_enum_uint8 en_vht_capable;                                /* VHT capable */
 
-    /* vht operation只有是ap的情况下有 */
-    oal_uint8           uc_channel_width;                              /* 解析VHT Operation IE */
-                                                                       /* uc_channel_width的取值，0 -- 20/40M, 1 -- 80M, 2 -- 160M */
+    /* vht operation??????ap?????????? */
+    oal_uint8           uc_channel_width;                              /* ????VHT Operation IE */
+                                                                       /* uc_channel_width????????0 -- 20/40M, 1 -- 80M, 2 -- 160M */
     oal_uint8           uc_channel_center_freq_seg0;
     oal_uint8           uc_channel_center_freq_seg1;
 } mac_vht_hdl_stru;
 
-/* user结构体，对SA Query流程信息的保存结构 */
+/* user??????????SA Query?????????????????? */
 typedef struct
 {
     oal_uint32          ul_sa_query_count;                          /* number of pending SA Query requests, 0 = no SA Query in progress */
-    oal_uint32          ul_sa_query_start_time;                     /* sa_query 流程开始时间,单位ms */
+    oal_uint32          ul_sa_query_start_time;                     /* sa_query ????????????,????ms */
     oal_uint16          us_sa_query_trans_id;                       /* trans id */
     oal_uint8           auc_resv[2];
-    frw_timeout_stru    st_sa_query_interval_timer;                 /* SA Query 间隔定时器，相关dot11AssociationSAQueryRetryTimeout */
+    frw_timeout_stru    st_sa_query_interval_timer;                 /* SA Query ????????????????dot11AssociationSAQueryRetryTimeout */
 }mac_sa_query_stru;
 
 typedef struct
 {
-    oal_uint8               uc_qos_info;                                /* 关联请求中的WMM IE的QOS info field */
-    oal_uint8               uc_max_sp_len;                              /* 从qos info字段中提取翻译的最大服务长度*/
+    oal_uint8               uc_qos_info;                                /* ????????????WMM IE??QOS info field */
+    oal_uint8               uc_max_sp_len;                              /* ??qos info????????????????????????????*/
     oal_uint8               auc_resv[2];
-    oal_uint8               uc_ac_trigger_ena[WLAN_WME_AC_BUTT];    /* 4个AC的trigger能力 */
-    oal_uint8               uc_ac_delievy_ena[WLAN_WME_AC_BUTT];    /* 4个AC的delivery能力 */
+    oal_uint8               uc_ac_trigger_ena[WLAN_WME_AC_BUTT];    /* 4??AC??trigger???? */
+    oal_uint8               uc_ac_delievy_ena[WLAN_WME_AC_BUTT];    /* 4??AC??delivery???? */
 }mac_user_uapsd_status_stru;
 
-/* 用户与AP的关联状态枚举 */
+/* ??????AP?????????????? */
 typedef enum
 {
     MAC_USER_STATE_AUTH_COMPLETE   = 1,
@@ -258,35 +241,35 @@ typedef enum
 }hmac_user_asoc_state_enum;
 typedef oal_uint8 mac_user_asoc_state_enum_uint8;
 
-/* 802.1X-port 状态结构体*/
-/* 1X端口状态说明:                                                  */
-/* 1) portvalid && keydone 都是 TRUE: 表示端口处于合法状态          */
-/* 2) portvalid == TRUE && keydone == FALSE:表示端口处于未知状态    */
-/*                                     密钥还未生效                 */
-/* 3) portValid == FALSE && keydone== TRUE:表示端口处于非法状态     */
-/*                                      密钥获取失败                */
-/* 4) portValid && keyDone are FALSE: 表示端口处于合法状态          */
-/*                                          密钥还未生效            */
+/* 802.1X-port ??????????*/
+/* 1X????????????:                                                  */
+/* 1) portvalid && keydone ???? TRUE: ????????????????????          */
+/* 2) portvalid == TRUE && keydone == FALSE:????????????????????    */
+/*                                     ????????????                 */
+/* 3) portValid == FALSE && keydone== TRUE:????????????????????     */
+/*                                      ????????????                */
+/* 4) portValid && keyDone are FALSE: ????????????????????          */
+/*                                          ????????????            */
 
 typedef struct
 {
-    oal_bool_enum_uint8             keydone;                      /*端口合法性是否允许测试*/
-    oal_bool_enum_uint8             portvalid;                    /*端口合法性标识*/
+    oal_bool_enum_uint8             keydone;                      /*??????????????????????*/
+    oal_bool_enum_uint8             portvalid;                    /*??????????????*/
     oal_uint8                       auc_resv0[2];
 }mac_8021x_port_status_stru;
 
 
-/*供AP查看STA是否被统计到对应项*/
+/*??AP????STA??????????????????*/
 typedef struct
 {
-    oal_uint8             bit_no_short_slot_stats_flag     :1;      /*指示user是否被统计到no short slot num中, 0表示未被统计， 1表示已被统计*/
-    oal_uint8             bit_no_short_preamble_stats_flag :1;      /*指示user是否被统计到no short preamble num中*/
-    oal_uint8             bit_no_erp_stats_flag            :1;      /*指示user是否被统计到no erp num中*/
-    oal_uint8             bit_no_ht_stats_flag             :1;      /*指示user是否被统计到no ht num中*/
-    oal_uint8             bit_no_gf_stats_flag             :1;      /*指示user是否被统计到no gf num中*/
-    oal_uint8             bit_20M_only_stats_flag          :1;      /*指示user是否被统计到no 20M only num中*/
-    oal_uint8             bit_no_40dsss_stats_flag         :1;      /*指示user是否被统计到no 40dsss num中*/
-    oal_uint8             bit_no_lsig_txop_stats_flag      :1;      /*指示user是否被统计到no lsig txop num中*/
+    oal_uint8             bit_no_short_slot_stats_flag     :1;      /*????user????????????no short slot num??, 0?????????????? 1????????????*/
+    oal_uint8             bit_no_short_preamble_stats_flag :1;      /*????user????????????no short preamble num??*/
+    oal_uint8             bit_no_erp_stats_flag            :1;      /*????user????????????no erp num??*/
+    oal_uint8             bit_no_ht_stats_flag             :1;      /*????user????????????no ht num??*/
+    oal_uint8             bit_no_gf_stats_flag             :1;      /*????user????????????no gf num??*/
+    oal_uint8             bit_20M_only_stats_flag          :1;      /*????user????????????no 20M only num??*/
+    oal_uint8             bit_no_40dsss_stats_flag         :1;      /*????user????????????no 40dsss num??*/
+    oal_uint8             bit_no_lsig_txop_stats_flag      :1;      /*????user????????????no lsig txop num??*/
 
     oal_uint8             auc_resv0[3];
 }mac_user_stats_flag_stru;
@@ -302,49 +285,49 @@ typedef struct
 
 typedef struct
 {
-    frw_timeout_stru        st_txrx_param_timer;/* 上报定时器 */
+    frw_timeout_stru        st_txrx_param_timer;/* ?????????? */
 }mac_user_track_ctx_stru;
 #endif
-/* AP侧keepalive活动的控制结构体 */
+/* AP??keepalive???????????????? */
 typedef struct
 {
-    oal_uint8             uc_keepalive_count_ap;                  /* AP定时保活检测操作计数器 */
-    oal_uint8             uc_timer_to_keepalive_count;            /* 复用aging timer/STA省电模式定时清醒策略，定时发送keepalive帧的计数器*/
-    oal_uint8             uc_delay_flag;                          /* 标志用户进入睡眠状态或者其他不能马上收帧反馈的状态 */
+    oal_uint8             uc_keepalive_count_ap;                  /* AP?????????????????????? */
+    oal_uint8             uc_timer_to_keepalive_count;            /* ????aging timer/STA??????????????????????????????keepalive??????????*/
+    oal_uint8             uc_delay_flag;                          /* ?????????????????????????????????????????????????? */
 
     oal_uint8             auc_resv[1];
 }mac_user_keepalive;
-/*密钥管理结构体*/
+/*??????????????*/
 typedef struct
 {
     wlan_ciper_protocol_type_enum_uint8     en_cipher_type;
-    oal_uint8                               uc_default_index;                       /* 默认索引 */
-    oal_uint8                               uc_igtk_key_index;                      /* igtk索引 */
-    oal_uint8                               bit_gtk       :1,                       /* 指示RX GTK的槽位，02使用 */
+    oal_uint8                               uc_default_index;                       /* ???????? */
+    oal_uint8                               uc_igtk_key_index;                      /* igtk???? */
+    oal_uint8                               bit_gtk       :1,                       /* ????RX GTK????????02???? */
                                             bit_rsv       :7;
-    wlan_priv_key_param_stru                ast_key[WLAN_NUM_TK + WLAN_NUM_IGTK];   /* key缓存 */
-    oal_uint8                               uc_last_gtk_key_idx;                      /* igtk索引 */
+    wlan_priv_key_param_stru                ast_key[WLAN_NUM_TK + WLAN_NUM_IGTK];   /* key???? */
+    oal_uint8                               uc_last_gtk_key_idx;                      /* igtk???? */
     oal_uint8                               auc_reserved[1];
 }mac_key_mgmt_stru;
 
-/* 空间流信息结构体 */
+/* ???????????????? */
 typedef struct
 {
     oal_uint16            us_user_idx;
-    oal_uint8             uc_avail_num_spatial_stream;            /* Tx和Rx支持Nss的交集,供算法调用 */
-	oal_uint8             uc_num_spatial_stream;                  /* 用户支持的空间流个数 */
+    oal_uint8             uc_avail_num_spatial_stream;            /* Tx??Rx????Nss??????,?????????? */
+	oal_uint8             uc_num_spatial_stream;                  /* ???????????????????? */
 
 }mac_user_nss_stru;
 
-/* opmode信息结构体 */
+/* opmode?????????? */
 typedef struct
 {
     oal_uint16              us_user_idx;
-    oal_uint8               uc_avail_num_spatial_stream;            /* Tx和Rx支持Nss的交集,供算法调用 */
-    oal_uint8               uc_avail_bf_num_spatial_stream;         /* 用户支持的Beamforming空间流个数 */
+    oal_uint8               uc_avail_num_spatial_stream;            /* Tx??Rx????Nss??????,?????????? */
+    oal_uint8               uc_avail_bf_num_spatial_stream;         /* ??????????Beamforming?????????? */
     oal_uint8               uc_frame_type;
-    wlan_bw_cap_enum_uint8  en_avail_bandwidth;                     /* 用户和VAP带宽能力交集,供算法调用 */
-    wlan_bw_cap_enum_uint8  en_cur_bandwidth;                       /* 默认值与en_avail_bandwidth相同,供算法调用修改 */
+    wlan_bw_cap_enum_uint8  en_avail_bandwidth;                     /* ??????VAP????????????,?????????? */
+    wlan_bw_cap_enum_uint8  en_cur_bandwidth;                       /* ????????en_avail_bandwidth????,?????????????? */
 
     oal_uint8             auc_resv[1];
 }mac_user_opmode_stru;
@@ -358,7 +341,7 @@ typedef struct mac_key_params_tag
     oal_uint32 cipher;
 }mac_key_params_stru;
 #ifdef _PRE_WLAN_FEATURE_WMMAC
-/* user结构中，ts信息的保存结果 */
+/* user????????ts?????????????? */
 typedef struct mac_ts
 {
     oal_uint32                           ul_medium_time;
@@ -370,70 +353,70 @@ typedef struct mac_ts
     oal_uint8                            uc_vap_id;
     oal_uint16                           us_mac_user_idx;
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /*每个ts下都需要建立定时器，此处不放到hmac_user_stru*/
+    /*????ts??????????????????????????????hmac_user_stru*/
     frw_timeout_stru                     st_addts_timer;
 #endif
 }mac_ts_stru;
 #endif
 
 
-/* mac user结构体, hmac_user_stru和dmac_user_stru公共部分 */
+/* mac user??????, hmac_user_stru??dmac_user_stru???????? */
 typedef struct
 {
-    /* 当前VAP工作在AP或STA模式，以下字段为user是STA或AP时公共字段，新添加字段请注意!!! */
-    oal_dlist_head_stru                     st_user_dlist;                          /* 用于hash双向链中的双向链表 */
-    oal_uint16                              us_user_hash_idx;                       /* 索引值(关联) */
-    oal_uint8                               auc_user_mac_addr[WLAN_MAC_ADDR_LEN];   /* user对应的MAC地址 */
-    oal_uint16                              us_assoc_id;                            /* user对应资源池索引值; user为STA时，表示填在管理帧中的AID，值为用户的资源池索引值1~32(协议规定范围为1~2007)*/
+    /* ????VAP??????AP??STA????????????????user??STA??AP????????????????????????????!!! */
+    oal_dlist_head_stru                     st_user_dlist;                          /* ????hash?????????????????? */
+    oal_uint16                              us_user_hash_idx;                       /* ??????(????) */
+    oal_uint8                               auc_user_mac_addr[WLAN_MAC_ADDR_LEN];   /* user??????MAC???? */
+    oal_uint16                              us_assoc_id;                            /* user????????????????; user??STA??????????????????????AID????????????????????????1~32(??????????????1~2007)*/
     oal_bool_enum_uint8                     en_is_multi_user;
     oal_uint8                               uc_vap_id;                              /* vap ID */
-    oal_uint8                               uc_device_id;                           /* 设备ID */
-    oal_uint8                               uc_chip_id;                             /* 芯片ID */
-    wlan_protocol_enum_uint8                en_protocol_mode;                       /* 用户工作协议 */
-    wlan_protocol_enum_uint8                en_avail_protocol_mode;                 /* 用户和VAP协议模式交集, 供算法调用 */
-    wlan_protocol_enum_uint8                en_cur_protocol_mode;                   /* 默认值与en_avail_protocol_mode值相同, 供算法调用修改 */
+    oal_uint8                               uc_device_id;                           /* ????ID */
+    oal_uint8                               uc_chip_id;                             /* ????ID */
+    wlan_protocol_enum_uint8                en_protocol_mode;                       /* ???????????? */
+    wlan_protocol_enum_uint8                en_avail_protocol_mode;                 /* ??????VAP????????????, ?????????? */
+    wlan_protocol_enum_uint8                en_cur_protocol_mode;                   /* ????????en_avail_protocol_mode??????, ?????????????? */
 
-    oal_uint8                               uc_avail_num_spatial_stream;            /* Tx和Rx支持Nss的交集,供算法调用 */
-	oal_uint8                               uc_num_spatial_stream;                  /* 用户支持的空间流个数 */
-	oal_uint8                               uc_avail_bf_num_spatial_stream;         /* 用户支持的Beamforming空间流个数 */
-    oal_bool_enum_uint8                     en_port_valid;                          /* 802.1X端口合法性标识 */
-    oal_uint8                               uc_is_user_alloced;                     /* 标志此user资源是否已经被申请 */
+    oal_uint8                               uc_avail_num_spatial_stream;            /* Tx??Rx????Nss??????,?????????? */
+	oal_uint8                               uc_num_spatial_stream;                  /* ???????????????????? */
+	oal_uint8                               uc_avail_bf_num_spatial_stream;         /* ??????????Beamforming?????????? */
+    oal_bool_enum_uint8                     en_port_valid;                          /* 802.1X?????????????? */
+    oal_uint8                               uc_is_user_alloced;                     /* ??????user?????????????????? */
 
-    mac_rate_stru                           st_avail_op_rates;                      /* 用户和VAP可用的11a/b/g速率交集，供算法调用 */
-    mac_user_tx_param_stru                  st_user_tx_info;                        /* TX相关参数 */
-    wlan_bw_cap_enum_uint8                  en_bandwidth_cap;                       /* 用户带宽能力信息 */
-    wlan_bw_cap_enum_uint8                  en_avail_bandwidth;                     /* 用户和VAP带宽能力交集,供算法调用 */
-    wlan_bw_cap_enum_uint8                  en_cur_bandwidth;                       /* 默认值与en_avail_bandwidth相同,供算法调用修改 */
+    mac_rate_stru                           st_avail_op_rates;                      /* ??????VAP??????11a/b/g???????????????????? */
+    mac_user_tx_param_stru                  st_user_tx_info;                        /* TX???????? */
+    wlan_bw_cap_enum_uint8                  en_bandwidth_cap;                       /* ???????????????? */
+    wlan_bw_cap_enum_uint8                  en_avail_bandwidth;                     /* ??????VAP????????????,?????????? */
+    wlan_bw_cap_enum_uint8                  en_cur_bandwidth;                       /* ????????en_avail_bandwidth????,?????????????? */
 
-    mac_user_asoc_state_enum_uint8          en_user_asoc_state;                     /* 用户关联状态 */
+    mac_user_asoc_state_enum_uint8          en_user_asoc_state;                     /* ???????????? */
 #ifdef _PRE_WLAN_FEATURE_WMMAC
-    mac_ts_stru                             st_ts_info[WLAN_WME_AC_BUTT];           /*保存ts相关信息。*/
+    mac_ts_stru                             st_ts_info[WLAN_WME_AC_BUTT];           /*????ts??????????*/
 #endif
-    mac_user_cap_info_stru                  st_cap_info;                            /* user基本能力信息位 */
-    mac_user_ht_hdl_stru                    st_ht_hdl;                              /* HT capability IE和 operation IE的解析信息 */
-    mac_vht_hdl_stru                        st_vht_hdl;                             /* VHT capability IE和 operation IE的解析信息 */
+    mac_user_cap_info_stru                  st_cap_info;                            /* user?????????????? */
+    mac_user_ht_hdl_stru                    st_ht_hdl;                              /* HT capability IE?? operation IE?????????? */
+    mac_vht_hdl_stru                        st_vht_hdl;                             /* VHT capability IE?? operation IE?????????? */
 
     mac_key_mgmt_stru                       st_key_info;
 
 #ifdef _PRE_WLAN_FEATURE_HILINK
-    oal_uint32                              ul_max_phy_rate_kbps;                   /* 该用户的最大物理层速率 */
+    oal_uint32                              ul_max_phy_rate_kbps;                   /* ?????????????????????? */
 #endif
-    /* 当前VAP工作在AP模式，以下字段为user是STA时独有字段，新添加字段请注意!!! */
+    /* ????VAP??????AP????????????????user??STA????????????????????????????!!! */
 
-    /* 当前VAP工作在STA模式，以下字段为user是AP时独有字段，新添加字段请注意!!! */
+    /* ????VAP??????STA????????????????user??AP????????????????????????????!!! */
 }mac_user_stru;
 
 #ifdef _PRE_WLAN_FEATURE_UAPSD
 
-#define MAC_USR_UAPSD_EN     0x01//U-APSD使能
-#define MAC_USR_UAPSD_TRIG   0x02//U-APSD可以被trigger
-#define MAC_USR_UAPSD_SP     0x04//u-APSD在一个Service Period处理中
+#define MAC_USR_UAPSD_EN     0x01//U-APSD????
+#define MAC_USR_UAPSD_TRIG   0x02//U-APSD??????trigger
+#define MAC_USR_UAPSD_SP     0x04//u-APSD??????Service Period??????
 
-/*AC是trigge_en的且用户当前处于trigger状态，can be trigger*/
+/*AC??trigge_en????????????????trigger??????can be trigger*/
 #define MAC_USR_UAPSD_AC_CAN_TIGGER(_ac,_dmac_usr) \
     (((_dmac_usr)->st_uapsd_status.uc_ac_trigger_ena[_ac])&&((_dmac_usr)->uc_uapsd_flag & MAC_USR_UAPSD_TRIG))
 
-/*AC是delivery_en的且用户当前处于trigger状态,can be delivery*/
+/*AC??delivery_en????????????????trigger????,can be delivery*/
 #define MAC_USR_UAPSD_AC_CAN_DELIVERY(_ac,_dmac_usr) \
     (((_dmac_usr)->st_uapsd_status.uc_ac_delievy_ena[_ac])&&((_dmac_usr)->uc_uapsd_flag & MAC_USR_UAPSD_TRIG))
 
@@ -455,49 +438,21 @@ if(!(_cond))\
 
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : mac_user_get_ra_lut_index
- 功能描述  : 获取用户对应的ra lut index
- 输入参数  : puc_index_table: 查找表数组
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月7日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_user_get_ra_lut_index(oal_uint8 *puc_index_table, oal_uint16 us_start, oal_uint16 us_stop)
 {
     return oal_get_lut_index(puc_index_table,
                              WLAN_ACTIVE_USER_IDX_BMAP_LEN,
                              WLAN_ACTIVE_USER_MAX_NUM, us_start, us_stop);
 }
-/*****************************************************************************
- 函 数 名  : mac_user_del_ra_lut_index
- 功能描述  : 删除用户对应的ra lut index
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月7日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_user_del_ra_lut_index(oal_uint8 *puc_index_table, oal_uint8 uc_ra_lut_index)
 {
     oal_del_lut_index(puc_index_table, uc_ra_lut_index);
@@ -505,7 +460,7 @@ OAL_STATIC OAL_INLINE oal_void  mac_user_del_ra_lut_index(oal_uint8 *puc_index_t
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 
 oal_uint32 mac_user_add_wep_key(mac_user_stru *pst_mac_user, oal_uint8 uc_key_index, mac_key_params_stru *pst_key);
@@ -523,7 +478,7 @@ extern oal_uint32  mac_user_init(
                 oal_uint8       uc_vap_id);
 
 extern oal_uint32 mac_user_set_port(mac_user_stru *pst_mac_user, oal_bool_enum_uint8 en_port_valid);
-
+extern oal_bool_enum_uint8 mac_user_get_port(mac_user_stru *pst_mac_user);
 extern oal_void mac_user_avail_bf_num_spatial_stream(mac_user_stru *pst_mac_user, oal_uint8 uc_value);
 extern oal_void mac_user_set_avail_num_spatial_stream(mac_user_stru *pst_mac_user, oal_uint8 uc_value);
 extern oal_void mac_user_set_num_spatial_stream(mac_user_stru *pst_mac_user, oal_uint8 uc_value);
@@ -553,6 +508,7 @@ extern oal_void mac_user_set_asoc_state(mac_user_stru *pst_mac_user, mac_user_as
 extern oal_void mac_user_set_avail_op_rates(mac_user_stru *pst_mac_user, oal_uint8 uc_rs_nrates, oal_uint8 *puc_rs_rates);
 extern oal_void mac_user_set_vht_hdl(mac_user_stru *pst_mac_user, mac_vht_hdl_stru *pst_vht_hdl);
 extern oal_void mac_user_get_vht_hdl(mac_user_stru *pst_mac_user, mac_vht_hdl_stru *pst_ht_hdl);
+extern oal_void mac_user_set_vht_capable(mac_user_stru *pst_mac_user, oal_bool_enum_uint8 en_vht_capable);
 extern oal_void mac_user_set_ht_hdl(mac_user_stru *pst_mac_user, mac_user_ht_hdl_stru *pst_ht_hdl);
 extern oal_void mac_user_get_ht_hdl(mac_user_stru *pst_mac_user, mac_user_ht_hdl_stru *pst_ht_hdl);
 extern oal_void mac_user_set_ht_capable(mac_user_stru *pst_mac_user, oal_bool_enum_uint8 en_ht_capable);

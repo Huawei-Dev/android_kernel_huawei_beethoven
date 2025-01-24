@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_reset.c
-  版 本 号   : 初稿
-  作    者   : z00241943
-  生成日期   : 2014年11月26日
-  最近修改   :
-  功能描述   : hmac复位处理文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年11月26日
-    作    者   : z00241943
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "mac_device.h"
 #include "mac_resource.h"
@@ -37,7 +20,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_RESET_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
 extern oal_uint32  hmac_config_send_event(
@@ -48,23 +31,10 @@ extern oal_uint32  hmac_config_send_event(
 
 #endif
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-/*****************************************************************************
- 函 数 名  : hmac_reset_sys_event
- 功能描述  : device进行复位时，同步host事件处理
- 输入参数  : pst_event_mem事件
- 输出参数  : 无
- 返 回 值  : OAL_SUCC | OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月26日
-    作    者   : zhangyu 00241943
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 hmac_reset_sys_event(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param)
 {
     mac_device_stru     *pst_mac_dev;
@@ -108,21 +78,7 @@ oal_uint32 hmac_reset_sys_event(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : hmac_proc_query_response_event
- 功能描述  : hmac接收dmac抛回来的查询应答事件
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月26日
-    作    者   : z0085449
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param)
 {
     hmac_vap_stru       *pst_hmac_vap;
@@ -146,7 +102,7 @@ oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 
         pst_hmac_vap->station_info.tx_bytes   =  pst_query_station_reponse_event->ul_tx_bytes;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37))
         pst_hmac_vap->station_info.tx_retries =  pst_query_station_reponse_event->ul_tx_retries;
-        pst_hmac_vap->station_info.rx_dropped_misc =  pst_query_station_reponse_event->ul_rx_dropped_misc; //和其他几个参数一样，前面有叠加了，丢一个帧+ 1，这不需要累加，累加操作在dmac_rx_process_frame
+        pst_hmac_vap->station_info.rx_dropped_misc =  pst_query_station_reponse_event->ul_rx_dropped_misc; //??????????????????????????????????????????+ 1??????????????????????????dmac_rx_process_frame
         pst_hmac_vap->station_info.tx_failed        =  pst_query_station_reponse_event->ul_tx_failed;
 #endif
         pst_hmac_vap->station_info.txrate.mcs    = pst_query_station_reponse_event->st_txrate.mcs;
@@ -156,7 +112,7 @@ oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 
 #endif
 
     /*
-         * 速率flag因内核版本而异，而DMAC依3.8.0为准给出全部结果，在此提取并转换flags
+         * ????flag??????????????????DMAC??3.8.0????????????????????????????????flags
          * linux < 3.5.0
          *     RATE_INFO_FLAGS_MCS             = 1<<0,
          *     RATE_INFO_FLAGS_40_MHZ_WIDTH    = 1<<1,
@@ -201,7 +157,6 @@ oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 
              uc_flag |= ((pst_query_station_reponse_event->st_txrate.flags & MAC_RATE_INFO_FLAGS_60G) ? RATE_INFO_FLAGS_60G : 0);
              #endif
          }
-/*DTS2016092102848 11b/g/n 20M /40M场景下,单WiFi冲包，IW读取的TCP上行与UDP上行TX速率速率与实际物理层速率不一致。*/
 #elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 0, 0))
         {
              uc_flag  = pst_query_station_reponse_event->st_txrate.flags;
@@ -220,8 +175,11 @@ oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 
         }
 #endif
         pst_hmac_vap->station_info.txrate.flags = uc_flag;
-
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,7,0))
+        pst_hmac_vap->center_freq  = oal_ieee80211_channel_to_frequency(pst_mac_vap->st_channel.uc_chan_number,(enum nl80211_band)pst_mac_vap->st_channel.en_band);
+#else
         pst_hmac_vap->center_freq  = oal_ieee80211_channel_to_frequency(pst_mac_vap->st_channel.uc_chan_number,(enum ieee80211_band)pst_mac_vap->st_channel.en_band);
+#endif
         pst_hmac_vap->s_free_power = pst_query_station_reponse_event->s_free_power;
         pst_hmac_vap->st_station_info_extend.uc_distance = pst_query_station_reponse_event->st_station_info_extend.uc_distance;
         pst_hmac_vap->st_station_info_extend.uc_cca_intr = pst_query_station_reponse_event->st_station_info_extend.uc_cca_intr;
@@ -229,27 +187,14 @@ oal_uint32  hmac_proc_query_response_event(mac_vap_stru *pst_mac_vap, oal_uint8 
         pst_hmac_vap->st_station_info_extend.ul_bcn_tout_cnt = pst_query_station_reponse_event->st_station_info_extend.ul_bcn_tout_cnt;
     }
 
-   /* 唤醒wal_sdt_recv_reg_cmd等待的进程 */
+   /* ????wal_sdt_recv_reg_cmd?????????? */
    pst_hmac_vap->station_info_query_completed_flag = OAL_TRUE;
    OAL_WAIT_QUEUE_WAKE_UP_INTERRUPT(&(pst_hmac_vap->query_wait_q));
 
    return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_config_reset_operate
- 功能描述  : 配置命令下发
- 输入参数  : pst_event_mem事件
- 输出参数  : 无
- 返 回 值  : OAL_SUCC | OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月26日
-    作    者   : zhangyu 00241943
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 hmac_config_reset_operate(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param)
 {
     mac_device_stru      *pst_mac_dev;
@@ -270,7 +215,7 @@ oal_uint32 hmac_config_reset_operate(mac_vap_stru *pst_mac_vap, oal_uint16 us_le
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取复位信息 */
+    /* ???????????? */
     pc_token = oal_strtok((oal_int8 *)puc_param, pc_sep, &pc_ctx);
     if (NULL == pc_token)
     {
@@ -282,7 +227,7 @@ oal_uint32 hmac_config_reset_operate(mac_vap_stru *pst_mac_vap, oal_uint16 us_le
 
     if (MAC_RESET_SWITCH_SET_TYPE == st_reset_sys.en_reset_sys_type)
     {
-        /* 获取Channel List */
+        /* ????Channel List */
         pc_token = oal_strtok(OAL_PTR_NULL, pc_sep, &pc_ctx);
         if (NULL == pc_token)
         {

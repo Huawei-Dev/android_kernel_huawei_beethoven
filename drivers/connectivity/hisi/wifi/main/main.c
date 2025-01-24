@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
-******************************************************************************
-文 件 名   : main
-版 本 号   : 初稿
-作    者   : z00273164
-生成日期   : 2014年10月10日
-最近修改   :
-功能描述   : main.c 文件
-函数列表   :
-修改历史   :
-1.日    期   : 2014年10月10日
- 作    者   : z00273164
- 修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -24,7 +7,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #define HISI_LOG_TAG    "[WIFI_MAIN]"
 #include "main.h"
@@ -41,7 +24,7 @@ extern "C" {
 #include "oal_kernel_file.h"
 
 #elif (defined(_PRE_PRODUCT_ID_HI110X_DEV))
-/*TBD 以上头文件待回收*/
+/*TBD ????????????????*/
 #include "oam_log.h"
 #include "oal_sdio.h"
 #include "oal_main.h"
@@ -89,40 +72,16 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_MAIN_C
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 oal_void platform_module_exit(oal_uint16 us_bitmap);
 OAL_STATIC oal_void builder_module_exit(oal_uint16 us_bitmap);
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : host_mode_exit
- 功能描述  : 选择性卸载不同模块
- 输入参数  : oal_uint8 uc_bitmap:
-            BIT0:oal
-            BIT1:oam
-            BIT2:sdt
-            BIT3:frw
-            BIT4:hal
-            BIT5:dmac
-            BIT6:alg
-            BIT7:hmac
-            BIT8:wal
 
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2014年10月22日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void builder_module_exit(oal_uint16 us_bitmap)
 {
 #if ((!defined(_PRE_PRODUCT_ID_HI110X_DEV)) || (_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION))
@@ -163,32 +122,18 @@ OAL_STATIC oal_void builder_module_exit(oal_uint16 us_bitmap)
 }
 
 #if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)&&(defined(_PRE_PRODUCT_ID_HI110X_HOST)))
-/*****************************************************************************
- 函 数 名  : host_test_get_chip_msg
- 功能描述  : 用于1102 host侧ut测试，hmac获得板级信息
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月31日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 host_test_get_chip_msg(oal_void)
 {
     oal_uint32             ul_return;
     mac_chip_stru         *pst_chip;
     frw_event_mem_stru    *pst_event_mem;
-    frw_event_stru        *pst_event;             /* 事件结构体 */
+    frw_event_stru        *pst_event;             /* ?????????? */
     oal_uint32             ul_dev_id;
 	oal_netbuf_stru       *pst_netbuf;
     dmac_tx_event_stru    *pst_ctx_event;
     oal_uint8             *pst_mac_rates_11g;
-    /** 待补充 ***/
+    /** ?????? ***/
 
 
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_tx_event_stru));
@@ -198,7 +143,7 @@ OAL_STATIC oal_uint32 host_test_get_chip_msg(oal_void)
         return OAL_FAIL;
     }
 
-    /* 申请netbuf内存 */
+    /* ????netbuf???? */
     pst_netbuf = OAL_MEM_NETBUF_ALLOC(OAL_NORMAL_NETBUF, WLAN_MEM_NETBUF_SIZE2, OAL_NETBUF_PRIORITY_MID);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_netbuf))
     {
@@ -213,7 +158,7 @@ OAL_STATIC oal_uint32 host_test_get_chip_msg(oal_void)
     pst_chip = (mac_chip_stru *)(pst_mac_rates_11g + sizeof(mac_data_rate_stru) * MAC_DATARATES_PHY_80211G_NUM);
 
     ul_dev_id = (oal_uint32) oal_queue_dequeue(&(g_st_mac_res.st_dev_res.st_queue));
-    /* 0为无效值 */
+    /* 0???????? */
     if (0 == ul_dev_id)
     {
         OAL_IO_PRINT("host_test_get_chip_msg:oal_queue_dequeue return 0!");
@@ -222,12 +167,12 @@ OAL_STATIC oal_uint32 host_test_get_chip_msg(oal_void)
     }
     pst_chip->auc_device_id[0] = (oal_uint8)(ul_dev_id - 1);
 
-    /* 根据ul_chip_ver，通过hal_chip_init_by_version函数获得 */
+    /* ????ul_chip_ver??????hal_chip_init_by_version???????? */
     pst_chip->uc_device_nums = 1;
     pst_chip->uc_chip_id = 0;
     pst_chip->en_chip_state = OAL_TRUE;
 
-    /* 由hal_chip_get_version函数得到,1102 02需要SOC提供寄存器后实现 */
+    /* ??hal_chip_get_version????????,1102 02????SOC???????????????? */
     pst_chip->ul_chip_ver = WLAN_CHIP_VERSION_HI1151V100H;
 
     pst_chip->pst_chip_stru = OAL_PTR_NULL;
@@ -248,21 +193,7 @@ OAL_STATIC oal_uint32 host_test_get_chip_msg(oal_void)
 #endif
 //#elif (((_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)&&(_PRE_PRODUCT_ID_HI1102_DEV ==_PRE_PRODUCT_ID)))
 #if  (defined(HI1102_EDA))
-/*****************************************************************************
- 函 数 名  : device_test_create_cfg_vap
- 功能描述  : device侧eda用例打桩使用
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月1日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 device_test_create_cfg_vap(oal_void)
 {
     oal_uint32          ul_return;
@@ -302,31 +233,7 @@ OAL_STATIC oal_uint32 device_test_create_cfg_vap(oal_void)
 
 #if ((defined(_PRE_PRODUCT_ID_HI110X_DEV))||(_PRE_PRODUCT_ID_HI1151==_PRE_PRODUCT_ID))
 
-/*****************************************************************************
- 函 数 名  : platform_module_exit
- 功能描述  : 平台模块卸载总入口(仅供51和02 Device侧用)
- 输入参数  : oal_uint8 uc_bitmap:
-            默认:
-            BIT0:oal
-            BIT1:oam
-            BIT2:sdt
-            BIT3:frw
-            BIT4:hal
-            BIT5:dmac
-            BIT6:alg
-            BIT7:hmac
-            BIT8:wal
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void platform_module_exit(oal_uint16 us_bitmap)
 {
     if (BIT3 & us_bitmap)
@@ -336,7 +243,7 @@ oal_void platform_module_exit(oal_uint16 us_bitmap)
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-        /* 02目前不需要SDT初始化 TBD */
+        /* 02??????????SDT?????? TBD */
         if (BIT2 & us_bitmap)
         {
             sdt_drv_main_exit();
@@ -356,22 +263,7 @@ oal_void platform_module_exit(oal_uint16 us_bitmap)
 
 
 
-/*****************************************************************************
- 函 数 名  : platform_module_init
- 功能描述  :(仅供51和02 Device侧用)
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
- 备注:    依赖builder_module_exit()
 
- 修改历史      :
-  1.日    期   : 2014年10月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 platform_module_init(oal_void)
 {
     oal_int32  l_return   = OAL_FAIL;
@@ -396,7 +288,7 @@ oal_int32 platform_module_init(oal_void)
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-    /* 02目前不需要SDT初始化 TBD */
+    /* 02??????????SDT?????? TBD */
         l_return = sdt_drv_main_init();
         if (OAL_SUCC != l_return)
         {
@@ -418,27 +310,13 @@ oal_int32 platform_module_init(oal_void)
         return l_return;
     }
 
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("platform_module_init:: platform_main_init finish!\r\n");
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : device_main_init
- 功能描述  : 固件侧裸系统下模块初始化总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月11日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  device_module_init(oal_void)
 {
     oal_int32  l_return  = OAL_FAIL;
@@ -476,7 +354,7 @@ OAL_STATIC oal_int32  device_module_init(oal_void)
 
 #if 0
 #if (((_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)&&(defined(_PRE_PRODUCT_ID_HI110X_DEV))) || (defined(HI1102_EDA)))
-    /* ut工程打桩用:从host下发创建cfg_vap命令 */
+    /* ut??????????:??host????????cfg_vap???? */
     l_return = (oal_int32) device_test_create_cfg_vap();
     if (OAL_SUCC != l_return)
     {
@@ -485,7 +363,7 @@ OAL_STATIC oal_int32  device_module_init(oal_void)
 #endif
 #endif
     //WLAN_EDA_TRACE_TAG(0x4240UL);
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("device_module_init:: device_module_init finish!\r\n");
 
     return OAL_SUCC;
@@ -493,25 +371,11 @@ OAL_STATIC oal_int32  device_module_init(oal_void)
 #endif
 #if ((defined(_PRE_PRODUCT_ID_HI110X_HOST))||(_PRE_PRODUCT_ID_HI1151==_PRE_PRODUCT_ID))
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
-/*****************************************************************************
- 函 数 名  : hwifi_config_host_global_dts_param
- 功能描述  :
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月22日
-    作    者   : h00349274
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 extern oal_uint32 band_5g_enabled;
 oal_uint32 hwifi_config_host_global_dts_param(oal_void)
 {
-    /**************************** 获取5g开关 ******************************/
+    /**************************** ????5g???? ******************************/
     band_5g_enabled = !!hwifi_get_init_value(CUS_TAG_DTS, WLAN_CFG_DTS_BAND_5G_ENABLE);
 
     return OAL_SUCC;
@@ -520,21 +384,7 @@ oal_uint32 hwifi_config_host_global_dts_param(oal_void)
 
 extern oal_int32  wlan_pm_open(oal_void);
 extern oal_uint32 wlan_pm_close(oal_void);
-/*****************************************************************************
- 函 数 名  : host_main_init
- 功能描述  :
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  host_module_init(oal_void)
 {
     oal_int32  l_return = OAL_FAIL;
@@ -554,7 +404,7 @@ oal_int32  host_module_init(oal_void)
     }
 #if 0
 #if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)&&(defined(_PRE_PRODUCT_ID_HI110X_HOST)))
-    /* ut工程打桩用:从device获取板级信息 */
+    /* ut??????????:??device???????????? */
     l_return = (oal_int32) host_test_get_chip_msg();
     if (OAL_SUCC != l_return)
     {
@@ -582,7 +432,7 @@ oal_int32  host_module_init(oal_void)
     //mdelay(7);
     //wlan_pm_close();
 
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("host_module_init:: host_main_init finish!");
 
     return OAL_SUCC;
@@ -590,21 +440,7 @@ oal_int32  host_module_init(oal_void)
 #endif
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV))
-/*****************************************************************************
- 函 数 名  : 1102_device_main_init
- 功能描述  : Hi1102项目device侧初始化总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  hi1102_device_main_init(oal_void)
 {
     oal_int32  l_return  = OAL_FAIL;
@@ -629,7 +465,7 @@ oal_int32  hi1102_device_main_init(oal_void)
         return l_return;
     }
 #if 0
-	/* 1102 需要在device初始化成功后同步速率级 */
+	/* 1102 ??????device?????????????????????? */
 	pst_event_mem = FRW_EVENT_ALLOC(0);
 	if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
 	{
@@ -648,32 +484,18 @@ oal_int32  hi1102_device_main_init(oal_void)
 	FRW_EVENT_FREE(pst_event_mem);
 #endif
     #if (!defined(HI1102_EDA))
-    /*device_ready:调用HCC接口通知Hmac,Dmac已经完成初始化 TBD*/
+    /*device_ready:????HCC????????Hmac,Dmac?????????????? TBD*/
     //hcc_send_msg2host(D2H_MSG_WLAN_READY);
     SDIO_SendMsgSync(D2H_MSG_WLAN_READY);
     #endif
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("Hi1102_device_main_init:: Hi1102_device_main_init finish!\r\n");
 
     return OAL_SUCC;
 
 }
 
-/*****************************************************************************
- 函 数 名  : device_main_init
- 功能描述  : 固件侧 系统总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月11日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void device_main_init(oal_void)
 {
     /* init */
@@ -684,7 +506,7 @@ oal_void device_main_init(oal_void)
     if (OAL_SUCC != l_return)
     {
         OAL_IO_PRINT("device_main_function: Hi1102_device_main_init return error code: %d", l_return);
-        /* 初始化失败不退出主程序，等待重启 */
+        /* ???????????????????????????????? */
         for (;;)
         ;
     }
@@ -705,21 +527,7 @@ oal_void device_main_init(oal_void)
 
 
 
-/*****************************************************************************
- 函 数 名  : device_psm_main_function
- 功能描述  : 睡眠唤醒接口,(遗留给平台的接口)
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月16日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 device_psm_main_function(oal_void)
 {
 #if defined(_PRE_WLAN_FEATURE_BTCOEX) || defined(_PRE_WLAN_FEATURE_SMARTANT)
@@ -755,21 +563,7 @@ oal_uint8 device_psm_main_function(oal_void)
 #include "hmac_vap.h"
 #include "oal_hcc_host_if.h"
 
-/*****************************************************************************
- 函 数 名  : 1102_host_main_init
- 功能描述  : Hi1102项目host侧初始化总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  hi1102_host_main_init(oal_void)
 {
     //oal_uint32 ul_return = OAL_FAIL;
@@ -795,27 +589,13 @@ oal_int32  hi1102_host_main_init(oal_void)
     wal_hipriv_register_inet6addr_notifier();
 #endif
 
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("hi1102_host_main_init:: Hi1102_host_main_init finish!\n");
 
     return OAL_SUCC;
 
 }
-/*****************************************************************************
- 函 数 名  : Hi1102_host_main_exit
- 功能描述  : Hi1102项目host侧卸载总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hi1102_host_main_exit(oal_void)
 {
     oal_uint16 us_bitmap = 0;
@@ -833,7 +613,7 @@ oal_void  hi1102_host_main_exit(oal_void)
     builder_module_exit(us_bitmap);
     OAL_IO_PRINT("hi1102_host_main_exit:: wifi module removed!\n");
 
-    /* 流控函数去初始化 */
+    /* ???????????????? */
 #ifdef _PRE_WLAN_FEATURE_OFFLOAD_FLOWCTL
     hcc_flowctl_get_device_mode_register(OAL_PTR_NULL);
     hcc_flowctl_operate_subq_register(OAL_PTR_NULL, OAL_PTR_NULL);
@@ -847,21 +627,7 @@ oal_void  hi1102_host_main_exit(oal_void)
 }
 #elif (_PRE_PRODUCT_ID_HI1151==_PRE_PRODUCT_ID)
 
-/*****************************************************************************
- 函 数 名  : Hi1105_main_init
- 功能描述  : Hi1151项目初始化总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 hi1151_main_init(oal_void)
 {
     oal_int32  l_return   = OAL_FAIL;
@@ -891,26 +657,12 @@ oal_int32 hi1151_main_init(oal_void)
         builder_module_exit(us_bitmap);
         return l_return;
     }
-    /*启动完成后，输出打印*/
+    /*????????????????????*/
     OAL_IO_PRINT("Hi1151_main_init:: Hi1151_main_init finish!/r/n");
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : Hi1151_main_exit
- 功能描述  : Hi1151项目卸载总入口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hi1151_main_exit(oal_void)
 {
     oal_uint16 us_bitmap = 0;
@@ -929,10 +681,14 @@ oal_void  hi1151_main_exit(oal_void)
 #if (defined(_PRE_PRODUCT_ID_HI110X_HOST))
 #ifndef CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT
 #ifdef _PRE_CONFIG_CONN_HISI_SYSFS_SUPPORT
+
+#include "board.h"
+#include "oneimage.h"
+
 oal_int32 g_wifi_init_flag = 0;
 oal_int32 g_wifi_init_ret;
 /*built-in*/
-OAL_STATIC ssize_t  wifi_sysfs_set_init(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+OAL_STATIC ssize_t  wifi_sysfs_set_init(struct kobject *dev, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     char            mode[128] = {0};
     OAL_BUG_ON(NULL == dev);
@@ -966,7 +722,7 @@ OAL_STATIC ssize_t  wifi_sysfs_set_init(struct device *dev, struct device_attrib
     return count;
 }
 
-OAL_STATIC ssize_t  wifi_sysfs_get_init(struct device *dev, struct device_attribute *attr, char*buf)
+OAL_STATIC ssize_t  wifi_sysfs_get_init(struct kobject *dev, struct kobj_attribute *attr, char*buf)
 {
     int ret = 0;
     OAL_BUG_ON(NULL == dev);
@@ -991,7 +747,8 @@ OAL_STATIC ssize_t  wifi_sysfs_get_init(struct device *dev, struct device_attrib
 
     return ret;
 }
-OAL_STATIC DEVICE_ATTR(wifi, S_IRUGO | S_IWUSR, wifi_sysfs_get_init, wifi_sysfs_set_init);
+STATIC struct kobj_attribute dev_attr_wifi =
+    __ATTR(wifi, S_IRUGO | S_IWUSR, wifi_sysfs_get_init, wifi_sysfs_set_init);
 OAL_STATIC struct attribute *wifi_init_sysfs_entries[] = {
         &dev_attr_wifi.attr,
         NULL
@@ -1005,6 +762,12 @@ oal_int32  wifi_sysfs_init(oal_void)
 {
     oal_int32 ret = 0;
     oal_kobject*     pst_root_boot_object = NULL;
+
+    if(false == is_hisi_chiptype(BOARD_VERSION_HI1102))
+    {
+        return OAL_SUCC;
+    }
+
     pst_root_boot_object = oal_get_sysfs_root_boot_object();
     if(NULL == pst_root_boot_object)
     {

@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_auto_adjust_freq.h
-  版 本 号   : 初稿
-  作    者   : z00185449
-  生成日期   : 2015年9月14日
-  最近修改   :
-  功能描述   : mac_auto_adjust_freq.h 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年9月14日
-    作    者   : z00185449
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __MAC_AUTO_ADJUST_FREQ_H__
 #define __MAC_AUTO_ADJUST_FREQ_H__
@@ -28,18 +11,18 @@ extern "C" {
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 
-#define  FREQ_LOCK_TIMEOUT_VAL  1000  /*锁定CPU主频的时间，单位ms*/
+#define  FREQ_LOCK_TIMEOUT_VAL  1000  /*????CPU????????????????ms*/
 
-#define  SPEED_CALC_TRIG_VALUE              2000 /*2000个包计算一次包速率*/
-#define  SPEED_CALC_TRIG_DURITION              100 /*最长的计算时间*/
+#define  SPEED_CALC_TRIG_VALUE              2000 /*2000??????????????????*/
+#define  SPEED_CALC_TRIG_DURITION              100 /*??????????????*/
 /*
  * set cpu freq A53-0
  * this function used on K3V3+ platform
@@ -54,10 +37,10 @@ extern "C" {
 #define DDR_MAX_FREQ "/sys/class/devfreq/ddrfreq/max_freq"
 #define DDR_MIN_FREQ "/sys/class/devfreq/ddrfreq/min_freq"
 
-#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_3 (3)    /*连续3个周期都需要降频才降频*/
-#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_10 (100)    /*有包时连续100个周期都需要降频才降频*/
+#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_3 (3)    /*????3??????????????????????*/
+#define MAX_DEGRADE_FREQ_COUNT_THRESHOLD_SUCCESSIVE_10 (100)    /*??????????100??????????????????????*/
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
@@ -113,41 +96,41 @@ typedef oal_uint8 oal_auto_freq_cmd_enum_uint8;
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 typedef struct {
-    oal_uint8  uc_device_type;   /*device主频类型*/
-    oal_uint8  uc_reserve[3];   /*保留字段*/
+    oal_uint8  uc_device_type;   /*device????????*/
+    oal_uint8  uc_reserve[3];   /*????????*/
 } device_speed_freq_level_stru;
 typedef struct {
-    oal_uint32  ul_speed_level;    /*吞吐量门限*/
-    oal_uint32  ul_min_cpu_freq;  /*CPU主频下限*/
-    oal_uint32  ul_min_ddr_freq;   /*DDR主频下限*/
+    oal_uint32  ul_speed_level;    /*??????????*/
+    oal_uint32  ul_min_cpu_freq;  /*CPU????????*/
+    oal_uint32  ul_min_ddr_freq;   /*DDR????????*/
 } host_speed_freq_level_stru;
 
 typedef struct {
-    oal_uint8  uc_lock_mod;  /*使能开关*/
-    oal_uint8  uc_curr_lock_level;  /*当前主频等级*/
-    oal_uint8  uc_req_lock_level;   /*目标主频等级*/
-    oal_bool_enum_uint8  en_debug_print;  /*打印开关*/
+    oal_uint8  uc_lock_mod;  /*????????*/
+    oal_uint8  uc_curr_lock_level;  /*????????????*/
+    oal_uint8  uc_req_lock_level;   /*????????????*/
+    oal_bool_enum_uint8  en_debug_print;  /*????????*/
     oal_bool_enum_uint8  en_is_inited;
-    oal_uint8  uc_reserver[3];  /*预留字段*/
-    oal_uint32 ul_total_sdio_rate;  /*吞吐速率*/
+    oal_uint8  uc_reserver[3];  /*????????*/
+    oal_uint32 ul_total_sdio_rate;  /*????????*/
     oal_mutex_stru st_lock_freq_mtx;
 } freq_lock_control_stru;
 extern freq_lock_control_stru g_freq_lock_control;
@@ -156,12 +139,12 @@ extern host_speed_freq_level_stru g_host_speed_freq_level[];
 extern device_speed_freq_level_stru g_device_speed_freq_level[];
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 #ifdef WIN32
 extern oal_uint32 pre_jiffies;
@@ -179,7 +162,7 @@ extern  oal_uint32 g_ul_orig_ddr_max_freq;
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_bool_enum_uint8 hmac_set_auto_freq_mod(oal_freq_lock_enum_uint8 uc_freq_enable);
 extern oal_bool_enum_uint8 hmac_set_auto_freq_debug_print(oal_bool_enum_uint8 en_debug_print);

@@ -1,9 +1,16 @@
+
+
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
 #include "hal_ext_if.h"
@@ -13,10 +20,17 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_HUT_MAIN_C
 
+
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
+/* ?????????????????? */
 #define HUT_CMD_NAME_MAX_LEN   3
 
+/* HUT??????????????????????(????: ????) */
 #define HUT_MEM_MAX_LEN        (1024 * 640)   /* 640K */
 
+/* netlink????????????(??????????????????) */
 #if (_PRE_WLAN_REAL_CHIP == _PRE_WLAN_CHIP_SIM)
 #define HUT_NLMSG_FRAG_THRESHOLD      (60*1024 - 100)
 /* #define HUT_NLMSG_FRAG_THRESHOLD      (4 * 1024) */
@@ -24,34 +38,46 @@ extern "C" {
 #define HUT_NLMSG_FRAG_THRESHOLD      8
 #endif
 
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+/* ?????????????????? */
 typedef enum
 {
-    HUT_FSM_INPUT_TYPE_WM = 0,
+    HUT_FSM_INPUT_TYPE_WM = 0,   /* ?????? */
 
     HUT_FSM_INPUT_TYPE_BUTT
 }hut_fms_input_type_enum;
 typedef oal_uint8 hut_fsm_input_type_enum_uint8;
 
+/* ?????????????? */
 typedef enum
 {
-    HUT_FSM_STATE_INIT = 0,
-    HUT_FSM_STATE_IN_FRAG,
+    HUT_FSM_STATE_INIT = 0,     /* ?????????????????? */
+    HUT_FSM_STATE_IN_FRAG,      /* ????????????(??????????)???????? */
 
     HUT_FSM_STATE_BUTT
 }hut_fsm_state_enum;
 typedef oal_uint8 hut_fsm_state_enum_uint8;
 
+
+/*****************************************************************************
+  3 ??????????
+*****************************************************************************/
+/* ????????????????(????????????????????????) */
 typedef struct
 {
-    hut_fsm_state_enum_uint8    en_state;
+    hut_fsm_state_enum_uint8    en_state;   /* ???? */
     oal_uint8                   auc_resv[3];
-    oal_int32 (*hut_fsm_func[HUT_FSM_STATE_BUTT][HUT_FSM_INPUT_TYPE_BUTT])(oal_uint8 *puc_data, oal_void *p_param);
+    oal_int32 (*hut_fsm_func[HUT_FSM_STATE_BUTT][HUT_FSM_INPUT_TYPE_BUTT])(oal_uint8 *puc_data, oal_void *p_param);   /* ???????????? */
 }hut_fsm_stru;
 
+/* ???????????????????? */
 typedef struct
 {
-    oal_int8         *pc_cmd_name;
-    oal_int32 (*p_hut_cmd_func)(oal_uint8 *puc_data);
+    oal_int8         *pc_cmd_name;                      /* ?????????? */
+    oal_int32 (*p_hut_cmd_func)(oal_uint8 *puc_data);   /* ?????????????????? */
 }hut_cmd_entry_stru;
 
 typedef struct
@@ -94,32 +120,51 @@ typedef struct
     oal_uint32                  ul_payload_start_addr;
 }hut_rx_buffer_addr_stru;
 
+
+/*****************************************************************************
+  4 ????????
+*****************************************************************************/
 OAL_STATIC oal_int32  hut_read_reg(oal_uint8 *puc_data);
 OAL_STATIC oal_int32  hut_write_reg(oal_uint8 *puc_data);
 OAL_STATIC oal_int32  hut_read_mem(oal_uint8 *puc_data);
 OAL_STATIC oal_int32  hut_write_mem(oal_uint8 *puc_data);
 OAL_STATIC oal_int32  hut_read_start_mem_addr(oal_uint8 *puc_data);
 
+
+/*****************************************************************************
+  5 ????????????
+*****************************************************************************/
+/* ???????????????? */
 OAL_STATIC OAL_CONST hut_cmd_entry_stru g_ast_hut_cmd_ops[] =
 {
-    {"rr", hut_read_reg},
-    {"wr", hut_write_reg},
-    {"rm", hut_read_mem},
-    {"wm", hut_write_mem},
-    {"rd", hut_read_start_mem_addr}
+    {"rr", hut_read_reg},             /* ???????????? */
+    {"wr", hut_write_reg},            /* ???????????? */
+    {"rm", hut_read_mem},             /* ?????????? */
+    {"wm", hut_write_mem},            /* ?????????? */
+    {"rd", hut_read_start_mem_addr}   /* ?????????????????? */
 };
 
+/* ????HUT??????????????????????????????(??????HUT??????????????????) */
 OAL_STATIC hut_mem_addr_stru g_st_base_addr;
 
+/* HUT??????????tasklet(??????????????) */
 OAL_STATIC oal_tasklet_stru   g_st_hut_tasklet;
 
+/* ??????(????????????????????????)*/
 OAL_STATIC hut_fsm_stru  g_pa_hut_fsm;
 
+/* ???????? */
 hut_workqueue_stru   g_st_hut_workqueue;
 
 hut_cmd_fmt_stru   g_tmp;
 
+/* ???????????????????????????????????????????????? */
 hut_intr_queue       g_st_intr_queue;
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
 
 OAL_STATIC oal_int32  hut_read_reg(oal_uint8 *puc_data)
 {
@@ -130,18 +175,36 @@ OAL_STATIC oal_int32  hut_read_reg(oal_uint8 *puc_data)
 
     hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
 
+    /***********
+     ??????????
+    --------
+    | ???? |
+    --------
+    | 4    |
+    --------
+    ************/
+
     ul_addr = (puc_data[3] << 24) | (puc_data[2] << 16) | (puc_data[1] << 8) | puc_data[0];
 
     hal_reg_info(pst_hal_device, ul_addr, &ul_val);
 
-    st_frag_hdr.bit_flag = 0;
-    st_frag_hdr.bit_last = 1;
+    /*******************************************************
+     ??????????
+    --------------------------------------------------------
+    | bit_flag | bit_last | bit_resv | us_num | us_len| ?? |
+    --------------------------------------------------------
+    | 1                              | 1      | 2     | 4  |
+    --------------------------------------------------------
+    ********************************************************/
+    st_frag_hdr.bit_flag = 0;   /* ?????? */
+    st_frag_hdr.bit_last = 1;   /* ???????? */
     st_frag_hdr.us_len   = 4;
 
 
     return oam_netlink_kernel_send_ex((oal_uint8 *)&st_frag_hdr, (oal_uint8 *)&ul_val,
                     OAL_SIZEOF(st_frag_hdr), OAL_SIZEOF(ul_val), OAM_NL_CMD_HUT);
 }
+
 
 OAL_STATIC oal_int32  hut_write_reg(oal_uint8 *puc_data)
 {
@@ -150,12 +213,22 @@ OAL_STATIC oal_int32  hut_write_reg(oal_uint8 *puc_data)
 
     hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
 
+    /*************
+     ??????????
+    -------------
+    | ???? | ?? |
+    -------------
+    | 4    | 4  |
+    -------------
+    **************/
+
     pst_cmd_fmt = (hut_cmd_fmt_stru *)puc_data;
 
     hal_reg_write(pst_hal_device, pst_cmd_fmt->ul_addr, pst_cmd_fmt->ul_val);
 
     return OAL_SUCC;
 }
+
 
 OAL_STATIC oal_int32  hut_read_mem(oal_uint8 *puc_data)
 {
@@ -179,13 +252,24 @@ OAL_STATIC oal_int32  hut_read_mem(oal_uint8 *puc_data)
     return oal_queue_work(g_st_hut_workqueue.pst_rx_workqueue, &g_st_hut_workqueue.rx_work);
 }
 
+
 OAL_STATIC oal_int32  hut_write_mem(oal_uint8 *puc_data)
 {
     hut_cmd_fmt_stru   *pst_cmd_fmt;
     oal_uint32         ul_virt_addr;
 
+    /**********************
+     ??????????
+    ----------------------
+    | ???? | ???? | ??
+    ----------------------
+    | 4    | 4    | ???? ~
+    ----------------------
+    **********************/
+
     pst_cmd_fmt = (hut_cmd_fmt_stru *)puc_data;
 
+    /* ?????????????????? */
     ul_virt_addr = (oal_uint32)(OAL_PHY_TO_VIRT_ADDR(pst_cmd_fmt->ul_addr));
 
     oal_memcopy((oal_uint8 *)ul_virt_addr, puc_data + OAL_SIZEOF(hut_cmd_fmt_stru), pst_cmd_fmt->ul_val);
@@ -193,21 +277,86 @@ OAL_STATIC oal_int32  hut_write_mem(oal_uint8 *puc_data)
     return OAL_SUCC;
 }
 
+
 OAL_STATIC oal_int32  hut_read_start_mem_addr(oal_uint8 *puc_data)
 {
     hut_frag_hdr_stru   st_frag_hdr;
     hut_cmd_fmt_stru    st_cmd_fmt;
 
-    st_frag_hdr.bit_flag = 0;
-    st_frag_hdr.bit_last = 1;
+    /**************************************************************
+     ??????????
+    ---------------------------------------------------------------
+    | bit_flag | bit_last | bit_resv | us_num | us_len| ???? | ?? |
+    ---------------------------------------------------------------
+    | 1                              | 1      | 2     | 4    | 4  |
+    ---------------------------------------------------------------
+    ***************************************************************/
+    st_frag_hdr.bit_flag = 0;   /* ?????? */
+    st_frag_hdr.bit_last = 1;   /* ???????? */
     st_frag_hdr.us_len   = OAL_SIZEOF(hut_cmd_fmt_stru);
 
+    /* ???????????????? */
     st_cmd_fmt.ul_addr = OAL_VIRT_TO_PHY_ADDR((oal_void *)g_st_base_addr.puc_base_addr_align);
     st_cmd_fmt.ul_val  = HUT_MEM_MAX_LEN;
 
     return oam_netlink_kernel_send_ex((oal_uint8 *)&st_frag_hdr, (oal_uint8 *)&st_cmd_fmt,
                     OAL_SIZEOF(st_frag_hdr), OAL_SIZEOF(st_cmd_fmt), OAM_NL_CMD_HUT);
 }
+
+
+#if 0
+OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
+{
+    hal_to_dmac_device_stru   *pst_hal_device;
+    hut_rx_node               *pst_rx_node;
+    oal_uint                   ul_flag;
+
+    HUT_INFO_LOG(0, "hut_irq_isr_all");
+
+    hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
+
+    /* ?????? */
+    oal_irq_disable();
+
+    pst_rx_node = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_EVENT, OAL_SIZEOF(hut_rx_node), OAL_TRUE);
+    if (OAL_UNLIKELY(OAL_PTR_NULL == pst_rx_node))
+    {
+        HUT_ERR_LOG(0, "hut_irq_isr_all, alloc memory failed.");
+
+        oal_irq_restore();
+
+        return;
+    }
+
+    /* ?????? */
+    oal_irq_restore();
+
+    /* ???????????? */
+    oal_spin_lock_irq_save(&g_st_intr_queue.st_spin_lock, &ul_flag);
+
+    /* ?????????????? */
+    hal_get_mac_int_status(pst_hal_device, &pst_rx_node->ul_data1);
+
+    /* ?????????????????? */
+    hal_get_mac_error_int_status(pst_hal_device, &pst_rx_node->ul_data2);
+
+    OAL_IO_PRINT("stat = 0x%x, err = 0x%x\n", pst_rx_node->ul_data1, pst_rx_node->ul_data2);
+
+    /* ???????????????? */
+    hal_clear_mac_int_status(pst_hal_device, 0xFFFFFFFF);
+
+    /* ???????????????? */
+    hal_clear_mac_error_int_status(pst_hal_device, 0xFFFFFFFF);
+
+    oal_dlist_add_tail(&pst_rx_node->st_list, &g_st_intr_queue.st_list);
+
+    /* ???????????? */
+    oal_spin_unlock_irq_restore(&g_st_intr_queue.st_spin_lock, &ul_flag);
+
+    /* ????????tasklet */
+    oal_task_sched(&g_st_hut_tasklet);
+}
+#endif
 
 OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
 {
@@ -224,6 +373,7 @@ OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
 
     hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
 
+    /* ?????? */
     oal_irq_save(&ul_irq_flag, OAL_5115IRQ_HIIA);
 
     pst_rx_node = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_EVENT, OAL_SIZEOF(hut_rx_node), OAL_TRUE);
@@ -236,16 +386,20 @@ OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
         return;
     }
 
+    /* ?????? */
     oal_irq_restore(&ul_irq_flag, OAL_5115IRQ_HIIA);
 
+    /* ???????????? */
     oal_spin_lock_irq_save(&g_st_intr_queue.st_spin_lock, &ul_flag);
 
+    /* ?????????????? */
     hal_get_mac_int_status(pst_hal_device, &pst_rx_node->ul_data1);
 
+    /* ?????????????????? */
     hal_get_mac_error_int_status(pst_hal_device, &st_state);
     pst_rx_node->ul_data2 = st_state.ul_error1_val;
 
-    if (pst_rx_node->ul_data1 & (1 << 0))
+    if (pst_rx_node->ul_data1 & (1 << 0))   /* ???????????? */
     {
         hal_reg_info(pst_hal_device, 0x20002420, &pst_rx_node->ul_data3);
         hal_reg_info(pst_hal_device, 0x20002418, &pst_rx_node->ul_data4);
@@ -260,7 +414,7 @@ OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
 
         //hal_dump_rx_dscr(pst_hal_device, pul_rx_dscr);
     }
-    else if (pst_rx_node->ul_data1 & (1 << 1))
+    else if (pst_rx_node->ul_data1 & (1 << 1))   /* ???????????? */
     {
         hal_reg_info(pst_hal_device, 0x20002424, &pst_rx_node->ul_data3);
         hal_reg_info(pst_hal_device, 0x20002428, &pst_rx_node->ul_data4);
@@ -277,16 +431,21 @@ OAL_STATIC oal_void  hut_irq_isr_all(oal_void)
     OAL_IO_PRINT("stat = 0x%x, err = 0x%x, ptr = 0x%x, count = 0x%x.\n",
         pst_rx_node->ul_data1, pst_rx_node->ul_data2, pst_rx_node->ul_data3, pst_rx_node->ul_data4);
 
+    /* ???????????????? */
     hal_reg_write(pst_hal_device, 0x20002410, pst_rx_node->ul_data2);
 
+    /* ???????????????? */
     hal_reg_write(pst_hal_device,0x20002404, pst_rx_node->ul_data1);
 
     oal_dlist_add_tail(&pst_rx_node->st_list, &g_st_intr_queue.st_list);
 
+    /* ???????????? */
     oal_spin_unlock_irq_restore(&g_st_intr_queue.st_spin_lock, &ul_flag);
 
+    /* ????????tasklet */
     oal_task_sched(&g_st_hut_tasklet);
 }
+
 
 oal_void  hut_report_in(hut_rx_node *pst_rx_node)
 {
@@ -304,13 +463,22 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
 
     hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
 
-    st_frag_hdr.bit_flag = 0;
-    st_frag_hdr.bit_last = 1;
+    /*******************************************************
+     ??????????
+    --------------------------------------------------------
+    | bit_flag | bit_last | bit_resv | us_num | us_len| ?? |
+    --------------------------------------------------------
+    | 1                              | 1      | 2     | 2  |
+    --------------------------------------------------------
+    *********************************************************/
+    st_frag_hdr.bit_flag = 0;   /* ?????? */
+    st_frag_hdr.bit_last = 1;   /* ???????? */
     st_frag_hdr.us_len   = OAL_SIZEOF(auc_buf);
 
     auc_buf[0] = 'i';
     auc_buf[1] = 'n';
 
+    /* ?????????????? */
     ul_intr_status = pst_rx_node->ul_data1;
 
     auc_buf[2] = ul_intr_status & 0xFF;
@@ -318,6 +486,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
     auc_buf[4] = (ul_intr_status >> 16) & 0xFF;
     auc_buf[5] = (ul_intr_status >> 24) & 0xFF;
 
+    /* ?????????????????? */
     ul_err_intr_stat = pst_rx_node->ul_data2;
 
     auc_buf[6] = ul_err_intr_stat & 0xFF;
@@ -325,6 +494,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
     auc_buf[8] = (ul_err_intr_stat >> 16) & 0xFF;
     auc_buf[9] = (ul_err_intr_stat >> 24) & 0xFF;
 
+    /* ????tx/rx mpdu count */
     ul_mpdu_cnt = pst_rx_node->ul_data4;
 
     auc_buf[10] = ul_mpdu_cnt & 0xFF;
@@ -332,6 +502,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
     auc_buf[12] = (ul_mpdu_cnt >> 16) & 0xFF;
     auc_buf[13] = (ul_mpdu_cnt >> 24) & 0xFF;
 
+    /* ????tx/rx frame ptr */
     ul_dscr_ptr = pst_rx_node->ul_data3;
 
     auc_buf[14] = ul_dscr_ptr & 0xFF;
@@ -339,6 +510,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
     auc_buf[16] = (ul_dscr_ptr >> 16) & 0xFF;
     auc_buf[17] = (ul_dscr_ptr >> 24) & 0xFF;
 
+    /* ????status */
     ul_status = ul_dscr_ptr = pst_rx_node->ul_data5;
 
     auc_buf[18] = ul_status & 0xFF;
@@ -346,6 +518,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
     auc_buf[20] = (ul_status >> 16) & 0xFF;
     auc_buf[21] = (ul_status >> 24) & 0xFF;
 
+    /* ???????????????????????????????????? */
     oal_irq_save(&ul_irq_flag, OAL_5115IRQ_HRI);
 
     OAL_MEM_FREE(pst_rx_node, OAL_TRUE);
@@ -356,6 +529,7 @@ oal_void  hut_report_in(hut_rx_node *pst_rx_node)
                     OAL_SIZEOF(st_frag_hdr), OAL_SIZEOF(auc_buf), OAM_NL_CMD_HUT);
 }
 
+
 oal_void  hut_tasklet_handler(oal_uint l_data)
 {
     oal_dlist_head_stru   *pst_entry;
@@ -364,6 +538,7 @@ oal_void  hut_tasklet_handler(oal_uint l_data)
 
     HUT_INFO_LOG(0, "hut_tasklet_handler start.");
 
+    /* ???????????? */
     oal_spin_lock_irq_save(&g_st_intr_queue.st_spin_lock, &ul_flag);
 
     while (!oal_dlist_is_empty(&g_st_intr_queue.st_list))
@@ -378,8 +553,10 @@ oal_void  hut_tasklet_handler(oal_uint l_data)
         oal_spin_lock_irq_save(&g_st_intr_queue.st_spin_lock, &ul_flag);
     }
 
+    /* ???????????? */
     oal_spin_unlock_irq_restore(&g_st_intr_queue.st_spin_lock, &ul_flag);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void hut_get_cmd_name(oal_int8 *pc_dst, oal_int8 *pc_src)
 {
@@ -388,15 +565,18 @@ OAL_STATIC OAL_INLINE oal_void hut_get_cmd_name(oal_int8 *pc_dst, oal_int8 *pc_s
     pc_dst[2] = '\0';
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  hut_get_cmd_id(oal_uint8 *puc_data, oal_uint8 *puc_cmd_id)
 {
     oal_uint8   uc_cmd_idx;
     oal_int8    ac_cmd[HUT_CMD_NAME_MAX_LEN];
 
+    /* ?????????? */
     hut_get_cmd_name(ac_cmd, (oal_int8 *)puc_data);
 
     for (uc_cmd_idx = 0; uc_cmd_idx < OAL_ARRAY_SIZE(g_ast_hut_cmd_ops); uc_cmd_idx++)
     {
+        /* ??????????????????ID */
         if (!oal_strcmp(g_ast_hut_cmd_ops[uc_cmd_idx].pc_cmd_name, ac_cmd))
         {
             *puc_cmd_id = uc_cmd_idx;
@@ -408,11 +588,20 @@ OAL_STATIC OAL_INLINE oal_uint32  hut_get_cmd_id(oal_uint8 *puc_data, oal_uint8 
     return OAL_FAIL;
 }
 
+
 OAL_STATIC oal_uint32  hut_non_frag_msg_recv(oal_uint8 *puc_data, oal_uint32 ul_len)
 {
     oal_uint8    uc_cmd_id;
     oal_uint32   ul_ret;
 
+    /***********************
+    ????????????
+    ----------------------
+    | Byte 0-1 | Byte 2 ~
+    ----------------------
+    |  ??????  |
+    ----------------------
+    ***********************/
     ul_ret = hut_get_cmd_id(puc_data, &uc_cmd_id);
     if (OAL_SUCC != ul_ret)
     {
@@ -423,6 +612,7 @@ OAL_STATIC oal_uint32  hut_non_frag_msg_recv(oal_uint8 *puc_data, oal_uint32 ul_
 
     return (oal_uint32)g_ast_hut_cmd_ops[uc_cmd_id].p_hut_cmd_func(puc_data + 2);
 }
+
 
 OAL_STATIC oal_int32  hut_1st_frag_write_mem(oal_uint8 *puc_data, oal_void *p_param)
 {
@@ -436,6 +626,8 @@ OAL_STATIC oal_int32  hut_1st_frag_write_mem(oal_uint8 *puc_data, oal_void *p_pa
     HUT_INFO_VAR(0, "hut_1st_frag_write_mem, bit_flag = %d, bit_last = %d, us_len = %d.",
                  pst_frag_hdr->bit_flag, pst_frag_hdr->bit_last, pst_frag_hdr->us_len);
 
+
+    /* ?????????????????????? */
     if (1 == pst_frag_hdr->bit_last)
     {
         g_pa_hut_fsm.en_state = HUT_FSM_STATE_INIT;
@@ -448,8 +640,10 @@ OAL_STATIC oal_int32  hut_1st_frag_write_mem(oal_uint8 *puc_data, oal_void *p_pa
 
     HUT_INFO_VAR(0, "hut_1st_frag_write_mem, addr = 0x%x, len = %d.", pst_cmd_fmt->ul_addr, pst_cmd_fmt->ul_val);
 
+    /* ?????????????????? */
     ul_virt_addr = (oal_uint32)(OAL_PHY_TO_VIRT_ADDR(pst_cmd_fmt->ul_addr));
 
+    /* ?????????????? = frag_hdr->us_len - 2("wm") - 4(????) - 4(????) */
     ul_write_len = pst_frag_hdr->us_len - 2 - OAL_SIZEOF(hut_cmd_fmt_stru);
 
     oal_memcopy((oal_uint8 *)ul_virt_addr, puc_data + OAL_SIZEOF(hut_cmd_fmt_stru), ul_write_len);
@@ -458,6 +652,7 @@ OAL_STATIC oal_int32  hut_1st_frag_write_mem(oal_uint8 *puc_data, oal_void *p_pa
 
     return OAL_SUCC;
 }
+
 
 OAL_STATIC oal_int32  hut_2nd_frag_write_mem(oal_uint8 *puc_data, oal_void *p_param)
 {
@@ -474,6 +669,7 @@ OAL_STATIC oal_int32  hut_2nd_frag_write_mem(oal_uint8 *puc_data, oal_void *p_pa
 
     ul_virt_addr = g_tmp.ul_addr;
 
+    /* ?????????????? = frag_hdr->us_len*/
     ul_len = pst_frag_hdr->us_len;
 
     oal_memcopy((oal_uint8 *)ul_virt_addr, puc_data + OAL_SIZEOF(hut_frag_hdr_stru), ul_len);
@@ -488,8 +684,10 @@ OAL_STATIC oal_int32  hut_2nd_frag_write_mem(oal_uint8 *puc_data, oal_void *p_pa
     return OAL_SUCC;
 }
 
+
 OAL_STATIC oal_uint32  hut_frag_msg_recv(oal_uint8 *puc_data, oal_uint32 ul_len)
 {
+    /* ??????????????????????(wm) */
     return (oal_uint32)g_pa_hut_fsm.hut_fsm_func[g_pa_hut_fsm.en_state][HUT_FSM_INPUT_TYPE_WM](puc_data, OAL_PTR_NULL);
 }
 
@@ -509,12 +707,14 @@ OAL_STATIC oal_void  hut_debug_info(oal_uint8 *puc_data, oal_uint32 ul_len)
 
     if (0 == pst_frag_hdr->bit_flag)
     {
+        /* ?????????? */
         hut_get_cmd_name(ac_cmd, (oal_int8 *)puc_data);
 
         HUT_INFO_VAR(0, "hut_debug_info, command is %s.", ac_cmd);
     }
 }
 #endif
+
 
 oal_uint32  hut_receive_msg(oal_uint8 *puc_data, oal_uint32 ul_len)
 {
@@ -526,21 +726,34 @@ oal_uint32  hut_receive_msg(oal_uint8 *puc_data, oal_uint32 ul_len)
 
     pst_frag_hdr = (hut_frag_hdr_stru *)puc_data;
 
+    /* ?????? */
     if (0 == pst_frag_hdr->bit_flag)
     {
+        /****************************************************************
+         ????????
+        -----------------------------------------------------------------
+        | bit_flag | bit_last | bit_resv | us_num | us_len| ?????? | ?? |
+        -----------------------------------------------------------------
+        | 1                              | 1      | 2     | 2      | var
+        -----------------------------------------------------------------
+        *****************************************************************/
         return hut_non_frag_msg_recv(puc_data + OAL_SIZEOF(hut_frag_hdr_stru), ul_len);
     }
+    /* ???? */
     else
     {
         return hut_frag_msg_recv(puc_data, ul_len);
     }
 }
 
+
 OAL_STATIC oal_int32  hut_fsm_null_fn(oal_uint8 *puc_data, oal_void *p_param)
 {
+    /* ?????????? */
 
     return OAL_SUCC;
 }
+
 
 oal_void  hut_report_mem(oal_uint8 *puc_data)
 {
@@ -562,26 +775,44 @@ oal_void  hut_report_mem(oal_uint8 *puc_data)
 
     hal_get_hal_to_dmac_device(0, 0, &pst_hal_device);
 
+    /***************
+     ??????????
+    ---------------
+    | ???? | ???? |
+    ---------------
+    | 4    | 4    |
+    ---------------
+    ****************/
+
     HUT_INFO_LOG(0, "hut_workqueu_handler start.");
 
     pst_cmd_fmt = (hut_cmd_fmt_stru *)puc_data;
 
+    /* ?????????????????? */
     ul_virt_addr = (oal_uint32)(OAL_PHY_TO_VIRT_ADDR(pst_cmd_fmt->ul_addr));
 
     HUT_INFO_VAR(0, "hut_read_mem, pst_cmd_fmt->ul_addr = 0x%x, pst_cmd_fmt->ul_val = %d.", pst_cmd_fmt->ul_addr, pst_cmd_fmt->ul_val);
 
+    /******************************************************************
+     ??????????
+    -------------------------------------------------------------------
+    | bit_flag | bit_last | bit_resv | us_num | us_len | ???? | ??    |
+    -------------------------------------------------------------------
+    | 1                              | 1      | 2      | 4    | ???? ~
+    -------------------------------------------------------------------
+    *******************************************************************/
     if (pst_cmd_fmt->ul_val > HUT_NLMSG_FRAG_THRESHOLD)
     {
-        st_frag_hdr_ex.st_hdr.bit_flag = 1;
-        st_frag_hdr_ex.st_hdr.bit_last = 0;
-        st_frag_hdr_ex.st_hdr.us_len   = (oal_uint16)(OAL_SIZEOF(pst_cmd_fmt->ul_val) + HUT_NLMSG_FRAG_THRESHOLD);
+        st_frag_hdr_ex.st_hdr.bit_flag = 1;   /* ???? */
+        st_frag_hdr_ex.st_hdr.bit_last = 0;   /* ?????? */
+        st_frag_hdr_ex.st_hdr.us_len   = (oal_uint16)(OAL_SIZEOF(pst_cmd_fmt->ul_val) + HUT_NLMSG_FRAG_THRESHOLD);  /* 4???????????? + ????????(??????????????) */
         ul_send_len = HUT_NLMSG_FRAG_THRESHOLD;
     }
     else
     {
-        st_frag_hdr_ex.st_hdr.bit_flag = 0;
-        st_frag_hdr_ex.st_hdr.bit_last = 1;
-        st_frag_hdr_ex.st_hdr.us_len   = (oal_uint16)(OAL_SIZEOF(pst_cmd_fmt->ul_val) + pst_cmd_fmt->ul_val);
+        st_frag_hdr_ex.st_hdr.bit_flag = 0;   /* ?????? */
+        st_frag_hdr_ex.st_hdr.bit_last = 1;   /* ???????? */
+        st_frag_hdr_ex.st_hdr.us_len   = (oal_uint16)(OAL_SIZEOF(pst_cmd_fmt->ul_val) + pst_cmd_fmt->ul_val);  /* 4???????????? + ????????(??????????????) */
         ul_send_len = pst_cmd_fmt->ul_val;
     }
 
@@ -592,6 +823,7 @@ oal_void  hut_report_mem(oal_uint8 *puc_data)
     pst_dscr = (hal_tx_dscr_stru *)((oal_uint8 *)ul_virt_addr - OAL_SIZEOF(oal_dlist_head_stru));
     hal_dump_tx_dscr(pst_hal_device, (oal_uint32 *)pst_dscr);
     /* debug */
+
 
     l_ret = oam_netlink_kernel_send_ex((oal_uint8 *)&st_frag_hdr_ex, (oal_uint8 *)ul_virt_addr,
                     OAL_SIZEOF(st_frag_hdr_ex), ul_send_len, OAM_NL_CMD_HUT);
@@ -608,19 +840,28 @@ oal_void  hut_report_mem(oal_uint8 *puc_data)
 
         if (ul_remain_len > HUT_NLMSG_FRAG_THRESHOLD)
         {
-            st_frag_hdr.bit_flag = 1;
-            st_frag_hdr.bit_last = 0;
+            st_frag_hdr.bit_flag = 1;  /* ???? */
+            st_frag_hdr.bit_last = 0;  /* ?????? */
             st_frag_hdr.us_len   = HUT_NLMSG_FRAG_THRESHOLD;
             ul_send_len          = HUT_NLMSG_FRAG_THRESHOLD;
         }
         else
         {
-            st_frag_hdr.bit_flag = 1;
-            st_frag_hdr.bit_last = 1;
+            st_frag_hdr.bit_flag = 1;  /* ???? */
+            st_frag_hdr.bit_last = 1;  /* ?????????? */
             st_frag_hdr.us_len   = (oal_uint16)ul_remain_len;
             ul_send_len          = ul_remain_len;
         }
 
+        /******************************************************************
+         ??????????
+        -------------------------------------------------------------------
+        | bit_flag | bit_last | bit_resv | us_num | us_len | ??
+        -------------------------------------------------------------------
+        | 1                              | 1      | 2      | ???? ~
+        -------------------------------------------------------------------
+        *******************************************************************/
+        /*lint -e716*/
         while (1)
         {
             l_ret = oam_netlink_kernel_send_ex((oal_uint8 *)&st_frag_hdr, (oal_uint8 *)ul_virt_addr,
@@ -643,6 +884,7 @@ oal_void  hut_report_mem(oal_uint8 *puc_data)
         HUT_INFO_VAR(0, "hut_read_mem2, ul_remain_len = %d.", ul_remain_len);
     }
 }
+
 
 oal_void  hut_workqueu_handler(oal_work_stru *pst_work)
 {
@@ -667,6 +909,8 @@ oal_void  hut_workqueu_handler(oal_work_stru *pst_work)
     oal_spin_unlock_bh(&g_st_hut_workqueue.st_spin_lock);
 }
 
+
+
 OAL_STATIC oal_void  hut_fsm_init(hut_fsm_stru *pst_fsm)
 {
     hut_fsm_state_enum_uint8        en_state;
@@ -680,11 +924,21 @@ OAL_STATIC oal_void  hut_fsm_init(hut_fsm_stru *pst_fsm)
         }
     }
 
+    /*
+    +----------------------------------+-------------------------
+     | FSM State                        | FSM Function
+     +----------------------------------+------------------------
+     | HUT_FSM_STATE_INIT               | hut_1st_frag_write_mem
+     | HUT_FSM_STATE_IN_FRAG            | hut_2nd_frag_write_mem
+     +----------------------------------+------------------------
+    */
     pst_fsm->hut_fsm_func[HUT_FSM_STATE_INIT][HUT_FSM_INPUT_TYPE_WM] = hut_1st_frag_write_mem;
     pst_fsm->hut_fsm_func[HUT_FSM_STATE_IN_FRAG][HUT_FSM_INPUT_TYPE_WM] = hut_2nd_frag_write_mem;
 
+    /* ?????????????????? */
     pst_fsm->en_state = HUT_FSM_STATE_INIT;
 }
+
 
 oal_void  hut_set_rx_dscr_queue_circle(oal_void)
 {
@@ -706,6 +960,7 @@ oal_void  hut_set_rx_dscr_queue_circle(oal_void)
     }
 }
 
+
 oal_void  hut_set_rx_dscr_queue_uncircle(void)
 {
     hal_to_dmac_device_stru         *pst_hal_device;
@@ -725,6 +980,7 @@ oal_void  hut_set_rx_dscr_queue_uncircle(void)
     }
 }
 
+
 oal_int32 hut_main_init(oal_void)
 {
     oal_uint8 *puc_base_addr = OAL_PTR_NULL;
@@ -737,16 +993,20 @@ oal_int32 hut_main_init(oal_void)
         return (oal_int32)OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
+    /* ???????????? */
     hut_fsm_init(&g_pa_hut_fsm);
 
+    /* ?????????????????????? */
     g_st_base_addr.puc_base_addr_origin = puc_base_addr;
 
     puc_base_addr = (oal_uint8 *)OAL_GET_4BYTE_ALIGN_VALUE((oal_uint32)puc_base_addr);
 
+    /* ????????????4???????????????????? */
     g_st_base_addr.puc_base_addr_align = puc_base_addr;
 
     HUT_INFO_VAR(0, "hut_main_init, mem start addr is 0x%x.", OAL_VIRT_TO_PHY_ADDR((oal_void *)g_st_base_addr.puc_base_addr_align));
 
+    /* ?????????????????????????????? */
     g_st_hut_workqueue.pst_rx_workqueue = OAL_CREATE_SINGLETHREAD_WORKQUEUE("hut_rx");
     if (OAL_PTR_NULL == g_st_hut_workqueue.pst_rx_workqueue)
     {
@@ -766,10 +1026,13 @@ oal_int32 hut_main_init(oal_void)
     oal_dlist_init_head(&g_st_intr_queue.st_list);
     oal_spin_lock_init(&g_st_intr_queue.st_spin_lock);
 
+    /* ??WAL????????HUT netlink???????? */
     oam_netlink_ops_register(OAM_NL_CMD_HUT, hut_receive_msg);
 
+    /* ??????HUT????tasklet */
     oal_task_init(&g_st_hut_tasklet, hut_tasklet_handler ,0);
 
+    /* ??HAL????????HUT?????????????????? */
     hal_to_hut_irq_isr_register(HAL_OPER_MODE_HUT, hut_irq_isr_all);
 
     hut_set_rx_dscr_queue_circle();
@@ -777,32 +1040,41 @@ oal_int32 hut_main_init(oal_void)
     return OAL_SUCC;
 }
 
+
 oal_void  hut_main_exit(oal_void)
 {
     if (OAL_PTR_NULL != g_st_base_addr.puc_base_addr_origin)
     {
+        /* ?????????????? */
         oal_free(g_st_base_addr.puc_base_addr_origin);
     }
 
+    /* ????HUT.KO??????????????????????????????????????????NORMAL */
     hal_to_hut_irq_isr_unregister();
 
+    /* ???????????? */
     if (OAL_PTR_NULL != g_st_hut_workqueue.pst_rx_workqueue)
     {
         oal_destroy_workqueue(g_st_hut_workqueue.pst_rx_workqueue);
     }
 
+    /* ????HUT????netlink???????? */
     oam_netlink_ops_unregister(OAM_NL_CMD_HUT);
 
     hut_set_rx_dscr_queue_uncircle();
 }
 
+
+/*lint -e578*//*lint -e19*/
 oal_module_init(hut_main_init);
 oal_module_exit(hut_main_exit);
 
 oal_module_license("GPL");
+
 
 #ifdef __cplusplus
     #if __cplusplus
         }
     #endif
 #endif
+

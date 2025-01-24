@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_linux_cfgvendor.c
-  版 本 号   : 初稿
-  作    者   : dengwenhua
-  生成日期   : 2016年05月10日
-  最近修改   :
-  功能描述   : Linux cfgvendor接口
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2016年05月10日
-    作    者   : dengwenhua
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -29,33 +12,20 @@ extern "C" {
 #include "frw_ext_if.h"
 #include "wal_linux_cfgvendor.h"
 #include "wal_linux_ioctl.h"
+#include "wal_linux_cfg80211.h"
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_WAL_LINUX_CFGVENDOR_C
 
-#define OUI_GOOGLE  0x001A11
-#define OUI_HISI    0x001018
+#define OUI_VENDOR      0x001A11
+#define OUI_HISI        0x001018
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_HOST) || (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 extern oal_uint32 band_5g_enabled;
 
 wal_cfgvendor_radio_stat_stru g_st_wifi_radio_stat;
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_del_radar_channel
- 功能描述  : 删除信道列表中的5G 信道的DFS 信道
- 输入参数  : mac_vendor_cmd_channel_list_stru *pst_channel_list: 信道列表
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年6月22日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void wal_cfgvendor_del_radar_channel(mac_vendor_cmd_channel_list_stru *pst_channel_list)
 {
     oal_uint8 uc_loops;
@@ -89,24 +59,7 @@ OAL_STATIC oal_void wal_cfgvendor_del_radar_channel(mac_vendor_cmd_channel_list_
     oal_memcopy(pst_channel_list->auc_channel_list_5g, auc_tmp_channel_list, uc_channel_idx);
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_copy_channel_list
- 功能描述  : 将对应band 的信道列表拷贝到缓冲区
- 输入参数  : mac_vendor_cmd_channel_list_stru *pst_channel_list
-             oal_uint32   band: 指定频段
-             oal_int32  * pl_channel_list :输出信道列表缓冲区
-             oal_uint32 * pul_num_channels:输出信道个数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年6月22日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 wal_cfgvendor_copy_channel_list(mac_vendor_cmd_channel_list_stru *pst_channel_list,
                                                             oal_uint32   band,
                                                             oal_int32  * pl_channel_list,
@@ -124,24 +77,32 @@ OAL_STATIC oal_uint32 wal_cfgvendor_copy_channel_list(mac_vendor_cmd_channel_lis
         return OAL_FAIL;
     }
 
-    /* 获取2G,信道列表 */
+    /* ????2G,???????? */
     if ((band & VENDOR_BG_BAND_MASK) && (0 != pst_channel_list->uc_channel_num_2g))
     {
         puc_chanel_list = pst_channel_list->auc_channel_list_2g;
         for (ul_loop = 0; ul_loop < pst_channel_list->uc_channel_num_2g; ul_loop++)
         {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,7,0))
+            pl_channel_list[ul_channel_num++] = oal_ieee80211_channel_to_frequency(puc_chanel_list[ul_loop],NL80211_BAND_2GHZ);
+#else
             pl_channel_list[ul_channel_num++] = oal_ieee80211_channel_to_frequency(puc_chanel_list[ul_loop],IEEE80211_BAND_2GHZ);
+#endif
         }
     }
 
-    /* 获取5G,信道列表 */
+    /* ????5G,???????? */
     if ((band & VENDOR_A_BAND_MASK) && (0 != pst_channel_list->uc_channel_num_5g))
     {
         puc_chanel_list = pst_channel_list->auc_channel_list_5g;
 
         for (ul_loop = 0; ul_loop < pst_channel_list->uc_channel_num_5g; ul_loop++)
         {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,7,0))
+            pl_channel_list[ul_channel_num++] = oal_ieee80211_channel_to_frequency(puc_chanel_list[ul_loop],NL80211_BAND_5GHZ);
+#else
             pl_channel_list[ul_channel_num++] = oal_ieee80211_channel_to_frequency(puc_chanel_list[ul_loop],IEEE80211_BAND_5GHZ);
+#endif
         }
     }
 
@@ -156,23 +117,7 @@ OAL_STATIC oal_uint32 wal_cfgvendor_copy_channel_list(mac_vendor_cmd_channel_lis
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_get_current_channel_list
- 功能描述  : 根据band ，获取当前信道列表
- 输入参数  : oal_uint32 band: bit0:2G信道列表 bit1:5G信道列表
-             oal_int32  al_channel_list
-             oal_uint32 * num_channels
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月25日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 wal_cfgvendor_get_current_channel_list(oal_net_device_stru *pst_netdev,
                                                     oal_uint32   band,
                                                     oal_int32  * pl_channel_list,
@@ -192,20 +137,20 @@ OAL_STATIC oal_uint32 wal_cfgvendor_get_current_channel_list(oal_net_device_stru
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 上层在任何时候都可能下发此命令，需要先判断当前netdev的状态并及时返回 */
+    /* ??????????????????????????????????????????????netdev???????????????? */
     if (OAL_UNLIKELY(OAL_PTR_NULL == OAL_NET_DEV_PRIV(pst_netdev)))
     {
         OAM_ERROR_LOG0(0, OAM_SF_ANY, "{wal_cfgvendor_get_current_channel_list::NET_DEV_PRIV is NULL.}");
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 消息参数准备 */
+    /* ???????????? */
     st_query_msg.en_wid = WLAN_CFGID_VENDOR_CMD_GET_CHANNEL_LIST;
 
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_netdev,
                                WAL_MSG_TYPE_QUERY,
                                WAL_MSG_WID_LENGTH,
@@ -226,7 +171,7 @@ OAL_STATIC oal_uint32 wal_cfgvendor_get_current_channel_list(oal_net_device_stru
     pst_query_rsp_msg = (wal_msg_rsp_stru *)(pst_rsp_msg->auc_msg_data);
     pst_channel_list  = (mac_vendor_cmd_channel_list_stru *)(pst_query_rsp_msg->auc_value);
 
-    /* 从信道列表中删除DFS 信道不上报 */
+    /* ????????????????DFS ?????????? */
     wal_cfgvendor_del_radar_channel(pst_channel_list);
 
     if (wal_cfgvendor_copy_channel_list(pst_channel_list, band, pl_channel_list, pul_num_channels) != OAL_SUCC)
@@ -246,7 +191,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_get_channel_list(oal_wiphy_stru *wiphy,
     oal_int32  err = 0;
     oal_int32  type;
     oal_int32  al_channel_list[VENDOR_CHANNEL_LIST_ALL + 1] = {0};
-    oal_uint32 band = 0; /* 上层下发的band值 */
+    oal_uint32 band = 0; /* ??????????band?? */
     oal_uint32 mem_needed;
     oal_uint32 num_channels = 0;
     oal_uint32 reply_len = 0;
@@ -262,7 +207,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_get_channel_list(oal_wiphy_stru *wiphy,
     type = oal_nla_type(data);
     if (type == GSCAN_ATTRIBUTE_BAND)
     {
-        /* 获取band值 bit0:2G信道列表 bit1:5G信道列表 */
+        /* ????band?? bit0:2G???????? bit1:5G???????? */
         band = oal_nla_get_u32(data);
     }
     else
@@ -282,7 +227,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_get_channel_list(oal_wiphy_stru *wiphy,
     reply_len = OAL_SIZEOF(al_channel_list[0])*(num_channels);
     mem_needed = reply_len + VENDOR_REPLY_OVERHEAD + (ATTRIBUTE_U32_LEN * 2);
 
-    /* 申请SKB 上报信道列表 */
+    /* ????SKB ???????????? */
     skb = oal_cfg80211_vendor_cmd_alloc_reply_skb(wiphy, mem_needed);
     if (OAL_UNLIKELY(!skb))
     {
@@ -321,13 +266,13 @@ OAL_STATIC oal_int32 wal_cfgvendor_set_country(oal_wiphy_stru *wiphy,
         type = oal_nla_type(iter);
         switch (type)
         {
-            case ANDR_WIFI_ATTRIBUTE_COUNTRY:
+            case VENDOR_WIFI_ATTRIBUTE_COUNTRY:
 #ifdef _PRE_WLAN_FEATURE_11D
                 oal_memcopy(auc_country_code, oal_nla_data(iter),
                             OAL_MIN(oal_nla_len(iter), OAL_SIZEOF(auc_country_code)));
                 OAM_WARNING_LOG4(0, OAM_SF_ANY, "{wal_cfgvendor_set_country::country code:0x%X 0x%X 0x%X, len = %d!}\r\n",
                                  auc_country_code[0], auc_country_code[1], auc_country_code[2], oal_nla_len(iter));
-                /* 设置国家码到wifi 驱动 */
+                /* ????????????wifi ???? */
                 l_ret = wal_regdomain_update_country_code(wdev->netdev, auc_country_code);
 #else
                 OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_cfgvendor_set_country::_PRE_WLAN_FEATURE_11D is not define!}\r\n");
@@ -391,22 +336,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_get_feature_set(oal_wiphy_stru *wiphy,
 }
 
 
-/*****************************************************************************
- 函 数 名  : wal_send_rand_mac_oui
- 功能描述  : 发送随机mac oui到hmac
- 输入参数  : oal_net_device_stru *pst_net_dev
-             oal_uint8 *auc_random_mac_oui
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月7日
-    作    者   : d00223710
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_send_random_mac_oui(oal_net_device_stru *pst_net_dev,
                                              oal_uint8 *auc_random_mac_oui)
 {
@@ -421,12 +351,12 @@ OAL_STATIC oal_int32 wal_send_random_mac_oui(oal_net_device_stru *pst_net_dev,
     }
 
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_RANDOM_MAC_OUI, WLAN_RANDOM_MAC_OUI_LEN);
     oal_memcopy(st_write_msg.auc_value, auc_random_mac_oui, WLAN_RANDOM_MAC_OUI_LEN);
 
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
                                WAL_MSG_WRITE_MSG_HDR_LENGTH + WLAN_RANDOM_MAC_OUI_LEN,
@@ -445,23 +375,7 @@ OAL_STATIC oal_int32 wal_send_random_mac_oui(oal_net_device_stru *pst_net_dev,
 
 
 
-/*****************************************************************************
- 函 数 名  : wl_cfgvendor_set_rand_mac_oui
- 功能描述  : 设置随机mac oui
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月7日
-    作    者   : d00223710
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_cfgvendor_set_random_mac_oui(oal_wiphy_stru *pst_wiphy,
                                                                  oal_wireless_dev_stru *pst_wdev,
                                                                  OAL_CONST oal_void  *p_data,
@@ -473,9 +387,9 @@ OAL_STATIC oal_int32 wal_cfgvendor_set_random_mac_oui(oal_wiphy_stru *pst_wiphy,
 
     l_type = oal_nla_type(p_data);
 
-    if (ANDR_WIFI_ATTRIBUTE_RANDOM_MAC_OUI == l_type)
+    if (VENDOR_WIFI_ATTRIBUTE_RANDOM_MAC_OUI == l_type)
     {
-        /* 随机mac地址前3字节(mac oui)由Android下发,wps pbc场景和hilink关联场景会将此3字节清0 */
+        /* ????mac??????3????(mac oui)??????????,wps pbc??????hilink??????????????3??????0 */
         oal_memcopy(auc_random_mac_oui, oal_nla_data(p_data), WLAN_RANDOM_MAC_OUI_LEN);
         OAM_WARNING_LOG3(0, OAM_SF_ANY, "{wal_cfgvendor_set_random_mac_oui::mac_ou:0x%.2x:%.2x:%.2x}\r\n",
                          auc_random_mac_oui[0], auc_random_mac_oui[1], auc_random_mac_oui[2]);
@@ -495,23 +409,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_set_random_mac_oui(oal_wiphy_stru *pst_wiphy,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_get_feature
- 功能描述  : 获取特性值
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_feature(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -538,23 +436,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_feature(oal_wiphy_stru *wiphy,
     return l_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_get_version
- 功能描述  : 获取driver版本号
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_version(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -582,23 +464,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_version(oal_wiphy_stru *wiphy,
     return l_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_get_ring_status
- 功能描述  :
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wal_cfgvendor_dbg_get_ring_status(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -628,23 +494,7 @@ oal_int32 wal_cfgvendor_dbg_get_ring_status(oal_wiphy_stru *wiphy,
     return l_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_trigger_mem_dump
- 功能描述  :
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wal_cfgvendor_dbg_trigger_mem_dump(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -652,23 +502,7 @@ oal_int32 wal_cfgvendor_dbg_trigger_mem_dump(oal_wiphy_stru *wiphy,
     return 0;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_start_logging
- 功能描述  :
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_cfgvendor_dbg_start_logging(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -676,23 +510,7 @@ OAL_STATIC oal_int32 wal_cfgvendor_dbg_start_logging(oal_wiphy_stru *wiphy,
     return 0;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_dbg_get_ring_data
- 功能描述  :
- 输入参数  : oal_wiphy_stru *pst_wiphy,
-             oal_wireless_dev_stru *pst_wdev,
-             OAL_CONST oal_void  *p_data, oal_int32 l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月18日
-    作    者   :
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_ring_data(oal_wiphy_stru *wiphy,
         oal_wireless_dev_stru *wdev, OAL_CONST oal_void  *data, oal_int32 len)
 {
@@ -700,23 +518,60 @@ OAL_STATIC oal_int32 wal_cfgvendor_dbg_get_ring_data(oal_wiphy_stru *wiphy,
     return 0;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_cfgvendor_lstats_get_info
- 功能描述  : 获取连接状态
- 输入参数  : oal_wiphy_stru         *pst_wiphy
-             oal_wireless_dev_stru  *pst_wdev
-             OAL_CONST oal_void     *p_data
-             oal_int32               l_len
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
+/*
+ * Vendor CFG80211??????????/??????????
+ */
+OAL_STATIC oal_int32 wal_cfgvendor_lstats_get_station_info(oal_wiphy_stru *pst_wiphy,
+                                                          oal_wireless_dev_stru *pst_wdev,
+                                                          wal_wifi_iface_stat_stru *pst_iface_stat)
+{
+    oal_net_device_stru *pst_dev;
+    mac_vap_stru *pst_mac_vap;
+    mac_user_stru *pst_mac_user;
+    oal_station_info_stru st_sta_info;
+    oal_int32 l_ret;
 
- 修改历史      :
-  1.日    期   : 2017年9月20日
-    作    者   :
-    修改内容   : 新生成函数
-*****************************************************************************/
+    pst_dev = pst_wdev->netdev;
+    if (pst_dev == OAL_PTR_NULL) {
+        OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_station_info::net device is null!}");
+        return -OAL_EINVAL;
+    }
+
+    pst_mac_vap = OAL_NET_DEV_PRIV(pst_dev);
+    if (pst_mac_vap == OAL_PTR_NULL) {
+        OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_station_info::OAL_NET_DEV_PRIV, return null!}");
+        return -OAL_EINVAL;
+    }
+
+    if (!IS_STA(pst_mac_vap)) {
+        OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_station_info:: not sta mode!}");
+        return -OAL_EINVAL;
+    }
+
+    pst_mac_user = (mac_user_stru *)mac_res_get_mac_user(pst_mac_vap->uc_assoc_vap_id);
+    if (pst_mac_user == OAL_PTR_NULL) {
+        OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY,
+                        "{wal_cfgvendor_lstats_get_station_info:: can not get user[%d]!}",
+                        pst_mac_vap->uc_assoc_vap_id);
+        return -OAL_EINVAL;
+    }
+
+    OAL_MEMZERO(&st_sta_info, OAL_SIZEOF(st_sta_info));
+    l_ret = wal_cfg80211_get_station(pst_wiphy, pst_dev, pst_mac_user->auc_user_mac_addr, &st_sta_info);
+    if (l_ret != OAL_SUCC) {
+        OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_station_info::get station info fail %d}", l_ret);
+        return l_ret;
+    }
+
+    pst_iface_stat->ac[0].ul_tx_mpdu = st_sta_info.tx_packets;
+    pst_iface_stat->ac[0].ul_rx_mpdu = st_sta_info.rx_packets;
+    pst_iface_stat->ac[0].ul_retries = st_sta_info.tx_retries;
+    pst_iface_stat->ac[0].ul_mpdu_lost = st_sta_info.tx_failed;
+
+    return OAL_SUCC;
+}
+
+
 OAL_STATIC oal_int32 wal_cfgvendor_lstats_get_info(oal_wiphy_stru *pst_wiphy,
         oal_wireless_dev_stru *pst_wdev, OAL_CONST oal_void  *p_data, oal_int32 l_len)
 {
@@ -745,19 +600,26 @@ OAL_STATIC oal_int32 wal_cfgvendor_lstats_get_info(oal_wiphy_stru *pst_wiphy,
     }
     OAL_MEMZERO(p_out_data, ul_reply_len);
 
-    /* 获取radio 统计 */
+    /* ????radio ???? */
     pst_radio_stat = (wal_wifi_radio_stat_stru *)p_out_data;
     pst_radio_stat->ul_num_channels = VENDOR_NUM_CHAN;
     pst_radio_stat->ul_on_time      = OAL_JIFFIES_TO_MSECS(OAL_TIME_JIFFY - g_st_wifi_radio_stat.ull_wifi_on_time_stamp);
     pst_radio_stat->ul_tx_time      = 0;
     pst_radio_stat->ul_rx_time      = 0;
 
-    /* 获取interfac 统计 */
+    /* ????interfac ???? */
     pst_iface_stat = (wal_wifi_iface_stat_stru *)(p_out_data + OAL_SIZEOF(*pst_radio_stat));
     pst_iface_stat->ul_num_peers           = VENDOR_NUM_PEER;
     pst_iface_stat->peer_info->ul_num_rate = VENDOR_NUM_RATE;
 
-    /* 上报link 统计 */
+    /* ????cfg80211 vendor???????????????????? */
+    l_err = wal_cfgvendor_lstats_get_station_info(pst_wiphy, pst_wdev, pst_iface_stat);
+    if(l_err != OAL_SUCC) {
+        oal_free(p_out_data);
+        return -OAL_EFAIL;
+    }
+
+    /* ????link???? */
     pst_skb = oal_cfg80211_vendor_cmd_alloc_reply_skb(pst_wiphy, ul_reply_len);
     if (OAL_UNLIKELY(!pst_skb))
     {
@@ -768,11 +630,11 @@ OAL_STATIC oal_int32 wal_cfgvendor_lstats_get_info(oal_wiphy_stru *pst_wiphy,
 
     oal_nla_put_nohdr(pst_skb, ul_reply_len, p_out_data);
 
-    l_err =  oal_cfg80211_vendor_cmd_reply(pst_skb);
-    OAM_WARNING_LOG4(0, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_info::on_time %d, tx_time %d, rx_time %d, err %d",
+    l_err = oal_cfg80211_vendor_cmd_reply(pst_skb);
+    OAM_WARNING_LOG4(0, OAM_SF_ANY, "{wal_cfgvendor_lstats_get_info::on_time %d, tx_pkts %d, rx_pkts %d, err %d",
                     pst_radio_stat->ul_on_time,
-                    pst_radio_stat->ul_tx_time,
-                    pst_radio_stat->ul_rx_time,
+                    pst_iface_stat->ac[0].ul_tx_mpdu,
+                    pst_iface_stat->ac[0].ul_rx_mpdu,
                     l_err);
     oal_free(p_out_data);
     return l_err;
@@ -782,7 +644,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
 {
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = GSCAN_SUBCMD_GET_CHANNEL_LIST
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -791,31 +653,31 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
 
     {
         {
-            .vendor_id = OUI_GOOGLE,
-            .subcmd = ANDR_WIFI_SET_COUNTRY
+            .vendor_id = OUI_VENDOR,
+            .subcmd = VENDOR_WIFI_SET_COUNTRY
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
         .doit = wal_cfgvendor_set_country
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
-            .subcmd = ANDR_WIFI_SUBCMD_GET_FEATURE_SET
+            .vendor_id = OUI_VENDOR,
+            .subcmd = VENDOR_WIFI_SUBCMD_GET_FEATURE_SET
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
         .doit = wal_cfgvendor_get_feature_set
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
-            .subcmd = ANDR_WIFI_RANDOM_MAC_OUI
+            .vendor_id = OUI_VENDOR,
+            .subcmd = VENDOR_WIFI_RANDOM_MAC_OUI
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
         .doit = wal_cfgvendor_set_random_mac_oui
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_GET_FEATURE
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -823,7 +685,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_GET_VER
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -831,7 +693,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_GET_RING_STATUS
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -839,7 +701,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_TRIGGER_MEM_DUMP
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -847,7 +709,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_START_LOGGING
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -855,7 +717,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = DEBUG_GET_RING_DATA
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
@@ -863,7 +725,7 @@ OAL_STATIC OAL_CONST oal_wiphy_vendor_command_stru wal_vendor_cmds[] =
     },
     {
         {
-            .vendor_id = OUI_GOOGLE,
+            .vendor_id = OUI_VENDOR,
             .subcmd = LSTATS_SUBCMD_GET_INFO
         },
         .flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,

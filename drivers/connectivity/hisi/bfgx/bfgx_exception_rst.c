@@ -1,3 +1,8 @@
+
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include <linux/delay.h>
 #include <linux/rtc.h>
 #include <linux/tty.h>
@@ -16,12 +21,15 @@
 #include "oal_hcc_host_if.h"
 #include "oal_ext_if.h"
 
+/*****************************************************************************
+  3 ????????????
+*****************************************************************************/
 struct st_exception_info *g_pst_exception_info = NULL;
 struct sdio_dump_bcpu_buff st_bcpu_dump_buff = {NULL, 0, 0};
 oal_netbuf_stru*       st_bcpu_dump_netbuf = NULL;
 
 
-unsigned char *g_bfgx_mem_file_name[BFGX_MEM_DUMP_BLOCK_COUNT] =
+uint8 *g_bfgx_mem_file_name[BFGX_MEM_DUMP_BLOCK_COUNT] =
                             {
                                 "plat_nfc_stack",
                                 "fgb_stack",
@@ -29,7 +37,7 @@ unsigned char *g_bfgx_mem_file_name[BFGX_MEM_DUMP_BLOCK_COUNT] =
                             };
 
 struct st_exception_mem_info g_pst_bfgx_mem_dump[BFGX_MEM_DUMP_BLOCK_COUNT] = {{0},{0},{0}};
-unsigned int g_recvd_block_count = 0;
+uint32 g_recvd_block_count = 0;
 
 #define WIFI_PUB_REG_BLOCKS      (12)
 #define WIFI_PRIV_REG_BLOCKS     (9)
@@ -182,7 +190,7 @@ struct st_uart_dump_wifi_info g_uart_read_wifi_mem_info[UART_WIFI_MEM_DUMP_BOTTO
 };
 
 struct st_exception_mem_info g_pst_uart_wifi_mem_dump[UART_WIFI_MEM_DUMP_BOTTOM] = {{0},{0},{0}};
-unsigned int g_recvd_wifi_block_index = UART_WIFI_MEM_DUMP_BOTTOM;
+uint32 g_recvd_wifi_block_index = UART_WIFI_MEM_DUMP_BOTTOM;
 
 struct st_bfgx_reset_cmd g_ast_bfgx_reset_msg[BFGX_BUTT] =
 {
@@ -209,6 +217,7 @@ exception_bcpu_dump_msg g_sdio_read_bcpu_mem_info[BFGX_SHARE_RAM_NUM] =
 };
 exception_bcpu_dump_msg g_sdio_read_bcpu_priv_reg_info[BFGX_PRIV_REG_NUM] =
 {
+	/*??????????????????2??*/
     //{GNSS_SUB_FILE_NAME,             BFGX_GNSS_SUB_ADDR,             ALIGN_2_BYTE, BFGX_GNSS_SUB_LEN},
     {B_CTL_WDT_TIMER_UART_FILE_NAME, BFGX_B_CTL_WDT_TIMER_UART_ADDR, ALIGN_2_BYTE, BFGX_B_CTL_WDT_TIMER_UART_LEN},
     {IR_SUB_FILE_NAME,               BFGX_IR_SUB_ADDR,               ALIGN_2_BYTE, BFGX_IR_SUB_LEN},
@@ -235,31 +244,38 @@ exception_bcpu_dump_msg g_sdio_read_all[BFGX_PUB_REG_NUM + BFGX_SHARE_RAM_NUM + 
     //{B_DMA_CFG_FILE_NAME,            BFGX_B_DMA_CFG_ADDR,            ALIGN_2_BYTE, BFGX_B_DMA_CFG_LEN},
 };
 
-unsigned char  g_plat_beatTimer_timeOut_reset_cfg = 0;
+uint8  g_plat_beatTimer_timeOut_reset_cfg = 0;
 extern struct oal_sdio* oal_alloc_sdio_stru(oal_void);
-
-void  bfgx_beat_timer_expire(unsigned long data);
-int get_exception_info_reference(struct st_exception_info **exception_data);
-int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, unsigned int exception_type);
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+memdump_info_t bcpu_memdump_cfg;
+memdump_info_t wcpu_memdump_cfg;
+#endif
+/*****************************************************************************
+  2 ????????
+*****************************************************************************/
+void  bfgx_beat_timer_expire(uint64 data);
+int32 get_exception_info_reference(struct st_exception_info **exception_data);
+int32 plat_exception_handler(uint32 subsys_type, uint32 thread_type, uint32 exception_type);
 void  plat_exception_reset_work(struct work_struct *work);
-int wifi_exception_handler(void);
-int wifi_subsystem_reset(void);
-int wifi_system_reset(void);
-int wifi_status_recovery(void);
-int wifi_exception_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsigned int count, oal_int32 excep_type);
-int bfgx_exception_handler(void);
-int bfgx_subthread_reset(void);
-int bfgx_subsystem_reset(void);
-int bfgx_system_reset(void);
-int bfgx_recv_dev_mem(unsigned char *buf_ptr, unsigned short count);
-int bfgx_store_stack_mem_to_file(void);
+int32 wifi_exception_handler(void);
+int32 wifi_subsystem_reset(void);
+int32 wifi_system_reset(void);
+int32 wifi_status_recovery(void);
+int32 wifi_exception_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uint32 count, oal_int32 excep_type);
+int32 bfgx_exception_handler(void);
+int32 bfgx_subthread_reset(void);
+int32 bfgx_subsystem_reset(void);
+int32 bfgx_system_reset(void);
+int32 bfgx_recv_dev_mem(uint8 *buf_ptr, uint16 count);
+int32 bfgx_store_stack_mem_to_file(void);
 void  bfgx_dump_stack(void);
-int bfgx_status_recovery(void);
-int plat_bfgx_exception_rst_register(struct ps_plat_s *data);
-int plat_exception_reset_init(void);
-int plat_exception_reset_exit(void);
+int32 bfgx_status_recovery(void);
+int32 plat_bfgx_exception_rst_register(struct ps_plat_s *data);
+int32 plat_exception_reset_init(void);
+int32 plat_exception_reset_exit(void);
 
-void plat_dfr_cfg_set(unsigned long arg)
+
+void plat_dfr_cfg_set(uint64 arg)
 {
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -275,7 +291,8 @@ void plat_dfr_cfg_set(unsigned long arg)
     PS_PRINT_INFO("plat dfr cfg set value = %ld\n", arg);
 }
 
-void plat_beatTimer_timeOut_reset_cfg_set(unsigned long arg)
+
+void plat_beatTimer_timeOut_reset_cfg_set(uint64 arg)
 {
     g_plat_beatTimer_timeOut_reset_cfg = arg ? (PLAT_EXCEPTION_ENABLE) : (PLAT_EXCEPTION_DISABLE);
     PS_PRINT_INFO("plat beat timer timeOut reset cfg set value = %ld\n", arg);
@@ -284,7 +301,7 @@ void plat_beatTimer_timeOut_reset_cfg_set(unsigned long arg)
 /*****************************************************************************
  * Prototype    : mod_beat_timer
  * Description  :
- * input        : unsigned char
+ * input        : uint8
  * output       : no
  * Calls        :
  * Called By    :
@@ -294,7 +311,7 @@ void plat_beatTimer_timeOut_reset_cfg_set(unsigned long arg)
  *     Author       : wx145522
  *     Modification : Created function
 *****************************************************************************/
-int mod_beat_timer(unsigned char on)
+int32 mod_beat_timer(uint8 on)
 {
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -320,7 +337,8 @@ int mod_beat_timer(unsigned char on)
     return 0;
 }
 
-void bfgx_beat_timer_expire(unsigned long data)
+
+void bfgx_beat_timer_expire(uint64 data)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
@@ -342,6 +360,7 @@ void bfgx_beat_timer_expire(unsigned long data)
 
     ps_core_d = pst_exception_data->ps_plat_d->core_data;
 
+    /*bfgx????????????????????????*/
     if (BFGX_SLEEP == ps_core_d->ps_pm->bfgx_dev_state_get())
     {
         PS_PRINT_INFO("bfgx has sleep!\n");
@@ -396,7 +415,8 @@ void bfgx_beat_timer_expire(unsigned long data)
     return;
 }
 
-int get_exception_info_reference(struct st_exception_info **exception_data)
+
+int32 get_exception_info_reference(struct st_exception_info **exception_data)
 {
     if (NULL == exception_data)
     {
@@ -416,9 +436,9 @@ int get_exception_info_reference(struct st_exception_info **exception_data)
     return EXCEPTION_SUCCESS;
 }
 
-int uart_reset_wcpu(void)
+int32 uart_reset_wcpu(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -477,10 +497,11 @@ int uart_reset_wcpu(void)
     return EXCEPTION_SUCCESS;
 }
 
-int plat_power_fail_exception_info_set(unsigned int subsys_type, unsigned int thread_type, unsigned int exception_type)
+
+int32 plat_power_fail_exception_info_set(uint32 subsys_type, uint32 thread_type, uint32 exception_type)
 {
     struct st_exception_info *pst_exception_data = NULL;
-    unsigned long flag;
+    uint64 flag;
 
     if (subsys_type >= SUBSYS_BOTTOM)
     {
@@ -522,6 +543,7 @@ int plat_power_fail_exception_info_set(unsigned int subsys_type, unsigned int th
         pst_exception_data->thread_type   = thread_type;
         pst_exception_data->excetion_type = exception_type;
 
+        /*????????????????????????????????????????????*/
         atomic_set(&pst_exception_data->is_reseting_device, PLAT_EXCEPTION_RESET_BUSY);
     }
     else
@@ -532,6 +554,7 @@ int plat_power_fail_exception_info_set(unsigned int subsys_type, unsigned int th
         return -EXCEPTION_FAIL;
     }
 
+    /*????????????*/
     if (SUBSYS_WIFI == subsys_type)
     {
         pst_exception_data->wifi_exception_cnt += 1;
@@ -545,6 +568,7 @@ int plat_power_fail_exception_info_set(unsigned int subsys_type, unsigned int th
 
     return EXCEPTION_SUCCESS;
 }
+
 
 void plat_power_fail_process_done(void)
 {
@@ -564,10 +588,11 @@ void plat_power_fail_process_done(void)
     return;
 }
 
-int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, unsigned int exception_type)
+
+int32 plat_exception_handler(uint32 subsys_type, uint32 thread_type, uint32 exception_type)
 {
     struct st_exception_info *pst_exception_data = NULL;
-    unsigned long flag;
+    uint64 flag;
 
     if (subsys_type >= SUBSYS_BOTTOM)
     {
@@ -601,6 +626,7 @@ int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, u
         return EXCEPTION_SUCCESS;
     }
 
+    /*??????????spin lock????????????????????????????????????????????????????????????????????*/
     spin_lock_irqsave(&pst_exception_data->exception_spin_lock, flag);
     if (PLAT_EXCEPTION_RESET_IDLE == atomic_read(&pst_exception_data->is_reseting_device))
     {
@@ -608,6 +634,7 @@ int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, u
         pst_exception_data->thread_type   = thread_type;
         pst_exception_data->excetion_type = exception_type;
 
+        /*????????????????????????????????????????????*/
         atomic_set(&pst_exception_data->is_reseting_device, PLAT_EXCEPTION_RESET_BUSY);
     }
     else
@@ -626,6 +653,7 @@ int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, u
         return EXCEPTION_SUCCESS;
     }
 
+    /*????????????worker*/
     queue_work(pst_exception_data->plat_exception_rst_workqueue, &pst_exception_data->plat_exception_rst_work);
 
     return EXCEPTION_SUCCESS;
@@ -633,9 +661,10 @@ int plat_exception_handler(unsigned int subsys_type, unsigned int thread_type, u
 
 EXPORT_SYMBOL(plat_exception_handler);
 
+
 void plat_exception_reset_work(struct work_struct *work)
 {
-	int  ret = -EXCEPTION_FAIL;
+	int32  ret = -EXCEPTION_FAIL;
 	struct st_exception_info *pst_exception_data = NULL;
 	struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -682,10 +711,11 @@ void plat_exception_reset_work(struct work_struct *work)
 	return;
 }
 
-int wifi_exception_handler(void)
+
+int32 wifi_exception_handler(void)
 {
-	int ret = -EXCEPTION_FAIL;
-	unsigned int exception_type;
+	int32 ret = -EXCEPTION_FAIL;
+	uint32 exception_type;
 	struct st_exception_info *pst_exception_data = NULL;
 
     get_exception_info_reference(&pst_exception_data);
@@ -697,6 +727,7 @@ int wifi_exception_handler(void)
 
 	exception_type = pst_exception_data->excetion_type;
 
+	/*????bfgx??????????????wifi????????????????????????wifi??????????????*/
 	if (!bfgx_is_shutdown())
 	{
 	    PS_PRINT_INFO("bfgx is opened, start wifi subsystem reset!\n");
@@ -732,7 +763,8 @@ int wifi_exception_handler(void)
 	return EXCEPTION_SUCCESS;
 }
 
-int wifi_subsystem_reset(void)
+
+int32 wifi_subsystem_reset(void)
 {
 	struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -772,9 +804,10 @@ int wifi_subsystem_reset(void)
 	return EXCEPTION_SUCCESS;
 }
 
-int wifi_system_reset(void)
+
+int32 wifi_system_reset(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -791,6 +824,7 @@ int wifi_system_reset(void)
         return -EXCEPTION_FAIL;
     }
 
+    /*??????????firmware????????*/
     hcc_disable(hcc_get_default_handler(), OAL_TRUE);
     wlan_pm_init_device_ready(pm_data->pst_wlan_pm_info);
     oal_wlan_gpio_intr_enable(oal_get_sdio_default_handler(), OAL_FALSE);
@@ -861,6 +895,7 @@ int wifi_system_reset(void)
 
         bfgx_pm_feature_set();
 
+        /*????bfgx????????*/
         if (EXCEPTION_SUCCESS != bfgx_status_recovery())
         {
             PS_PRINT_ERR("bfgx status revocery failed!\n");
@@ -871,7 +906,8 @@ int wifi_system_reset(void)
     return EXCEPTION_SUCCESS;
 }
 
-int wifi_status_recovery(void)
+
+int32 wifi_status_recovery(void)
 {
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -901,10 +937,11 @@ int wifi_status_recovery(void)
 	return EXCEPTION_SUCCESS;
 }
 
-int wifi_open_bcpu_set(unsigned char enable)
+
+int32 wifi_open_bcpu_set(uint8 enable)
 {
     struct st_exception_info *pst_exception_data = NULL;
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -975,10 +1012,11 @@ int wifi_open_bcpu_set(unsigned char enable)
 
 EXPORT_SYMBOL(wifi_open_bcpu_set);
 
-int wifi_exception_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsigned int count, oal_int32 excep_type)
+
+int32 wifi_exception_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uint32 count, oal_int32 excep_type)
 {
-    int ret;
-    unsigned long timeleft;
+    int32 ret;
+    uint64 timeleft;
     struct st_exception_info *pst_exception_data = NULL;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
@@ -1077,7 +1115,8 @@ int wifi_exception_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uns
 
 EXPORT_SYMBOL(wifi_exception_mem_dump);
 
-int wifi_exception_work_submit(unsigned int wifi_excp_type)
+
+int32 wifi_exception_work_submit(uint32 wifi_excp_type)
 {
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -1130,7 +1169,8 @@ oal_workqueue_stru* wifi_get_exception_workqueue(oal_void)
 }
 EXPORT_SYMBOL(wifi_get_exception_workqueue);
 
-int prepare_to_recv_bfgx_stack(unsigned int len)
+
+int32 prepare_to_recv_bfgx_stack(uint32 len)
 {
     if (g_recvd_block_count > BFGX_MEM_DUMP_BLOCK_COUNT - 1)
     {
@@ -1140,7 +1180,7 @@ int prepare_to_recv_bfgx_stack(unsigned int len)
 
     if (NULL == g_pst_bfgx_mem_dump[g_recvd_block_count].exception_mem_addr)
     {
-        g_pst_bfgx_mem_dump[g_recvd_block_count].exception_mem_addr = (unsigned char *)OS_KMALLOC_GFP(len);
+        g_pst_bfgx_mem_dump[g_recvd_block_count].exception_mem_addr = (uint8 *)OS_KMALLOC_GFP(len);
         if (NULL == g_pst_bfgx_mem_dump[g_recvd_block_count].exception_mem_addr)
         {
             PS_PRINT_ERR("prepare mem to recv bfgx stack failed\n");
@@ -1158,9 +1198,9 @@ int prepare_to_recv_bfgx_stack(unsigned int len)
     return EXCEPTION_SUCCESS;
 }
 
-int free_bfgx_stack_dump_mem(void)
+int32 free_bfgx_stack_dump_mem(void)
 {
-    unsigned int i = 0;
+    uint32 i = 0;
 
     for (i = 0; i < BFGX_MEM_DUMP_BLOCK_COUNT; i++)
     {
@@ -1179,10 +1219,11 @@ int free_bfgx_stack_dump_mem(void)
     return EXCEPTION_SUCCESS;
 }
 
-int bfgx_exception_handler(void)
+
+int32 bfgx_exception_handler(void)
 {
-	int  ret = -EXCEPTION_FAIL;
-	unsigned int exception_type;
+	int32  ret = -EXCEPTION_FAIL;
+	uint32 exception_type;
     struct st_exception_info *pst_exception_data = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -1204,12 +1245,14 @@ int bfgx_exception_handler(void)
     /* we do NOT need bfg timer anymore */
     del_timer_sync(&pm_data->bfg_timer);
 
+	/*ioctl??????????????????????????*/
 	if (exception_type == TIMER_TIMEOUT || exception_type == ARP_TIMEOUT)
 	{
 		ret = bfgx_subthread_reset();
 	}
 	else
 	{
+        /*????????????????????????????????????????????????????????????uart????????*/
         bfgx_dump_stack();
 
         if (LAST_WORD == exception_type)
@@ -1230,10 +1273,11 @@ int bfgx_exception_handler(void)
 	return EXCEPTION_SUCCESS;
 }
 
-int bfgx_subthread_reset(void)
+
+int32 bfgx_subthread_reset(void)
 {
-	int  ret = -EXCEPTION_FAIL;
-	unsigned int subsys, subthread;
+	int32  ret = -EXCEPTION_FAIL;
+	uint32 subsys, subthread;
     struct st_exception_info *pst_exception_data = NULL;
 
     get_exception_info_reference(&pst_exception_data);
@@ -1245,6 +1289,10 @@ int bfgx_subthread_reset(void)
 
     subsys    = pst_exception_data->subsys_type;
     subthread = pst_exception_data->thread_type;
+
+	/*uart ??????????????????*/
+
+	/*??????????????????ACK*/
 
 	if (EXCEPTION_SUCCESS != ret)
 	{
@@ -1261,9 +1309,9 @@ int bfgx_subthread_reset(void)
 	return EXCEPTION_SUCCESS;
 }
 
-int wifi_reset_bfgx(void)
+int32 wifi_reset_bfgx(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
     if (NULL == pm_data)
@@ -1299,7 +1347,8 @@ int wifi_reset_bfgx(void)
     return EXCEPTION_SUCCESS;
 }
 
-int __bfgx_subsystem_reset(void)
+
+int32 __bfgx_subsystem_reset(void)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
@@ -1357,7 +1406,8 @@ int __bfgx_subsystem_reset(void)
     return EXCEPTION_SUCCESS;
 }
 
-int bfgx_subsystem_reset(void)
+
+int32 bfgx_subsystem_reset(void)
 {
 	if (!wlan_is_shutdown())
 	{
@@ -1377,9 +1427,9 @@ int bfgx_subsystem_reset(void)
 	}
 }
 
-int bfgx_power_reset(void)
+int32 bfgx_power_reset(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -1437,7 +1487,8 @@ int bfgx_power_reset(void)
     return EXCEPTION_SUCCESS;
 }
 
-int bfgx_system_reset(void)
+
+int32 bfgx_system_reset(void)
 {
 	struct st_exception_info *pst_exception_data = NULL;
 
@@ -1457,6 +1508,7 @@ int bfgx_system_reset(void)
         }
     }
 
+    /*??????????firmware????????*/
     if (EXCEPTION_SUCCESS != bfgx_power_reset())
     {
         PS_PRINT_ERR("bfgx power reset failed!\n");
@@ -1481,10 +1533,11 @@ int bfgx_system_reset(void)
     return EXCEPTION_SUCCESS;
 }
 
-int bfgx_recv_dev_mem(unsigned char *buf_ptr, unsigned short count)
+
+int32 bfgx_recv_dev_mem(uint8 *buf_ptr, uint16 count)
 {
     struct st_exception_mem_info *pst_mem_info = NULL;
-    unsigned int offset = 0;
+    uint32 offset = 0;
 
     if (NULL == buf_ptr)
     {
@@ -1521,12 +1574,13 @@ int bfgx_recv_dev_mem(unsigned char *buf_ptr, unsigned short count)
 
     return EXCEPTION_SUCCESS;
 }
+#ifndef HI110X_HAL_MEMDUMP_ENABLE
 
-int bfgx_store_stack_mem_to_file(void)
+int32 bfgx_store_stack_mem_to_file(void)
 {
     OS_KERNEL_FILE_STRU *fp;
     char filename[100] = {0};
-    unsigned int i;
+    uint32 i;
     mm_segment_t fs;
     struct st_exception_mem_info *pst_mem_info = NULL;
 
@@ -1539,11 +1593,8 @@ int bfgx_store_stack_mem_to_file(void)
             continue;
         }
         OS_MEM_SET(filename, 0, sizeof(filename));
-#if (_PRE_HI110X_LOG_VERSION == _PRE_HI110X_LOG_V2)
-        snprintf(filename, sizeof(filename),"/data/log/hi110x/memdump/%s_%s.bin", UART_STORE_BFGX_STACK, pst_mem_info->file_name);
-#else
-        snprintf(filename, sizeof(filename),"/data/memdump/%s_%s.bin", UART_STORE_BFGX_STACK, pst_mem_info->file_name);
-#endif
+        snprintf(filename, sizeof(filename),BFGX_DUMP_PATH"/%s_%s.bin", UART_STORE_BFGX_STACK, pst_mem_info->file_name);
+        /*??????????????????????????????*/
         fp = filp_open(filename, O_RDWR | O_CREAT, 0664);
         if (IS_ERR_OR_NULL(fp))
         {
@@ -1551,6 +1602,7 @@ int bfgx_store_stack_mem_to_file(void)
             continue;
         }
 
+        /*??????????????????????????*/
         fs = get_fs();
         set_fs(KERNEL_DS);
         //l_ret = vfs_llseek(fp, 0, SEEK_END);
@@ -1568,11 +1620,12 @@ int bfgx_store_stack_mem_to_file(void)
 
     return EXCEPTION_SUCCESS;
 }
+#endif
 
 void bfgx_dump_stack(void)
 {
-    unsigned long timeleft;
-    unsigned int exception_type;
+    uint64 timeleft;
+    uint32 exception_type;
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -1599,12 +1652,14 @@ void bfgx_dump_stack(void)
 
     INIT_COMPLETION(pst_exception_data->wait_read_bfgx_stack);
 
+    /*????????????host??????????????????????????????????????device??????????????*/
     if (exception_type == BEAT_HEART_TIMEOUT)
     {
         ps_uart_state_pre(ps_core_d->tty);
         ps_tx_sys_cmd(ps_core_d, SYS_MSG, SYS_CFG_READ_STACK);
     }
 
+    /*????????????????*/
     timeleft = wait_for_completion_timeout(&pst_exception_data->wait_read_bfgx_stack, msecs_to_jiffies(WAIT_BFGX_READ_STACK_TIME));
     if (!timeleft)
     {
@@ -1615,18 +1670,18 @@ void bfgx_dump_stack(void)
     {
         PS_PRINT_INFO("read bfgx stack success!\n");
     }
-
+#ifndef HI110X_HAL_MEMDUMP_ENABLE
     plat_wait_last_rotate_finish();
 
     bfgx_store_stack_mem_to_file();
-
+#endif
     return;
 }
 
-int prepare_to_recv_wifi_mem(void)
+int32 prepare_to_recv_wifi_mem(void)
 {
-    unsigned int malloc_mem_len;
-    unsigned int index;
+    uint32 malloc_mem_len;
+    uint32 index;
 
     PS_PRINT_INFO("%s\n", __func__);
 
@@ -1640,7 +1695,7 @@ int prepare_to_recv_wifi_mem(void)
     if (NULL == g_pst_uart_wifi_mem_dump[index].exception_mem_addr)
     {
         malloc_mem_len = g_uart_read_wifi_mem_info[index].total_size;
-        g_pst_uart_wifi_mem_dump[index].exception_mem_addr = (unsigned char *)OS_VMALLOC_GFP(malloc_mem_len);
+        g_pst_uart_wifi_mem_dump[index].exception_mem_addr = (uint8 *)OS_VMALLOC_GFP(malloc_mem_len);
         if (NULL == g_pst_uart_wifi_mem_dump[index].exception_mem_addr)
         {
             PS_PRINT_ERR("prepare mem to recv wifi mem failed\n");
@@ -1658,9 +1713,9 @@ int prepare_to_recv_wifi_mem(void)
     return EXCEPTION_SUCCESS;
 }
 
-int free_uart_read_wifi_mem(void)
+int32 free_uart_read_wifi_mem(void)
 {
-    unsigned int index;
+    uint32 index;
 
     PS_PRINT_INFO("%s\n", __func__);
 
@@ -1685,11 +1740,11 @@ int free_uart_read_wifi_mem(void)
     return EXCEPTION_SUCCESS;
 }
 
-int uart_recv_wifi_mem(unsigned char *buf_ptr, unsigned short count)
+int32 uart_recv_wifi_mem(uint8 *buf_ptr, uint16 count)
 {
     struct st_exception_mem_info *pst_mem_info = NULL;
-    unsigned int offset = 0;
-    unsigned int index;
+    uint32 offset = 0;
+    uint32 index;
 
     if (NULL == buf_ptr)
     {
@@ -1729,17 +1784,17 @@ int uart_recv_wifi_mem(unsigned char *buf_ptr, unsigned short count)
     return EXCEPTION_SUCCESS;
 }
 
-int __store_wifi_mem_to_file(void)
+int32 __store_wifi_mem_to_file(void)
 {
     OS_KERNEL_FILE_STRU *fp;
     char filename[100] = {0};
     mm_segment_t fs;
-    unsigned int index;
-    unsigned int i;
-    unsigned int block_count;
-    unsigned char *block_file_name;
-    unsigned int block_size;
-    unsigned int offset = 0;
+    uint32 index;
+    uint32 i;
+    uint32 block_count;
+    uint8 *block_file_name;
+    uint32 block_size;
+    uint32 offset = 0;
     struct st_exception_mem_info *pst_mem_info = NULL;
 
 #ifdef PLATFORM_DEBUG_ENABLE
@@ -1773,18 +1828,16 @@ int __store_wifi_mem_to_file(void)
     {
         block_size      = g_uart_read_wifi_mem_info[index].block_info[i].size;
         block_file_name = g_uart_read_wifi_mem_info[index].block_info[i].file_name;
-#if (_PRE_HI110X_LOG_VERSION == _PRE_HI110X_LOG_V2)
-        snprintf(filename, sizeof(filename),"/data/log/hi110x/memdump/%s_%s.bin", UART_STORE_WIFI_MEM, block_file_name);
-#else
-        snprintf(filename, sizeof(filename),"/data/memdump/%s_%s.bin", UART_STORE_WIFI_MEM, block_file_name);
-#endif
+        snprintf(filename, sizeof(filename),BFGX_DUMP_PATH"/%s_%s.bin", UART_STORE_WIFI_MEM, block_file_name);
+        /*??????????????????????????????*/
         fp = filp_open(filename, O_RDWR | O_CREAT, 0664);
         if (IS_ERR_OR_NULL(fp))
         {
-            PS_PRINT_ERR("create file error,fp = 0x%p\n", fp);
+            PS_PRINT_ERR("create file error,fp = 0x%p,filename:%s\n", fp, filename);
             return -EXCEPTION_FAIL;
         }
 
+        /*??????????????????????????*/
         fs = get_fs();
         set_fs(KERNEL_DS);
         //l_ret = vfs_llseek(fp, 0, SEEK_END);
@@ -1839,9 +1892,9 @@ void store_wifi_mem_to_file(void)
     return;
 }
 
-int uart_halt_wcpu(void)
+int32 uart_halt_wcpu(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -1877,7 +1930,8 @@ int uart_halt_wcpu(void)
     return EXCEPTION_SUCCESS;
 }
 
-int exception_bcpu_dump_recv(unsigned char* str, oal_netbuf_stru* netbuf)
+
+int32 exception_bcpu_dump_recv(uint8* str, oal_netbuf_stru* netbuf)
 {
     exception_bcpu_dump_header*      cmd_header={0};
     struct st_exception_info *pst_exception_data = NULL;
@@ -1905,7 +1959,8 @@ int exception_bcpu_dump_recv(unsigned char* str, oal_netbuf_stru* netbuf)
     return EXCEPTION_SUCCESS;
 }
 
-int  free_buffer_and_netbuf(void)
+
+int32  free_buffer_and_netbuf(void)
 {
     if (NULL != st_bcpu_dump_buff.mem_addr)
     {
@@ -1922,10 +1977,11 @@ int  free_buffer_and_netbuf(void)
     return EXCEPTION_SUCCESS;
 }
 
-int sdio_halt_bcpu(void)
+
+int32 sdio_halt_bcpu(void)
 {
-    int  ret;
-    unsigned long timeleft;
+    int32  ret;
+    uint64 timeleft;
     int i;
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
@@ -1951,6 +2007,7 @@ int sdio_halt_bcpu(void)
     ret =  oal_sdio_send_msg(pst_wlan_pm->pst_sdio,H2D_MSG_HALT_BCPU);
     if(0 == ret)
     {
+        /*????device????????*/
         timeleft = wait_for_completion_timeout(&pst_wlan_pm->st_halt_bcpu_done,msecs_to_jiffies(WLAN_HALT_BCPU_TIMEOUT));
         if(0 == timeleft)
         {
@@ -1964,8 +2021,10 @@ int sdio_halt_bcpu(void)
     return OAL_SUCC;
 }
 
-int allocate_data_save_buffer(unsigned int len)
+
+int32 allocate_data_save_buffer(uint32 len)
 {
+    //????buff????,????????????
     st_bcpu_dump_buff.mem_addr = OS_VMALLOC_GFP(len);
     if (NULL == st_bcpu_dump_buff.mem_addr)
     {
@@ -1977,7 +2036,8 @@ int allocate_data_save_buffer(unsigned int len)
     return EXCEPTION_SUCCESS;
 }
 
-int allocate_send_netbuf(unsigned int len)
+
+int32 allocate_send_netbuf(uint32 len)
 {
     st_bcpu_dump_netbuf  = hcc_netbuf_alloc(len);
     if (NULL == st_bcpu_dump_netbuf)
@@ -1989,21 +2049,25 @@ int allocate_send_netbuf(unsigned int len)
     return EXCEPTION_SUCCESS;
 }
 
-int dump_header_init(exception_bcpu_dump_header* header, unsigned int align_type, unsigned int addr, unsigned int send_len)
+
+int32 dump_header_init(exception_bcpu_dump_header* header, uint32 align_type, uint32 addr, uint32 send_len)
 {
+    /*cmd ??????*/
     header->align_type = align_type;
     header->start_addr = addr;
     header->men_len    = send_len;
     return EXCEPTION_SUCCESS;
 }
 
-int init_hcc_head_and_send(struct hcc_transfer_param st_hcc_transfer_param,
-                                         struct st_exception_info* pst_exception_data, unsigned int wait_time)
-{
-    unsigned long timeleft;
 
+int32 init_hcc_head_and_send(struct hcc_transfer_param st_hcc_transfer_param,
+                                         struct st_exception_info* pst_exception_data, uint32 wait_time)
+{
+    uint64 timeleft;
+    //????
     INIT_COMPLETION(pst_exception_data->wait_sdio_d2h_dump_ack);
     hcc_tx(hcc_get_default_handler(), st_bcpu_dump_netbuf, &st_hcc_transfer_param);
+    /*????SDIO??????????*/
     timeleft = wait_for_completion_timeout(&pst_exception_data->wait_sdio_d2h_dump_ack, msecs_to_jiffies(wait_time));
     if (!timeleft)
     {
@@ -2016,18 +2080,19 @@ int init_hcc_head_and_send(struct hcc_transfer_param st_hcc_transfer_param,
      return EXCEPTION_SUCCESS;
 }
 
-int sdio_get_and_save_data(exception_bcpu_dump_msg* sdio_read_info, unsigned int count)
+
+int32 sdio_get_and_save_data(exception_bcpu_dump_msg* sdio_read_info, uint32 count)
 {
-    unsigned int header_len;
-    unsigned int netbuf_len;
-    unsigned int send_len;
-    unsigned int index;
-    unsigned int i = 0;
-    unsigned int buffer_len;
-    unsigned int send_total_len;
-    unsigned int align_type;
-    int  error = EXCEPTION_SUCCESS;
-    char filename[100] = {0};
+    uint32 header_len;
+    uint32 netbuf_len;
+    uint32 send_len;
+    uint32 index;
+    uint32 i = 0;
+    uint32 buffer_len;
+    uint32 send_total_len;
+    uint32 align_type;
+    int32  error = EXCEPTION_SUCCESS;
+    int8 filename[100] = {0};
 
     mm_segment_t fs = {0};
     OS_KERNEL_FILE_STRU *fp = {0};
@@ -2055,12 +2120,8 @@ int sdio_get_and_save_data(exception_bcpu_dump_msg* sdio_read_info, unsigned int
     for (i = 0; i < count; i++)
     {
         index = 0;
-#if (_PRE_HI110X_LOG_VERSION == _PRE_HI110X_LOG_V2)
-        snprintf(filename, sizeof(filename),"/data/log/hi110x/memdump/%s_%s.bin", SDIO_STORE_BFGX_REGMEM, sdio_read_info[i].file_name);
-#else
-        snprintf(filename, sizeof(filename),"/data/memdump/%s_%s.bin", SDIO_STORE_BFGX_REGMEM, sdio_read_info[i].file_name);
-#endif
-
+        snprintf(filename, sizeof(filename),BFGX_DUMP_PATH"/%s_%s.bin", SDIO_STORE_BFGX_REGMEM, sdio_read_info[i].file_name);
+        /*????????????*/
         fp = filp_open(filename, O_RDWR | O_CREAT, 0664);
         if (IS_ERR_OR_NULL(fp))
         {
@@ -2129,6 +2190,7 @@ int sdio_get_and_save_data(exception_bcpu_dump_msg* sdio_read_info, unsigned int
 
             oal_memcopy(oal_netbuf_put(st_bcpu_dump_netbuf, netbuf_len), &dump_header, sizeof(exception_bcpu_dump_header));
 
+            //????
             if (EXCEPTION_SUCCESS != init_hcc_head_and_send(st_hcc_transfer_param, pst_exception_data, WIFI_DUMP_BCPU_TIMEOUT))
             {
                 error = -EXCEPTION_FAIL;
@@ -2153,7 +2215,8 @@ exit:
     return error;
 }
 
-int debug_sdio_read_bfgx_reg_and_mem(unsigned int which_mem)
+
+int32 debug_sdio_read_bfgx_reg_and_mem(uint32 which_mem)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
@@ -2198,9 +2261,10 @@ int debug_sdio_read_bfgx_reg_and_mem(unsigned int which_mem)
         PS_PRINT_INFO("wifi is open!\n");
     }
 
+    //????exception????,halt bcpu??????DFR
     pst_exception_data->exception_reset_enable = PLAT_EXCEPTION_DISABLE;
 
-    plat_wait_last_rotate_finish();
+    //plat_wait_last_rotate_finish();
 
     //dump data
     switch (which_mem)
@@ -2224,10 +2288,11 @@ int debug_sdio_read_bfgx_reg_and_mem(unsigned int which_mem)
     }
 
     /*send cmd to oam_hisi to rotate file*/
-    plat_send_rotate_cmd_2_app(CMD_READM_BFGX_SDIO);
+    //plat_send_rotate_cmd_2_app(CMD_READM_BFGX_SDIO);
 
     PS_PRINT_INFO("dump complete, recovery begin\n");
 
+    //????DFR, recovery
     pst_exception_data->exception_reset_enable = PLAT_EXCEPTION_ENABLE;
     plat_exception_handler(SUBSYS_BFGX, BFGX_THREAD_BOTTOM, SDIO_DUMP_BCPU);
 
@@ -2235,9 +2300,9 @@ int debug_sdio_read_bfgx_reg_and_mem(unsigned int which_mem)
 }
 
 
-int uart_read_wifi_mem(unsigned int which_mem)
+int32 uart_read_wifi_mem(uint32 which_mem)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct ps_core_s *ps_core_d = NULL;
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -2287,10 +2352,10 @@ int uart_read_wifi_mem(unsigned int which_mem)
     return EXCEPTION_SUCCESS;
 }
 
-int debug_uart_read_wifi_mem(unsigned int ul_lock)
+int32 debug_uart_read_wifi_mem(uint32 ul_lock)
 {
-    unsigned int i;
-    unsigned int read_mem_succ_count = 0;
+    uint32 i;
+    uint32 read_mem_succ_count = 0;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -2327,7 +2392,7 @@ int debug_uart_read_wifi_mem(unsigned int ul_lock)
         goto fail_return;
     }
 
-    plat_wait_last_rotate_finish();
+    //plat_wait_last_rotate_finish();
 
     for (i = 0; i < UART_WIFI_MEM_DUMP_BOTTOM; i++)
     {
@@ -2342,11 +2407,11 @@ int debug_uart_read_wifi_mem(unsigned int ul_lock)
     if (read_mem_succ_count > 0)
     {
         /*send cmd to oam_hisi to rotate file*/
-        plat_send_rotate_cmd_2_app(CMD_READM_WIFI_UART);
+        //plat_send_rotate_cmd_2_app(CMD_READM_WIFI_UART);
     }
     else
     {
-        plat_rotate_finish_set();
+       // plat_rotate_finish_set();
     }
 
     post_to_visit_node(ps_core_d);
@@ -2368,9 +2433,9 @@ int debug_uart_read_wifi_mem(unsigned int ul_lock)
 
 }
 
-int bfgx_reset_cmd_send(unsigned int subsys)
+int32 bfgx_reset_cmd_send(uint32 subsys)
 {
-    int ret;
+    int32 ret;
     struct ps_core_s *ps_core_d = NULL;
     struct st_bfgx_data *pst_bfgx_data = NULL;
 
@@ -2396,9 +2461,10 @@ int bfgx_reset_cmd_send(unsigned int subsys)
     return EXCEPTION_SUCCESS;
 }
 
-int bfgx_status_recovery(void)
+
+int32 bfgx_status_recovery(void)
 {
-    unsigned int i;
+    uint32 i;
     struct st_exception_info *pst_exception_data = NULL;
     struct ps_core_s *ps_core_d = NULL;
     struct st_bfgx_data *pst_bfgx_data = NULL;
@@ -2450,17 +2516,19 @@ int bfgx_status_recovery(void)
 
     post_to_visit_node(ps_core_d);
 
+    /*??????????*/
     PS_PRINT_INFO("exception: set debug beat flag to 1\n");
     pst_exception_data->debug_beat_flag = 1;
 
     return EXCEPTION_SUCCESS;
 }
 
-int is_bfgx_exception(void)
+
+int32 is_bfgx_exception(void)
 {
     struct st_exception_info *pst_exception_data = NULL;
-    int is_exception;
-    unsigned long flag;
+    int32 is_exception;
+    uint64 flag;
 
     get_exception_info_reference(&pst_exception_data);
     if (NULL == pst_exception_data)
@@ -2483,7 +2551,8 @@ int is_bfgx_exception(void)
     return is_exception;
 }
 
-int plat_bfgx_exception_rst_register(struct ps_plat_s *data)
+
+int32 plat_bfgx_exception_rst_register(struct ps_plat_s *data)
 {
 	struct st_exception_info *pst_exception_data = NULL;
 
@@ -2507,7 +2576,8 @@ int plat_bfgx_exception_rst_register(struct ps_plat_s *data)
 
 EXPORT_SYMBOL_GPL(plat_bfgx_exception_rst_register);
 
-int plat_wifi_exception_rst_register(void *data)
+
+int32 plat_wifi_exception_rst_register(void *data)
 {
 	struct st_exception_info *pst_exception_data = NULL;
 	struct st_wifi_dfr_callback *pst_wifi_callback = NULL;
@@ -2525,6 +2595,7 @@ int plat_wifi_exception_rst_register(void *data)
         return -EXCEPTION_FAIL;
     }
 
+    /*wifi????????????????*/
     pst_wifi_callback = (struct st_wifi_dfr_callback *)data;
     pst_exception_data->wifi_callback = pst_wifi_callback;
 
@@ -2533,7 +2604,8 @@ int plat_wifi_exception_rst_register(void *data)
 
 EXPORT_SYMBOL_GPL(plat_wifi_exception_rst_register);
 
-int plat_exception_reset_init(void)
+
+int32 plat_exception_reset_init(void)
 {
     struct st_exception_info *p_exception_data = NULL;
     struct st_wifi_dfr_callback *pst_wifi_callback = NULL;
@@ -2566,6 +2638,7 @@ int plat_exception_reset_init(void)
     atomic_set(&p_exception_data->bfgx_beat_flag, BFGX_NOT_RECV_BEAT_INFO);
     atomic_set(&p_exception_data->is_reseting_device, PLAT_EXCEPTION_RESET_IDLE);
 
+    /*??????????????workqueue??work*/
     p_exception_data->plat_exception_rst_workqueue = create_singlethread_workqueue("plat_exception_reset_queue");
     if(NULL == p_exception_data->plat_exception_rst_workqueue)
     {
@@ -2578,17 +2651,21 @@ int plat_exception_reset_init(void)
     INIT_WORK(&p_exception_data->plat_exception_rst_work, plat_exception_reset_work);
     INIT_WORK(&p_exception_data->uart_store_wifi_mem_to_file_work, store_wifi_mem_to_file_work);
 
+    /*??????????timer*/
     init_timer(&p_exception_data->bfgx_beat_timer);
     p_exception_data->bfgx_beat_timer.function = bfgx_beat_timer_expire;
     p_exception_data->bfgx_beat_timer.expires  = jiffies + BFGX_BEAT_TIME*HZ;
     p_exception_data->bfgx_beat_timer.data     = 0;
 
+    /*????????????????????*/
     spin_lock_init(&p_exception_data->exception_spin_lock);
 
+    /*??????bfgx??????????*/
     init_completion(&p_exception_data->wait_read_bfgx_stack);
-
+    /*??????sdio????bcpu??????*/
     init_completion(&p_exception_data->wait_sdio_d2h_dump_ack);
 
+    /*????????????????????*/
     p_exception_data->debug_beat_flag          = 1;
     p_exception_data->wifi_open_bcpu_enable    = false;
 
@@ -2597,6 +2674,7 @@ int plat_exception_reset_init(void)
 
     g_pst_exception_info = p_exception_data;
 
+    /*??????dump????????????*/
     plat_exception_dump_file_rotate_init();
 
     PS_PRINT_SUC("plat exception reset init success\n");
@@ -2606,7 +2684,8 @@ int plat_exception_reset_init(void)
 
 EXPORT_SYMBOL_GPL(plat_exception_reset_init);
 
-int plat_exception_reset_exit(void)
+
+int32 plat_exception_reset_exit(void)
 {
     struct st_exception_info *p_exception_data = NULL;
 
@@ -2631,5 +2710,122 @@ int plat_exception_reset_exit(void)
 }
 
 EXPORT_SYMBOL_GPL(plat_exception_reset_exit);
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+void plat_exception_dump_file_rotate_init(void)
+{
+    init_waitqueue_head(&bcpu_memdump_cfg.dump_type_wait);
+    skb_queue_head_init(&bcpu_memdump_cfg.dump_type_queue);
+    skb_queue_head_init(&bcpu_memdump_cfg.quenue);
+    init_waitqueue_head(&wcpu_memdump_cfg.dump_type_wait);
+    skb_queue_head_init(&wcpu_memdump_cfg.dump_type_queue);
+    skb_queue_head_init(&wcpu_memdump_cfg.quenue);
+    PS_PRINT_INFO("plat exception dump file rotate init success\n");
+}
 
+void excp_memdump_quenue_clear(memdump_info_t* memdump_t)
+{
+    struct sk_buff *skb = NULL;
+    while(NULL != (skb = skb_dequeue(&memdump_t->quenue)))
+    {
+        kfree_skb(skb);
+    }
+}
+int32 bfgx_memdump_quenue_clear(void)
+{
+    PS_PRINT_DBG("bfgx_memdump_quenue_clear\n");
+    excp_memdump_quenue_clear(&bcpu_memdump_cfg);
+    return 0;
+}
+void wifi_memdump_quenue_clear(void)
+{
+    PS_PRINT_DBG("wifi_memdump_quenue_clear\n");
+    excp_memdump_quenue_clear(&wcpu_memdump_cfg);
+}
+void bfgx_memdump_finish(void)
+{
+    bcpu_memdump_cfg.is_working =0;
+}
+void wifi_memdump_finish(void)
+{
+    wcpu_memdump_cfg.is_working =0;
+}
+int32 plat_excp_send_rotate_cmd_2_app(uint32 which_dump, memdump_info_t* memdump_info )
+{
+    struct sk_buff  *skb =NULL;
 
+    if (CMD_DUMP_BUFF <= which_dump)
+    {
+        PS_PRINT_WARNING("which dump:%d error\n", which_dump);
+        return -EINVAL;
+    }
+    if (skb_queue_len(&memdump_info->dump_type_queue) > MEMDUMP_ROTATE_QUEUE_MAX_LEN)
+    {
+        PS_PRINT_WARNING("too many dump type in queue,dispose type:%d", which_dump);
+        return -EINVAL;
+    }
+    skb = alloc_skb(sizeof(which_dump), GFP_KERNEL);
+    if( NULL == skb)
+    {
+        PS_PRINT_ERR("alloc errno skbuff failed! len=%d, errno=%x\n", (int32)sizeof(which_dump), which_dump);
+        return -EINVAL;
+    }
+    skb_put(skb, sizeof(which_dump));
+    *(uint32*)skb->data = which_dump;
+    skb_queue_tail(&memdump_info->dump_type_queue, skb);
+    PS_PRINT_INFO("save rotate cmd [%d] in queue\n", which_dump);
+    wake_up_interruptible(&memdump_info->dump_type_wait);
+    return 0;
+}
+int32 notice_hal_memdump(memdump_info_t* memdump_t, uint32 which_dump)
+{
+    PS_PRINT_FUNCTION_NAME;
+    if (memdump_t->is_working) {
+        PS_PRINT_ERR("is doing memdump\n");
+        return -1;
+    }
+    excp_memdump_quenue_clear(memdump_t);
+    plat_excp_send_rotate_cmd_2_app(which_dump, memdump_t);
+    memdump_t->is_working =1;
+    return 0;
+}
+int32 bfgx_notice_hal_memdump(void)
+{
+    return notice_hal_memdump(&bcpu_memdump_cfg, CMD_READM_BFGX_UART);
+}
+int32 wifi_notice_hal_memdump(void)
+{
+    return notice_hal_memdump(&wcpu_memdump_cfg, CMD_READM_WIFI_SDIO);
+}
+int32 excp_memdump_queue(uint8 *buf_ptr, uint16 count, memdump_info_t* memdump_t)
+{
+    struct sk_buff *skb = NULL;
+    PS_PRINT_DBG("[send] len:%d\n",count);
+    if (!memdump_t->is_working) {
+        PS_PRINT_ERR("excp_memdump_queue not allow\n");
+        return -EINVAL;;
+    }
+    if (NULL == buf_ptr)
+    {
+        PS_PRINT_ERR("buf_ptr is NULL\n");
+        return -EINVAL;
+    }
+    skb = alloc_skb(count, GFP_ATOMIC);
+    if (NULL == skb) {
+        PS_PRINT_ERR("can't allocate mem for new debug skb, len=%d\n", count);
+        return -EINVAL;
+    }
+    memcpy(skb_tail_pointer(skb), buf_ptr, count);
+    skb_put(skb, count);
+    skb_queue_tail(&memdump_t->quenue, skb);
+    PS_PRINT_WARNING("[excp_memdump_queue]qlen:%d,count:%d\n",memdump_t->quenue.qlen,count);
+    return 0;
+}
+int32 bfgx_memdump_enquenue(uint8 *buf_ptr, uint16 count)
+{
+    return excp_memdump_queue(buf_ptr, count, &bcpu_memdump_cfg);
+}
+int32 wifi_memdump_enquenue(uint8 *buf_ptr, uint16 count)
+{
+    return excp_memdump_queue(buf_ptr, count, &wcpu_memdump_cfg);
+}
+#endif

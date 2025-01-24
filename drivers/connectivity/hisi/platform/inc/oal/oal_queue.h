@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_DATA_STRU_H__
 #define __OAL_DATA_STRU_H__
 
@@ -7,24 +9,70 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_types.h"
 #include "oal_mem.h"
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID 0
 
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 #define OAL_QUEUE_DESTROY
 
+/* ????x??????2???????? */
 #define OAL_IS_NOT_POW_OF_2(_x)   (_x & (_x - 1))
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
 typedef struct
 {
-    oal_uint8           uc_element_cnt;
-    oal_uint8           uc_max_elements;
-    oal_uint8           uc_tail_index;
-    oal_uint8           uc_head_index;
-    oal_uint         	*pul_buf;
+    oal_uint8           uc_element_cnt;    /* ?????????????????????????? */
+    oal_uint8           uc_max_elements;   /* ?????????????????????????????? */
+    oal_uint8           uc_tail_index;     /* ???????????????????????????? */
+    oal_uint8           uc_head_index;     /* ?????????????????????????? */
+    oal_uint         	*pul_buf;           /* ???????? */
 }oal_queue_stru;
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
+
 
 OAL_STATIC OAL_INLINE oal_void oal_queue_set(oal_queue_stru *pst_queue, oal_uint *pul_buf, oal_uint8 uc_max_elements)
 {
@@ -35,6 +83,7 @@ OAL_STATIC OAL_INLINE oal_void oal_queue_set(oal_queue_stru *pst_queue, oal_uint
     pst_queue->uc_element_cnt  = 0;
     pst_queue->uc_max_elements = uc_max_elements;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint32 oal_queue_init(oal_queue_stru *pst_queue, oal_uint8 uc_max_events)
 {
@@ -64,6 +113,7 @@ OAL_STATIC OAL_INLINE oal_uint32 oal_queue_init(oal_queue_stru *pst_queue, oal_u
     }
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_queue_destroy(oal_queue_stru *pst_queue)
 {
     if (OAL_PTR_NULL == pst_queue)
@@ -81,10 +131,12 @@ OAL_STATIC OAL_INLINE oal_void  oal_queue_destroy(oal_queue_stru *pst_queue)
     oal_queue_set(pst_queue, OAL_PTR_NULL, 0);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_queue_enqueue(oal_queue_stru *pst_queue, oal_void *p_element)
 {
     oal_uint8   uc_tail_index;
 
+    /* ????: ???????? */
     if (pst_queue->uc_element_cnt == pst_queue->uc_max_elements)
     {
         return OAL_FAIL;
@@ -92,6 +144,7 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_queue_enqueue(oal_queue_stru *pst_queue, o
 
     uc_tail_index = pst_queue->uc_tail_index;
 
+    /* ???????????????????????? */
     pst_queue->pul_buf[uc_tail_index] = (oal_uint)p_element;
 
     uc_tail_index++;
@@ -103,11 +156,13 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_queue_enqueue(oal_queue_stru *pst_queue, o
     return OAL_SUCC;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void* oal_queue_dequeue(oal_queue_stru *pst_queue)
 {
     oal_uint8    uc_head_index;
     oal_void     *p_element;
 
+    /* ????: ???????? */
     if (0 == pst_queue->uc_element_cnt)
     {
         return OAL_PTR_NULL;
@@ -124,6 +179,7 @@ OAL_STATIC OAL_INLINE oal_void* oal_queue_dequeue(oal_queue_stru *pst_queue)
 
     return p_element;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8  oal_queue_get_length(oal_queue_stru *pst_queue)
 {

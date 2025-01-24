@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oam_register.c
-  版 本 号   : 初稿
-  作    者   : z00260280
-  生成日期   : 2014年5月14日
-  最近修改   :
-  功能描述   : 寄存器值读取
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年5月14日
-    作    者   : z00260280
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_register.h"
 
@@ -35,14 +18,14 @@ extern "C" {
 
 #ifdef _PRE_WLAN_DFT_REG
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 
 /*****************************************************************************
-  3 内部函数声明
+  3 ????????????
 *****************************************************************************/
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 oam_reg_manage_stru g_st_oam_reg_mng;
 
@@ -1330,7 +1313,7 @@ OAL_STATIC   oam_reg_cfg_stru  g_ast_phy_reg[] =
 	{"ADDA_DELAY", 0x2003959C, PHY_REG_BANK4},
 };
 
-/* 跟李超确认过了，ssi寄存器可以删除 */
+/* ????????????????ssi?????????????? */
 OAL_STATIC  oam_reg_cfg_stru  g_ast_soc_reg[] =
 {
     {"SYS_CTL_ID", 0x20000000, GLB_SYS_CTL_REGBANK},
@@ -1611,25 +1594,11 @@ OAL_STATIC  oam_reg_cfg_stru  g_ast_soc_reg[] =
 };
 //#endif
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
 
-/*****************************************************************************
- 函 数 名  : oam_reg_get_cfg
- 功能描述  : 获取phy/mac/soc/abb/rf 寄存器注册表的指针
- 输入参数  : 开关说明
- 输出参数  : 无
- 返 回 值  : 数目
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oam_reg_cfg_stru  *oam_reg_get_cfg(oam_reg_type_enum_uint8 en_type)
 {
     oam_reg_cfg_stru  *pst_reg_cfg = OAL_PTR_NULL;
@@ -1660,22 +1629,7 @@ oam_reg_cfg_stru  *oam_reg_get_cfg(oam_reg_type_enum_uint8 en_type)
     return pst_reg_cfg;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_get_num
- 功能描述  : 获取phy/mac/soc/abb/rf下寄存器的数目,申请内存按满配申请，实际使用
-                可能不需要这么多
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 数目
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_get_num(oam_reg_type_enum_uint8 en_type)
 {
     oal_uint32 ul_reg_num = 0;
@@ -1706,22 +1660,7 @@ oal_uint32 oam_reg_get_num(oam_reg_type_enum_uint8 en_type)
     return ul_reg_num;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_malloc
- 功能描述  : 分配并且初始化某类寄存器的内存
- 输入参数  : 开关说明
- 输出参数  : 无
- 返 回 值  : OAL_SUCC: 设置成功
-             OAL_FAIL: 设置失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_malloc(oam_reg_type_enum_uint8 en_type)
 {
     oal_uint32                   ul_loop = 0;
@@ -1729,7 +1668,7 @@ oal_uint32 oam_reg_malloc(oam_reg_type_enum_uint8 en_type)
     oam_reg_cfg_stru            *pst_reg_cfg = OAL_PTR_NULL;
     oal_uint32                   ul_reg_num = 0;
 
-    /* 已经初始化过，不需要再初始化了 */
+    /* ?????????????????????????????? */
     if (OAM_REG_BUTT <= en_type)
     {
         return OAL_ERR_CODE_ARRAY_OVERFLOW;
@@ -1771,22 +1710,7 @@ oal_uint32 oam_reg_malloc(oam_reg_type_enum_uint8 en_type)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_free
- 功能描述  : 释放某类寄存器的内存
- 输入参数  : 开关说明
- 输出参数  : 无
- 返 回 值  :
 
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_free(oam_reg_type_enum_uint8 en_type)
 {
     oam_reg_stru                *pst_reg = OAL_PTR_NULL;
@@ -1795,7 +1719,7 @@ oal_uint32 oam_reg_free(oam_reg_type_enum_uint8 en_type)
     {
         return OAL_FAIL;
     }
-    /* 不存在，返回成功 */
+    /* ???????????????? */
     pst_reg = g_st_oam_reg_mng.past_reg[en_type];
     if (OAL_PTR_NULL == pst_reg)
     {
@@ -1809,21 +1733,7 @@ oal_uint32 oam_reg_free(oam_reg_type_enum_uint8 en_type)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_set_flag
- 功能描述  : 设置寄存器是否需要刷新的标志
- 输入参数  : 事件类型，事件子类型，TRUE/FALSE
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_set_flag(oam_reg_type_enum_uint8 en_type, oam_reg_subtype_enum_uint32 en_subtype, oal_bool_enum_uint8 en_flag)
 {
     oal_uint32          ul_loop = 0;
@@ -1856,7 +1766,7 @@ oal_void oam_reg_set_flag(oam_reg_type_enum_uint8 en_type, oam_reg_subtype_enum_
         pst_reg++;
     }
 
-    /* 根据寄存器对象的上报标志设置bitmap，上报时使用 */
+    /* ????????????????????????????bitmap???????????? */
 	pst_reg = g_st_oam_reg_mng.past_reg[en_type];
     for (ul_loop = 0; ul_loop < ul_subreg_num; ul_loop++)
     {
@@ -1870,21 +1780,7 @@ oal_void oam_reg_set_flag(oam_reg_type_enum_uint8 en_type, oam_reg_subtype_enum_
     g_st_oam_reg_mng.ul_reg_flag_bitmap &= (~(1 << en_type));
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_set_flag
- 功能描述  : 根据超始寄存器地址和结尾寄存器地址，设置寄存器是否需要刷新的标志
- 输入参数  : 事件类型，事件子类型，TRUE/FALSE
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_set_flag_addr(oam_reg_type_enum_uint8 en_type, oal_uint32 ul_startaddr, oal_uint32 ul_endaddr, oal_bool_enum_uint8 en_flag)
 {
     oal_uint32          ul_loop = 0;
@@ -1925,7 +1821,7 @@ oal_void oam_reg_set_flag_addr(oam_reg_type_enum_uint8 en_type, oal_uint32 ul_st
     }
 
 
-    /* 根据寄存器对象的上报标志设置bitmap，上报时使用 */
+    /* ????????????????????????????bitmap???????????? */
 	pst_reg = g_st_oam_reg_mng.past_reg[en_type];
     for (ul_loop = 0; ul_loop < ul_subreg_num; ul_loop++)
     {
@@ -1940,101 +1836,31 @@ oal_void oam_reg_set_flag_addr(oam_reg_type_enum_uint8 en_type, oal_uint32 ul_st
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_reg_allow_netbuf_add
- 功能描述  : 设置操作netbuf链表的标志
- 输入参数  : 事件类型
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_allow_netbuf_add(oal_bool_enum_uint8 en_flag)
 {
     g_st_oam_reg_mng.en_netbuf_flag = en_flag;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_is_allow_netbuf_add
- 功能描述  : 读取操作netbuf链表的标志
- 输入参数  : 事件类型
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 oam_reg_is_allow_netbuf_add(oal_void)
 {
     return g_st_oam_reg_mng.en_netbuf_flag;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_allow_refresh
- 功能描述  : 设置允许刷新寄存器的标志
- 输入参数  : 事件类型
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_allow_refresh(oal_bool_enum_uint8 en_flag)
 {
     g_st_oam_reg_mng.en_refresh_flag = en_flag;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_allow_refresh
- 功能描述  : 读取是否允许刷新寄存器的标志
- 输入参数  : 事件类型
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 oam_reg_is_allow_refresh(oal_void)
 {
     return g_st_oam_reg_mng.en_refresh_flag;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_is_need_refresh
- 功能描述  : 判断该事件是否触发寄存器刷新
- 输入参数  : 事件类型
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 oam_reg_is_need_refresh(oam_reg_evt_enum_uint32 en_evt_type)
 {
     if (OAM_REG_EVT_BUTT <= en_evt_type)
@@ -2050,14 +1876,14 @@ oal_uint8 oam_reg_is_need_refresh(oam_reg_evt_enum_uint32 en_evt_type)
         return OAL_FALSE;
     }
 
-    /* 判断该事件上报开关是否打开  */
-    /* 用户没有设置该事件，不需要上报 */
+    /* ??????????????????????????  */
+    /* ?????????????????????????????? */
     if (OAL_TRUE != g_st_oam_reg_mng.aul_refresh_evt[en_evt_type])
     {
         return OAL_FALSE;
     }
 
-    /* 事件需要判断evt tick有没有计到0，如果计到0，则刷新上报数据，并更新evt_tick  */
+    /* ????????????evt tick??????????0??????????0????????????????????????evt_tick  */
     if (0 == g_st_oam_reg_mng.aul_evt_tick[en_evt_type])
     {
         return OAL_FALSE;
@@ -2074,21 +1900,7 @@ oal_uint8 oam_reg_is_need_refresh(oam_reg_evt_enum_uint32 en_evt_type)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_get_evt_name
- 功能描述  : 获取事件字符名
- 输入参数  : 事件
- 输出参数  : 事件字符名
- 返 回 值  : 成功/失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_get_evt_name(oam_reg_evt_enum_uint32 en_evt_type, oal_uint8 *puc_evt_name)
 {
     switch(en_evt_type)
@@ -2127,25 +1939,11 @@ oal_uint32 oam_reg_get_evt_name(oam_reg_evt_enum_uint32 en_evt_type, oal_uint8 *
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_set_evt
- 功能描述  : 设置需要刷新寄存器的事件,供配置命令使用
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_set_evt(oam_reg_evt_enum_uint32 en_evt_type, oal_uint32 ul_tick)
 {
     oal_uint32      ul_evt_type = 0;
-    /* 处理所有事件 */
+    /* ???????????? */
     if (OAM_REG_EVT_BUTT <= en_evt_type)
     {
         for (ul_evt_type = 0; ul_evt_type < OAM_REG_EVT_BUTT; ul_evt_type++)
@@ -2162,21 +1960,7 @@ oal_void oam_reg_set_evt(oam_reg_evt_enum_uint32 en_evt_type, oal_uint32 ul_tick
     g_st_oam_reg_mng.aul_evt_tick[en_evt_type] = ul_tick;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_recv_msg
- 功能描述  : netlink接收处理入口函数
- 输入参数  : puc_data: 输入数据
-             ul_len  : 数据长度
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oam_reg_recv_msg(oal_uint8 *puc_data, oal_uint32 ul_len)
 {
     g_st_oam_reg_mng.uc_ack_flag = OAL_TRUE;
@@ -2185,20 +1969,7 @@ oal_uint32  oam_reg_recv_msg(oal_uint8 *puc_data, oal_uint32 ul_len)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_rpt_buff
- 功能描述  : 将存在buff中的寄存器数据通过netbuff上报给nlc app
- 输入参数  :  netbuf
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 oam_reg_rpt_buff(oal_void)
 {
     oal_int32               l_bytes = 0;
@@ -2224,25 +1995,11 @@ oal_uint32 oam_reg_rpt_buff(oal_void)
 
     OAL_IO_PRINT("rpt pkt ok! sn %u", pst_send_head->ul_sn);
     pst_send_head->ul_sn++;
-    /* 等待APP侧接收完成 */
+    /* ????APP?????????? */
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_nb2buf
- 功能描述  : 将netbuff内容入buff，以备一次性发送，减少发送次数
- 输入参数  : pst_netbuf:netbuff
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_nb2buf(oal_netbuf_stru *pst_netbuf)
 {
     oal_uint32              ul_pkt_num = 0;
@@ -2273,40 +2030,26 @@ oal_uint32 oam_reg_nb2buf(oal_netbuf_stru *pst_netbuf)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_wq
- 功能描述  : workqueue的入口函数，将nb入缓存后发送
- 输入参数  : pst_work
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_wq(oal_work_stru *pst_work)
 {
     oal_netbuf_stru                *pst_netbuf;
     oal_uint32                      ul_nb_num = 0;
     oal_uint32                      ul_loop = 0;
 
-    /* 禁止netbuf入队 */
+    /* ????netbuf???? */
     oam_reg_allow_netbuf_add(0);
 
-    /* 将netbuff数据入缓冲，最多入OAM_REG_MAX_PKT_ONE_BUFF个 */
+    /* ??netbuff??????????????????OAM_REG_MAX_PKT_ONE_BUFF?? */
     ul_nb_num = g_st_oam_reg_mng.ul_nb;
     OAL_IO_PRINT("oam_reg_wq: nb num %u\n", ul_nb_num);
     while (ul_nb_num >= OAM_REG_MAX_PKT_ONE_BUFF)
     {
-        /* 查阅2.6.34内核代码，如果没有元素，oal_netbuf_delist返回NULL */
+        /* ????2.6.34????????????????????????oal_netbuf_delist????NULL */
         for (ul_loop = 0; ul_loop < OAM_REG_MAX_PKT_ONE_BUFF; ul_loop++)
         {
             pst_netbuf = oal_netbuf_delist(&g_st_oam_reg_mng.st_wq.st_netbuf_head);
-            /* 没有元素，break掉 */
+            /* ??????????break?? */
             if (OAL_PTR_NULL == pst_netbuf)
             {
                 break;
@@ -2321,13 +2064,13 @@ oal_void oam_reg_wq(oal_work_stru *pst_work)
         ul_nb_num -= OAM_REG_MAX_PKT_ONE_BUFF;
     }
 
-    /* 将剩余的netbuff入缓冲 */
+    /* ????????netbuff?????? */
     if (ul_nb_num > 0)
     {
         for (ul_loop = 0; ul_loop < ul_nb_num; ul_loop++)
         {
             pst_netbuf = oal_netbuf_delist(&g_st_oam_reg_mng.st_wq.st_netbuf_head);
-            /* 没有元素，break掉 */
+            /* ??????????break?? */
             if (OAL_PTR_NULL == pst_netbuf)
             {
                 break;
@@ -2339,28 +2082,14 @@ oal_void oam_reg_wq(oal_work_stru *pst_work)
 
         oam_reg_rpt_buff();
     }
-    /* 全发完之后置0 */
+    /* ????????????0 */
     g_st_oam_reg_mng.ul_nb = 0;
     oam_reg_allow_netbuf_add(1);
     OAL_IO_PRINT("dmac_data_acq_workqueue end!\n");
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_reg_init
- 功能描述  : 初始化寄存器相关内容
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_init(oal_void)
 {
     OAL_MEMZERO(&g_st_oam_reg_mng, sizeof(oam_reg_manage_stru));
@@ -2373,16 +2102,16 @@ oal_void oam_reg_init(oal_void)
     }
     OAL_MEMZERO(g_st_oam_reg_mng.puc_send_buff, OAM_REG_MAX_SEND_BUF_SIZE);
 
-    /* 注册netlink接收函数 */
+    /* ????netlink???????? */
     oam_netlink_ops_register(OAM_NL_CMD_REG, oam_reg_recv_msg);
 
-    /* 刷新标志设置为1，初始化允许中断刷新 */
+    /* ??????????????1???????????????????? */
     oam_reg_allow_refresh(1);
 
-    /* 允许增加netbuf */
+    /* ????????netbuf */
     oam_reg_allow_netbuf_add(1);
 
-    /* 初始化工作队列 */
+    /* ?????????????? */
     OAL_MEMZERO((void *)&g_st_oam_reg_mng.st_wq, OAL_SIZEOF(oam_reg_workqueue_stru));
     g_st_oam_reg_mng.st_wq.pst_wq = OAL_CREATE_SINGLETHREAD_WORKQUEUE("oam_reg_tx_queue");
     if(OAL_PTR_NULL == g_st_oam_reg_mng.st_wq.pst_wq)
@@ -2400,26 +2129,11 @@ oal_void oam_reg_init(oal_void)
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_reg_exit
- 功能描述  : 析构初始化
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC: 设置成功
-             OAL_FAIL: 设置失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_exit(oal_void)
 {
     oal_uint32          ul_reg = 0;
-    /* 将动态申请的内存释放掉 */
+    /* ?????????????????????? */
     for (ul_reg = 0; ul_reg < OAM_REG_BUTT; ul_reg++)
     {
        oam_reg_free(ul_reg);
@@ -2431,10 +2145,10 @@ oal_void oam_reg_exit(oal_void)
         g_st_oam_reg_mng.puc_send_buff = OAL_PTR_NULL;
     }
 
-    /* 去注册netlink接收函数 */
+    /* ??????netlink???????? */
     oam_netlink_ops_unregister(OAM_NL_CMD_REG);
 
-    /* 删除工作队列 */
+    /* ???????????? */
     oal_destroy_workqueue(g_st_oam_reg_mng.st_wq.pst_wq);
     if(OAL_PTR_NULL != g_st_oam_reg_mng.st_wq.pst_wq)
     {
@@ -2446,21 +2160,7 @@ oal_void oam_reg_exit(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_add_netbuf
- 功能描述  : 将所需上报的数据装入netbuf，并且入队
- 输入参数  : pst_reg_rpt 所需要上报的寄存器数据指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_reg_add_netbuf(oam_reg_rpt *pst_reg_rpt)
 {
     oal_netbuf_stru                *pst_queue_netbuf;
@@ -2487,21 +2187,7 @@ oal_uint32 oam_reg_add_netbuf(oam_reg_rpt *pst_reg_rpt)
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_reg_report
- 功能描述  : 寄存器数据上报,在tasklet中调用
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_reg_report(oal_void)
 {
     oal_uint32           ul_reg_type = 0;
@@ -2509,17 +2195,17 @@ oal_void oam_reg_report(oal_void)
     oam_reg_stru        *pst_reg = OAL_PTR_NULL;
     oam_reg_rpt          st_rpt;
 
-    /* 刷新标志设置为0，当中断到来时，判断此标志不再重复刷新寄存器 */
+    /* ??????????????0???????????????????????????????????????????? */
     oam_reg_allow_refresh(0);
 
-    /* 没有需要刷新的寄存器，返回 */
+    /* ?????????????????????????? */
     if (0 == g_st_oam_reg_mng.ul_reg_flag_bitmap)
     {
         oam_reg_allow_refresh(1);
         return;
     }
 
-    /* 不能操作netbuf，返回 */
+    /* ????????netbuf?????? */
     if (!oam_reg_is_allow_netbuf_add())
     {
         oam_reg_allow_refresh(1);
@@ -2562,29 +2248,15 @@ oal_void oam_reg_report(oal_void)
     st_rpt.un_rpt.st_rpt_head.ul_timestamp = g_st_oam_reg_mng.ul_time_stamp_end;
     oam_reg_add_netbuf(&st_rpt);
 
-    /* 启动workqueue */
+    /* ????workqueue */
     oal_queue_work(g_st_oam_reg_mng.st_wq.pst_wq, &g_st_oam_reg_mng.st_wq.st_wk);
 
-    /* 允许刷新 */
+    /* ???????? */
     oam_reg_allow_refresh(1);
 
 }
 
-/*****************************************************************************
- 函 数 名  : oam_reg_info
- 功能描述  : 调试打印函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月25日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oam_reg_info(oal_void)
 {
     oal_int8              ac_tmp_buff[64]       = {0};

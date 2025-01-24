@@ -1,3 +1,5 @@
+
+
 /*****************************************************************************
   1 Include Head file
 *****************************************************************************/
@@ -46,6 +48,7 @@ void host_allow_bfg_sleep(struct ps_core_s *ps_core_d)
         return;
     }
 
+    /* ????device????????????????host????dev????????(??dev????host??)uart?????? */
     ps_core_d->ps_pm->bfgx_uart_state_set(UART_NOT_READY);
     ps_core_d->ps_pm->bfgx_dev_state_set(BFGX_SLEEP);
 
@@ -84,7 +87,7 @@ void host_allow_bfg_sleep(struct ps_core_s *ps_core_d)
 /**
  * Prototype    : bfg_timer_expire
  * Description  : bfg timer expired function
- * input        : unsigned long
+ * input        : uint64
  * output       : no
  * Calls        :
  * Called By    :
@@ -95,7 +98,7 @@ void host_allow_bfg_sleep(struct ps_core_s *ps_core_d)
  *     Modification : Created function
  *
  */
-void bfg_timer_expire(unsigned long data)
+void bfg_timer_expire(uint64 data)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data  *pm_data = (struct pm_drv_data*)data;

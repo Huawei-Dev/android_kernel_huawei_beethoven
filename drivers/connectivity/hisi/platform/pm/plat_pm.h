@@ -8,11 +8,13 @@
 *****************************************************************************/
 #include <linux/mutex.h>
 #include <linux/kernel.h>
-#include <linux/wakelock.h>
 
 #include "plat_pm_wlan.h"
 #include "hw_bfg_ps.h"
 #include "board.h"
+#ifdef CONFIG_HUAWEI_DSM
+#include <dsm/dsm_pub.h>
+#endif
 /*****************************************************************************
   2 Define macro
 *****************************************************************************/
@@ -42,10 +44,10 @@
 #define WAIT_DEVACK_MSEC               (100)
 #define WAIT_DEVACK_TIMEOUT_MSEC       (200)
 
-/*超时时间要大于wkup dev work中的最长执行时间，否则超时以后进入DFR和work中会同时操作tty，导致冲突*/
+/*??????????????wkup dev work??????????????????????????????????DFR??work????????????tty??????????*/
 #define WAIT_WKUPDEV_MSEC              (10000)
 
-/* BFGX系统上电加载异常类型 */
+/* BFGX???????????????????? */
 enum BFGX_POWER_ON_EXCEPTION_ENUM
 {
     BFGX_POWER_FAILED                               = -1,
@@ -67,7 +69,7 @@ enum BFGX_POWER_ON_EXCEPTION_ENUM
     BFGX_POWER_ENUM_BUTT,
 };
 
-/* wifi系统上电加载异常类型 */
+/* wifi???????????????????? */
 enum WIFI_POWER_ON_EXCEPTION_ENUM
 {
     WIFI_POWER_FAIL                                 = -1,
@@ -101,7 +103,7 @@ struct pm_drv_data
 	BOARD_INFO						*board;
 
     /*wake lock for bfg,be used to prevent host form suspend*/
-    struct wake_lock                bfg_wake_lock;
+    oal_wakelock_stru       bfg_wake_lock;
 
     /*mutex for sync*/
     struct mutex                    host_mutex;
@@ -113,23 +115,23 @@ struct pm_drv_data
     spinlock_t                      node_timer_spinlock;
 
     /* uart could be used or not */
-    unsigned char   uart_ready;
+    uint8   uart_ready;
 
     /* mark receiving data after set dev as sleep state but before get ack of device */
-    unsigned char rcvdata_bef_devack_flag;
+    uint8 rcvdata_bef_devack_flag;
 
 
     /*bfgx sleep state*/
-    unsigned char bfgx_dev_state;
+    uint8 bfgx_dev_state;
 
     /*flag for firmware cfg file init*/
-    unsigned long firmware_cfg_init_flag;
+    uint64 firmware_cfg_init_flag;
 
     /*bfg irq num*/
-    unsigned int bfg_irq;
+    uint32 bfg_irq;
 
     /*bfg wakeup host count*/
-    unsigned int bfg_wakeup_host;
+    uint32 bfg_wakeup_host;
 
     /* gnss lowpower state */
     atomic_t gnss_sleep_flag;
@@ -137,11 +139,11 @@ struct pm_drv_data
     atomic_t bfg_needwait_devboot_flag;
 
     /* flag to mark whether enable lowpower or not */
-    unsigned int bfgx_pm_ctrl_enable;
-    unsigned char  bfgx_lowpower_enable;
-    unsigned char  bfgx_bt_lowpower_enable;
-    unsigned char  bfgx_gnss_lowpower_enable;
-    unsigned char  bfgx_nfc_lowpower_enable;
+    uint32 bfgx_pm_ctrl_enable;
+    uint8  bfgx_lowpower_enable;
+    uint8  bfgx_bt_lowpower_enable;
+    uint8  bfgx_gnss_lowpower_enable;
+    uint8  bfgx_nfc_lowpower_enable;
 
     /* workqueue for wkup device */
     struct workqueue_struct *wkup_dev_workqueue;
@@ -168,19 +170,22 @@ struct pm_drv_data
   5 EXTERN FUNCTION
 *****************************************************************************/
 extern struct pm_drv_data * pm_get_drvdata(void);
-extern int host_wkup_dev(void);
+extern int32 host_wkup_dev(void);
 extern struct pm_drv_data * pm_get_drvdata(void);
-extern int bfgx_other_subsys_all_shutdown(unsigned char subsys);
-extern int wlan_is_shutdown(void);
-extern int bfgx_is_shutdown(void);
-extern int wlan_power_on(void);
-extern int wlan_power_off(void);
-extern int bfgx_power_on(unsigned char subsys);
-extern int bfgx_power_off(unsigned char subsys);
-extern int sdio_reinit(void);
-extern int bfgx_pm_feature_set(void);
-extern int firmware_download_function(unsigned int which_cfg);
+extern int32 bfgx_other_subsys_all_shutdown(uint8 subsys);
+extern int32 wlan_is_shutdown(void);
+extern int32 bfgx_is_shutdown(void);
+extern int32 wlan_power_on(void);
+extern int32 wlan_power_off(void);
+extern int32 bfgx_power_on(uint8 subsys);
+extern int32 bfgx_power_off(uint8 subsys);
+extern int32 sdio_reinit(void);
+extern int32 bfgx_pm_feature_set(void);
+extern int firmware_download_function(uint32 which_cfg);
 extern oal_int32 hi110x_get_wifi_power_stat(oal_void);
-extern int device_mem_check(unsigned long long *time);
+extern int32 device_mem_check(unsigned long long *time);
+#endif
+#ifdef CONFIG_HUAWEI_DSM
+extern void hw_1102_dsm_client_notify(int dsm_id, const char *fmt, ...);
 #endif
 

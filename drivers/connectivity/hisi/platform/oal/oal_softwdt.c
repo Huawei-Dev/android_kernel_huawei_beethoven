@@ -57,7 +57,7 @@ OAL_STATIC oal_void oal_softwdt_timeout(oal_uint data)
 
     if(1 == g_hisi_softwdt.wdt_timeout_count)
     {
-        /*第一次超时*/
+        /*??????????*/
 #ifdef CONFIG_PRINTK
         printk(KERN_WARNING "hisi softwdt timeout first time,keep try...\n");
 #else

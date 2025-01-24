@@ -1,3 +1,5 @@
+
+
 #ifndef __BFGX_LOW_POWER_H__
 #define __BFGX_LOW_POWER_H__
 /*****************************************************************************
@@ -20,9 +22,9 @@
 /*****************************************************************************
   5 EXTERN FUNCTION
 *****************************************************************************/
-extern unsigned char check_bfg_not_booting(struct ps_core_s *ps_core_d);
+extern uint8 check_bfg_not_booting(struct ps_core_s *ps_core_d);
 extern void host_allow_bfg_sleep(struct ps_core_s *ps_core_d);
-extern void bfg_timer_expire(unsigned long data);
-extern unsigned char bfgx_wakeup_device(struct ps_core_s *ps_core_d, unsigned char type);
+extern void bfg_timer_expire(uint64 data);
+extern uint8 bfgx_wakeup_device(struct ps_core_s *ps_core_d, uint8 type);
 #endif
 

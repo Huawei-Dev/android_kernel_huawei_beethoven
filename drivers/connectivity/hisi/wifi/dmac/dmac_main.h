@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_main
-  版 本 号   : 初稿
-  作    者   : 康国昌
-  生成日期   : 2012年9月18日
-  最近修改   :
-  功能描述   : dmac_main.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_MAIN_H__
 #define __DMAC_MAIN_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -43,7 +26,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_MAIN_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 #ifdef _PRE_WLAN_DFT_EVENT
 #define DMAC_EVENT_PAUSE_OR_RESUME_TID(_puc_macaddr, _uc_vap_id, en_event_type, _puc_string)  oam_event_report(_puc_macaddr, _uc_vap_id, OAM_MODULE_ID_DMAC, en_event_type, _puc_string)
@@ -54,7 +37,7 @@ extern "C" {
 #endif
 typedef oal_void  (*dmac_set_dscr_func)(oal_int32,oal_uint8,dmac_vap_stru*);
 
-/*检查函数返回值是否是OAL_SUCC*/
+/*????????????????????OAL_SUCC*/
 /*lint -e607*/
 #define DMAC_CHECK_RET(ul_ret)        \
     if (OAL_SUCC != ul_ret)                      \
@@ -70,7 +53,7 @@ typedef oal_void  (*dmac_set_dscr_func)(oal_int32,oal_uint8,dmac_vap_stru*);
 
 /*lint +e607*/
 
-/* 填写DMAC到HMAC配置同步消息头 */
+/* ????DMAC??HMAC?????????????? */
 #define DMAC_INIT_SYN_MSG_HDR(_pst_syn_msg, _en_syn_id, _us_len) \
     do {                                            \
         (_pst_syn_msg)->en_syn_id = (_en_syn_id);   \
@@ -78,50 +61,50 @@ typedef oal_void  (*dmac_set_dscr_func)(oal_int32,oal_uint8,dmac_vap_stru*);
     } while(0)
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
-    FRW_DMAC_TO_HMAC_UPDATE_USER_TIMESTAMP,  /* 更新USER时间戳 */
+    FRW_DMAC_TO_HMAC_UPDATE_USER_TIMESTAMP,  /* ????USER?????? */
 
     FRW_DMAC_TO_HMAC_BUTT
 }frw_dmac_to_hmac_syn_enum;
 typedef oal_uint16 frw_dmac_to_hmac_syn_enum_uint16;
 
-/*dmac层时间维护结构体*/
+/*dmac????????????????*/
 typedef struct
 {
-    oal_time_us_stru  st_timestamp_us;        /* 保存向外提供的时间戳 */
-    oal_uint32        ul_last_timestamp;      /* 保存最近一次的硬件时间戳*/
-    frw_timeout_stru  st_timer;               /* 定时器 */
+    oal_time_us_stru  st_timestamp_us;        /* ???????????????????? */
+    oal_uint32        ul_last_timestamp;      /* ????????????????????????*/
+    frw_timeout_stru  st_timer;               /* ?????? */
 
 }dmac_timeStamp_stru;
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
-/* DMAC模块, MISC事件处理函数表定义 */
+/* DMAC????, MISC?????????????????? */
 #ifdef _PRE_WLAN_FEATURE_DBAC
 extern frw_event_sub_table_item_stru g_ast_dmac_misc_event_sub_table[HAL_EVENT_DMAC_MISC_SUB_TYPE_BUTT];
 #endif
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 
 
-/* 读取和设置寄存器的结构体 */
+/* ???????????????????????? */
 typedef struct
 {
     oal_uint32      ul_addr;
@@ -136,28 +119,14 @@ oal_uint32 dmac_reg_report(frw_event_mem_stru *pst_event_mem);
 #endif
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_tx_excp_free_mgmt_frame
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月19日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  dmac_excp_free_mgmt_frame(oal_netbuf_stru *pst_netbuf)
 {
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
@@ -166,7 +135,7 @@ OAL_STATIC OAL_INLINE oal_void  dmac_excp_free_mgmt_frame(oal_netbuf_stru *pst_n
 }
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_void  dmac_main_exit(oal_void);
 extern oal_int32  dmac_main_init(oal_void);

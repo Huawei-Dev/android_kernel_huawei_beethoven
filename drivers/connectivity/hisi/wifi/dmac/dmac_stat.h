@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_stat.h
-  版 本 号   : 初稿
-  作    者   : x00189397
-  生成日期   : 2014年1月10日
-  最近修改   :
-  功能描述   : dmac_stat.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_STAT_H__
 #define __DMAC_STAT_H__
@@ -29,7 +12,7 @@ extern "C" {
 #ifdef _PRE_WLAN_PERFORM_STAT
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -42,16 +25,16 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_STAT_H
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define	DMAC_STAT_ITEM_LIMIT                    100     /* 时延，吞吐量，per最大统计周期数 */
+#define	DMAC_STAT_ITEM_LIMIT                    100     /* ??????????????per?????????????? */
 
-#define	DMAC_STAT_TID_DELAY_NODE_LIMIT          128		/* tid时延统计最大节点数量 */
-#define DMAC_STAT_TID_PER_NODE_LIMIT            128     /* tid per统计最大节点数 */
-#define	DMAC_STAT_TID_THRPT_NODE_LIMIT          128		/* tid吞吐量统计最大节点数量 */
-#define	DMAC_STAT_USER_THRPT_NODE_LIMIT         32		/* user吞吐量统计最大节点数量 */
-#define DMAC_STAT_VAP_THRPT_NODE_LIMIT          8		/* vap吞吐量统计最大节点数量 */
-#define DMAC_STAT_TIMER_CYCLE_MS                100     /* 默认统计周期 */
+#define	DMAC_STAT_TID_DELAY_NODE_LIMIT          128		/* tid???????????????????? */
+#define DMAC_STAT_TID_PER_NODE_LIMIT            128     /* tid per?????????????? */
+#define	DMAC_STAT_TID_THRPT_NODE_LIMIT          128		/* tid?????????????????????? */
+#define	DMAC_STAT_USER_THRPT_NODE_LIMIT         32		/* user?????????????????????? */
+#define DMAC_STAT_VAP_THRPT_NODE_LIMIT          8		/* vap?????????????????????? */
+#define DMAC_STAT_TIMER_CYCLE_MS                100     /* ???????????? */
 
 #define DMAC_STAT_TIME_USEC_INT64(_pst_time) \
     ((oal_int64)((_pst_time)->i_sec) * 1000000 + (_pst_time)->i_usec)
@@ -61,65 +44,65 @@ extern "C" {
 
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
-/* stat_node结构体 */
+/* stat_node?????? */
 typedef struct
 {
-    oal_dlist_head_stru	        st_entry;                               /* 双向链表entry */
-    frw_timeout_stru            st_timer;		                        /* 定时器 */
+    oal_dlist_head_stru	        st_entry;                               /* ????????entry */
+    frw_timeout_stru            st_timer;		                        /* ?????? */
 
-    oal_bool_enum_uint8         uc_stat_flag;                           /* 统计是否使能 */
-    oal_uint8                   uc_resv[3];                             /* 字节对齐 */
+    oal_bool_enum_uint8         uc_stat_flag;                           /* ???????????? */
+    oal_uint8                   uc_resv[3];                             /* ???????? */
 
-    dmac_stat_param_stru       *pst_stat_param;                          /* 统计参数 */
-    oal_uint32                  us_total_item;                          /* 记录总条数 */
-    oal_uint32                  us_curr_item;                           /* 当前第几条 */
-    oal_uint32                  aul_stat_cnt[DMAC_STAT_PER_BUTT];            /* 某个统计周期次数 */
-    oal_uint32                  aul_stat_sum[DMAC_STAT_PER_BUTT];            /* 某个周期内统计量的累计值 */
-    dmac_stat_timeout_func      p_inner_func;                           /* 内部统计模块的函数指针 */
+    dmac_stat_param_stru       *pst_stat_param;                          /* ???????? */
+    oal_uint32                  us_total_item;                          /* ?????????? */
+    oal_uint32                  us_curr_item;                           /* ?????????? */
+    oal_uint32                  aul_stat_cnt[DMAC_STAT_PER_BUTT];            /* ???????????????? */
+    oal_uint32                  aul_stat_sum[DMAC_STAT_PER_BUTT];            /* ???????????????????????? */
+    dmac_stat_timeout_func      p_inner_func;                           /* ?????????????????????? */
 
-    oal_uint32                 *pul_stat_avg;                           /* 由CFG模块得到的统计平均值存放首地址 */
+    oal_uint32                 *pul_stat_avg;                           /* ??CFG?????????????????????????????? */
 }dmac_stat_node_stru;
 
 typedef struct
 {
-	oal_uint32			 ul_node_num;           /* 统计节点数量 */
-	oal_dlist_head_stru	 st_stat_node_dlist;    /* 统计节点双向链表头节点 */
+	oal_uint32			 ul_node_num;           /* ???????????? */
+	oal_dlist_head_stru	 st_stat_node_dlist;    /* ?????????????????????? */
 }dmac_stat_stru;
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  dmac_stat_init(oal_void);
 extern oal_uint32  dmac_stat_exit(oal_void);

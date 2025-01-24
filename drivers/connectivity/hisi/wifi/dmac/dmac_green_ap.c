@@ -1,22 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_green_ap.c
-  版 本 号   : 初稿
-  作    者   : zourong 00274374
-  生成日期   : 2016年2月22日
-  最近修改   :
-  功能描述   : green ap方案实现
-  函数列表   :
-
-  修改历史   :
-  1.日    期   : 2016年2月22日
-    作    者   : 邹嵘
-    修改内容   : 创建文件
-
-******************************************************************************/
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
@@ -26,7 +8,7 @@ extern "C" {
 #ifdef    _PRE_WLAN_FEATURE_GREEN_AP
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include    "hal_witp_pa_reg_field.h"
 #include    "hal_ext_if.h"
@@ -55,7 +37,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_GREEN_AP_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
@@ -66,21 +48,7 @@ OAL_STATIC enum hrtimer_restart dmac_green_ap_timer_isr(struct hrtimer *pst_hrti
 
 OAL_STATIC dmac_green_ap_mgr_stru g_ast_gap_mgr[MAC_RES_MAX_DEV_NUM];
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_setup_timer
- 功能描述  : green ap时隙切换定时器设置。1102和DBAC复用硬件定时器
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_setup_timer(dmac_green_ap_mgr_stru* pst_gap_mgr)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
@@ -96,22 +64,7 @@ oal_uint32  dmac_green_ap_setup_timer(dmac_green_ap_mgr_stru* pst_gap_mgr)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_start_timer
- 功能描述  : 按照指定的时长，启动硬件定时器
- 输入参数  : dmac_green_ap_mgr_stru *pst_gap_mgr
-             oal_uint32 ul_duration
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_green_ap_start_timer(dmac_green_ap_mgr_stru *pst_gap_mgr, oal_uint32 ul_duration)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
@@ -123,21 +76,7 @@ oal_void dmac_green_ap_start_timer(dmac_green_ap_mgr_stru *pst_gap_mgr, oal_uint
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_stop_timer
- 功能描述  : 停止硬件定时器
- 输入参数  : dmac_green_ap_mgr_stru *pst_gap_mgr
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_green_ap_stop_timer(dmac_green_ap_mgr_stru *pst_gap_mgr)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
@@ -147,21 +86,7 @@ oal_void dmac_green_ap_stop_timer(dmac_green_ap_mgr_stru *pst_gap_mgr)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_release_timer
- 功能描述  : 释放硬件定时器
- 输入参数  : dmac_green_ap_mgr_stru *pst_gap_mgr
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_green_ap_release_timer(dmac_green_ap_mgr_stru *pst_gap_mgr)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
@@ -169,21 +94,7 @@ oal_void dmac_green_ap_release_timer(dmac_green_ap_mgr_stru *pst_gap_mgr)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_psm_is_tid_queues_empty
- 功能描述  : 硬件发送队列是否为空
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月28日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 dmac_green_ap_is_hw_queues_empty(mac_device_stru  *pst_device)
 {
     hal_to_dmac_device_stru         *pst_hal_device;
@@ -191,10 +102,10 @@ oal_uint8 dmac_green_ap_is_hw_queues_empty(mac_device_stru  *pst_device)
 
     pst_hal_device = pst_device->pst_device_stru;
 
-    /* 硬件发送队列 */
+    /* ???????????? */
     for (uc_queue_num = 0; uc_queue_num < HAL_TX_QUEUE_BUTT; uc_queue_num++)
     {
-        /*对应的硬件队列检查 */
+        /*?????????????????? */
         if (OAL_FALSE == (oal_dlist_is_empty(&(pst_hal_device->ast_tx_dscr_queue[uc_queue_num].st_header))))
         {
             return OAL_FALSE;
@@ -204,27 +115,13 @@ oal_uint8 dmac_green_ap_is_hw_queues_empty(mac_device_stru  *pst_device)
     return OAL_TRUE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_psm_is_tid_queues_empty
- 功能描述  : STA的TID是否为空
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月28日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8  dmac_green_ap_is_tid_queues_empty(dmac_vap_stru  *pst_dmac_vap)
 {
     dmac_user_stru                   *pst_user;
     oal_uint8                        uc_tid_idx;
 
-    /* TID队列 */
+    /* TID???? */
     pst_user = (dmac_user_stru *)mac_res_get_dmac_user((oal_uint16)(pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id));
 
     if (OAL_PTR_NULL != pst_user)
@@ -241,28 +138,14 @@ oal_uint8  dmac_green_ap_is_tid_queues_empty(dmac_vap_stru  *pst_dmac_vap)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_pause_vap
- 功能描述  : green ap暂停VAP
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_green_ap_pause_vap(mac_device_stru *pst_device,dmac_vap_stru *pst_dmac_vap,dmac_green_ap_mgr_stru *pst_gap_mgr)
 {
     hal_one_packet_status_stru   st_status;
     mac_fcs_err_enum_uint8       en_fcs_req_ret;
     mac_fcs_mgr_stru            *pst_fcs_mgr;
 
-    /*检查接收硬件发送队列和TID队列是否空*/
+    /*??????????????????????TID??????????*/
     if(OAL_FALSE == dmac_green_ap_is_hw_queues_empty(pst_device))
     {
         return;
@@ -283,7 +166,7 @@ oal_void  dmac_green_ap_pause_vap(mac_device_stru *pst_device,dmac_vap_stru *pst
 
     dmac_vap_pause_tx(&pst_dmac_vap->st_vap_base_info);
 
-    /* 发送one packet */
+    /* ????one packet */
     mac_fcs_send_one_packet_start(pst_fcs_mgr, &pst_gap_mgr->st_one_packet_cfg, pst_device->pst_device_stru, &st_status, OAL_TRUE);
     hal_one_packet_stop(pst_device->pst_device_stru);
     mac_fcs_release(pst_fcs_mgr);
@@ -297,21 +180,7 @@ oal_void  dmac_green_ap_pause_vap(mac_device_stru *pst_device,dmac_vap_stru *pst
     pst_gap_mgr->ul_pause_count++;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_resume_vap
- 功能描述  : green ap恢复VAP工作
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_green_ap_resume_vap(mac_device_stru *pst_device,dmac_vap_stru *pst_dmac_vap,dmac_green_ap_mgr_stru *pst_gap_mgr)
 {
     if (DMAC_GREEN_AP_STATE_WORK == pst_gap_mgr->uc_state)
@@ -330,21 +199,7 @@ oal_void  dmac_green_ap_resume_vap(mac_device_stru *pst_device,dmac_vap_stru *ps
     pst_gap_mgr->ul_resume_count++;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_timer_event_handler
- 功能描述  : green ap定时器事件处理
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_timer_event_handler(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru              *pst_event;
@@ -374,7 +229,7 @@ oal_uint32  dmac_green_ap_timer_event_handler(frw_event_mem_stru *pst_event_mem)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 奇数pause，偶数resume */
+    /* ????pause??????resume */
     if (pst_gap_mgr->uc_cur_slot & 0x01)
     {
          dmac_green_ap_pause_vap(pst_device, pst_dmac_vap, pst_gap_mgr);
@@ -390,21 +245,7 @@ oal_uint32  dmac_green_ap_timer_event_handler(frw_event_mem_stru *pst_event_mem)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_post_pause_event
- 功能描述  : green ap抛定时器事件暂停VAP
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_green_ap_post_pause_event(dmac_green_ap_mgr_stru *pst_gap_mgr)
 {
     frw_event_mem_stru      *pst_event_mem;
@@ -439,21 +280,7 @@ OAL_STATIC oal_uint32  dmac_green_ap_post_pause_event(dmac_green_ap_mgr_stru *ps
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_timer_isr
- 功能描述  : dbac硬件定时器中断钩子函数
- 输入参数  : oal_void *p_arg
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-   1.日    期   : 2016年2月22日
-     作    者   : zourong
-     修改内容   : 新生成函数
-
-*****************************************************************************/
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)     /* 1102 */
 OAL_STATIC oal_void dmac_green_ap_timer_isr(void)
 #else
@@ -494,7 +321,7 @@ OAL_STATIC enum hrtimer_restart dmac_green_ap_timer_isr(struct hrtimer *pst_hrti
 
     dmac_green_ap_post_pause_event(pst_gap_mgr);
 
-    /*最后一个时隙不启动timer，tbtt中断后启动*/
+    /*??????????????????timer??tbtt??????????*/
     if(pst_gap_mgr->uc_max_slot_cnt > pst_gap_mgr->uc_cur_slot)
     {
        uc_time   = (pst_gap_mgr->uc_cur_slot & 0x01) ? pst_gap_mgr->uc_pause_time : pst_gap_mgr->uc_work_time;
@@ -503,21 +330,7 @@ OAL_STATIC enum hrtimer_restart dmac_green_ap_timer_isr(struct hrtimer *pst_hrti
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_get_vap
- 功能描述  : 获取device的dmac vap结构
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 dmac_vap_stru*  dmac_green_ap_get_vap(mac_device_stru  *pst_device)
 {
     dmac_vap_stru           *pst_dmac_vap = OAL_PTR_NULL;
@@ -528,14 +341,14 @@ dmac_vap_stru*  dmac_green_ap_get_vap(mac_device_stru  *pst_device)
         return OAL_PTR_NULL;
     }
 
-    /* 只在单个aput下开启 */
+    /* ????????aput?????? */
     if(pst_device->uc_vap_num != 1)
     {
         OAM_ERROR_LOG1(0, OAM_SF_GREEN_AP, "{dmac_green_ap_get_vap::total vap[%d]}", pst_device->uc_vap_num);
         return OAL_PTR_NULL;
     }
 
-    /*与DBAC功能互斥*/
+    /*??DBAC????????*/
     if(mac_is_dbac_running(pst_device))
     {
         OAM_ERROR_LOG0(0, OAM_SF_GREEN_AP, "{dmac_green_ap_get_vap::mac_is_dbac_enabled}");
@@ -551,22 +364,7 @@ dmac_vap_stru*  dmac_green_ap_get_vap(mac_device_stru  *pst_device)
     return  OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_tbtt_isr
- 功能描述  : green ap TBTT中断钩子函数
- 输入参数  : oal_uint8 uc_vap_id
-             oal_void  *p_arg
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
 {
     dmac_green_ap_mgr_stru     *pst_gap_mgr;
@@ -589,13 +387,13 @@ oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
         return;
     }
 
-    /* 防止未start就进入 */
+    /* ??????start?????? */
     if (pst_gap_mgr->uc_state < DMAC_GREEN_AP_STATE_INITED)
     {
         return;
     }
 
-    /* 每次tbtt中断获取vap，防止green ap启动时vap还未创建 */
+    /* ????tbtt????????vap??????green ap??????vap???????? */
     pst_dmac_vap = dmac_green_ap_get_vap(pst_mac_device);
     if (OAL_PTR_NULL == pst_dmac_vap)
     {
@@ -603,7 +401,7 @@ oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
         return;
     }
 
-    /* 初始化结构体有关变量 */
+    /* ???????????????????? */
     if (DMAC_GREEN_AP_STATE_INITED == pst_gap_mgr->uc_state)
     {
         pst_gap_mgr->uc_vap_id     = pst_dmac_vap->st_vap_base_info.uc_vap_id;
@@ -620,11 +418,11 @@ oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
             pst_gap_mgr->uc_max_slot_cnt = 2 * 100 / (pst_gap_mgr->uc_work_time + pst_gap_mgr->uc_pause_time);
         }
 
-        /* 初始状态为work */
+        /* ??????????work */
         pst_gap_mgr->uc_state = DMAC_GREEN_AP_STATE_WORK;
     }
 
-    /*最后一个时隙不启动timer，tbtt中断后启动*/
+    /*??????????????????timer??tbtt??????????*/
     if ((pst_gap_mgr->uc_hal_vap_id == uc_hal_vap_id) && (DMAC_GREEN_AP_STATE_WORK == pst_gap_mgr->uc_state))
     {
        pst_gap_mgr->uc_cur_slot = 0;
@@ -632,7 +430,7 @@ oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
     }
     else if ((pst_gap_mgr->uc_hal_vap_id == uc_hal_vap_id) && (DMAC_GREEN_AP_STATE_PAUSE == pst_gap_mgr->uc_state))
     {
-        /*异常情况，tbtt时刻，还处于pause状态,发生了不同步*/
+        /*??????????tbtt????????????pause????,????????????*/
         OAM_ERROR_LOG1(pst_gap_mgr->uc_vap_id, OAM_SF_GREEN_AP, "{dmac_green_ap_tbtt_isr::in pause state,cur_slot = %d}",pst_gap_mgr->uc_cur_slot);
 
         pst_gap_mgr->uc_cur_slot = 0;
@@ -642,21 +440,7 @@ oal_void dmac_green_ap_tbtt_isr(oal_uint8 uc_hal_vap_id, oal_void  *p_arg)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_fcs_isr
- 功能描述  : one packet中断处理程序
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_green_ap_fcs_isr(oal_uint8 uc_vap_id, oal_void  *p_arg)
 {
     mac_device_stru            *pst_mac_device;
@@ -680,21 +464,7 @@ oal_void  dmac_green_ap_fcs_isr(oal_uint8 uc_vap_id, oal_void  *p_arg)
     pst_mac_device->st_fcs_mgr.en_fcs_done = OAL_TRUE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_init
- 功能描述  : green ap管理结构初始化
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_init(mac_device_stru *pst_device)
 {
     dmac_green_ap_mgr_stru  *pst_gap_mgr;
@@ -707,7 +477,7 @@ oal_uint32  dmac_green_ap_init(mac_device_stru *pst_device)
 
     pst_gap_mgr = &g_ast_gap_mgr[pst_device->uc_device_id];
 
-    /* Green AP功能E5上默认打开 */
+    /* Green AP????E5?????????? */
 #if (_PRE_CONFIG_TARGET_PRODUCT == _PRE_TARGET_PRODUCT_TYPE_E5)
     pst_gap_mgr->uc_green_ap_enable  = OAL_TRUE;
 #else
@@ -738,30 +508,16 @@ oal_uint32  dmac_green_ap_init(mac_device_stru *pst_device)
 
     dmac_green_ap_setup_timer(pst_gap_mgr);
 
-    /* 注册并启动PPS统计 */
+    /* ??????????PPS???? */
     dmac_set_auto_freq_pps_reuse();
 
-    /* 自动打开green ap */
+    /* ????????green ap */
     //dmac_green_ap_start(pst_device->uc_device_id);
 
     return  OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_exit
- 功能描述  : green ap注销函数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月10日
-    作    者   : wanran
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_exit(mac_device_stru *pst_device)
 {
     dmac_green_ap_mgr_stru  *pst_gap_mgr;
@@ -773,7 +529,7 @@ oal_uint32  dmac_green_ap_exit(mac_device_stru *pst_device)
 
     dmac_green_ap_release_timer(pst_gap_mgr);
 
-    /* 去注册PPS统计 */
+    /* ??????PPS???? */
     dmac_set_auto_freq_pps_reuse_deinit();
 
     if (OAL_PTR_NULL != pst_device->pst_green_ap_mgr)
@@ -784,21 +540,7 @@ oal_uint32  dmac_green_ap_exit(mac_device_stru *pst_device)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_start
- 功能描述  : green ap功能启动
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_start(oal_uint8 uc_device_id)
 {
     mac_device_stru         *pst_device;
@@ -813,34 +555,20 @@ oal_uint32  dmac_green_ap_start(oal_uint8 uc_device_id)
 
     pst_gap_mgr = (dmac_green_ap_mgr_stru *)pst_device->pst_green_ap_mgr;
 
-    /* 未使能，返回 */
+    /* ???????????? */
     if (OAL_FALSE == pst_gap_mgr->uc_green_ap_enable)
     {
         OAM_WARNING_LOG0(0, OAM_SF_GREEN_AP, "{dmac_green_ap_start:: green ap is not enable!}");
         return OAL_FAIL;
     }
 
-    /* 等待tbtt中断到来 */
+    /* ????tbtt???????? */
     pst_gap_mgr->uc_state = DMAC_GREEN_AP_STATE_INITED;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_stop
- 功能描述  : green ap功能停止
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_stop(oal_uint8 uc_device_id)
 {
     mac_device_stru         *pst_device;
@@ -884,21 +612,7 @@ oal_uint32  dmac_green_ap_stop(oal_uint8 uc_device_id)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_suspend
- 功能描述  : green ap功能停止
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_suspend(mac_device_stru *pst_device)
 {
     dmac_green_ap_mgr_stru  *pst_gap_mgr;
@@ -923,21 +637,7 @@ oal_uint32  dmac_green_ap_suspend(mac_device_stru *pst_device)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_resume
- 功能描述  : green ap功能停止
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_resume(mac_device_stru *pst_device)
 {
     dmac_green_ap_mgr_stru  *pst_gap_mgr;
@@ -950,7 +650,7 @@ oal_uint32  dmac_green_ap_resume(mac_device_stru *pst_device)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 防止wow唤醒,直接开启green ap */
+    /* ????wow????,????????green ap */
     if (OAL_FALSE == pst_gap_mgr->en_green_ap_dyn_en)
     {
         return OAL_SUCC;
@@ -964,21 +664,7 @@ oal_uint32  dmac_green_ap_resume(mac_device_stru *pst_device)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_dump_info
- 功能描述  : log信息
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_green_ap_dump_info(oal_uint8 uc_device_id)
 {
     mac_device_stru         *pst_device;
@@ -999,21 +685,7 @@ oal_uint32  dmac_green_ap_dump_info(oal_uint8 uc_device_id)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_green_ap_pps_process
- 功能描述  : pps统计定时器到期，green ap处理函数
- 输入参数  : pps统计值
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月10日
-    作    者   : wanran
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_green_ap_pps_process(oal_uint32 ul_pps_rate)
 {
     mac_device_stru         *pst_device;
@@ -1023,12 +695,12 @@ oal_void  dmac_green_ap_pps_process(oal_uint32 ul_pps_rate)
     pst_device  = mac_res_get_dev(0);
     pst_gap_mgr = (dmac_green_ap_mgr_stru *)pst_device->pst_green_ap_mgr;
 
-    /* pps转换吞吐量(Mbps) */
+    /* pps??????????(Mbps) */
     ul_thrpt_stat = DMAC_GAP_PPS_TO_THRPT_MBPS(ul_pps_rate);
 
     pst_gap_mgr->en_green_ap_dyn_en_old = pst_gap_mgr->en_green_ap_dyn_en;
 
-    /* 吞吐量大于门限，关闭green ap */
+    /* ????????????????????green ap */
     if (ul_thrpt_stat > DMAC_GAP_EN_THRPT_HIGH_TH)
     {
         pst_gap_mgr->en_green_ap_dyn_en = OAL_FALSE;

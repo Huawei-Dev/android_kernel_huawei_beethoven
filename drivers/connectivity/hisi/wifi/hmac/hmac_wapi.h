@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_wapi.h
-  版 本 号   : 初稿
-  作    者   : z00260280
-  生成日期   : 2015年5月20日
-  最近修改   :
-  功能描述   : hmac_wapi.c的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年5月27日
-    作    者   : z00260280
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_net.h"
 #include "mac_resource.h"
@@ -39,37 +22,37 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_WAPI
 /*****************************************************************************/
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define WAPI_UCAST_INC                  2       /* 发送或者接收单播帧,pn的步进值 */
-#define WAPI_BCAST_INC                  1       /* 发送或者接收组播帧,pn的步进值 */
-#define WAPI_WAI_TYPE                  (oal_uint16)0x88B4 /* wapi的以太类型 */
+#define WAPI_UCAST_INC                  2       /* ??????????????????,pn???????? */
+#define WAPI_BCAST_INC                  1       /* ??????????????????,pn???????? */
+#define WAPI_WAI_TYPE                  (oal_uint16)0x88B4 /* wapi?????????? */
 
 #define WAPI_BCAST_KEY_TYPE             1
 #define WAPI_UCAST_KEY_TYPE             0
 
-#define SMS4_MIC_LEN                    (oal_uint8)16     /* SMS4封包MIC的长度 */
+#define SMS4_MIC_LEN                    (oal_uint8)16     /* SMS4????MIC?????? */
 
-#define SMS4_PN_LEN                     16     /* wapi pn的长度 */
-#define SMS4_KEY_IDX                    1      /* WAPI头中 keyidx占1个字节 */
-#define SMS4_WAPI_HDR_RESERVE           1      /* WAPI头中保留字段 */
+#define SMS4_PN_LEN                     16     /* wapi pn?????? */
+#define SMS4_KEY_IDX                    1      /* WAPI???? keyidx??1?????? */
+#define SMS4_WAPI_HDR_RESERVE           1      /* WAPI???????????? */
 #define HMAC_WAPI_HDR_LEN               (oal_uint8)(SMS4_PN_LEN + SMS4_KEY_IDX + SMS4_WAPI_HDR_RESERVE)
-#define WAPI_PDU_LEN                    2      /* wapi头中，wapi pdu len字段所占字节数 */
-#define SMS4_PADDING_LEN                16     /* mic data按照16字节对齐 */
+#define WAPI_PDU_LEN                    2      /* wapi??????wapi pdu len?????????????? */
+#define SMS4_PADDING_LEN                16     /* mic data????16???????? */
 
-#define SMS4_MIC_PART1_QOS_LEN          48 /* 按照协议，如果有qos字段，mic第一部分16字节对齐后的长度 */
-#define SMS4_MIC_PART1_NO_QOS_LEN       32 /* 按照协议，如果没有qos字段，mic第一部分16字节对齐后的长度 */
+#define SMS4_MIC_PART1_QOS_LEN          48 /* ????????????????qos??????mic????????16???????????????? */
+#define SMS4_MIC_PART1_NO_QOS_LEN       32 /* ??????????????????qos??????mic????????16???????????????? */
 //#define WAPI_OUI                        {0x00,0x14,0x72}
 
-#define WAPI_IE_VERSION                     1   /* wapi的version */
-#define WAPI_IE_VER_SIZE                    2   /* wapi ver-ie 所占字节数 */
+#define WAPI_IE_VERSION                     1   /* wapi??version */
+#define WAPI_IE_VER_SIZE                    2   /* wapi ver-ie ?????????? */
 #define WAPI_IE_SUIT_TYPE_SIZE              1   /* suit type size */
-#define WAPI_IE_WAPICAP_SIZE                2   /* wapi cap字段所占字节数 */
-#define WAPI_IE_BKIDCNT_SIZE                2   /* wapi bkid数字段所占字节数 */
-#define WAPI_IE_BKID_SIZE                   16  /* 一个bkid所占字节数 */
-#define WAPI_IE_OUI_SIZE                    3   /* wapi oui字节数 */
-#define WAPI_IE_SMS4                        1   /* wapi加密类型为sms4 */
-#define WAPI_IE_SUITCNT_SIZE                2   /* wapi suit count所占字节数 */
+#define WAPI_IE_WAPICAP_SIZE                2   /* wapi cap?????????????? */
+#define WAPI_IE_BKIDCNT_SIZE                2   /* wapi bkid???????????????? */
+#define WAPI_IE_BKID_SIZE                   16  /* ????bkid?????????? */
+#define WAPI_IE_OUI_SIZE                    3   /* wapi oui?????? */
+#define WAPI_IE_SMS4                        1   /* wapi??????????sms4 */
+#define WAPI_IE_SUITCNT_SIZE                2   /* wapi suit count?????????? */
 /*wapi key len*/
 
 
@@ -134,36 +117,36 @@ extern "C" {
 #endif /* #ifdef WAPI_DEBUG_MODE */
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 typedef struct
 {
-    oal_uint8   auc_framectl[2];        /* 帧控制 */
-    oal_uint8   auc_adress1[OAL_MAC_ADDR_LEN];         /* 地址1 */
-    oal_uint8   auc_adress2[OAL_MAC_ADDR_LEN];         /* 地址2 */
-    oal_uint8   auc_seqctl[2];          /* 序列控制 */
-    oal_uint8   auc_adress3[OAL_MAC_ADDR_LEN];         /* 地址3 */
-    oal_uint8   auc_adress4[OAL_MAC_ADDR_LEN];         /* 地址4 */
+    oal_uint8   auc_framectl[2];        /* ?????? */
+    oal_uint8   auc_adress1[OAL_MAC_ADDR_LEN];         /* ????1 */
+    oal_uint8   auc_adress2[OAL_MAC_ADDR_LEN];         /* ????2 */
+    oal_uint8   auc_seqctl[2];          /* ???????? */
+    oal_uint8   auc_adress3[OAL_MAC_ADDR_LEN];         /* ????3 */
+    oal_uint8   auc_adress4[OAL_MAC_ADDR_LEN];         /* ????4 */
 }wapi_mic_hdr_stru;
 
 
@@ -171,19 +154,19 @@ typedef struct
 
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32 hmac_wapi_deinit(hmac_wapi_stru *pst_wapi);
 extern oal_uint32 hmac_wapi_init(hmac_wapi_stru *pst_wapi, oal_uint8 uc_pairwise);

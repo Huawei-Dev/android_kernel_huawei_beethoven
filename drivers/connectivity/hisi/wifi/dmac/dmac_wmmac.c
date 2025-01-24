@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_wmmac.c
-  版 本 号   : 初稿
-  作    者   : z00241943
-  生成日期   : 2016年9月30日
-  最近修改   :
-  功能描述   : DMAC侧WMMAC功能处理代码
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2016年9月30日
-    作    者   : z00241943
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +10,7 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_WMMAC
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "dmac_wmmac.h"
 
@@ -36,28 +19,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_WMMAC_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_tx_addts_req
- 功能描述  : ADDTS_REQ函数，需要将HMAC模块保存的TS信息同步到DMAC模块
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月22日
-    作    者   : l00357925
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_tx_addts_req(
                 dmac_vap_stru                  *pst_dmac_vap,
                 dmac_ctx_action_event_stru     *pst_ctx_action_event,
@@ -88,7 +57,7 @@ oal_uint32  dmac_mgmt_tx_addts_req(
         return OAL_ERR_CODE_ARRAY_OVERFLOW;
     }
 
-    /* 获取对应用户 */
+    /* ???????????? */
     pst_dmac_user = (dmac_user_stru *)mac_res_get_dmac_user(pst_ctx_action_event->us_user_idx);
     if (OAL_PTR_NULL == pst_dmac_user)
     {
@@ -111,13 +80,13 @@ oal_uint32  dmac_mgmt_tx_addts_req(
     oal_set_netbuf_next(pst_net_buff, OAL_PTR_NULL);
     oal_set_netbuf_prev(pst_net_buff, OAL_PTR_NULL);
 
-    /* 填写netbuf的cb字段，共发送管理帧和发送完成接口使用 */
+    /* ????netbuf??cb???????????????????????????????????? */
     MAC_GET_CB_IS_MCAST(pst_tx_ctl)        = OAL_FALSE;
     mac_set_cb_ac(pst_tx_ctl, uc_ac);
     MAC_GET_CB_TX_USER_IDX(pst_tx_ctl)     = (oal_uint8)pst_dmac_user->st_user_base_info.us_assoc_id;
     mac_set_cb_frame_hdr(pst_tx_ctl, (mac_ieee80211_frame_stru *)oal_netbuf_header(pst_net_buff));
 
-    /* 调用发送管理帧接口 */
+    /* ?????????????????? */
     ul_ret = dmac_tx_mgmt(pst_dmac_vap, pst_net_buff, pst_ctx_action_event->us_frame_len);
     if (OAL_SUCC != ul_ret)
     {
@@ -127,21 +96,7 @@ oal_uint32  dmac_mgmt_tx_addts_req(
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_tx_addts_rsp
- 功能描述  : ADDTS_RSP函数，需要将HMAC模块的获取的信息同步到DMAC模块
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月22日
-    作    者   : l00357925
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_tx_addts_rsp(
                 dmac_vap_stru                  *pst_dmac_vap,
                 dmac_ctx_action_event_stru     *pst_ctx_action_event,
@@ -150,21 +105,7 @@ oal_uint32  dmac_mgmt_tx_addts_rsp(
     oal_uint32 ul_ret = OAL_SUCC;
     return ul_ret;
 }
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_tx_delTS
- 功能描述  : HMAC模块需要删除TS时，DMAC需要进行同步的处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月22日
-    作    者   : l00357925
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_tx_delts(
                 dmac_vap_stru                  *pst_dmac_vap,
                 dmac_ctx_action_event_stru     *pst_ctx_action_event,
@@ -188,7 +129,7 @@ oal_uint32  dmac_mgmt_tx_delts(
     uc_tidno                = pst_ctx_action_event->uc_tidno;
     //us_frame_len            = pst_ctx_action_event->us_frame_len;
 
-    /* 获取对应用户 */
+    /* ???????????? */
     pst_dmac_user = (dmac_user_stru *)mac_res_get_dmac_user(pst_ctx_action_event->us_user_idx);
     if (OAL_PTR_NULL == pst_dmac_user)
     {
@@ -207,12 +148,12 @@ oal_uint32  dmac_mgmt_tx_delts(
     uc_ac = WLAN_WME_TID_TO_AC(uc_tidno);
     if (IS_STA(&pst_dmac_vap->st_vap_base_info))
     {
-        /* 遍历所有AC，找到对应TSID的AC */
+        /* ????????AC??????????TSID??AC */
         for (uc_ac_idx = 0; uc_ac_idx < WLAN_WME_AC_BUTT; uc_ac_idx++)
         {
             if(pst_ctx_action_event->uc_tsid == pst_dmac_user->st_user_base_info.st_ts_info[uc_ac_idx].uc_tsid)
             {
-                /* TS状态为none，表示不需要建立TS，直接返回，否则均可发送delts，并需更改其状态 */
+                /* TS??????none????????????????TS????????????????????????delts???????????????? */
                 if (pst_dmac_user->st_user_base_info.st_ts_info[uc_ac_idx].en_ts_status == MAC_TS_NONE)
                 {
                     oal_netbuf_free(pst_net_buff);
@@ -229,13 +170,13 @@ oal_uint32  dmac_mgmt_tx_delts(
 
     oal_set_netbuf_next(pst_net_buff, OAL_PTR_NULL);
     oal_set_netbuf_prev(pst_net_buff, OAL_PTR_NULL);
-    /* 填写netbuf的cb字段，共发送管理帧和发送完成接口使用 */
+    /* ????netbuf??cb???????????????????????????????????? */
     MAC_GET_CB_IS_MCAST(pst_tx_ctl)         = OAL_FALSE;
     mac_set_cb_ac(pst_tx_ctl, uc_ac);
     MAC_GET_CB_TX_USER_IDX(pst_tx_ctl)      = (oal_uint8)pst_dmac_user->st_user_base_info.us_assoc_id;
     mac_set_cb_frame_hdr(pst_tx_ctl, (mac_ieee80211_frame_stru *)oal_netbuf_header(pst_net_buff));
 
-    /* 调用发送管理帧接口 */
+    /* ?????????????????? */
     ul_ret = dmac_tx_mgmt(pst_dmac_vap, pst_net_buff, pst_ctx_action_event->us_frame_len);
     if (OAL_SUCC != ul_ret)
     {
@@ -246,21 +187,7 @@ oal_uint32  dmac_mgmt_tx_delts(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_rx_addts_rsp
- 功能描述  : 从空口接收到addts rsp帧的处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月23日
-    作    者   : l00357925
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_rx_addts_rsp(
                 dmac_vap_stru                  *pst_dmac_vap,
                 dmac_user_stru                 *pst_dmac_user,
@@ -286,10 +213,10 @@ oal_uint32  dmac_mgmt_rx_addts_rsp(
     pst_tspec_info = (mac_wmm_tspec_stru *)(puc_payload + 12);
     uc_user_prio = pst_tspec_info->ts_info.bit_user_prio;
 
-    /* 协议支持tid为0~15,02只支持tid0~7 */
+    /* ????????tid??0~15,02??????tid0~7 */
     if(uc_user_prio >= WLAN_TID_MAX_NUM)
     {
-        /* 对于tid > 7的rsp直接忽略 */
+        /* ????tid > 7??rsp???????? */
         OAM_WARNING_LOG2(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_WMMAC, "{dmac_mgmt_rx_addts_rsp::addts rsp tsid[%d] status[%d]} ", uc_user_prio, puc_payload[3]);
         return OAL_SUCC;
     }
@@ -310,7 +237,7 @@ oal_uint32  dmac_mgmt_rx_addts_rsp(
     }
 #endif
 
-    /* 获得之前保存的ts信息 */
+    /* ??????????????ts???? */
     pst_ts   = &(pst_dmac_user->st_user_base_info.st_ts_info[uc_ac_num]);
     uc_dialog_token = puc_payload[2];
 
@@ -333,7 +260,7 @@ oal_uint32  dmac_mgmt_rx_addts_rsp(
         return OAL_SUCC;
     }
 
-    /* 根据ADDTS RSP信息，更新dmac TS状态 */
+    /* ????ADDTS RSP??????????dmac TS???? */
     if(MAC_SUCCESSFUL_STATUSCODE == uc_status)
     {
         pst_ts->en_ts_status = MAC_TS_SUCCESS;
@@ -346,21 +273,7 @@ oal_uint32  dmac_mgmt_rx_addts_rsp(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_mgmt_rx_delts
- 功能描述  : 从空口接收到delts帧的处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年9月23日
-    作    者   : l00357925
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mgmt_rx_delts(
                 dmac_vap_stru                  *pst_dmac_vap,
                 dmac_user_stru                 *pst_dmac_user,
@@ -379,14 +292,14 @@ oal_uint32  dmac_mgmt_rx_delts(
     pst_tspec_info = (mac_wmm_tspec_stru *)(puc_payload + 12);
     uc_tsid = pst_tspec_info->ts_info.bit_tsid;
 
-    /* 获得之前保存的ts信息 */
+    /* ??????????????ts???? */
     for (uc_ac_num = 0; uc_ac_num < WLAN_WME_AC_BUTT; uc_ac_num++)
     {
         pst_ts = &(pst_dmac_user->st_user_base_info.st_ts_info[uc_ac_num]);
 
         if(uc_tsid == pst_ts->uc_tsid)
         {
-            /* 清空已保存的TS信息 */
+            /* ????????????TS???? */
             OAL_MEMZERO(pst_ts, OAL_SIZEOF(mac_ts_stru));
             pst_ts->en_ts_status = MAC_TS_INIT;
             pst_ts->uc_tsid      = 0xFF;

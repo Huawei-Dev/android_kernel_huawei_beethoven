@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_arp_offload.c
-  版 本 号   : 初稿
-  作    者   : w00316376
-  生成日期   : 2015年6月26日
-  最近修改   :
-  功能描述   : ARP Offloading相关函数实现
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年6月26日
-    作    者   : w00316376
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 
 #include "oal_net.h"
@@ -48,34 +31,17 @@ extern "C" {
 
 #ifdef _PRE_WLAN_FEATURE_ARP_OFFLOAD
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #define DMAC_AO_UNKNOWN_TYPE        (oal_uint8)0xFF
 oal_uint32  g_ul_arpoffload_send_arprsp  = 0;
 oal_uint32  g_ul_arpoffload_drop_frame   = 0;
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_encap_ieee80211_header
- 功能描述  : 构造802.11头(包括QOS和非QOS)
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             dmac_user_stru *pst_dmac_user
-             mac_ieee80211_frame_stru *pst_rx_hdr
-             oal_netbuf_stru *pst_tx_buf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月29日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 dmac_ao_encap_ieee80211_header(dmac_vap_stru *pst_dmac_vap,
                                                      dmac_user_stru *pst_dmac_user,
                                                      mac_ieee80211_frame_stru *pst_rx_hdr,
@@ -88,7 +54,7 @@ OAL_STATIC oal_uint32 dmac_ao_encap_ieee80211_header(dmac_vap_stru *pst_dmac_vap
 
     pst_tx_hdr = (mac_ieee80211_frame_stru *)OAL_NETBUF_HEADER(pst_tx_buf);
 
-    /* 发送方向From AP || To AP */
+    /* ????????From AP || To AP */
     us_tx_direction = (WLAN_VAP_MODE_BSS_AP == pst_mac_vap->en_vap_mode) ? WLAN_FRAME_FROM_AP : WLAN_FRAME_TO_AP;
 
     /* FC */
@@ -132,25 +98,7 @@ OAL_STATIC oal_uint32 dmac_ao_encap_ieee80211_header(dmac_vap_stru *pst_dmac_vap
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_encap_cb
- 功能描述  : 构造CB字段
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             dmac_user_stru *pst_dmac_user
-             oal_netbuf_stru *pst_tx_buf
-             oal_uint16 us_payload_len
-             oal_uint8 *puc_dst_mac_addr
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月29日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 dmac_ao_encap_cb(dmac_vap_stru *pst_dmac_vap,
                                        dmac_user_stru *pst_dmac_user,
                                        oal_netbuf_stru *pst_tx_buf,
@@ -193,7 +141,7 @@ OAL_STATIC oal_uint32 dmac_ao_encap_cb(dmac_vap_stru *pst_dmac_vap,
     mac_set_cb_tid(pst_tx_ctl, WLAN_TIDNO_VOICE);
     MAC_GET_CB_MPDU_LEN(pst_tx_ctl) = us_payload_len;
 
-    /* APUT 和 STAUT user idx 获取方式不一样 */
+    /* APUT ?? STAUT user idx ?????????????? */
     if (WLAN_VAP_MODE_BSS_STA == pst_mac_vap->en_vap_mode)
     {
         us_user_idx = (oal_uint8)(pst_mac_vap->uc_assoc_vap_id);
@@ -217,26 +165,7 @@ OAL_STATIC oal_uint32 dmac_ao_encap_cb(dmac_vap_stru *pst_dmac_vap,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rx_encap_arp_response
- 功能描述  : 构造ARP respons报文
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             mac_llc_snap_stru *pst_rx_snap
-             oal_netbuf_stru *pst_tx_buf
-             oal_uint8 *puc_tx_dst_ip_addr
-             oal_uint8 *puc_tx_src_ip_addr
-             oal_uint8 *puc_dst_mac_addr
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月29日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_ao_encap_arp_response(dmac_vap_stru *pst_dmac_vap,
                                                mac_llc_snap_stru *pst_rx_snap,
                                                oal_netbuf_stru *pst_tx_buf,
@@ -248,11 +177,11 @@ OAL_STATIC oal_void dmac_ao_encap_arp_response(dmac_vap_stru *pst_dmac_vap,
     mac_llc_snap_stru                   *pst_tx_snap;
     oal_eth_arphdr_stru                 *pst_tx_arp_hdr;
 
-    /* 构造SNAP header */
+    /* ????SNAP header */
     pst_tx_snap = (mac_llc_snap_stru *)OAL_NETBUF_PAYLOAD(pst_tx_buf);
     oal_memcopy(pst_tx_snap, pst_rx_snap, OAL_SIZEOF(mac_llc_snap_stru));
 
-    /* 构造ARP header */
+    /* ????ARP header */
     pst_tx_arp_hdr = (oal_eth_arphdr_stru *)(pst_tx_snap + 1);
 
     /*lint -e572 */
@@ -274,22 +203,7 @@ OAL_STATIC oal_void dmac_ao_encap_arp_response(dmac_vap_stru *pst_dmac_vap,
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_is_ipv4_addr_owner
- 功能描述  : 查询IPV4地址是否在本地存在
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_uint8 *puc_ipv4_addr
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月7日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 dmac_ao_is_ipv4_addr_owner(dmac_vap_stru *pst_dmac_vap, oal_uint8 *puc_ipv4_addr)
 {
     oal_uint32 ul_loop;
@@ -310,22 +224,7 @@ oal_bool_enum_uint8 dmac_ao_is_ipv4_addr_owner(dmac_vap_stru *pst_dmac_vap, oal_
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_is_ipv4_broadcast
- 功能描述  : 查询IPV4地址是否广播IP 地址
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_uint8 *puc_ipv4_addr
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年8月31日
-    作    者   : duankayong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 dmac_ao_is_ipv4_broadcast(dmac_vap_stru *pst_dmac_vap, oal_uint32 ul_ipv4_addr)
 {
     oal_uint32 ul_loop;
@@ -336,13 +235,13 @@ oal_bool_enum_uint8 dmac_ao_is_ipv4_broadcast(dmac_vap_stru *pst_dmac_vap, oal_u
         return OAL_TRUE;
     }
 
-    /* 如果网段相同且mask 后ip 地址是全1，则认为该IP 地址是广播IP 地址 */
+    /* ??????????????mask ??ip ????????1??????????IP ??????????IP ???? */
     for (ul_loop = 0; ul_loop < DMAC_MAX_IPV4_ENTRIES; ul_loop++)
     {
         ul_local_ip = pst_dmac_vap->pst_ip_addr_info->ast_ipv4_entry[ul_loop].un_local_ip.ul_value;
         ul_mask     = pst_dmac_vap->pst_ip_addr_info->ast_ipv4_entry[ul_loop].un_mask.ul_value;
 
-        if ((((ul_local_ip ^ ul_ipv4_addr) & ul_mask) == 0) /* 相同子网 */
+        if ((((ul_local_ip ^ ul_ipv4_addr) & ul_mask) == 0) /* ???????? */
             && ((~ul_mask & ul_ipv4_addr) == (~ul_mask)))
         {
             return OAL_TRUE;
@@ -353,22 +252,7 @@ oal_bool_enum_uint8 dmac_ao_is_ipv4_broadcast(dmac_vap_stru *pst_dmac_vap, oal_u
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_process_arp_offload
- 功能描述  : ARP报文处理函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_stru *pst_dmac_vap, dmac_user_stru *pst_dmac_user, oal_netbuf_stru *pst_netbuf)
 {
     mac_vap_stru                        *pst_mac_vap   = &pst_dmac_vap->st_vap_base_info;
@@ -387,7 +271,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_st
     }
 
     pst_rx_arp_hdr = (oal_eth_arphdr_stru *)(pst_rx_snap + 1);
-    /* 1.是ARP request构造response回，是ARP response和RARP上报Host */
+    /* 1.??ARP request????response??????ARP response??RARP????Host */
     switch (pst_rx_arp_hdr->us_ar_op)
     {
         /*lint -e572 */
@@ -412,11 +296,10 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_st
             return DMAC_RX_FRAME_CTRL_GOON;
     }
 
-    /* 2.申请net_buff */
+    /* 2.????net_buff */
     pst_tx_buf = OAL_MEM_NETBUF_ALLOC(OAL_NORMAL_NETBUF, WLAN_SHORT_NETBUF_SIZE, OAL_NETBUF_PRIORITY_MID);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_tx_buf))
     {
-        /* DTS2015100700242 APUT device侧内存不足时，打印级别由ERROR改成WARNING */
         OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_PWR, "{dmac_ao_process_arp_offload::Alloc MAC memory buf failed.}");
         return DMAC_RX_FRAME_CTRL_GOON;
     }
@@ -424,11 +307,11 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_st
     oal_set_netbuf_prev(pst_tx_buf, OAL_PTR_NULL);
     oal_set_netbuf_next(pst_tx_buf, OAL_PTR_NULL);
 
-    /* 3.构造80211头 */
+    /* 3.????80211?? */
     pst_rx_hdr = (mac_ieee80211_frame_stru *)OAL_NETBUF_HEADER(pst_netbuf);
     dmac_ao_encap_ieee80211_header(pst_dmac_vap, pst_dmac_user, pst_rx_hdr, pst_tx_buf);
 
-    /* 4.构造CB */
+    /* 4.????CB */
     if (WLAN_VAP_MODE_BSS_AP == pst_mac_vap->en_vap_mode)
     {
         puc_dst_mac_addr = pst_rx_hdr->auc_address2;
@@ -449,13 +332,12 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_st
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
-    /* 5.构造ARP response报文 */
+    /* 5.????ARP response???? */
     dmac_ao_encap_arp_response(pst_dmac_vap, pst_rx_snap, pst_tx_buf, pst_rx_arp_hdr->auc_ar_sip, pst_rx_arp_hdr->auc_ar_tip, puc_dst_mac_addr);
 
-    /* 6.发送 */
+    /* 6.???? */
     if (OAL_SUCC != dmac_tx_process_data(pst_dmac_vap->pst_hal_device, pst_dmac_vap, pst_tx_buf))
     {
-	    /* DTS2015100600380 因为用户的节能队列overrun，导致dmac_tx_process_data接口发送失败。*/
         OAM_WARNING_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_PWR, "{dmac_ao_process_arp_offload::Dmac tx process data failed.}");
         dmac_tx_excp_free_netbuf(pst_tx_buf);
         return DMAC_RX_FRAME_CTRL_GOON;
@@ -464,25 +346,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_offload(dmac_vap_st
     return DMAC_RX_FRAME_CTRL_DROP;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rx_construct_na
- 功能描述  : 构造不通用途的NA报文
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             dmac_user_stru *pst_dmac_user
-             oal_netbuf_stru *pst_netbuf
-             mac_llc_snap_stru *pst_rx_snap
-             oal_bool_enum_uint8 en_is_dad
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月29日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dmac_vap,
                                                           dmac_user_stru *pst_dmac_user,
                                                           oal_netbuf_stru *pst_netbuf,
@@ -506,7 +370,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
 
     oal_ipv6_pseudo_hdr_stru            *pst_tx_ipv6_pseudo_hdr;
 
-    /* 1.申请net_buff */
+    /* 1.????net_buff */
     pst_tx_buf = OAL_MEM_NETBUF_ALLOC(OAL_NORMAL_NETBUF, WLAN_SHORT_NETBUF_SIZE, OAL_NETBUF_PRIORITY_MID);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_tx_buf))
     {
@@ -517,15 +381,15 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
     oal_set_netbuf_prev(pst_tx_buf, OAL_PTR_NULL);
     oal_set_netbuf_next(pst_tx_buf, OAL_PTR_NULL);
 
-    /* 2.构造80211头 */
+    /* 2.????80211?? */
     pst_rx_hdr = (mac_ieee80211_frame_stru *)OAL_NETBUF_HEADER(pst_netbuf);
     dmac_ao_encap_ieee80211_header(pst_dmac_vap, pst_dmac_user, pst_rx_hdr, pst_tx_buf);
 
-    /* 3.构造CB */
+    /* 3.????CB */
     pst_rx_ipv6_hdr = (oal_ipv6hdr_stru *)(pst_rx_snap + 1);
     if (OAL_IPV6_IS_UNSPECIFIED_ADDR(pst_rx_ipv6_hdr->saddr.s6_addr))
     {
-        /* 重复地址检测DAD是没有选项字段的 */
+        /* ????????????DAD???????????????? */
         en_is_dad = OAL_TRUE;
         us_nd_hrd_len = sizeof(oal_nd_msg_stru) - 4;
     }
@@ -557,7 +421,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
-    /* 4.构造SNAP header */
+    /* 4.????SNAP header */
     pst_tx_snap = (mac_llc_snap_stru *)OAL_NETBUF_PAYLOAD(pst_tx_buf);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_tx_snap))
     {
@@ -567,7 +431,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
     }
     oal_memcopy(pst_tx_snap, pst_rx_snap, OAL_SIZEOF(mac_llc_snap_stru));
 
-    /* 5.构造ipv6 header */
+    /* 5.????ipv6 header */
     pst_tx_ipv6_hdr = (oal_ipv6hdr_stru *)(pst_tx_snap + 1);
     /*lint -e572 */
     *(oal_uint32 *)pst_tx_ipv6_hdr = OAL_HOST2NET_LONG(0x60000000);
@@ -585,14 +449,14 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
     }
     else
     {
-        /* 重复地址检测DAD构造的NA报文，Destination Address必须是所有节点的组播地址（FF02::1) */
+        /* ????????????DAD??????NA??????Destination Address??????????????????????????FF02::1) */
         oal_memset(pst_tx_ipv6_hdr->daddr.s6_addr, 0, 16);
         pst_tx_ipv6_hdr->daddr.s6_addr[0]  = 0xFF;
         pst_tx_ipv6_hdr->daddr.s6_addr[1]  = 0x02;
         pst_tx_ipv6_hdr->daddr.s6_addr[15] = 0x01;
     }
 
-    /* 6.填写ICMPV6邻居发现协议的NA */
+    /* 6.????ICMPV6??????????????NA */
     pst_tx_nd_hdr = (oal_nd_msg_stru *)(pst_tx_ipv6_hdr + 1);
     OAL_MEMZERO(&(pst_tx_nd_hdr->icmph), OAL_SIZEOF(oal_icmp6hdr_stru));
     pst_tx_nd_hdr->icmph.icmp6_type      = MAC_ND_NADVT;
@@ -606,11 +470,11 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
         pst_tx_nd_hdr->icmph.icmp6_solicited = 0;
     }
     pst_tx_nd_hdr->icmph.icmp6_override = 1;
-    oal_memcopy(pst_tx_nd_hdr->target.s6_addr, pst_rx_nd_hdr->target.s6_addr, OAL_IPV6_ADDR_SIZE); //NA的target必须和NS的target一致
+    oal_memcopy(pst_tx_nd_hdr->target.s6_addr, pst_rx_nd_hdr->target.s6_addr, OAL_IPV6_ADDR_SIZE); //NA??target??????NS??target????
 
     if (OAL_FALSE == en_is_dad)
     {
-        /* 7.填写ICMPv6选项 */
+        /* 7.????ICMPv6???? */
         /*lint -e415 */
         pst_tx_nd_hdr->opt[0] = OAL_ND_OPT_TARGET_LL_ADDR;
         pst_tx_nd_hdr->opt[1] = 1;   //The length of the option (including the type and length fields) in units of 8 octets.
@@ -619,14 +483,14 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
         /*lint -e416 */
         oal_memcopy(&(pst_tx_nd_hdr->opt[2]), pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID, OAL_MAC_ADDR_LEN);
 
-        /* 8.填写IPv6伪首部 */
+        /* 8.????IPv6?????? */
         pst_tx_ipv6_pseudo_hdr = (oal_ipv6_pseudo_hdr_stru *)(&(pst_tx_nd_hdr->opt[2]) + OAL_MAC_ADDR_LEN);
         /*lint +e416 */
     }
     else
     {
-        /* 7.DAD没有选项字段 */
-        /* 8.填写IPv6伪首部 */
+        /* 7.DAD???????????? */
+        /* 8.????IPv6?????? */
         pst_tx_ipv6_pseudo_hdr = (oal_ipv6_pseudo_hdr_stru *)&(pst_tx_nd_hdr->opt[0]);
     }
 
@@ -637,10 +501,10 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
     pst_tx_ipv6_pseudo_hdr->nexthdr = OAL_HOST2NET_LONG((oal_uint32)OAL_IPPROTO_ICMPV6);
     /*lint +e572 */
 
-    /* 9.计算校验和 */
+    /* 9.?????????? */
     pst_tx_nd_hdr->icmph.icmp6_cksum = oal_csum_ipv6_magic(us_nd_hrd_len + OAL_SIZEOF(oal_ipv6_pseudo_hdr_stru), (oal_uint8 *)pst_tx_nd_hdr);
 
-    /* 10.发送 */
+    /* 10.???? */
     if (OAL_UNLIKELY(OAL_SUCC != dmac_tx_process_data(pst_dmac_vap->pst_hal_device, pst_dmac_vap, pst_tx_buf)))
     {
         OAM_ERROR_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_PWR, "{dmac_ao_encap_na::Dmac tx data failed.}");
@@ -651,22 +515,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_encap_na(dmac_vap_stru *pst_dma
     return DMAC_RX_FRAME_CTRL_DROP;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_is_ipv6_addr_owner
- 功能描述  : 查询IPV6地址是否在本地存在
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_uint8 *puc_ipv6_addr
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月7日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8 dmac_ao_is_ipv6_addr_owner(dmac_vap_stru *pst_dmac_vap, oal_uint8 *puc_ipv6_addr)
 {
     oal_uint32  ul_loop;
@@ -687,21 +536,7 @@ OAL_STATIC oal_bool_enum_uint8 dmac_ao_is_ipv6_addr_owner(dmac_vap_stru *pst_dma
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_is_ipv6_global_ucst_exist
- 功能描述  : 判断IPv6全球单播地址是否存在
- 输入参数  : dmac_vap_stru *pst_dmac_vap
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月27日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8 dmac_ao_is_ipv6_global_ucst_exist(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint32  ul_loop;
@@ -718,22 +553,7 @@ OAL_STATIC oal_bool_enum_uint8 dmac_ao_is_ipv6_global_ucst_exist(dmac_vap_stru *
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_process_nd_offload
- 功能描述  : ND报文处理函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_stru *pst_dmac_vap, dmac_user_stru *pst_dmac_user, oal_netbuf_stru *pst_netbuf)
 {
     mac_vap_stru                        *pst_mac_vap = &pst_dmac_vap->st_vap_base_info;
@@ -746,7 +566,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
     pst_rx_ipv6_hdr = (oal_ipv6hdr_stru *)(pst_rx_snap + 1);
     pst_rx_nd_hdr   = (oal_nd_msg_stru *)(pst_rx_ipv6_hdr + 1);
 
-    /* NDP各种类型报文过滤 */
+    /* NDP???????????????? */
     switch (pst_rx_nd_hdr->icmph.icmp6_type)
     {
         case MAC_ND_RSOL:
@@ -766,8 +586,8 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
                 return DMAC_RX_FRAME_CTRL_GOON;
             }
 
-            /* STAUT针对IPv6的Destination Address是组播地址FF02::1，若已经获取全球单播地址，则丢弃；
-               若还未获取全球单播地址，则上报host */
+            /* STAUT????IPv6??Destination Address??????????FF02::1??????????????????????????????????
+               ??????????????????????????????host */
             if (OAL_IPV6_IS_MULTICAST(pst_rx_ipv6_hdr->daddr.s6_addr))
             {
                 if (OAL_TRUE == dmac_ao_is_ipv6_global_ucst_exist(pst_dmac_vap))
@@ -778,23 +598,23 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
                 return DMAC_RX_FRAME_CTRL_GOON;
             }
 
-            /* STAUT单播地址全部上报 */
+            /* STAUT???????????????? */
             return DMAC_RX_FRAME_CTRL_GOON;
         }
 
         case MAC_ND_NSOL:
         {
-            /* NS请求目标的IPv6地址，不能是组播地址，可以是本地链路、本地站点、全局地址 */
+            /* NS??????????IPv6???????????????????????????????????????????????????????? */
             if (OAL_TRUE == dmac_ao_is_ipv6_addr_owner(pst_dmac_vap, pst_rx_nd_hdr->target.s6_addr))
             {
-                /* 重复地址检测DAD，地址重复了，回NA通知对端 */
-                /* 地址解析、邻居不可达检测NUD，请求的是本端MAC地址，回NA给对端 */
+                /* ????????????DAD????????????????NA???????? */
+                /* ????????????????????????NUD??????????????MAC????????NA?????? */
                 return dmac_ao_encap_na(pst_dmac_vap, pst_dmac_user, pst_netbuf, pst_rx_snap);
             }
 
             if (WLAN_VAP_MODE_BSS_AP == pst_mac_vap->en_vap_mode)
             {
-                /* AP有转发/代理功能 */
+                /* AP??????/???????? */
                 return DMAC_RX_FRAME_CTRL_GOON;
             }
 
@@ -808,7 +628,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
                 return DMAC_RX_FRAME_CTRL_GOON;
             }
 
-            /* 判断ICMPv6头里Target Address，如果不是本地地址的就丢弃，否则上报host */
+            /* ????ICMPv6????Target Address????????????????????????????????????host */
             if ((OAL_TRUE == dmac_ao_is_ipv6_addr_owner(pst_dmac_vap, pst_rx_ipv6_hdr->daddr.s6_addr))
                 || (OAL_TRUE == dmac_ao_is_ipv6_addr_owner(pst_dmac_vap, pst_rx_nd_hdr->target.s6_addr)))
             {
@@ -820,7 +640,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
 
         case MAC_ND_RMES:
         {
-            /* APUT/STAUT全部上报 */
+            /* APUT/STAUT???????? */
             return DMAC_RX_FRAME_CTRL_GOON;
         }
 
@@ -833,27 +653,12 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_nd_offload(dmac_vap_str
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_rx_get_dhcp_type
- 功能描述  : 获取DHCP报文的类型
- 输入参数  : oal_uint8 *puc_pos
-             oal_uint8 *puc_packet_end
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月29日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint8 dmac_ao_get_dhcp_type(oal_uint8 *puc_pos, oal_uint8 *puc_packet_end)
 {
     oal_uint8       *puc_opt;
 
-    /* 获取DHCP类型 */
+    /* ????DHCP???? */
     while ((puc_pos < puc_packet_end) && (*puc_pos != 0xFF))
     {
         puc_opt = puc_pos++;
@@ -878,22 +683,7 @@ OAL_STATIC oal_uint8 dmac_ao_get_dhcp_type(oal_uint8 *puc_pos, oal_uint8 *puc_pa
     return DMAC_AO_UNKNOWN_TYPE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_process_dhcp_filter
- 功能描述  : STAUT的DHCP报文处理函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcp_filter(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     mac_vap_stru                        *pst_mac_vap = &pst_dmac_vap->st_vap_base_info;
@@ -917,7 +707,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcp_filter(dmac_vap_st
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
-    puc_pos        += SNAP_LLC_FRAME_LEN;        /* 指向IP Header */
+    puc_pos        += SNAP_LLC_FRAME_LEN;        /* ????IP Header */
     pst_rx_ip_hdr   = (oal_ip_header_stru *)puc_pos;
     puc_pos        += (puc_pos[0] & 0x0F) << 2;  /* point udp header */
     pst_rx_dhcp_hdr = (oal_dhcp_packet_stru *)(puc_pos + 8);
@@ -928,14 +718,13 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcp_filter(dmac_vap_st
     uc_type = dmac_ao_get_dhcp_type(puc_pos, puc_packet_end);
     if (DMAC_AO_UNKNOWN_TYPE == uc_type)
     {
-        /* DTS2015100700167 如果获取不到DHCP type，上报Host侧处理 */
         OAM_ERROR_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_PWR, "{dmac_ao_process_dhcp_filter::Get DHCP type failed.}");
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
     switch (uc_type)
     {
-        /* 这五种报文丢弃 */
+        /* ?????????????? */
         case MAC_DHCP_DISCOVER:
         case MAC_DHCP_REQUEST:
         case MAC_DHCP_DECLINE:
@@ -945,13 +734,13 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcp_filter(dmac_vap_st
             return DMAC_RX_FRAME_CTRL_DROP;
         }
 
-        /* 这三种报文上报Host */
+        /* ??????????????Host */
         case MAC_DHCP_OFFER:
         case MAC_DHCP_ACK:
         case MAC_DHCP_NAK:
         {
-            /* 和接收到的报文的Client Hardware Addr进行比较，如果不是回本地MAC地址的DHCP报文，则丢弃 */
-            /* chaddr[16]的前6个字节为client的MAC地址，后10字节保留未用 */
+            /* ????????????????Client Hardware Addr????????????????????????MAC??????DHCP???????????? */
+            /* chaddr[16]????6????????client??MAC????????10???????????? */
             if (0 != oal_memcmp(pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID, pst_rx_dhcp_hdr->chaddr, WLAN_MAC_ADDR_LEN))
             {
                 return DMAC_RX_FRAME_CTRL_DROP;
@@ -968,23 +757,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcp_filter(dmac_vap_st
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_get_dhcpv6_client_mac_addr
- 功能描述  : 获取DHCPv6的client Mac地址
- 输入参数  : oal_uint8 *puc_pos
-             oal_uint8 *puc_packet_end
-             oal_uint8 *puc_type
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月6日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 dmac_ao_get_dhcpv6_client_mac_addr(oal_uint8 *puc_pos, oal_uint8 *puc_packet_end, oal_uint8 *puc_client_mac_addr)
 {
     /****************************************************************
@@ -1041,16 +814,16 @@ OAL_STATIC oal_uint32 dmac_ao_get_dhcpv6_client_mac_addr(oal_uint8 *puc_pos, oal
     oal_uint16       *pus_opt;
 
 
-    /* 获取DHCPv6的client mac addr */
+    /* ????DHCPv6??client mac addr */
     while (puc_pos < puc_packet_end)
     {
         pus_opt = (oal_uint16 *)puc_pos;
 
-        /* 指向下一个选项头 */
+        /* ???????????????? */
         puc_pos += OAL_NET2HOST_SHORT(*(oal_uint16 *)(puc_pos + 2)) + 4;
         if (puc_pos > puc_packet_end)
         {
-            /* 选项长度不够，已经溢出了 */
+            /* ???????????????????????? */
             break;
         }
 
@@ -1084,22 +857,7 @@ OAL_STATIC oal_uint32 dmac_ao_get_dhcpv6_client_mac_addr(oal_uint8 *puc_pos, oal
     return OAL_FAIL;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_process_dhcpv6_filter
- 功能描述  : STAUT的DHCPv6报文处理函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcpv6_filter(dmac_vap_stru *pst_dmac_vap , oal_netbuf_stru *pst_netbuf)
 {
     mac_vap_stru                        *pst_mac_vap = &pst_dmac_vap->st_vap_base_info;
@@ -1148,7 +906,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcpv6_filter(dmac_vap_
 
         case MAC_DHCPV6_RECONFIGURE:
         {
-            /* 一定是IPV6单播,全部上报host */
+            /* ??????IPV6????,????????host */
             return DMAC_RX_FRAME_CTRL_GOON;
         }
 
@@ -1161,13 +919,13 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcpv6_filter(dmac_vap_
     puc_packet_end = puc_dhcpv6_hdr + (pst_rx_ipv6_hdr->payload_len - 8);
     puc_pos        = puc_dhcpv6_hdr + 4;
 
-    /* 如果获取不到DHCPv6的client Mac地址,则丢弃 */
+    /* ????????????DHCPv6??client Mac????,?????? */
     if (OAL_SUCC != dmac_ao_get_dhcpv6_client_mac_addr(puc_pos, puc_packet_end, auc_client_mac_addr))
     {
         return DMAC_RX_FRAME_CTRL_DROP;
     }
 
-    /* 如果client的MAC地址不是本地MAC地址的DHCP报文,则丢弃 */
+    /* ????client??MAC????????????MAC??????DHCP????,?????? */
     if (0 != oal_memcmp(pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID, auc_client_mac_addr, WLAN_MAC_ADDR_LEN))
     {
         return DMAC_RX_FRAME_CTRL_DROP;
@@ -1176,22 +934,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_dhcpv6_filter(dmac_vap_
     return DMAC_RX_FRAME_CTRL_GOON;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_ao_sta_process_multicast_filter
- 功能描述  : STAUT的组播/广播报文过滤函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_sta_process_multicast_filter(dmac_vap_stru * pst_dmac_vap , oal_netbuf_stru *pst_netbuf)
 {
     mac_vap_stru                        *pst_mac_vap = &pst_dmac_vap->st_vap_base_info;
@@ -1204,10 +947,10 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_sta_process_multicast_filter(dm
     pst_rx_hdr    = (mac_ieee80211_qos_frame_stru *)OAL_NETBUF_HEADER(pst_netbuf);
     puc_dest_addr = pst_rx_hdr->auc_address1;
 
-    /* MAC广播/组播过滤 */
+    /* MAC????/???????? */
     if (ETHER_IS_MULTICAST(puc_dest_addr))
     {
-        /* 非特殊MAC广播/组播帧丢弃 */
+        /* ??????MAC????/?????????? */
         return DMAC_RX_FRAME_CTRL_DROP;
     }
 
@@ -1218,7 +961,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_sta_process_multicast_filter(dm
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
-    /* IP广播/组播过滤 */
+    /* IP????/???????? */
     if (OAL_HOST2NET_SHORT(ETHER_TYPE_IP) == pst_snap->us_ether_type)
     {
         pst_ipv4 = (oal_ip_header_stru *)(pst_snap + 1);
@@ -1248,22 +991,7 @@ OAL_STATIC dmac_rx_frame_ctrl_enum_uint8 dmac_ao_sta_process_multicast_filter(dm
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_rx_process_arp_and_mcast
- 功能描述  : 过滤组播、广播、ARP、DHCP等报文的总入口函数
- 输入参数  : dmac_vap_stru *pst_dmac_vap
-             oal_netbuf_stru *pst_netbuf
- 输出参数  : 无
- 返 回 值  : OAL_STATIC dmac_rx_frame_ctrl_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月25日
-    作    者   : w00316376
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_and_mcast(dmac_vap_stru *pst_dmac_vap, dmac_user_stru *pst_dmac_user, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint8           uc_data_type;
@@ -1276,15 +1004,20 @@ dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_and_mcast(dmac_vap_stru *pst_d
         return DMAC_RX_FRAME_CTRL_DROP;
     }
 
-    /* 未开开关 */
+    /* ???????? */
     if (OAL_FALSE == pst_mac_device->uc_arpoffload_switch)
+    {
+        return DMAC_RX_FRAME_CTRL_GOON;
+    }
+
+    if (IS_AP(&(pst_dmac_vap->st_vap_base_info)))
     {
         return DMAC_RX_FRAME_CTRL_GOON;
     }
 
     uc_data_type = mac_get_data_type(pst_netbuf);
 
-    /* 特殊帧/报文先过滤 */
+    /* ??????/?????????? */
     switch (uc_data_type)
     {
         case MAC_DATA_EAPOL:
@@ -1319,7 +1052,7 @@ dmac_rx_frame_ctrl_enum_uint8 dmac_ao_process_arp_and_mcast(dmac_vap_stru *pst_d
         }
     }
 
-    /* STAUT的IP广播/组播过滤、MAC广播/组播过滤 */
+    /* STAUT??IP????/??????????MAC????/???????? */
     if (WLAN_VAP_MODE_BSS_STA == pst_dmac_vap->st_vap_base_info.en_vap_mode)
     {
         return dmac_ao_sta_process_multicast_filter(pst_dmac_vap, pst_netbuf);

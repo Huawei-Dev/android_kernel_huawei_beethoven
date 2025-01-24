@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_dfx.c
-  版 本 号   : 初稿
-  作    者   : z64406
-  生成日期   : 2014年4月7日
-  最近修改   :
-  功能描述   : DFX文件接扩
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年4月7日
-    作    者   : z64406
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -38,10 +21,10 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_DFX_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_DFR
-hmac_dfr_info_stru  g_st_dfr_info;         /* DFR异常复位开关 */
+hmac_dfr_info_stru  g_st_dfr_info;         /* DFR???????????? */
 #endif
 
 OAL_STATIC oam_cfg_data_stru  g_ast_cfg_data[OAM_CFG_TYPE_BUTT] =
@@ -50,13 +33,13 @@ OAL_STATIC oam_cfg_data_stru  g_ast_cfg_data[OAM_CFG_TYPE_BUTT] =
 };
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-oal_uint16   g_us_wlan_assoc_user_max_num     = 32;     /* 关联用户的最大个数 Root AP模式下为32个,Repeater模式下是15个 */
+oal_uint16   g_us_wlan_assoc_user_max_num     = 32;     /* ?????????????????? Root AP????????32??,Repeater????????15?? */
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-/* 由于WL_L2_DRAM大小限制，目前暂时开放2个业务vap，整体规格开放待后续优化 TBD */
-oal_uint32   g_ul_wlan_vap_max_num_per_device = 4 + 1;  /* 4个AP + 1个配置vap */
+/* ????WL_L2_DRAM??????????????????????2??????vap???????????????????????? TBD */
+oal_uint32   g_ul_wlan_vap_max_num_per_device = 4 + 1;  /* 4??AP + 1??????vap */
 #else
-oal_uint32   g_ul_wlan_vap_max_num_per_device = 4 + 1;  /* 4个AP + 1个配置vap */
+oal_uint32   g_ul_wlan_vap_max_num_per_device = 4 + 1;  /* 4??AP + 1??????vap */
 #endif
 
 #else
@@ -65,23 +48,9 @@ extern oal_uint32   g_ul_wlan_vap_max_num_per_device;
 #endif
 
 /*****************************************************************************
-  3 函数实现  TBD 置换函数名称
+  3 ????????  TBD ????????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : oam_cfg_get_item_by_id
- 功能描述  : 提供给其他模块获取配置项值的接口
- 输入参数  : en_cfg_type:其它模块传入的配置项类型
- 输出参数  :
- 返 回 值  : 配置项的值或者错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月10日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  oam_cfg_get_item_by_id(oam_cfg_type_enum_uint16  en_cfg_type)
 {
     oal_uint32      ul_loop;
@@ -104,32 +73,18 @@ oal_int32  oam_cfg_get_item_by_id(oam_cfg_type_enum_uint16  en_cfg_type)
 }
 
 #if ((defined(_PRE_PRODUCT_ID_HI110X_DEV)) || (defined(_PRE_PRODUCT_ID_HI110X_HOST)))
-/*****************************************************************************
- 函 数 名  : oam_spec_init
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月17日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_custom_init(oal_uint32 ul_psta_enable)
 {
-    /* 硬件限制:3个STA; 2个AP */
-    /* 软件规格:
-        1)AP 模式:  2个ap + 1个配置vap
-        2)STA 模式: 3个sta + 1个配置vap
-        3)STA+P2P共存模式:  1个sta + 1个P2P_dev + 1个P2P_GO/Client + 1个配置vap
-        4)STA+Proxy STA共存模式:  1个sta + ?个proxy STA + 1个配置vap
+    /* ????????:3??STA; 2??AP */
+    /* ????????:
+        1)AP ????:  2??ap + 1??????vap
+        2)STA ????: 3??sta + 1??????vap
+        3)STA+P2P????????:  1??sta + 1??P2P_dev + 1??P2P_GO/Client + 1??????vap
+        4)STA+Proxy STA????????:  1??sta + ???proxy STA + 1??????vap
     */
     g_us_wlan_assoc_user_max_num     = 8;
-    // TBD 设定为WLAN_ASSOC_USER_MAX_NUM_LIMIT;
+    // TBD ??????WLAN_ASSOC_USER_MAX_NUM_LIMIT;
     g_ul_wlan_vap_max_num_per_device = WLAN_SERVICE_VAP_MAX_NUM_PER_DEVICE + WLAN_CONFIG_VAP_MAX_NUM_PER_DEVICE;
 
     return OAL_SUCC;
@@ -137,21 +92,7 @@ oal_uint32  hmac_custom_init(oal_uint32 ul_psta_enable)
 
 #else
 
-/*****************************************************************************
- 函 数 名  : oam_spec_init
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月17日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_custom_init(oal_uint32 ul_psta_enable)
 {
 
@@ -159,7 +100,7 @@ oal_uint32  hmac_custom_init(oal_uint32 ul_psta_enable)
     if (ul_psta_enable)
     {
         g_us_wlan_assoc_user_max_num  = 15;
-        g_ul_wlan_vap_max_num_per_device = WLAN_REPEATER_SERVICE_VAP_MAX_NUM_PER_DEVICE + WLAN_CONFIG_VAP_MAX_NUM_PER_DEVICE;/* 1个AP, 1个sta，15个Proxy STA，1个配置vap */
+        g_ul_wlan_vap_max_num_per_device = WLAN_REPEATER_SERVICE_VAP_MAX_NUM_PER_DEVICE + WLAN_CONFIG_VAP_MAX_NUM_PER_DEVICE;/* 1??AP, 1??sta??15??Proxy STA??1??????vap */
     }
     else
 #endif
@@ -174,22 +115,7 @@ oal_uint32  hmac_custom_init(oal_uint32 ul_psta_enable)
 
 
 
-/*****************************************************************************
- 函 数 名  : oam_cfg_restore_all_item
- 功能描述  : 从配置文件中获取配置项的值中间失败的话，需要将之前获取的值恢复
-             为默认值
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月10日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_cfg_restore_all_item(oal_int32 al_default_cfg_data[])
 {
     oal_uint32          ul_loop;
@@ -203,21 +129,7 @@ OAL_STATIC oal_uint32  oam_cfg_restore_all_item(oal_int32 al_default_cfg_data[])
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_cfg_get_all_item
- 功能描述  : OAM模块加载的时候将配置文件中的所有配置信息保存到一个内部结构中
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月9日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  oam_cfg_get_all_item(oal_void)
 {
     oal_int32     al_default_cfg_data[OAM_CFG_TYPE_BUTT] = {0};
@@ -233,15 +145,15 @@ oal_int32  oam_cfg_get_all_item(oal_void)
 
 	oal_aes_key_stru    st_aes_key;
 
-    /* 保存默认配置，如果获取配置文件中信息的时候中间有失败的情况，则需要恢复
-       前面全局配置信息，其它模块加载的时候可以按照默认配置加载
+    /* ??????????????????????????????????????????????????????????????????????
+       ????????????????????????????????????????????????????????
     */
     for (ul_loop = 0; ul_loop < OAM_CFG_TYPE_BUTT; ul_loop++)
     {
         al_default_cfg_data[ul_loop] = g_ast_cfg_data[ul_loop].l_val;
     }
 
-    /* 获取文件大小并获取文件指针 */
+    /* ?????????????????????????? */
     l_ret = oal_file_size(&ul_file_size);
     if (OAL_SUCC != l_ret)
     {
@@ -249,7 +161,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
         return l_ret;
     }
 
-    /* 将配置文件中的所有数据读到一个缓冲区里，此时数据是加密的 */
+    /* ???????????????????????????????????????????????????????? */
     puc_ciphertext = oal_memalloc(ul_file_size + OAM_CFG_STR_END_SIGN_LEN);
     if (OAL_PTR_NULL == puc_ciphertext)
     {
@@ -266,7 +178,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
         return l_ret;
     }
 
-    /* 申请明文空间，并将密文解密 */
+    /* ?????????????????????????? */
     puc_plaintext = oal_memalloc(ul_file_size + OAM_CFG_STR_END_SIGN_LEN);
     if (OAL_PTR_NULL == puc_plaintext)
     {
@@ -277,7 +189,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
     }
     OAL_MEMZERO(puc_plaintext, ul_file_size + OAM_CFG_STR_END_SIGN_LEN);
 
-    /* 解密 */
+    /* ???? */
     l_ret = (oal_int32)oal_aes_expand_key(&st_aes_key,(oal_uint8 *)i_key,OAL_AES_KEYSIZE_256);
     if (OAL_SUCC != l_ret)
     {
@@ -290,7 +202,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
     oam_cfg_decrypt_all_item(&st_aes_key, (oal_int8 *)puc_ciphertext,
                             (oal_int8 *)puc_plaintext, ul_file_size);
 
-    /* 获取配置文件中每一项的信息，保存到OAM内部结构中 */
+    /* ??????????????????????????????????OAM?????????? */
     for (ul_loop = 0; ul_loop < OAM_CFG_TYPE_BUTT; ul_loop++)
     {
         l_ret = oam_cfg_get_one_item((oal_int8 *)puc_plaintext,
@@ -298,7 +210,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
                                      g_ast_cfg_data[ul_loop].pc_key,
                                      &g_ast_cfg_data[ul_loop].l_val);
 
-        /* 如果获取某一配置值不成功，则恢复配置项的默认值 */
+        /* ?????????????????????????????????????????????? */
         if (OAL_SUCC != l_ret)
         {
             OAL_IO_PRINT("oam_cfg_get_all_item::get cfg item fail! ul_loop=%d\n", ul_loop);
@@ -311,7 +223,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
         }
     }
 
-    /* 释放缓冲区 */
+    /* ?????????? */
     oal_free(puc_plaintext);
     oal_free(puc_ciphertext);
 
@@ -319,21 +231,7 @@ oal_int32  oam_cfg_get_all_item(oal_void)
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_config_init
- 功能描述  : 模块初始化函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月10日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_cfg_init(oal_void)
 {
     oal_int32      l_ret = OAL_SUCC;

@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : mac_frame.h
-  版 本 号   : 初稿
-  作    者   : huxiaotong
-  生成日期   : 2012年12月3日
-  最近修改   :
-  功能描述   : 对应的帧的结构及操作接口定义的源文件(HAL模块不可以调用)
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年12月3日
-    作    者   : huxiaotong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __MAC_FRAME_H__
 #define __MAC_FRAME_H__
@@ -28,43 +11,43 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "wlan_types.h"
 #include "oam_ext_if.h"
 
-/* 此文件中定义的结构体与协议相关，需要1字节对齐 */
+/* ????????????????????????????????????1???????? */
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_MAC_FRAME_H
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define MAC_IEEE80211_FCTL_FTYPE        0x000c      /* 帧类型掩码 */
-#define MAC_IEEE80211_FCTL_STYPE        0x00f0      /* 帧子类型掩码 */
+#define MAC_IEEE80211_FCTL_FTYPE        0x000c      /* ?????????? */
+#define MAC_IEEE80211_FCTL_STYPE        0x00f0      /* ???????????? */
 
 #define MAC_IEEE80211_FC0_SUBTYPE_SHIFT 4
 
-#define MAC_IEEE80211_FTYPE_MGMT        0x0000      /* 管理帧 */
-#define MAC_IEEE80211_FTYPE_CTL         0x0004      /* 控制帧 */
-#define MAC_IEEE80211_FTYPE_DATA        0x0008      /* 数据帧 */
+#define MAC_IEEE80211_FTYPE_MGMT        0x0000      /* ?????? */
+#define MAC_IEEE80211_FTYPE_CTL         0x0004      /* ?????? */
+#define MAC_IEEE80211_FTYPE_DATA        0x0008      /* ?????? */
 
-/* A-MSDU情况下，submsdu的偏移宏 */
-#define MAC_SUBMSDU_HEADER_LEN          14          /* |da = 6|sa = 6|len = 2| submsdu的头的长度 */
-#define MAC_SUBMSDU_LENGTH_OFFSET       12          /* submsdu的长度字段的偏移值 */
-#define MAC_SUBMSDU_DA_OFFSET           0           /* submsdu的目的地址的偏移值 */
-#define MAC_SUBMSDU_SA_OFFSET           6           /* submsdu的源地址的偏移值 */
+/* A-MSDU????????submsdu???????? */
+#define MAC_SUBMSDU_HEADER_LEN          14          /* |da = 6|sa = 6|len = 2| submsdu?????????? */
+#define MAC_SUBMSDU_LENGTH_OFFSET       12          /* submsdu?????????????????? */
+#define MAC_SUBMSDU_DA_OFFSET           0           /* submsdu?????????????????? */
+#define MAC_SUBMSDU_SA_OFFSET           6           /* submsdu???????????????? */
 
-#define MAC_80211_FRAME_LEN                 24      /* 非四地址情况下，MAC帧头的长度 */
-#define MAC_80211_CTL_HEADER_LEN            16      /* 控制帧帧头长度 */
+#define MAC_80211_FRAME_LEN                 24      /* ????????????????MAC?????????? */
+#define MAC_80211_CTL_HEADER_LEN            16      /* ?????????????? */
 #define MAC_80211_4ADDR_FRAME_LEN           30
 #define MAC_80211_QOS_FRAME_LEN             26
 #define MAC_80211_QOS_HTC_FRAME_LEN         30
 #define MAC_80211_QOS_4ADDR_FRAME_LEN       32
 #define MAC_80211_QOS_HTC_4ADDR_FRAME_LEN   36
 
-/* 信息元素长度定义 */
-#define MAC_IE_HDR_LEN              2   /* 信息元素头部 1字节EID + 1字节长度 */
+/* ???????????????? */
+#define MAC_IE_HDR_LEN              2   /* ???????????? 1????EID + 1???????? */
 #define MAC_TIME_STAMP_LEN          8
 #define MAC_BEACON_INTERVAL_LEN     2
 #define MAC_CAP_INFO_LEN            2
@@ -72,38 +55,38 @@ extern "C" {
 #define MAC_LISTEN_INT_LEN          2
 #define MAC_MIN_XRATE_LEN           1
 #define MAC_MIN_RATES_LEN           1
-#define MAC_MAX_SUPRATES            8   /* WLAN_EID_RATES最大支持8个速率 */
-#define MAC_DSPARMS_LEN             1   /* ds parameter set 长度 */
+#define MAC_MAX_SUPRATES            8   /* WLAN_EID_RATES????????8?????? */
+#define MAC_DSPARMS_LEN             1   /* ds parameter set ???? */
 #define MAC_MIN_TIM_LEN             4
 #define MAC_DEFAULT_TIM_LEN         4
 #define MAC_MIN_RSN_LEN             2
 #define MAC_MAX_RSN_LEN             254
-#define MAC_TIM_LEN_EXCEPT_PVB      3   /* DTIM Period、DTIM Count与BitMap Control三个字段的长度 */
-#define MAC_CONTRY_CODE_LEN         3   /* 国家码长度为3 */
+#define MAC_TIM_LEN_EXCEPT_PVB      3   /* DTIM Period??DTIM Count??BitMap Control?????????????? */
+#define MAC_CONTRY_CODE_LEN         3   /* ????????????3 */
 #define MAC_MIN_COUNTRY_LEN         6
 #define MAC_MAX_COUNTRY_LEN         254
-#define MAC_PWR_CONSTRAINT_LEN      1   /* 功率限制ie长度为1 */
-#define MAC_QUIET_IE_LEN            6   /* quiet信息元素长度 */
+#define MAC_PWR_CONSTRAINT_LEN      1   /* ????????ie??????1 */
+#define MAC_QUIET_IE_LEN            6   /* quiet???????????? */
 #define MAC_TPCREP_IE_LEN           2
 #define MAC_ERP_IE_LEN              1
 #define MAC_OBSS_SCAN_IE_LEN        14
 #define MAC_MIN_XCAPS_LEN           1
-#define MAC_XCAPS_EX_LEN            8    /* 初始值为5，由于11ac Operating Mode Notification特性标志为bit62 长度修改为8 */
+#define MAC_XCAPS_EX_LEN            8    /* ????????5??????11ac Operating Mode Notification??????????bit62 ??????????8 */
 #define MAC_WMM_PARAM_LEN           24   /* WMM parameters ie */
 #define MAC_WMM_INFO_LEN            7    /* WMM info ie */
 #ifdef _PRE_WLAN_FEATURE_WMMAC
 #define MAC_WMMAC_INFO_LEN          61    /* WMMAC info ie */
-#define MAC_WMMAC_TSPEC_LEN         55    /* TSPEC元素长度*/
+#define MAC_WMMAC_TSPEC_LEN         55    /* TSPEC????????*/
 #endif
 #define MAC_QOS_INFO_LEN            1
 #define MAC_AC_PARAM_LEN            4
 #define MAC_BSS_LOAD_IE_LEN         5
 #define MAC_COUNTRY_REG_FIELD_LEN   3
-#define MAC_LIS_INTERVAL_IE_LEN     2   /* listen interval信息元素长度 */
+#define MAC_LIS_INTERVAL_IE_LEN     2   /* listen interval???????????? */
 #define MAC_AID_LEN                 2
 #define MAC_PWR_CAP_LEN             2
 #define MAC_AUTH_ALG_LEN            2
-#define MAC_AUTH_TRANS_SEQ_NUM_LEN  2   /* transaction seq num信息元素长度 */
+#define MAC_AUTH_TRANS_SEQ_NUM_LEN  2   /* transaction seq num???????????? */
 #define MAC_STATUS_CODE_LEN         2
 #define MAC_VHT_CAP_IE_LEN          12
 #define MAC_VHT_INFO_IE_LEN         5
@@ -133,26 +116,33 @@ extern "C" {
 #define MAC_OPMODE_NOTIFY_LEN       1              /* Operating Mode Notification element len */
 #endif
 
-#define MAC_P2P_ATTRIBUTE_HDR_LEN    3   /* P2P_ATTRIBUTE信息元素头部 1字节ATTRIBUTE + 2字节长度 */
-#define MAC_P2P_LISTEN_CHN_ATTR_LEN  5   /* LISTEN CHANNEL ATTRIBUTE长度 */
-#define MAC_P2P_MIN_IE_LEN           4   /* P2P IE的最小长度 */
+#define MAC_P2P_ATTRIBUTE_HDR_LEN    3   /* P2P_ATTRIBUTE???????????? 1????ATTRIBUTE + 2???????? */
+#define MAC_P2P_LISTEN_CHN_ATTR_LEN  5   /* LISTEN CHANNEL ATTRIBUTE???? */
+#define MAC_P2P_MIN_IE_LEN           4   /* P2P IE?????????? */
 
-/* Quiet 信息 */
+#define MAC_ADDBA_REQ_FRAME_BODY_LEN 9   /* addba req?? ???????? */
+#define MAC_ADDBA_RSP_FRAME_BODY_LEN 9   /* addba rsp?? ???????? */
+#define MAC_ADDBA_DEL_FRAME_BODY_LEN 6   /* addba del?? ???????? */
+
+#define MAC_ADDTS_RSP_FRAME_BODY_LEN 12   /* addts rsp?? ???????? */
+#define MAC_DELTS_FRAME_BODY_LEN 12   /* delts ?? ???????? */
+#define MAC_ACTION_CATEGORY_AND_CODE_LEN 2
+
+/* Quiet ???? */
 #define MAC_QUIET_PERIOD            0
 #define MAC_QUIET_COUNT             MAC_QUIET_PERIOD
 #define MAC_QUIET_DURATION          0x0000
 #define MAC_QUIET_OFFSET            0x0000
 
-/* RSN信息元素相关定义 */
+/* RSN???????????????? */
 #define MAC_RSN_IE_VERSION          1
 #define MAC_RSN_CAP_LEN             2
 #define MAC_PMKID_LEN               16
 
-/* WPA 信息元素相关定义 */
+/* WPA ???????????????? */
 #define MAC_WPA_IE_VERSION          1
-#define WLAN_AKM_SUITE_WAPI_CERT    0x000FAC12
 
-/* OUI相关定义 */
+/* OUI???????? */
 #define MAC_OUI_LEN                 3
 
 #define MAC_OUITYPE_WPA             1
@@ -171,20 +161,20 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_WMMAC
 #define MAC_OUISUBTYPE_WMMAC_TSPEC  2   /*WMMAC TSPEC OUI subtype*/
 #endif
-#define MAC_OUISUBTYPE_WMM_PARAM_OFFSET 6 /* wmm 字段中EDCA_INFO位置,表示是否携带EDCA参数 偏移6 */
-#define MAC_WMM_QOS_INFO_POS        8   /* wmm 字段中qos info位置，偏移8 */
+#define MAC_OUISUBTYPE_WMM_PARAM_OFFSET 6 /* wmm ??????EDCA_INFO????,????????????EDCA???? ????6 */
+#define MAC_WMM_QOS_INFO_POS        8   /* wmm ??????qos info??????????8 */
 #define MAC_OUI_WMM_VERSION         1
-#define MAC_HT_CAP_LEN              26  /* HT能力信息长度为26 */
-#define MAC_HT_CAPINFO_LEN          2   /* HT Capabilities Info域长度为2 */
-#define MAC_HT_AMPDU_PARAMS_LEN     1   /* A-MPDU parameters域长度为1 */
-#define MAC_HT_SUP_MCS_SET_LEN      16  /* Supported MCS Set域长度为16 */
-#define MAC_HT_EXT_CAP_LEN          2   /* Extended cap.域长度为2 */
-#define MAC_HT_TXBF_CAP_LEN         4   /* Transmit Beamforming Cap.域长度为4 */
-#define MAC_HT_ASEL_LEN             1   /* ASEL Cap.域长度为1 */
-#define MAC_HT_OPERN_LEN            22  /* HT Operation信息长度为22 */
-#define MAC_HT_BASIC_MCS_SET_LEN    16  /* HT info中的basic mcs set信息的长度 */
-#define MAC_HT_CTL_LEN              4   /* HT CONTROL字段的长度 */
-#define MAC_QOS_CTL_LEN             2   /* QOS CONTROL字段的长度 */
+#define MAC_HT_CAP_LEN              26  /* HT??????????????26 */
+#define MAC_HT_CAPINFO_LEN          2   /* HT Capabilities Info????????2 */
+#define MAC_HT_AMPDU_PARAMS_LEN     1   /* A-MPDU parameters????????1 */
+#define MAC_HT_SUP_MCS_SET_LEN      16  /* Supported MCS Set????????16 */
+#define MAC_HT_EXT_CAP_LEN          2   /* Extended cap.????????2 */
+#define MAC_HT_TXBF_CAP_LEN         4   /* Transmit Beamforming Cap.????????4 */
+#define MAC_HT_ASEL_LEN             1   /* ASEL Cap.????????1 */
+#define MAC_HT_OPERN_LEN            22  /* HT Operation??????????22 */
+#define MAC_HT_BASIC_MCS_SET_LEN    16  /* HT info????basic mcs set?????????? */
+#define MAC_HT_CTL_LEN              4   /* HT CONTROL?????????? */
+#define MAC_QOS_CTL_LEN             2   /* QOS CONTROL?????????? */
 
 #define MAC_QOS_CTRL_FIELD_OFFSET           24
 #define MAC_QOS_CTRL_FIELD_OFFSET_4ADDR     30
@@ -194,13 +184,13 @@ extern "C" {
 
 #define MAC_DEVICE_BEACON_OFFSET            (MAC_TIME_STAMP_LEN +\
                                             MAC_BEACON_INTERVAL_LEN + MAC_CAP_INFO_LEN)
-#define MAC_LISTEN_INTERVAL_MAX_LEN         10  /* 定义关联STA最大LISTEN INTERVAL的值 */
+#define MAC_LISTEN_INTERVAL_MAX_LEN         10  /* ????????STA????LISTEN INTERVAL???? */
 
 #define MAC_MAX_START_SPACING               7
 
 #define MAC_MAX_BSS_INFO_TRANS              5
 
-/* EDCA参数相关的宏 */
+/* EDCA???????????? */
 #define MAC_WMM_QOS_PARAM_AIFSN_MASK                       0x0F
 #define MAC_WMM_QOS_PARAM_ACI_BIT_OFFSET                   5
 #define MAC_WMM_QOS_PARAM_ACI_MASK                         0x03
@@ -211,32 +201,32 @@ extern "C" {
 #define MAC_WMM_QOS_PARAM_BIT_NUMS_OF_ONE_BYTE             8
 #define MAC_WMM_QOS_PARAM_TXOPLIMIT_SAVE_TO_TRANS_TIMES    5
 
-/* 关闭WMM后，所有帧进入此宏定义的队列 */
+/* ????WMM???????????????????????????? */
 #define MAC_WMM_SWITCH_TID                                 6
 
-/* TCP协议类型，chartiot tcp连接端口号 */
+/* TCP??????????chartiot tcp?????????? */
 #define MAC_TCP_PROTOCAL                                   6
 #define MAC_UDP_PROTOCAL                                   17
 #define MAC_CHARIOT_NETIF_PORT                             10115
 #define MAC_WFD_RTSP_PORT                                  7236
 
-/* Wavetest仪器识别 */
+/* Wavetest???????? */
 #define MAC_IS_WAVETEST_STA(pauc_bssid) (\
         (0x00 == pauc_bssid[0])\
         && ((0x01 == pauc_bssid[1]) || (0x02 == pauc_bssid[1]))\
         && (0x01 == pauc_bssid[2])\
                                  )
-/* ICMP协议报文 */
+/* ICMP???????? */
 #define MAC_ICMP_PROTOCAL                                  1
 
-/* huawei申请多个OUI;
+/* huawei????????OUI;
    http://standards-oui.ieee.org/oui.txt */
 #ifdef _PRE_WLAN_FEATURE_HILINK
 #define MAC_WLAN_OUI_HUAWEI                 0x00E0fC
 #define MAC_WLAN_OUI_TYPE_HUAWEI_HILINK     0x80
 #endif
 
-#define MAC_HUAWEI_VENDER_IE                               0xAC853D /* 打桩HW IE */
+#define MAC_HUAWEI_VENDER_IE                               0xAC853D /* ????HW IE */
 #define MAC_HISI_HISTREAM_IE                               0x11     /* histream IE */
 
 #define MAC_IPV6_UDP_SRC_PORT                               546
@@ -322,7 +312,7 @@ extern "C" {
 
 #define MAC_IS_GOLDEN_AP(puc_bssid) ((0x0 == puc_bssid[0]) && (0x13 == puc_bssid[1]) && (0xE9 == puc_bssid[2]))
 
-/* p2p相关*/
+/* p2p????*/
 /* GO negotiation*/
 #define P2P_PAF_GON_REQ		0
 #define P2P_PAF_GON_RSP		1
@@ -346,7 +336,7 @@ extern "C" {
 #define MAC_NO_CHANGE  (0)
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
@@ -357,7 +347,7 @@ typedef enum
 } mac_ap_type_enum;
 typedef oal_uint8 mac_ap_type_enum_uint8;
 
-/* HMAC模块接收流程处理MSDU状态 */
+/* HMAC????????????????MSDU???? */
 typedef enum
 {
     MAC_PROC_ERROR  = 0,
@@ -370,24 +360,24 @@ typedef enum
 typedef oal_uint8 mac_msdu_proc_status_enum_uint8;
 
 /*****************************************************************************
-  枚举名  : wlan_ieee80211_frame_type_enum_uint8
-  协议表格:
-  枚举说明: 802.11 MAC帧头类型
+  ??????  : wlan_ieee80211_frame_type_enum_uint8
+  ????????:
+  ????????: 802.11 MAC????????
 *****************************************************************************/
 typedef enum
 {
-    MAC_IEEE80211_BASE_FRAME = 0,           /* 基础802.11帧类型 */
-    MAC_IEEE80211_QOS_FRAME,                /* QoS帧类型 */
-    MAC_IEEE80211_QOS_HTC_FRAME,            /* QoS + HTC帧类型 */
-    MAC_IEEE80211_ADDR4_FRAME,              /* 四地址帧类型 */
-    MAC_IEEE80211_QOS_ADDR4_FRAME,          /* QoS四地址帧类型 */
-    MAC_IEEE80211_QOS_HTC_ADDR4_FRAME,      /* QoS + HTC四地址帧类型 */
+    MAC_IEEE80211_BASE_FRAME = 0,           /* ????802.11?????? */
+    MAC_IEEE80211_QOS_FRAME,                /* QoS?????? */
+    MAC_IEEE80211_QOS_HTC_FRAME,            /* QoS + HTC?????? */
+    MAC_IEEE80211_ADDR4_FRAME,              /* ???????????? */
+    MAC_IEEE80211_QOS_ADDR4_FRAME,          /* QoS???????????? */
+    MAC_IEEE80211_QOS_HTC_ADDR4_FRAME,      /* QoS + HTC???????????? */
 
     MAC_IEEE80211_FRAME_BUTT
 }mac_ieee80211_frame_type_enum;
 typedef oal_uint8 mac_ieee80211_frame_type_enum_uint8;
 
-/* Action Frames: Category字段枚举 */
+/* Action Frames: Category???????? */
 typedef enum
 {
     MAC_ACTION_CATEGORY_SPECMGMT                    = 0,
@@ -413,7 +403,7 @@ typedef enum
 }mac_action_category_enum;
 typedef oal_uint8 mac_category_enum_uint8;
 
-/* HT Category下的Action值的枚举 */
+/* HT Category????Action???????? */
 typedef enum{
     MAC_HT_ACTION_NOTIFY_CHANNEL_WIDTH        = 0,
     MAC_HT_ACTION_SMPS                        = 1,
@@ -427,17 +417,17 @@ typedef enum{
     MAC_HT_ACTION_BUTT
 }mac_ht_action_type_enum;
 typedef oal_uint8 mac_ht_action_type_enum_uint8;
-/*Timeout_Interval ie中的类型枚举*/
+/*Timeout_Interval ie????????????*/
 typedef enum{
-    MAC_TIE_REASSOCIATION_DEADLINE_Interval  = 1,   /*毫秒级*/
-    MAC_TIE_KEY_LIFETIME_Interval            = 2,   /*秒级*/
-    MAC_TIE_ASSOCIATION_COMEBACK_TIME        = 3,   /*毫秒级*/
+    MAC_TIE_REASSOCIATION_DEADLINE_Interval  = 1,   /*??????*/
+    MAC_TIE_KEY_LIFETIME_Interval            = 2,   /*????*/
+    MAC_TIE_ASSOCIATION_COMEBACK_TIME        = 3,   /*??????*/
 
     MAC_TIE_BUTT
 }mac_Timeout_Interval_type_enum;
 typedef oal_uint8 mac_Timeout_Interval_type_enum_uint8;
 
-/*SA QUERY Category下的Action值的枚举*/
+/*SA QUERY Category????Action????????*/
 typedef enum{
     MAC_SA_QUERY_ACTION_REQUEST          = 0,
     MAC_SA_QUERY_ACTION_RESPONSE         = 1
@@ -452,7 +442,7 @@ typedef enum{
 }mac_ft_action_type_enum;
 typedef oal_uint8 mac_ft_action_type_enum_uint8;
 
-/* VHT Category下的Action值的枚举 */
+/* VHT Category????Action???????? */
 typedef enum{
     MAC_VHT_ACTION_COMPRESSED_BEAMFORMING   = 0,
     MAC_VHT_ACTION_GROUPID_MANAGEMENT       = 1,
@@ -462,7 +452,7 @@ typedef enum{
 }mac_vht_action_type_enum;
 typedef oal_uint8 mac_vht_action_type_enum_uint8;
 
-/* 校准模式的枚举 */
+/* ?????????????? */
 typedef enum
 {
     MAC_NOT_SURPPORT_CLB = 0,
@@ -472,15 +462,16 @@ typedef enum
 }mac_txbf_clb_enum;
 typedef oal_uint8 mac_txbf_clb_enum_uint8;
 
-/* Spectrum Management Category下的Action枚举值 */
+/* Spectrum Management Category????Action?????? */
 typedef enum
 {
+    MAC_SPEC_TPC_REQUEST        = 2,
     MAC_SPEC_CH_SWITCH_ANNOUNCE = 4   /*  Channel Switch Announcement */
 }mac_specmgmt_action_type_enum;
 typedef oal_uint8 mac_specmgmt_action_type_enum_uint8;
 
 
-/* BlockAck Category下的Action值的枚举 */
+/* BlockAck Category????Action???????? */
 typedef enum{
     MAC_BA_ACTION_ADDBA_REQ       = 0,
     MAC_BA_ACTION_ADDBA_RSP       = 1,
@@ -490,7 +481,7 @@ typedef enum{
 }mac_ba_action_type_enum;
 typedef oal_uint8 mac_ba_action_type_enum_uint8;
 
-/* Public Category下的Action枚举值 */
+/* Public Category????Action?????? */
 typedef enum
 {
     MAC_PUB_COEXT_MGMT            = 0,  /* 20/40 BSS Coexistence Management */
@@ -502,7 +493,7 @@ typedef enum
 typedef oal_uint8 mac_public_action_type_enum_uint8;
 
 #ifdef _PRE_WLAN_FEATURE_WMMAC
-/*WMMAC中TSPEC相关ACTION的枚举值*/
+/*WMMAC??TSPEC????ACTION????????*/
 typedef enum
 {
     MAC_WMMAC_ACTION_ADDTS_REQ       = 0,
@@ -512,7 +503,7 @@ typedef enum
     MAC_WMMAC_ACTION_BUTT
 }mac_wmmac_action_type_enum;
 
-/*ADDTS REQ中TSPEC Direction元素的枚举值*/
+/*ADDTS REQ??TSPEC Direction????????????*/
 typedef enum
 {
     MAC_WMMAC_DIRECTION_UPLINK         = 0,
@@ -523,20 +514,20 @@ typedef enum
     MAC_WMMAC_DIRECTION_BUTT
 }mac_wmmac_direction_enum;
 typedef oal_uint8 mac_wmmac_direction_enum_uint8;
-/* TS建立的状态枚举 */
+/* TS?????????????? */
 typedef enum
 {
-    MAC_TS_NONE        = 0,    /* TS不需要建立 */
-    MAC_TS_INIT,               /* TS需要建立，未建立 */
-    MAC_TS_INPROGRESS,         /* TS建立过程中 */
-    MAC_TS_SUCCESS,            /* TS建立成功*/
+    MAC_TS_NONE        = 0,    /* TS?????????? */
+    MAC_TS_INIT,               /* TS???????????????? */
+    MAC_TS_INPROGRESS,         /* TS?????????? */
+    MAC_TS_SUCCESS,            /* TS????????*/
 
     MAC_TS_BUTT
 }mac_ts_conn_status_enum;
 typedef oal_uint8 mac_ts_conn_status_enum_uint8;
 #endif
 
-/* 802.11n下的私有请求 */
+/* 802.11n???????????? */
 typedef enum
 {
     MAC_A_MPDU_START = 0,
@@ -546,7 +537,7 @@ typedef enum
 }mac_priv_req_11n_enum;
 typedef oal_uint8 mac_priv_req_11n_enum_uint8;
 
-/* Block ack的确认类型 */
+/* Block ack?????????? */
 typedef enum
 {
     MAC_BACK_BASIC         = 0,
@@ -557,7 +548,7 @@ typedef enum
 }mac_back_variant_enum;
 typedef oal_uint8 mac_back_variant_enum_uint8;
 
-/* ACTION帧中，各个域的偏移量 */
+/* ACTION???????????????????? */
 typedef enum
 {
     MAC_ACTION_OFFSET_CATEGORY     = 0,
@@ -664,7 +655,7 @@ typedef enum
 typedef oal_uint16 mac_status_code_enum_uint16;
 
 
-/* BA会话管理确认策略 */
+/* BA???????????????? */
 typedef enum
 {
     MAC_BA_POLICY_DELAYED = 0,
@@ -674,19 +665,19 @@ typedef enum
 }mac_ba_policy_enum;
 typedef oal_uint8 mac_ba_policy_enum_uint8;
 
-/* 发起DELBA帧的端点的枚举 */
+/* ????DELBA?????????????? */
 typedef enum
 {
-    MAC_RECIPIENT_DELBA     = 0,   /* 数据的接收端 */
-    MAC_ORIGINATOR_DELBA,          /* 数据的发起端 */
+    MAC_RECIPIENT_DELBA     = 0,   /* ???????????? */
+    MAC_ORIGINATOR_DELBA,          /* ???????????? */
 
     MAC_BUTT_DELBA
 }dmac_delba_initiator_enum;
 typedef oal_uint8 mac_delba_initiator_enum_uint8;
 
 /*****************************************************************************
-  信息元素(Infomation Element)的Element ID
-  协议521页，Table 8-54—Element IDs
+  ????????(Infomation Element)??Element ID
+  ????521????Table 8-54??Element IDs
 *****************************************************************************/
 typedef enum
 {
@@ -777,8 +768,8 @@ typedef oal_uint8 mac_p2p_attribute_enum_uint8;
 
 typedef enum
 {
-    MAC_SMPS_STATIC_MODE     = 0,   /*   静态SMPS   */
-    MAC_SMPS_DYNAMIC_MODE    = 1,   /*   动态SMPS   */
+    MAC_SMPS_STATIC_MODE     = 0,   /*   ????SMPS   */
+    MAC_SMPS_DYNAMIC_MODE    = 1,   /*   ????SMPS   */
     MAC_SMPS_MIMO_MODE       = 3,   /* disable SMPS */
 
     MAC_SMPS_MODE_BUTT
@@ -789,15 +780,15 @@ typedef oal_uint8 mac_mimo_power_save_mode_enum_uint8;
 
 typedef enum
 {
-    MAC_SCN = 0,   /* 不存在次信道 */
-    MAC_SCA = 1,   /* 次信道在主信道之上(Secondary Channel Above) */
-    MAC_SCB = 3,   /* 次信道在主信道之下(Secondary Channel Below) */
+    MAC_SCN = 0,   /* ???????????? */
+    MAC_SCA = 1,   /* ??????????????????(Secondary Channel Above) */
+    MAC_SCB = 3,   /* ??????????????????(Secondary Channel Below) */
 
     MAC_SEC_CH_BUTT,
 }mac_sec_ch_off_enum;
 typedef oal_uint8 mac_sec_ch_off_enum_uint8;
 
-/* P2P相关*/
+/* P2P????*/
 typedef enum {
     P2P_STATUS             =  0,
     P2P_MINOR_REASON_CODE  =  1,
@@ -861,7 +852,7 @@ typedef enum{P2P_STAT_SUCCESS           = 0,
              P2P_STAT_USER_REJECTED     = 11
 } P2P_STATUS_CODE_T;
 #ifdef _PRE_WLAN_FEATURE_11K
-/* Radio Measurement下的Action枚举值 */
+/* Radio Measurement????Action?????? */
 typedef enum
 {
     MAC_RM_ACTION_RADIO_MEASUREMENT_REQUEST     = 0,
@@ -911,7 +902,7 @@ typedef oal_uint8 rm_bcn_req_meas_mode_enum_uint8;
 #define MAC_WLAN_OUI_TYPE_MICROSOFT_WMM         2
 #define MAC_WLAN_OUI_TYPE_MICROSOFT_WPS         4
 
-/* eapol key 结构宏定义 */
+/* eapol key ?????????? */
 #define WPA_REPLAY_COUNTER_LEN      8
 #define WPA_NONCE_LEN               32
 #define WPA_KEY_RSC_LEN             8
@@ -919,43 +910,43 @@ typedef oal_uint8 rm_bcn_req_meas_mode_enum_uint8;
 #define WPA_KEY_INFO_KEY_TYPE       BIT(3) /* 1 = Pairwise, 0 = Group key */
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
-/* RSNA OUI 定义 */
+/* RSNA OUI ???? */
 extern oal_uint8    g_auc_rsn_oui[MAC_OUI_LEN];
 
-/* WPA OUI 定义 */
+/* WPA OUI ???? */
 extern oal_uint8    g_auc_wpa_oui[MAC_OUI_LEN];
 
-/* WMM OUI定义 */
+/* WMM OUI???? */
 extern oal_uint8    g_auc_wmm_oui[MAC_OUI_LEN];
 
-/* WPS OUI 定义 */
+/* WPS OUI ???? */
 extern oal_uint8    g_auc_wps_oui[MAC_OUI_LEN];
 
-/* P2P OUI 定义 */
+/* P2P OUI ???? */
 extern oal_uint8    g_auc_p2p_oui[MAC_OUI_LEN];
 
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV))
-/* 02 dev侧用#pragma pack(1)/#pragma pack()方式达到一字节对齐 */
+/* 02 dev????#pragma pack(1)/#pragma pack()?????????????????? */
 #pragma pack(1)
 #endif
 
-/* 此文件中结构体与协议一致，要求1字节对齐，统一加__OAL_DECLARE_PACKED */
+/* ??????????????????????????????1????????????????__OAL_DECLARE_PACKED */
 
 struct mac_ether_header
 {
@@ -975,7 +966,7 @@ struct mac_llc_snap
 }__OAL_DECLARE_PACKED;
 typedef struct mac_llc_snap mac_llc_snap_stru;
 
-/* eapol帧头 */
+/* eapol???? */
 struct mac_eapol_header
 {
     oal_uint8       uc_version;
@@ -985,7 +976,7 @@ struct mac_eapol_header
 typedef struct mac_eapol_header mac_eapol_header_stru;
 
 /* IEEE 802.11, 8.5.2 EAPOL-Key frames */
-/* EAPOL KEY 结构定义 */
+/* EAPOL KEY ???????? */
 struct mac_eapol_key {
 	oal_uint8 uc_type;
 	/* Note: key_info, key_length, and key_data_length are unaligned */
@@ -1124,7 +1115,7 @@ struct mac_tcp_header
 }__OAL_DECLARE_PACKED;
 typedef struct mac_tcp_header mac_tcp_header_stru;
 
-/* UDP头部结构 */
+/* UDP???????? */
 typedef struct
 {
     oal_uint16   us_src_port;
@@ -1133,14 +1124,14 @@ typedef struct
     oal_uint16   us_check_sum;
 }udp_hdr_stru;
 
-/* CCMP/TKIP 加密头部 */
-/* CCMP 加密IV 字段结构
+/* CCMP/TKIP ???????? */
+/* CCMP ????IV ????????
  * PN0 PN1 RSVD [KEY_ID] PN2 PN3 PN4 PN5
  *              |      |
  *          b0  b4  b5  b6~b7
  *          00000    1  key_id
 */
-/* TKIP 加密IV 字段结构
+/* TKIP ????IV ????????
  * TSC1 WEPSeed[1] TSC0 [KEY_ID] TSC2 TSC3 TSC4 TSC5
  *                      |      |
  *                  b0  b4  b5  b6~b7
@@ -1154,24 +1145,24 @@ typedef union {
     oal_uint8  uc_pn8[8];
 } mac_pn_union;
 
-/* frame control字段结构体 */
+/* frame control?????????? */
 struct mac_header_frame_control
 {
-    oal_uint16  bit_protocol_version    : 2,        /* 协议版本 */
-                bit_type                : 2,        /* 帧类型 */
-                bit_sub_type            : 4,        /* 子类型 */
-                bit_to_ds               : 1,        /* 发送DS */
-                bit_from_ds             : 1,        /* 来自DS */
-                bit_more_frag           : 1,        /* 分段标识 */
-                bit_retry               : 1,        /* 重传帧 */
-                bit_power_mgmt          : 1,        /* 节能管理 */
-                bit_more_data           : 1,        /* 更多数据标识 */
-                bit_protected_frame     : 1,        /* 加密标识 */
-                bit_order               : 1;        /* 次序位 */
+    oal_uint16  bit_protocol_version    : 2,        /* ???????? */
+                bit_type                : 2,        /* ?????? */
+                bit_sub_type            : 4,        /* ?????? */
+                bit_to_ds               : 1,        /* ????DS */
+                bit_from_ds             : 1,        /* ????DS */
+                bit_more_frag           : 1,        /* ???????? */
+                bit_retry               : 1,        /* ?????? */
+                bit_power_mgmt          : 1,        /* ???????? */
+                bit_more_data           : 1,        /* ???????????? */
+                bit_protected_frame     : 1,        /* ???????? */
+                bit_order               : 1;        /* ?????? */
 }__OAL_DECLARE_PACKED;
 typedef struct mac_header_frame_control mac_header_frame_control_stru;
 
-/* 基础802.11帧结构 */
+/* ????802.11?????? */
 struct mac_ieee80211_frame
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1186,11 +1177,11 @@ struct mac_ieee80211_frame
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_frame mac_ieee80211_frame_stru;
 
-/* ps poll帧结构 */
+/* ps poll?????? */
 struct mac_ieee80211_pspoll_frame
 {
     mac_header_frame_control_stru   st_frame_control;
-    oal_uint16                      bit_aid_value   : 14,                   /* ps poll 下的AID字段 */
+    oal_uint16                      bit_aid_value   : 14,                   /* ps poll ????AID???? */
                                     bit_aid_flag1   : 1,
                                     bit_aid_flag2   : 1;
     oal_uint8                       auc_bssid[WLAN_MAC_ADDR_LEN];
@@ -1198,7 +1189,7 @@ struct mac_ieee80211_pspoll_frame
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_pspoll_frame mac_ieee80211_pspoll_frame_stru;
 
-/* qos帧结构 */
+/* qos?????? */
 struct mac_ieee80211_qos_frame
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1224,7 +1215,7 @@ struct mac_ieee80211_qos_frame
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_qos_frame mac_ieee80211_qos_frame_stru;
 
-/* qos+HTC 帧结构 */
+/* qos+HTC ?????? */
 struct mac_ieee80211_qos_htc_frame
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1252,7 +1243,7 @@ struct mac_ieee80211_qos_htc_frame
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_qos_htc_frame mac_ieee80211_qos_htc_frame_stru;
 
-/* 四地址帧结构体 */
+/* ?????????????? */
 struct mac_ieee80211_frame_addr4
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1268,7 +1259,7 @@ struct mac_ieee80211_frame_addr4
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_frame_addr4 mac_ieee80211_frame_addr4_stru;
 
-/* qos四地址帧结构 */
+/* qos???????????? */
 struct mac_ieee80211_qos_frame_addr4
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1286,8 +1277,8 @@ struct mac_ieee80211_qos_frame_addr4
                                     bit_qc_amsdu        : 1;
     union
     {
-        oal_uint8                   qc_txop_limit;                          /* txop limit字段 */
-        oal_uint8                   qc_queue_size;                          /* queue size字段 */
+        oal_uint8                   qc_txop_limit;                          /* txop limit???? */
+        oal_uint8                   qc_queue_size;                          /* queue size???? */
         oal_uint8                   bit_qc_ps_buf_state_resv        : 1,    /* AP PS Buffer State*/
                                     bit_qc_ps_buf_state_inducated   : 1,
                                     bit_qc_hi_priority_buf_ac       : 2,
@@ -1296,7 +1287,7 @@ struct mac_ieee80211_qos_frame_addr4
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_qos_frame_addr4 mac_ieee80211_qos_frame_addr4_stru;
 
-/* qos htc 四地址帧结构 */
+/* qos htc ???????????? */
 struct mac_ieee80211_qos_htc_frame_addr4
 {
     mac_header_frame_control_stru   st_frame_control;
@@ -1314,8 +1305,8 @@ struct mac_ieee80211_qos_htc_frame_addr4
                                     bit_qc_amsdu        : 1;
     union
     {
-        oal_uint8                   qc_txop_limit;                          /* txop limit字段 */
-        oal_uint8                   qc_queue_size;                          /* queue size字段 */
+        oal_uint8                   qc_txop_limit;                          /* txop limit???? */
+        oal_uint8                   qc_queue_size;                          /* queue size???? */
         oal_uint8                   bit_qc_ps_buf_state_resv        : 1,    /* AP PS Buffer State*/
                                     bit_qc_ps_buf_state_inducated   : 1,
                                     bit_qc_hi_priority_buf_ac       : 2,
@@ -1326,25 +1317,25 @@ struct mac_ieee80211_qos_htc_frame_addr4
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_qos_htc_frame_addr4 mac_ieee80211_qos_htc_frame_addr4_stru;
 
-/* Ref. 802.11-2012.pdf, 8.4.1.4 Capability information field, 中文注释参考白皮书 */
+/* Ref. 802.11-2012.pdf, 8.4.1.4 Capability information field, ?????????????????? */
 struct mac_cap_info
 {
-    oal_uint16  bit_ess                 : 1,        /* 由BSS中的AP设置为1 */
-                bit_ibss                : 1,        /* 由一个IBSS中的站点设置为1，ap总是设置其为0 */
-                bit_cf_pollable         : 1,        /* 标识CF-POLL能力 */
-                bit_cf_poll_request     : 1,        /* 标识CF-POLL能力  */
-                bit_privacy             : 1,        /* 1=需要加密, 0=不需要加密 */
-                bit_short_preamble      : 1,        /* 802.11b短前导码 */
+    oal_uint16  bit_ess                 : 1,        /* ??BSS????AP??????1 */
+                bit_ibss                : 1,        /* ??????IBSS??????????????1??ap????????????0 */
+                bit_cf_pollable         : 1,        /* ????CF-POLL???? */
+                bit_cf_poll_request     : 1,        /* ????CF-POLL????  */
+                bit_privacy             : 1,        /* 1=????????, 0=?????????? */
+                bit_short_preamble      : 1,        /* 802.11b???????? */
                 bit_pbcc                : 1,        /* 802.11g */
                 bit_channel_agility     : 1,        /* 802.11b */
-                bit_spectrum_mgmt       : 1,        /* 频谱管理: 0=不支持, 1=支持 */
-                bit_qos                 : 1,        /* QOS: 0=非QOS站点, 1=QOS站点 */
-                bit_short_slot_time     : 1,        /* 短时隙: 0=不支持, 1=支持 */
-                bit_apsd                : 1,        /* 自动节能: 0=不支持, 1=支持 */
-                bit_radio_measurement   : 1,        /* Radio检测: 0=不支持, 1=支持 */
+                bit_spectrum_mgmt       : 1,        /* ????????: 0=??????, 1=???? */
+                bit_qos                 : 1,        /* QOS: 0=??QOS????, 1=QOS???? */
+                bit_short_slot_time     : 1,        /* ??????: 0=??????, 1=???? */
+                bit_apsd                : 1,        /* ????????: 0=??????, 1=???? */
+                bit_radio_measurement   : 1,        /* Radio????: 0=??????, 1=???? */
                 bit_dsss_ofdm           : 1,        /* 802.11g */
-                bit_delayed_block_ack   : 1,        /* 延迟块确认: 0=不支持, 1=支持 */
-                bit_immediate_block_ack : 1;        /* 立即块确认: 0=不支持, 1=支持 */
+                bit_delayed_block_ack   : 1,        /* ??????????: 0=??????, 1=???? */
+                bit_immediate_block_ack : 1;        /* ??????????: 0=??????, 1=???? */
 
 }__OAL_DECLARE_PACKED;
 typedef struct mac_cap_info mac_cap_info_stru;
@@ -1352,20 +1343,20 @@ typedef struct mac_cap_info mac_cap_info_stru;
 /* Ref. 802.11-2012.pdf, 8.4.2.58.2 HT Capabilities Info field */
 struct mac_frame_ht_cap
 {
-    oal_uint16          bit_ldpc_coding_cap         : 1,              /* LDPC 编码 capability    */
-                        bit_supported_channel_width : 1,              /* STA 支持的带宽          */
-                        bit_sm_power_save           : 2,              /* SM 省电模式             */
-                        bit_ht_green_field          : 1,              /* 绿野模式                */
-                        bit_short_gi_20mhz          : 1,              /* 20M下短保护间隔         */
-                        bit_short_gi_40mhz          : 1,              /* 40M下短保护间隔         */
+    oal_uint16          bit_ldpc_coding_cap         : 1,              /* LDPC ???? capability    */
+                        bit_supported_channel_width : 1,              /* STA ??????????          */
+                        bit_sm_power_save           : 2,              /* SM ????????             */
+                        bit_ht_green_field          : 1,              /* ????????                */
+                        bit_short_gi_20mhz          : 1,              /* 20M????????????         */
+                        bit_short_gi_40mhz          : 1,              /* 40M????????????         */
                         bit_tx_stbc                 : 1,              /* Indicates support for the transmission of PPDUs using STBC */
-                        bit_rx_stbc                 : 2,              /* 支持 Rx STBC            */
+                        bit_rx_stbc                 : 2,              /* ???? Rx STBC            */
                         bit_ht_delayed_block_ack    : 1,              /* Indicates support for HT-delayed Block Ack opera-tion. */
                         bit_max_amsdu_length        : 1,              /* Indicates maximum A-MSDU length. */
-                        bit_dsss_cck_mode_40mhz     : 1,              /* 40M下 DSSS/CCK 模式     */
+                        bit_dsss_cck_mode_40mhz     : 1,              /* 40M?? DSSS/CCK ????     */
                         bit_resv                    : 1,
                         bit_forty_mhz_intolerant    : 1,              /* Indicates whether APs receiving this information or reports of this informa-tion are required to prohibit 40 MHz transmissions */
-                        bit_lsig_txop_protection    : 1;              /* 支持 L-SIG TXOP 保护    */
+                        bit_lsig_txop_protection    : 1;              /* ???? L-SIG TXOP ????    */
 }__OAL_DECLARE_PACKED;
 typedef struct mac_frame_ht_cap mac_frame_ht_cap_stru;
 
@@ -1396,7 +1387,7 @@ typedef struct mac_vht_cap_info mac_vht_cap_info_stru;
 
 struct mac_11ntxbf_info
 {
-    oal_uint8       bit_11ntxbf                 :1,          /* 11n txbf  能力 */
+    oal_uint8       bit_11ntxbf                 :1,          /* 11n txbf  ???? */
                     bit_reserve                 :7;
     oal_uint8                        auc_reserve[3];
 };
@@ -1413,7 +1404,7 @@ struct mac_11ntxbf_vendor_ie
 };
 typedef struct mac_11ntxbf_vendor_ie mac_11ntxbf_vendor_ie_stru;
 
-/* 厂家自定义IE 数据结构，摘自linux 内核 */
+/* ??????????IE ??????????????linux ???? */
 struct mac_ieee80211_vendor_ie {
     oal_uint8 uc_element_id;
     oal_uint8 uc_len;
@@ -1422,7 +1413,7 @@ struct mac_ieee80211_vendor_ie {
 } __OAL_DECLARE_PACKED;
 typedef struct mac_ieee80211_vendor_ie mac_ieee80211_vendor_ie_stru;
 
-/* 建立BA会话时，BA参数域结构定义 */
+/* ????BA????????BA?????????????? */
 struct mac_ba_parameterset
 {
 #if (_PRE_BIG_CPU_ENDIAN == _PRE_CPU_ENDIAN)            /* BIG_ENDIAN */
@@ -1439,7 +1430,7 @@ struct mac_ba_parameterset
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ba_parameterset mac_ba_parameterset_stru;
 
-/* BA会话过程中的序列号参数域定义 */
+/* BA???????????????????????????? */
 struct mac_ba_seqctrl
 {
 #if (_PRE_BIG_CPU_ENDIAN == _PRE_CPU_ENDIAN)            /* BIG_ENDIAN */
@@ -1452,7 +1443,7 @@ struct mac_ba_seqctrl
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ba_seqctrl mac_ba_seqctrl_stru;
 
-/* Quiet信息元素结构体 */
+/* Quiet?????????????? */
 struct mac_quiet_ie
 {
     oal_uint8     quiet_count;
@@ -1463,7 +1454,7 @@ struct mac_quiet_ie
 typedef struct mac_quiet_ie mac_quiet_ie_stru;
 
 
-/* erp 信息元素结构体 */
+/* erp ?????????????? */
 struct mac_erp_params
 {
     oal_uint8   bit_non_erp       : 1,
@@ -1473,7 +1464,7 @@ struct mac_erp_params
 }__OAL_DECLARE_PACKED;
 typedef struct mac_erp_params mac_erp_params_stru;
 
-/* rsn信息元素 rsn能力字段结构体 */
+/* rsn???????? rsn?????????????? */
 struct mac_rsn_cap
 {
     oal_uint16  bit_pre_auth            : 1,
@@ -1493,7 +1484,7 @@ struct mac_rsn_cap
 typedef struct mac_rsn_cap mac_rsn_cap_stru;
 
 
-/* obss扫描ie obss扫描参数结构体 */
+/* obss????ie obss?????????????? */
 struct mac_obss_scan_params
 {
     oal_uint16 us_passive_dwell;
@@ -1506,7 +1497,7 @@ struct mac_obss_scan_params
 }__OAL_DECLARE_PACKED;
 typedef struct mac_obss_scan_params mac_obss_scan_params_stru;
 
-/* 扩展能力信息元素结构体定义 */
+/* ?????????????????????????? */
 struct mac_ext_cap_ie
 {
     oal_uint8   bit_2040_coexistence_mgmt: 1,
@@ -1532,12 +1523,12 @@ struct mac_ext_cap_ie
     oal_uint8   bit_resv10               : 8;
 
     oal_uint8   bit_resv11                        : 6,
-                bit_operating_mode_notification   : 1, /* 11ac Operating Mode Notification特性标志 */
+                bit_operating_mode_notification   : 1, /* 11ac Operating Mode Notification???????? */
                 bit_resv12                        : 1;
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ext_cap_ie mac_ext_cap_ie_stru;
 
-/* qos info字段结构体定义 */
+/* qos info?????????????? */
 struct mac_qos_info
 {
     oal_uint8   bit_params_count: 4,
@@ -1546,7 +1537,7 @@ struct mac_qos_info
 }__OAL_DECLARE_PACKED;
 typedef struct mac_qos_info mac_qos_info_stru;
 
-/* wmm信息元素 ac参数结构体 */
+/* wmm???????? ac?????????? */
 typedef struct
 {
     oal_uint8   bit_aifsn : 4,
@@ -1558,27 +1549,27 @@ typedef struct
     oal_uint16  us_txop;
 }mac_wmm_ac_params_stru;
 
-/* BSS load信息元素结构体 */
-/*lint -e958*//* 屏蔽字节对齐错误 */
+/* BSS load?????????????? */
+/*lint -e958*//* ???????????????? */
 struct mac_bss_load
 {
-    oal_uint16 us_sta_count;            /* 关联的sta个数 */
-    oal_uint8  uc_chan_utilization;     /* 信道利用率 */
+    oal_uint16 us_sta_count;            /* ??????sta???? */
+    oal_uint8  uc_chan_utilization;     /* ?????????? */
     oal_uint16 us_aac;
 }__OAL_DECLARE_PACKED;
 typedef struct mac_bss_load mac_bss_load_stru;
 /*lint +e958*/
 
-/* country信息元素 管制域字段 */
+/* country???????? ?????????? */
 struct mac_country_reg_field
 {
-    oal_uint8 uc_first_channel;         /* 第一个信道号 */
-    oal_uint8 uc_channel_num;           /* 信道个数 */
-    oal_uint8 uc_max_tx_pwr;            /* 最大传输功率，dBm */
+    oal_uint8 uc_first_channel;         /* ???????????? */
+    oal_uint8 uc_channel_num;           /* ???????? */
+    oal_uint8 uc_max_tx_pwr;            /* ??????????????dBm */
 }__OAL_DECLARE_PACKED;
 typedef struct mac_country_reg_field mac_country_reg_field_stru;
 
-/* ht capabilities信息元素支持的ampdu parameters字段结构体定义 */
+/* ht capabilities??????????????ampdu parameters?????????????? */
 struct mac_ampdu_params
 {
     oal_uint8  bit_max_ampdu_len_exponent  : 2,
@@ -1588,7 +1579,7 @@ struct mac_ampdu_params
 typedef struct mac_ampdu_params mac_ampdu_params_stru;
 
 
-/* ht cap信息元素 支持的mcs集字段 结构体定义 */
+/* ht cap???????? ??????mcs?????? ?????????? */
 struct mac_sup_mcs_set
 {
     oal_uint8   auc_rx_mcs[10];
@@ -1604,7 +1595,7 @@ struct mac_sup_mcs_set
 typedef struct mac_sup_mcs_set mac_sup_mcs_set_stru;
 
 
-/* vht信息元素，支持的mcs集字段 */
+/* vht????????????????mcs?????? */
 typedef struct
 {
     oal_uint32  bit_rx_mcs_map      : 16,
@@ -1615,7 +1606,7 @@ typedef struct
                 bit_resv2           : 3;
 }mac_vht_sup_mcs_set_stru;
 
-/* ht capabilities信息元素支持的extended cap.字段结构体定义 */
+/* ht capabilities??????????????extended cap.?????????????? */
 struct mac_ext_cap
 {
     oal_uint16  bit_pco           : 1,                   /* */
@@ -1629,7 +1620,7 @@ struct mac_ext_cap
 typedef struct mac_ext_cap mac_ext_cap_stru;
 
 
-/* ht cap信息元素的Transmit Beamforming Capabilities字段结构体定义 */
+/* ht cap??????????Transmit Beamforming Capabilities?????????????? */
 typedef struct
 {
     oal_uint32  bit_implicit_txbf_rx                : 1,
@@ -1654,7 +1645,7 @@ typedef struct
                 bit_resv                            : 3;
 }mac_txbf_cap_stru;
 
-/* ht cap信息元素的Asel(antenna selection) Capabilities字段结构体定义 */
+/* ht cap??????????Asel(antenna selection) Capabilities?????????????? */
 struct mac_asel_cap
 {
     oal_uint8  bit_asel                         : 1,
@@ -1669,7 +1660,7 @@ struct mac_asel_cap
 typedef struct mac_asel_cap mac_asel_cap_stru;
 
 
-/* ht opern元素, ref 802.11-2012 8.4.2.59 */
+/* ht opern????, ref 802.11-2012 8.4.2.59 */
 struct mac_ht_opern
 {
     oal_uint8   uc_primary_channel;
@@ -1697,20 +1688,20 @@ struct mac_ht_opern
 }__OAL_DECLARE_PACKED;
 typedef struct mac_ht_opern mac_ht_opern_stru;
 
-/* vht opern结构体 */
-/*lint -e958*//* 屏蔽字节对齐错误 */
+/* vht opern?????? */
+/*lint -e958*//* ???????????????? */
 struct mac_opmode_notify
 {
-    oal_uint8   bit_channel_width   : 2,     /* 当前最大允许带宽能力 */
-                bit_resv            : 2,     /* 保留 */
-                bit_rx_nss          : 3,     /* 当前最大允许空间流能力 */
-                bit_rx_nss_type     : 1;     /* 是否为TXBF下的rx nss能力，1-是，0不是 */
+    oal_uint8   bit_channel_width   : 2,     /* ???????????????????? */
+                bit_resv            : 2,     /* ???? */
+                bit_rx_nss          : 3,     /* ?????????????????????? */
+                bit_rx_nss_type     : 1;     /* ??????TXBF????rx nss??????1-????0???? */
 }__OAL_DECLARE_PACKED;
 typedef struct mac_opmode_notify mac_opmode_notify_stru;
 /*lint +e958*/
 
-/* vht opern结构体 */
-/*lint -e958*//* 屏蔽字节对齐错误 */
+/* vht opern?????? */
+/*lint -e958*//* ???????????????? */
 struct mac_vht_opern
 {
     oal_uint8   uc_channel_width;
@@ -1722,8 +1713,8 @@ typedef struct mac_vht_opern mac_vht_opern_stru;
 /*lint +e958*/
 
 #ifdef _PRE_WLAN_FEATURE_11K
-/*lint -e958*//* 屏蔽字节对齐错误 */
-/* RRM ENABLED CAP信息元素结构体 */
+/*lint -e958*//* ???????????????? */
+/* RRM ENABLED CAP?????????????? */
 struct mac_rrm_enabled_cap_ie
 {
     oal_uint8   bit_link_cap            : 1,  /* bit0: Link Measurement capability enabled */
@@ -1825,7 +1816,7 @@ typedef struct mac_meas_rpt_ie mac_meas_rpt_ie_stru;
 /* Beacon report request */
 struct mac_bcn_req {
     oal_uint8                           uc_optclass;
-    oal_uint8                           uc_channum;         /*  请求测量的信道号 */
+    oal_uint8                           uc_channum;         /*  ???????????????? */
     oal_uint16                          us_random_ivl;
     oal_uint16                          us_duration;
     rm_bcn_req_meas_mode_enum_uint8     en_mode;
@@ -1880,7 +1871,7 @@ typedef struct mac_pwr_constraint_frm mac_pwr_constraint_frm_stru;
 #endif
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV))
-/* 02 dev侧用#pragma pack(1)/#pragma pack()方式达到一字节对齐 */
+/* 02 dev????#pragma pack(1)/#pragma pack()?????????????????? */
 #pragma pack()
 #endif
 
@@ -1941,9 +1932,9 @@ typedef struct
 typedef struct
 {
     oal_dlist_head_stru         st_dlist_head;
-    mac_meas_rpt_bcn_item_stru *pst_meas_rpt_bcn_item;      /* 包含bcn rpt的meas rpt */
+    mac_meas_rpt_bcn_item_stru *pst_meas_rpt_bcn_item;      /* ????bcn rpt??meas rpt */
     oal_uint8                  *puc_rpt_detail_data;
-    oal_uint32                  ul_rpt_detail_act_len;      /* rpt detail data实际长度 */
+    oal_uint32                  ul_rpt_detail_act_len;      /* rpt detail data???????? */
 }mac_meas_rpt_bcn_stru;
 
 typedef struct
@@ -1957,11 +1948,11 @@ typedef struct
 }mac_vap_rrm_trans_req_info_stru;
 #endif
 
-/* ACTION帧的参数格式，注:不同的action帧下对应的参数不同 */
+/* ACTION????????????????:??????action?????????????????? */
 typedef struct
 {
-    oal_uint8       uc_category;    /* ACTION的类别 */
-    oal_uint8       uc_action;      /* 不同ACTION类别下的分类 */
+    oal_uint8       uc_category;    /* ACTION?????? */
+    oal_uint8       uc_action;      /* ????ACTION???????????? */
     oal_uint8       uc_resv[2];
     oal_uint32      ul_arg1;
     oal_uint32      ul_arg2;
@@ -2012,11 +2003,11 @@ struct mac_wmm_tspec
 typedef struct mac_wmm_tspec mac_wmm_tspec_stru;
 
 #if 0
-/* QOS ACTION帧的参数格式*/
+/* QOS ACTION????????????*/
 typedef struct
 {
-    oal_uint8       uc_category_code;    /* ACTION的类别 */
-    oal_uint8       uc_action_code;      /* 不同ACTION类别下的分类 */
+    oal_uint8       uc_category_code;    /* ACTION?????? */
+    oal_uint8       uc_action_code;      /* ????ACTION???????????? */
     oal_uint8       uc_dialog_token;
     oal_uint8       uc_status_code;
 
@@ -2025,29 +2016,29 @@ typedef struct
 #endif
 
 
-/* 私有管理帧通用的设置参数信息的结构体 */
+/* ???????????????????????????????????? */
 typedef struct
 {
     oal_uint8       uc_type;
-    oal_uint8       uc_arg1;        /* 对应的tid序号 */
-    oal_uint8       uc_arg2;        /* 接收端可接收的最大的mpdu的个数(针对AMPDU_START命令) */
-    oal_uint8       uc_arg3;        /* 确认策略 */
-    oal_uint16      us_user_idx;    /* 对应的用户 */
+    oal_uint8       uc_arg1;        /* ??????tid???? */
+    oal_uint8       uc_arg2;        /* ????????????????????mpdu??????(????AMPDU_START????) */
+    oal_uint8       uc_arg3;        /* ???????? */
+    oal_uint16      us_user_idx;    /* ?????????? */
     oal_uint8       auc_resv[2];
 }mac_priv_req_args_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_P2P
 extern oal_uint8 *mac_find_p2p_attribute(oal_uint8 uc_eid, oal_uint8 *puc_ies, oal_int32 l_len);
@@ -2142,44 +2133,13 @@ extern oal_uint32  mac_rx_report_80211_frame(oal_uint8 *pst_mac_vap,
                                              oal_netbuf_stru *pst_netbuf,
                                              oam_ota_type_enum_uint8 en_ota_type);
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_set_frame_control
- 功能描述  : This function sets the 'frame control' bits in the MAC header of the
-             input frame to the given 16-bit value.
- 输入参数  : puc_header－80211头部指针
-             us_fc －value
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_hdr_set_frame_control(oal_uint8 *puc_header, oal_uint16 us_fc)
 {
     *(oal_uint16 *)puc_header = us_fc;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_set_duration
- 功能描述  : 设置MAC头duration字段
- 输入参数  : puc_header : 指向mac帧头
-             us_duration: 要设置的值
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月7日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_hdr_set_duration(oal_uint8 *puc_header, oal_uint16 us_duration)
 {
     oal_uint16 *pus_dur = (oal_uint16 *)(puc_header + WLAN_HDR_DUR_OFFSET);
@@ -2187,153 +2147,44 @@ OAL_STATIC OAL_INLINE oal_void mac_hdr_set_duration(oal_uint8 *puc_header, oal_u
     *pus_dur = us_duration;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_set_fragment_number
- 功能描述  : 设置MAC头分片序号字段
- 输入参数  : puc_header : 指向mac帧头
-             uc_frag_num: 分片序号
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月7日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_hdr_set_fragment_number(oal_uint8 *puc_header, oal_uint8 uc_frag_num)
 {
     puc_header[WLAN_HDR_FRAG_OFFSET] &= 0xF0;
     puc_header[WLAN_HDR_FRAG_OFFSET] |= (uc_frag_num & 0x0F);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_set_from_ds
- 功能描述  : This function sets the 'from ds' bit in the MAC header of the input frame
-             to the given value stored in the LSB bit.
-             The bit position of the 'from ds' in the 'frame control field' of the MAC
-             header is represented by the bit pattern 0x00000010.
- 输入参数  : puc_header－80211头部指针
-             uc_from_ds －value
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_hdr_set_from_ds(oal_uint8* puc_header, oal_uint8 uc_from_ds)
 {
     ((mac_header_frame_control_stru *)(puc_header))->bit_from_ds = uc_from_ds;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_get_from_ds
- 功能描述  : This function extracts the 'from ds' bit from the MAC header of the input frame.
-             Returns the value in the LSB of the returned value.
- 输入参数  : header－80211头部指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8 mac_hdr_get_from_ds(oal_uint8* puc_header)
 {
     return (oal_uint8)((mac_header_frame_control_stru *)(puc_header))->bit_from_ds;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_set_to_ds
- 功能描述  : This function sets the 'to ds' bit in the MAC header of the input frame
-             to the given value stored in the LSB bit.
-             The bit position of the 'to ds' in the 'frame control field' of the MAC
-             header is represented by the bit pattern 0x00000001
- 输入参数  : puc_header－80211头部指针
-             uc_to_ds －value
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_hdr_set_to_ds(oal_uint8* puc_header, oal_uint8 uc_to_ds)
 {
     ((mac_header_frame_control_stru *)(puc_header))->bit_to_ds = uc_to_ds;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_hdr_get_to_ds
- 功能描述  : This function extracts the 'to ds' bit from the MAC header of the input frame.
-             Returns the value in the LSB of the returned value.
- 输入参数  : puc_header－80211头部指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8 mac_hdr_get_to_ds(oal_uint8* puc_header)
 {
     return (oal_uint8)((mac_header_frame_control_stru *)(puc_header))->bit_to_ds;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_tid_value_4addr
- 功能描述  : 四地址获取帧头中的tid
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_tid_value_4addr(oal_uint8 *puc_header)
 {
     return (puc_header[MAC_QOS_CTRL_FIELD_OFFSET_4ADDR] & 0x07); /* B0 - B2 */
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_tid_value
- 功能描述  : 四地址获取帧头中的tid
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_tid_value(oal_uint8 *puc_header, oal_bool_enum_uint8 en_is_4addr)
 {
     if (en_is_4addr)
@@ -2346,21 +2197,7 @@ OAL_STATIC OAL_INLINE oal_uint8  mac_get_tid_value(oal_uint8 *puc_header, oal_bo
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_seq_num
- 功能描述  : 获取接受侦的seqence number
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16  mac_get_seq_num(oal_uint8 *puc_header)
 {
     oal_uint16 us_seq_num = 0;
@@ -2372,22 +2209,7 @@ OAL_STATIC OAL_INLINE oal_uint16  mac_get_seq_num(oal_uint8 *puc_header)
     return us_seq_num;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_set_seq_num
- 功能描述  : 设置帧的序列号
- 输入参数  : oal_uint8 *puc_header
-             oal_uint16 us_seq_num
- 输出参数  : 无
- 返 回 值  : OAL_STATIC OAL_INLINE oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月3日,星期二
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_set_seq_num(oal_uint8 *puc_header, oal_uint16 us_seq_num)
 {
     puc_header[23]      = (oal_uint8)us_seq_num >> 4;
@@ -2395,61 +2217,19 @@ OAL_STATIC OAL_INLINE oal_void  mac_set_seq_num(oal_uint8 *puc_header, oal_uint1
     puc_header[22]      |= (oal_uint8)(us_seq_num << 4);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_bar_start_seq_num
- 功能描述  : 获取BAR帧中的start seq num值
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月2日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16 mac_get_bar_start_seq_num(oal_uint8 *puc_payload)
 {
     return ((puc_payload[2] & 0xF0) >> 4) | (puc_payload[3] << 4);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_ack_policy_4addr
- 功能描述  : 4地址获取qos帧确认策略
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_ack_policy_4addr(oal_uint8 *puc_header)
 {
     return ((puc_header[MAC_QOS_CTRL_FIELD_OFFSET_4ADDR] & 0x60) >> 5); /* B5 - B6 */
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_ack_policy
- 功能描述  : 4地址获取qos帧确认策略
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_ack_policy(oal_uint8 *puc_header, oal_bool_enum_uint8 en_is_4addr)
 {
     if (en_is_4addr)
@@ -2462,103 +2242,56 @@ OAL_STATIC OAL_INLINE oal_uint8  mac_get_ack_policy(oal_uint8 *puc_header, oal_b
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_null_data_encap
- 功能描述  : 封装空桢
- 输入参数  : header－80211头部指针
-             us_fc frame control类型
-             puc_da: 目的mac地址
-             puc_sa: 源mac地址
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年11月23日
-    作    者   : k53369
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_null_data_encap(oal_uint8* header, oal_uint16 us_fc, oal_uint8 *puc_da, oal_uint8 *puc_sa)
 {
     mac_hdr_set_frame_control(header, us_fc);
 
     if ((us_fc & WLAN_FRAME_FROM_AP) && !(us_fc & WLAN_FRAME_TO_AP))
     {
-            /* 设置ADDR1为DA */
+            /* ????ADDR1??DA */
         oal_set_mac_addr((header + 4), puc_da);
 
-        /* 设置ADDR2为BSSID */
+        /* ????ADDR2??BSSID */
         oal_set_mac_addr((header + 10), puc_sa);
 
-            /* 设置ADDR3为SA */
+            /* ????ADDR3??SA */
         oal_set_mac_addr((header + 16), puc_sa);
     }
     if (!(us_fc & WLAN_FRAME_FROM_AP) && (us_fc & WLAN_FRAME_TO_AP))
     {
-        /* 设置ADDR1为BSSID */
+        /* ????ADDR1??BSSID */
         oal_set_mac_addr((header + 4), puc_da);
-        /* 设置ADDR2为SA */
+        /* ????ADDR2??SA */
         oal_set_mac_addr((header + 10), puc_sa);
-        /* 设置ADDR3为DA */
+        /* ????ADDR3??DA */
         oal_set_mac_addr((header + 16), puc_da);
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_rx_get_da
- 功能描述  : 获取收到的帧的目的地址
-             参考协议 <802.11权威指南> 81页
- 输入参数  : 指向接收到帧的帧头指针
- 输出参数  : 指向目的地址的指针
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月10日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_rx_get_da(
                 mac_ieee80211_frame_stru   *pst_mac_header,
                 oal_uint8                 **puc_da)
 {
-    /* IBSS、from AP */
+    /* IBSS??from AP */
     if (0 == pst_mac_header->st_frame_control.bit_to_ds)
     {
         *puc_da = pst_mac_header->auc_address1;
     }
-    /* WDS、to AP */
+    /* WDS??to AP */
     else
     {
         *puc_da = pst_mac_header->auc_address3;
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_rx_get_sa
- 功能描述  : 获取收到的帧的源地址
-             参考协议 <802.11权威指南> 81页
- 输入参数  : 指向接收到帧的帧头指针
- 输出参数  : 指向源地址的指针
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月11日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_rx_get_sa(
                 mac_ieee80211_frame_stru   *pst_mac_header,
                 oal_uint8                 **puc_sa)
 {
-    /* IBSS、to AP */
+    /* IBSS??to AP */
     if (0 == pst_mac_header->st_frame_control.bit_from_ds)
     {
         *puc_sa = pst_mac_header->auc_address2;
@@ -2576,66 +2309,23 @@ OAL_STATIC OAL_INLINE oal_void  mac_rx_get_sa(
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_transmitter_addr
- 功能描述  : 获取收到的帧的发送端地址
-             参考协议 <802.11权威指南> 81页
- 输入参数  : 指向接收到帧的帧头指针
- 输出参数  : 指向 TA 的指针
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月20日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_get_transmit_addr(
                 mac_ieee80211_frame_stru   *pst_mac_header,
                 oal_uint8                 **puc_bssid)
 {
-    /* 对于IBSS, STA, AP, WDS 场景下，获取发送端地址 */
+    /* ????IBSS, STA, AP, WDS ?????????????????????? */
     *puc_bssid = pst_mac_header->auc_address2;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_submsdu_len
- 功能描述  : 获取netbuf中submsdu的长度
- 输入参数  : 指向submsdu的头指针
- 输出参数  : submsdu的长度
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月11日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_submsdu_len(oal_uint8 *puc_submsdu_hdr, oal_uint16 *pus_submsdu_len)
 {
     *pus_submsdu_len = *(puc_submsdu_hdr + MAC_SUBMSDU_LENGTH_OFFSET);
     *pus_submsdu_len = (oal_uint16)((*pus_submsdu_len << 8) + *(puc_submsdu_hdr + MAC_SUBMSDU_LENGTH_OFFSET + 1));
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_submsdu_pad_len
- 功能描述  : 获取submsdu需要填充的字节数
- 输入参数  : submsdu的长度
- 输出参数  : 填充的字节数
- 返 回 值  : 成功或者失败个数
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月11日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_submsdu_pad_len(oal_uint16 us_msdu_len, oal_uint8 *puc_submsdu_pad_len)
 {
    *puc_submsdu_pad_len = us_msdu_len & 0x3;
@@ -2646,21 +2336,7 @@ OAL_STATIC OAL_INLINE oal_void  mac_get_submsdu_pad_len(oal_uint16 us_msdu_len, 
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_grp_addr
- 功能描述  : 判断该帧是否是组播帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_grp_addr(oal_uint8 *puc_addr)
 {
     if ((puc_addr[0] & 1) != 0)
@@ -2671,61 +2347,19 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_grp_addr(oal_uint8 *puc_addr)
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_ieeee80211_is_action
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8  mac_ieeee80211_is_action(oal_uint8 *puc_header)
 {
     return (puc_header[0] & (MAC_IEEE80211_FCTL_FTYPE | MAC_IEEE80211_FCTL_STYPE)) == (WLAN_ACTION << 4);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_frame_sub_type
- 功能描述  : 获取报文的子类型
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月18日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_frame_sub_type(oal_uint8 *puc_mac_header)
 {
     return (puc_mac_header[0] & 0xFC);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_addba_req_frame
- 功能描述  : 判断该帧是不是addba req帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月18日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_addba_req_frame(oal_netbuf_stru *pst_netbuf, oal_uint8 *puc_tid)
 {
     oal_uint8 *puc_mac_header  = oal_netbuf_header(pst_netbuf);
@@ -2748,21 +2382,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_addba_req_frame(oal_netbuf_stru
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_addba_rsp_frame
- 功能描述  : 判断该帧是不是addba rsp帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月18日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_addba_rsp_frame(oal_netbuf_stru *pst_netbuf)
 {
     oal_uint8 *puc_mac_header  = oal_netbuf_header(pst_netbuf);
@@ -2785,21 +2405,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_addba_rsp_frame(oal_netbuf_stru
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_is_delba_frame
- 功能描述  : 判断一个帧是否是delba
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月4日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_delba_frame(oal_netbuf_stru *pst_netbuf, oal_uint8 *puc_tid)
 {
     oal_uint8 *puc_mac_header  = oal_netbuf_header(pst_netbuf);
@@ -2822,102 +2428,31 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_is_delba_frame(oal_netbuf_stru *ps
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_frame_protected_flag
- 功能描述  : 获取报文的帧保护位
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8  mac_get_frame_protected_flag(oal_uint8 *puc_mac_header)
 {
     return ((puc_mac_header[1] & 0x40) ? OAL_TRUE : OAL_FALSE);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_frame_get_subtype_value
- 功能描述  : 获取802.11帧子类型的值(0~15)
-             帧第一个字节的高四位
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月9日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_frame_get_subtype_value(oal_uint8 *puc_mac_header)
 {
     return ((puc_mac_header[0] & 0xF0) >> 4) ;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_frame_type
- 功能描述  : 获取报文类型
- 输入参数  : oal_uint8 *puc_mac_header
- 输出参数  : 无
- 返 回 值  : OAL_STATIC OAL_INLINE oal_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月23日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_get_frame_type(oal_uint8 *puc_mac_header)
 {
     return (puc_mac_header[0] & 0x0C);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_frame_get_type_value
- 功能描述  : 获取80211帧帧类型，取值0~2
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月9日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_frame_get_type_value(oal_uint8 *puc_mac_header)
 {
     return (puc_mac_header[0] & 0x0C) >> 2;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_cap_info
- 功能描述  : 从asoc rsp帧中获取capability fied
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月13日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16 mac_get_cap_info(oal_uint8 *mac_frame_body)
 {
     oal_uint16  us_cap_info     = 0;
@@ -2929,21 +2464,7 @@ OAL_STATIC OAL_INLINE oal_uint16 mac_get_cap_info(oal_uint8 *mac_frame_body)
     return us_cap_info;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_set_snap
- 功能描述  : 设置LLC SNAP, TX流程上调用
- 输入参数  : pst_buf netbuf结构体 us_ether_type 以太网类型
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_set_snap(oal_netbuf_stru  *pst_buf,
                                             oal_uint16        us_ether_type,
                                             oal_uint8         uc_offset)
@@ -2980,21 +2501,7 @@ OAL_STATIC OAL_INLINE oal_void mac_set_snap(oal_netbuf_stru  *pst_buf,
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_auth_alg
- 功能描述  : 获取认证状态字段
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月20日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_alg(oal_uint8 *puc_mac_hdr)
 {
     oal_uint16 us_auth_alg = 0;
@@ -3005,21 +2512,7 @@ OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_alg(oal_uint8 *puc_mac_hdr)
     return us_auth_alg;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_auth_status
- 功能描述  : 获取认证状态字段
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月27日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_status(oal_uint8 *puc_mac_hdr)
 {
     oal_uint16 us_auth_status = 0;
@@ -3030,21 +2523,7 @@ OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_status(oal_uint8 *puc_mac_hdr)
     return us_auth_status;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_auth_seq_num
- 功能描述  : 获取认证帧序列号
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月27日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_seq_num(oal_uint8 *puc_mac_hdr)
 {
     oal_uint16 us_auth_seq = 0;
@@ -3055,61 +2534,19 @@ OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_seq_num(oal_uint8 *puc_mac_hdr)
     return us_auth_seq;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_set_wep
- 功能描述  : 设置protected frame subfield
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月28日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_set_wep(oal_uint8 *puc_hdr, oal_uint8 uc_wep)
 {
     puc_hdr[1] &= 0xBF;
     puc_hdr[1] |= (oal_uint8)(uc_wep << 6);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_set_protectedframe
- 功能描述  : 设置帧控制字段的受保护字段
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月23日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_set_protectedframe(oal_uint8 *puc_mac_hdr)
 {
     puc_mac_hdr[1] |= 0x40;
 }
-/*****************************************************************************
- 函 数 名  : mac_get_protectedframe
- 功能描述  : 获取帧头中保护位信息
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年2月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_get_protectedframe(oal_uint8 *puc_mac_hdr)
 {
     mac_ieee80211_frame_stru *pst_mac_hdr = OAL_PTR_NULL;
@@ -3119,41 +2556,13 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 mac_get_protectedframe(oal_uint8 *puc_
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_is_protectedframe
- 功能描述  : 获取帧控制字段的受保护字段
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月29日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8  mac_is_protectedframe(oal_uint8 *puc_mac_hdr)
 {
     return ((puc_mac_hdr[1] & 0x40) >> 6);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_auth_algo_num
- 功能描述  : 获取认证帧的认证算法
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月28日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_algo_num(oal_netbuf_stru *pst_netbuf)
 {
     oal_uint16 us_auth_algo = 0;
@@ -3169,41 +2578,13 @@ OAL_STATIC OAL_INLINE oal_uint16  mac_get_auth_algo_num(oal_netbuf_stru *pst_net
     return us_auth_algo;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_auth_ch_text
- 功能描述  : 获取认证帧中的challenge txt
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月29日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint8*  mac_get_auth_ch_text(oal_uint8 *puc_mac_hdr)
 {
     return &(puc_mac_hdr[MAC_80211_FRAME_LEN + 6]);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_4addr
- 功能描述  : 是否为4地址
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8  mac_is_4addr(oal_uint8 *puc_mac_hdr)
 {
     oal_uint8               uc_is_tods;
@@ -3219,81 +2600,25 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8  mac_is_4addr(oal_uint8 *puc_mac_hdr)
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_get_address1
- 功能描述  : 拷贝地址1
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月2日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_address1(oal_uint8 *puc_mac_hdr, oal_uint8 *puc_addr)
 {
     oal_memcopy(puc_addr, puc_mac_hdr + 4, 6);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_address2
- 功能描述  : 拷贝地址2
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月29日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_address2(oal_uint8 *puc_mac_hdr, oal_uint8 *puc_addr)
 {
     oal_memcopy(puc_addr, puc_mac_hdr + 10, 6);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_address3
- 功能描述  : 拷贝地址3
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月2日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_address3(oal_uint8 *puc_mac_hdr, oal_uint8 *puc_addr)
 {
     oal_memcopy(puc_addr, puc_mac_hdr + 16, 6);
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_qos_ctrl
- 功能描述  : 获取mac头中的qos ctrl字段
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-    其    他   : 3地址情况下使用
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  mac_get_qos_ctrl(oal_uint8 *puc_mac_hdr, oal_uint8 *puc_qos_ctrl)
 {
     if (OAL_TRUE != mac_is_4addr(puc_mac_hdr))
@@ -3307,21 +2632,7 @@ OAL_STATIC OAL_INLINE oal_void  mac_get_qos_ctrl(oal_uint8 *puc_mac_hdr, oal_uin
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_get_asoc_status
- 功能描述  : 获取关联帧中的状态信息
- 输入参数  : puc_mac_header:关联帧
- 输出参数  : 无
- 返 回 值  : 关联帧中的状态信息
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月1日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE mac_status_code_enum_uint16  mac_get_asoc_status(oal_uint8 *puc_mac_payload)
 {
     mac_status_code_enum_uint16          en_asoc_status;
@@ -3331,46 +2642,18 @@ OAL_STATIC OAL_INLINE mac_status_code_enum_uint16  mac_get_asoc_status(oal_uint8
     return en_asoc_status;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_asoc_status
- 功能描述  : 获取关联帧中的关联ID
- 输入参数  : puc_mac_header:关联帧
- 输出参数  : 无
- 返 回 值  : 关联帧中的关联ID
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月1日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint16 mac_get_asoc_id(oal_uint8 *puc_mac_payload)
 {
     oal_uint16 us_asoc_id;
 
     us_asoc_id = puc_mac_payload[4] | (puc_mac_payload[5] << 8) ;
-    us_asoc_id  &= 0x3FFF; /* 取低14位 */
+    us_asoc_id  &= 0x3FFF; /* ????14?? */
 
     return us_asoc_id;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_get_bssid
- 功能描述  : 根据"from ds"bit,从帧中提取bssid(mac地址)
- 输入参数  : puc_mac_header:mac帧头，puc_bssid:mac帧bssid
- 输出参数  : puc_bssid:mac帧bssid，
- 返 回 值  : void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月3日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void mac_get_bssid(oal_uint8 *puc_mac_hdr, oal_uint8 *puc_bssid)
 {
     if (1 == mac_hdr_get_from_ds(puc_mac_hdr))
@@ -3387,22 +2670,7 @@ OAL_STATIC OAL_INLINE oal_void mac_get_bssid(oal_uint8 *puc_mac_hdr, oal_uint8 *
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_frame_is_eapol
- 功能描述  : 判断LLC 帧类型是否为EAPOL 类型帧
- 输入参数  : mac_llc_snap_stru *pst_mac_llc_snap
- 输出参数  : 无
- 返 回 值  : OAL_TRUE     是EAPOL 类型数据
-             OAL_FALSE  不是EAPOL 类型数据
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月12日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum mac_frame_is_eapol(mac_llc_snap_stru *pst_mac_llc_snap)
 {
     return (ETHER_ONE_X_TYPE == oal_byteorder_host_to_net_uint16(pst_mac_llc_snap->us_ether_type))?OAL_TRUE:OAL_FALSE;

@@ -1,6 +1,9 @@
+
+
 /*****************************************************************************
   1 Header File Including
 *****************************************************************************/
+/*lint -e322*//*lint -e7*/
 #include <linux/tty.h>
 #include <linux/delay.h>
 #include "plat_debug.h"
@@ -12,6 +15,7 @@
 #include <linux/jiffies.h>
 
 #include "oal_ext_if.h"
+/*lint +e322*//*lint +e7*/
 
 /*****************************************************************************
   2 Global Variable Definition
@@ -24,17 +28,17 @@ struct mutex  g_tty_mutex;
 *****************************************************************************/
 /* no lock while getting the state, just statistic*/
 /* call only in one place!!! */
-void ps_uart_tty_tx_add(unsigned int cnt)
+void ps_uart_tty_tx_add(uint32 cnt)
 {
     g_uart_state.tty_tx_cnt += cnt;
 }
 /* call only in one place!!! */
-STATIC void ps_uart_tty_rx_add(unsigned int cnt)
+STATIC void ps_uart_tty_rx_add(uint32 cnt)
 {
     g_uart_state.tty_rx_cnt += cnt;
 }
 
-unsigned int ps_uart_state_cur(unsigned int index)
+uint32 ps_uart_state_cur(uint32 index)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct uart_state *state = NULL;
@@ -175,7 +179,7 @@ void ps_uart_state_dump(struct tty_struct *tty)
  *     Modification : Created function
  *
  */
-int ps_tty_complete(void *pm_data, unsigned char install)
+int32 ps_tty_complete(void *pm_data, uint8 install)
 {
     struct ps_plat_s *ps_plat_d = (struct ps_plat_s *)pm_data;
 
@@ -216,9 +220,9 @@ int ps_tty_complete(void *pm_data, unsigned char install)
  *     Modification : Created function
  *
  */
-STATIC int ps_tty_open(struct tty_struct *tty)
+STATIC int32 ps_tty_open(struct tty_struct *tty)
 {
-    unsigned char  install;
+    uint8  install;
     struct ps_core_s *ps_core_d = NULL;
     struct ps_plat_s *ps_plat_d = NULL;
 
@@ -327,13 +331,13 @@ STATIC void ps_tty_close(struct tty_struct *tty)
  *     Modification : Created function
  *
  */
-STATIC void ps_tty_receive(struct tty_struct *tty, const unsigned char *data,
-               char *tty_flags, int count)
+STATIC void ps_tty_receive(struct tty_struct *tty, const uint8 *data,
+               int8 *tty_flags, int32 count)
 {
 #ifdef PLATFORM_DEBUG_ENABLE
     struct timeval tv;
     struct rtc_time tm;
-    unsigned long  tmp;
+    uint64  tmp;
     char filename[60] = {0};
 #endif
     struct  ps_core_s *ps_core_d = NULL;
@@ -354,7 +358,7 @@ STATIC void ps_tty_receive(struct tty_struct *tty, const unsigned char *data,
         tmp = ps_core_d->curr_time - ps_core_d->pre_time;
         if ((tmp > DBG_FILE_TIME * HZ)||(0 == ps_core_d->pre_time))
         {
-            if (NULL != ps_core_d->rx_data_fp)
+            if (!IS_ERR_OR_NULL(ps_core_d->rx_data_fp))
             {
                 filp_close(ps_core_d->rx_data_fp, NULL);
             }
@@ -448,11 +452,11 @@ STATIC void ps_tty_flush_buffer(struct tty_struct *tty)
  *     Modification : Created function
  *
  */
-int ps_change_uart_baud_rate(long baud_rate, unsigned char enable_flowctl)
+int32 ps_change_uart_baud_rate(int64 baud_rate, uint8 enable_flowctl)
 {
     struct ps_plat_s *ps_plat_d = NULL;
     struct ps_core_s *ps_core_d;
-    unsigned long timeleft = 0;
+    uint64 timeleft = 0;
 
     PS_PRINT_INFO("%s\n", __func__);
 
@@ -516,12 +520,12 @@ int ps_change_uart_baud_rate(long baud_rate, unsigned char enable_flowctl)
  *     Modification : Created function
  *
  */
-int open_tty_drv(void *pm_data)
+int32 open_tty_drv(void *pm_data)
 {
     struct ps_plat_s *ps_plat_d = NULL;
     struct ps_core_s *ps_core_d;
-    unsigned char  retry = OPEN_TTY_RETRY_COUNT;
-    unsigned long timeleft = 0;
+    uint8  retry = OPEN_TTY_RETRY_COUNT;
+    uint64 timeleft = 0;
 
     PS_PRINT_DBG("%s\n", __func__);
 
@@ -583,14 +587,14 @@ int open_tty_drv(void *pm_data)
  *     Modification : Created function
  *
  */
-int release_tty_drv(void *pm_data)
+int32 release_tty_drv(void *pm_data)
 {
-    int  error;
+    int32  error;
     struct ps_plat_s *ps_plat_d = NULL;
     struct tty_struct *tty = NULL;
     struct ps_core_s *ps_core_d;
-    unsigned long timeleft = 0;
-    unsigned char  delay_times = RELEASE_DELAT_TIMES;
+    uint64 timeleft = 0;
+    uint8  delay_times = RELEASE_DELAT_TIMES;
 
     PS_PRINT_INFO("%s\n", __func__);
 
@@ -664,14 +668,14 @@ STATIC struct tty_ldisc_ops ps_ldisc_ops = {
     .owner          = THIS_MODULE
 };
 
-int plat_uart_init(void)
+int32 plat_uart_init(void)
 {
     mutex_init(&g_tty_mutex);
 
     return tty_register_ldisc(N_HW_BFG, &ps_ldisc_ops);
 }
 
-int plat_uart_exit(void)
+int32 plat_uart_exit(void)
 {
     return tty_unregister_ldisc(N_HW_BFG);
 }

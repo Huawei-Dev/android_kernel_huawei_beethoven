@@ -11,7 +11,6 @@
 #include <linux/platform_device.h>
 #include <linux/kobject.h>
 #include <linux/irq.h>
-#include <linux/wakelock.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/host.h>
 #include <linux/mmc/card.h>
@@ -78,9 +77,6 @@ static struct notifier_block pf_suspend_notifier = {
         .priority = INT_MIN,
     };
 
-/*judge whether the wake lock is active or not*/
-extern int wake_lock_active(struct wake_lock *lock);
-
 struct pm_drv_data * pm_drv_data_t = NULL;
 
 struct pm_drv_data * pm_get_drvdata(void)
@@ -97,9 +93,9 @@ static void pm_set_drvdata(struct pm_drv_data * data)
 /*****************************************************************************
   3 Function Definition
 *****************************************************************************/
-int sdio_dev_init(struct sdio_func *func)
+int32 sdio_dev_init(struct sdio_func *func)
 {
-    int ret;
+    int32 ret;
     struct pm_drv_data * pm_data = NULL;
 
     sdio_claim_host(func);
@@ -146,9 +142,9 @@ int sdio_dev_init(struct sdio_func *func)
     return ret;
 }
 
-int sdio_reinit(void)
+int32 sdio_reinit(void)
 {
-    int ret = 0;
+    int32 ret = 0;
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
     {
@@ -179,7 +175,7 @@ int sdio_reinit(void)
 }
 
 
-int check_bfg_state(void)
+int32 check_bfg_state(void)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -200,7 +196,7 @@ STATIC void host_allow_devslp_in_node(struct ps_core_s *ps_core_d)
     atomic_inc(&ps_core_d->node_visit_flag);
 }
 
-void bfgx_state_set(unsigned char on)
+void bfgx_state_set(uint8 on)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -212,12 +208,12 @@ void bfgx_state_set(unsigned char on)
     pm_data->bfgx_dev_state = on;
 }
 
-int bfgx_state_get(void)
+int32 bfgx_state_get(void)
 {
     return check_bfg_state();
 }
 
-STATIC void bfgx_uart_state_set(unsigned char uart_state)
+STATIC void bfgx_uart_state_set(uint8 uart_state)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -229,7 +225,7 @@ STATIC void bfgx_uart_state_set(unsigned char uart_state)
     pm_data->uart_ready = uart_state;
 }
 
-STATIC char bfgx_uart_state_get(void)
+STATIC int8 bfgx_uart_state_get(void)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -241,7 +237,7 @@ STATIC char bfgx_uart_state_get(void)
     return pm_data->uart_ready;
 }
 
-int bfgx_pm_feature_set(void)
+int32 bfgx_pm_feature_set(void)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
@@ -324,9 +320,9 @@ void bfg_wake_lock(void)
         return;
     }
 
-    if (0 == wake_lock_active(&pm_data->bfg_wake_lock))
+    if (0 == oal_wakelock_active(&pm_data->bfg_wake_lock))
     {
-        wake_lock(&pm_data->bfg_wake_lock);
+        oal_wake_lock(&pm_data->bfg_wake_lock);
     }
 
 }
@@ -340,9 +336,10 @@ void bfg_wake_unlock(void)
         return;
     }
 
-    if (wake_lock_active(&pm_data->bfg_wake_lock))
+    /* ????????????????active????????????unlock?????????????????????????????????????? */
+    if (oal_wakelock_active(&pm_data->bfg_wake_lock))
     {
-        wake_unlock(&pm_data->bfg_wake_lock);
+        oal_wake_unlock(&pm_data->bfg_wake_lock);
     }
 }
 
@@ -352,9 +349,9 @@ void host_wkup_dev_work(struct work_struct *work)
 #define RETRY_TIMES (3)
     int i = 0;
     int j;
-    unsigned char zero_num = 0;
+    uint8 zero_num = 0;
     int bwkup_gpio_val = 0;
-    unsigned long timeleft;
+    uint64 timeleft;
     int ret = 0;
     struct ps_core_s *ps_core_d = NULL;
 
@@ -379,7 +376,7 @@ void host_wkup_dev_work(struct work_struct *work)
             PS_PRINT_INFO("it seems like dev ack with NoSleep\n");
             complete_all(&pm_data->host_wkup_dev_comp);
         }
-        else
+        else /* ????????????host_mutex??????????case?????????????????????????????????? */
         {
             PS_PRINT_DBG("B do wkup_dev work item after A do it but not finished\n");
         }
@@ -417,7 +414,7 @@ void host_wkup_dev_work(struct work_struct *work)
 
         do
         {
-            ps_write_tty(ps_core_d, &zero_num, sizeof(unsigned char));
+            ps_write_tty(ps_core_d, &zero_num, sizeof(uint8));
             msleep(100);
 
             if (BFGX_ACTIVE == ps_core_d->ps_pm->bfgx_dev_state_get())
@@ -464,6 +461,7 @@ void host_wkup_dev_work(struct work_struct *work)
 }
 
 #ifdef CONFIG_INPUTHUB
+/* sensorbub??????????????????????????????sensorhub?????? */
 extern int getSensorMcuMode(void);
 extern int get_iomcu_power_state(void);
 #endif
@@ -472,9 +470,9 @@ void host_send_disallow_msg(struct work_struct *work)
 {
 #define MAX_TTYRESUME_LOOPCNT (300)
 #define MAX_SENSORHUB_LOOPCNT (30)
-    unsigned int loop_tty_resume_cnt = 0;
+    uint32 loop_tty_resume_cnt = 0;
 #ifdef CONFIG_INPUTHUB
-    unsigned int loop_sensorhub_resume_cnt = 0;
+    uint32 loop_sensorhub_resume_cnt = 0;
 #endif
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
@@ -494,8 +492,22 @@ void host_send_disallow_msg(struct work_struct *work)
         return;
     }
 
+    /* ????host????????????dev????????gpio??????????????????????????
+     * ????uart??????????ready,????????????tty resume?????????????? */
     if ((ps_core_d->tty) && (ps_core_d->tty->port))
     {
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
+        while(tty_port_suspended(ps_core_d->tty->port))
+        {
+            if(loop_tty_resume_cnt++ >= MAX_TTYRESUME_LOOPCNT)
+            {
+                PS_PRINT_ERR("tty is not ready, state:%d!\n", tty_port_suspended(ps_core_d->tty->port));
+                break;
+            }
+            msleep(10);
+        }
+        PS_PRINT_INFO("tty state: 0x%x ,loop_tty_resume_cnt:%d\n", tty_port_suspended(ps_core_d->tty->port),  loop_tty_resume_cnt);
+#else
         PS_PRINT_INFO("tty port flag 0x%x\n", (unsigned int)ps_core_d->tty->port->flags);
         while(test_bit(ASYNCB_SUSPENDED, (volatile unsigned long*)&(ps_core_d->tty->port->flags)))
         {
@@ -506,10 +518,12 @@ void host_send_disallow_msg(struct work_struct *work)
             }
             msleep(10);
         }
+#endif
 
 #ifdef CONFIG_INPUTHUB
         if (UART_PCLK_FROM_SENSORHUB == get_uart_pclk_source())
         {
+            /*????sensorhub??????????????wkup??????uart????????????????*/
             if (1 == getSensorMcuMode())
             {
                 PS_PRINT_INFO("sensorbub state is %d\n", get_iomcu_power_state());
@@ -536,8 +550,12 @@ void host_send_disallow_msg(struct work_struct *work)
     /* clear pf msg parsing buffer to avoid problem caused by wrong packet */
     reset_uart_rx_buf();
 
+    /* ????uart????,????disallow sleep????,???????? */
     bfgx_uart_state_set(UART_READY);
     ps_tx_sys_cmd(ps_core_d, SYS_MSG, SYS_CFG_DISALLOW_SLP);
+
+    /* ??????????????????dev wkup host????????, ??????????host wkup dev??????????
+     * ????????????host wkup dev??????INIT?????????? */
     complete_all(&pm_data->host_wkup_dev_comp);
 
     /* if any of BFNI is open, we should mod timer. */
@@ -554,9 +572,9 @@ void host_send_disallow_msg(struct work_struct *work)
     }
 }
 
-int host_wkup_dev(void)
+int32 host_wkup_dev(void)
 {
-    unsigned long timeleft;
+    uint64 timeleft;
     struct pm_drv_data *pm_data = pm_get_drvdata();
     struct ps_core_s *ps_core_d = NULL;
     if (unlikely(NULL == pm_data))
@@ -593,9 +611,9 @@ int host_wkup_dev(void)
 }
 
 
-int bfgx_other_subsys_all_shutdown(unsigned char subsys)
+int32 bfgx_other_subsys_all_shutdown(uint8 subsys)
 {
-    int  i = 0;
+    int32  i = 0;
     struct ps_core_s *ps_core_d = NULL;
 
     ps_get_core_reference(&ps_core_d);
@@ -621,10 +639,10 @@ int bfgx_other_subsys_all_shutdown(unsigned char subsys)
     return true;
 }
 
-int bfgx_dev_power_on(void)
+int32 bfgx_dev_power_on(void)
 {
-    unsigned long timeleft;
-    int error;
+    uint64 timeleft;
+    int32 error;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -640,7 +658,8 @@ int bfgx_dev_power_on(void)
         return BFGX_POWER_FAILED;
     }
 
-    wake_lock(&pm_data->bfg_wake_lock);
+    /*????Host????*/
+    oal_wake_lock(&pm_data->bfg_wake_lock);
 
     INIT_COMPLETION(pm_data->dev_bootok_ack_comp);
     atomic_set(&pm_data->bfg_needwait_devboot_flag, NEED_SET_FLAG);
@@ -697,6 +716,7 @@ int bfgx_dev_power_on(void)
         }
     }
     ps_uart_state_pre(ps_core_d->tty);
+    /*WAIT_BFGX_BOOTOK_TIME:??????????????1s????1s????????????????????*/
     timeleft = wait_for_completion_timeout(&pm_data->dev_bootok_ack_comp, msecs_to_jiffies(WAIT_BFGX_BOOTOK_TIME));
     if (!timeleft)
     {
@@ -724,14 +744,14 @@ int bfgx_dev_power_on(void)
     return BFGX_POWER_SUCCESS;
 
 bfgx_power_on_fail:
-    wake_unlock(&pm_data->bfg_wake_lock);
+    oal_wake_unlock(&pm_data->bfg_wake_lock);
     return error;
 }
 
 
-int bfgx_dev_power_off(void)
+int32 bfgx_dev_power_off(void)
 {
-    int  error = SUCCESS;
+    int32  error = SUCCESS;
     struct ps_core_s *ps_core_d = NULL;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
@@ -751,12 +771,14 @@ int bfgx_dev_power_off(void)
     pm_data->ps_pm_interface->operate_beat_timer(BEAT_TIMER_DELETE);
     del_timer_sync(&pm_data->bfg_timer);
 
+    /* ??????????????????????????????????????????device??????????flag */
     atomic_set(&pm_data->bfg_needwait_devboot_flag, NEED_SET_FLAG);
 
     if (wlan_is_shutdown())
     {
         if (SUCCESS != release_tty_drv(ps_core_d->pm_data))
         {
+            /*??????????????????????????????????????????????????tty??????????????device????????*/
             PS_PRINT_ERR("wifi off, close tty is err!");
         }
 
@@ -782,12 +804,14 @@ int bfgx_dev_power_off(void)
     {
          if(SUCCESS != uart_bfgx_close_cmd())
          {
+            /*bfgx self close fail ????????????????wifi shutdown bcpu*/
             PS_PRINT_ERR("bfgx self close fail\n");
             CHR_EXCEPTION(CHR_GNSS_DRV(CHR_GNSS_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_CLOSE_BCPU));
          }
 
          if (SUCCESS != release_tty_drv(ps_core_d->pm_data))
          {
+            /*????????????????????bfgx????????????????????????tty??????????????????????bcpu*/
             PS_PRINT_ERR("wifi on, close tty is err!");
          }
 
@@ -802,18 +826,18 @@ int bfgx_dev_power_off(void)
     }
 
     /*if wakelock is active, we should wake unlock*/
-    if (wake_lock_active(&pm_data->bfg_wake_lock))
+    if (oal_wakelock_active(&pm_data->bfg_wake_lock))
     {
-        wake_unlock(&pm_data->bfg_wake_lock);
+        oal_wake_unlock(&pm_data->bfg_wake_lock);
     }
 
 	return error;
 }
 
 
-int bfgx_dev_power_control(unsigned char subsys, unsigned char flag)
+int32 bfgx_dev_power_control(uint8 subsys, uint8 flag)
 {
-    int ret = 0;
+    int32 ret = 0;
 
     if (BFG_POWER_GPIO_UP == flag)
     {
@@ -841,9 +865,9 @@ int bfgx_dev_power_control(unsigned char subsys, unsigned char flag)
 }
 
 
-int firmware_download_function(unsigned int which_cfg)
+int firmware_download_function(uint32 which_cfg)
 {
-    int ret = 0;
+    int32 ret = 0;
     unsigned long long total_time = 0;
     ktime_t start_time, end_time, trans_time;
     static unsigned long long max_time = 0;
@@ -889,6 +913,9 @@ int firmware_download_function(unsigned int which_cfg)
         oal_sdio_release_host(pm_data->pst_wlan_pm_info->pst_sdio);
         oal_sdio_wake_unlock(pm_data->pst_wlan_pm_info->pst_sdio);
         PS_PRINT_ERR("sdio reinit failed, ret:%d!\n", ret);
+#ifdef CONFIG_HUAWEI_DSM
+        hw_1102_dsm_client_notify(DSM_110x_DOWNLOAD_FIRMWARE, "%s: sdio reinit failed, ret %d \n", __FUNCTION__, ret);
+#endif
         return -FAILURE;
     }
 
@@ -910,6 +937,9 @@ int firmware_download_function(unsigned int which_cfg)
         else
         {
             CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_FIRMWARE_DOWN));
+#ifdef CONFIG_HUAWEI_DSM
+            hw_1102_dsm_client_notify(DSM_110x_DOWNLOAD_FIRMWARE, "%s: failed to download firmware\n", __FUNCTION__);
+#endif
         }
         return -FAILURE;
     }
@@ -936,7 +966,7 @@ int firmware_download_function(unsigned int which_cfg)
     return SUCCESS;
 }
 
-int wlan_is_shutdown(void)
+int32 wlan_is_shutdown(void)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -948,7 +978,7 @@ int wlan_is_shutdown(void)
     return ((POWER_STATE_SHUTDOWN == pm_data->pst_wlan_pm_info->ul_wlan_power_state) ? true : false);
 }
 
-int bfgx_is_shutdown(void)
+int32 bfgx_is_shutdown(void)
 {
     struct ps_core_s *ps_core_d = NULL;
 
@@ -962,7 +992,7 @@ int bfgx_is_shutdown(void)
     return ps_chk_bfg_active(ps_core_d) ? false : true;
 }
 
-int wifi_power_fail_process(int error)
+int32 wifi_power_fail_process(int32 error)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -985,6 +1015,7 @@ int wifi_power_fail_process(int error)
     case WIFI_POWER_PULL_POWER_GPIO_FAIL:
         break;
 
+    /*BFGX off??wifi firmware download fail??wait boot up fail??????????????????????????????DFR*/
     case WIFI_POWER_BFGX_OFF_BOOT_UP_FAIL:
         if(OAL_TRUE == oal_trigger_sdio_exception(oal_get_sdio_default_handler(), OAL_TRUE))
         {
@@ -1000,6 +1031,7 @@ int wifi_power_fail_process(int error)
         board_power_off(WLAN_POWER);
         break;
 
+    /*BFGX on??wifi??????????????????????????wifi??????????????????????*/
     case WIFI_POWER_BFGX_ON_BOOT_UP_FAIL:
         if(OAL_TRUE == oal_trigger_sdio_exception(oal_get_sdio_default_handler(), OAL_TRUE))
         {
@@ -1031,9 +1063,9 @@ int wifi_power_fail_process(int error)
     return WIFI_POWER_FAIL;
 }
 
-int wlan_power_on(void)
+int32 wlan_power_on(void)
 {
-    int  error = WIFI_POWER_SUCCESS;
+    int32  error = WIFI_POWER_SUCCESS;
     unsigned long long total_time = 0;
     ktime_t start_time, end_time, trans_time;
     static unsigned long long max_download_time = 0;
@@ -1093,6 +1125,9 @@ int wlan_power_on(void)
             PS_PRINT_ERR("wlan_pm_wait_device_ready timeout %d !!!!!!\n", HOST_WAIT_BOTTOM_INIT_TIMEOUT);
             error = WIFI_POWER_BFGX_OFF_BOOT_UP_FAIL;
             CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_WCPU_BOOTUP));
+#ifdef CONFIG_HUAWEI_DSM
+            hw_1102_dsm_client_notify(DSM_110x_HALT, "%s: wlan power on dev ready by gpio fail\n", __FUNCTION__);
+#endif
             goto wifi_power_fail;
         }
     }
@@ -1103,6 +1138,9 @@ int wlan_power_on(void)
             DECLARE_DFT_TRACE_KEY_INFO("wlan_poweron_by_uart_fail", OAL_DFT_TRACE_FAIL);
             error = WIFI_POWER_BFGX_DERESET_WCPU_FAIL;
             CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_OPEN_WCPU));
+#ifdef CONFIG_HUAWEI_DSM
+            hw_1102_dsm_client_notify(DSM_110x_HALT, "%s: wlan power on by uart fail\n", __FUNCTION__);
+#endif
             goto wifi_power_fail;
         }
         else
@@ -1126,6 +1164,9 @@ int wlan_power_on(void)
                 PS_PRINT_ERR("wlan_pm_wait_device_ready timeout %d !!!!!!",HOST_WAIT_BOTTOM_INIT_TIMEOUT);
                 error = WIFI_POWER_BFGX_ON_BOOT_UP_FAIL;
                 CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_WCPU_BOOTUP));
+#ifdef CONFIG_HUAWEI_DSM
+                hw_1102_dsm_client_notify(DSM_110x_HALT, "%s: wlan power on dev ready by uart fail\n", __FUNCTION__);
+#endif
                 goto wifi_power_fail;
             }
         }
@@ -1152,7 +1193,7 @@ wifi_power_fail:
     return wifi_power_fail_process(error);
 }
 
-int wlan_power_off(void)
+int32 wlan_power_off(void)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -1186,11 +1227,13 @@ int wlan_power_off(void)
     }
     else
     {
+        /*??????SDIO TX????*/
         oal_disable_sdio_state(oal_get_sdio_default_handler(), OAL_SDIO_TX);
 
         /*wakeup dev,send poweroff cmd to wifi*/
         if(OAL_SUCC != wlan_pm_poweroff_cmd())
         {
+            /*wifi self close ??????????????????????uart????WCPU????????????????wifi????open??????????*/
             DECLARE_DFT_TRACE_KEY_INFO("wlan_poweroff_by_sdio_fail",OAL_DFT_TRACE_FAIL);
             CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_CLOSE_WCPU));
 #if 0
@@ -1205,6 +1248,7 @@ int wlan_power_off(void)
         /*power off cmd execute succ,send shutdown wifi cmd to BFGN */
         if(OAL_SUCC != uart_wifi_close())
         {
+            /*uart????WCPU????????????????DFR??????wifi????open??????????*/
             DECLARE_DFT_TRACE_KEY_INFO("wlan_poweroff_uart_cmd_fail",OAL_DFT_TRACE_FAIL);
             CHR_EXCEPTION(CHR_WIFI_DRV(CHR_WIFI_DRV_EVENT_PLAT, CHR_PLAT_DRV_ERROR_CLOSE_WCPU));
         }
@@ -1218,9 +1262,9 @@ int wlan_power_off(void)
     return SUCCESS;
 }
 
-int bfgx_power_on(unsigned char subsys)
+int32 bfgx_power_on(uint8 subsys)
 {
-    int  ret = BFGX_POWER_SUCCESS;
+    int32  ret = BFGX_POWER_SUCCESS;
     unsigned long long total_time = 0;
     ktime_t start_time, end_time, trans_time;
     static unsigned long long max_download_time = 0;
@@ -1253,7 +1297,7 @@ int bfgx_power_on(unsigned char subsys)
     return BFGX_POWER_SUCCESS;
 }
 
-int bfgx_power_off(unsigned char subsys)
+int32 bfgx_power_off(uint8 subsys)
 {
     struct ps_core_s *ps_core_d = NULL;
 
@@ -1282,10 +1326,10 @@ int bfgx_power_off(unsigned char subsys)
     return SUCCESS;
 }
 
-extern unsigned int g_ulJumpCmdResult;
-int device_mem_check(unsigned long long *time)
+extern uint32 g_ulJumpCmdResult;
+int32 device_mem_check(unsigned long long *time)
 {
-    int ret = -FAILURE;
+    int32 ret = -FAILURE;
     unsigned long long total_time = 0;
     ktime_t start_time, end_time, trans_time;
     struct pm_drv_data *pm_data = pm_get_drvdata();
@@ -1348,7 +1392,7 @@ int device_mem_check(unsigned long long *time)
 EXPORT_SYMBOL(device_mem_check);
 
 
-int ps_pm_register(struct ps_pm_s *new_pm)
+int32 ps_pm_register(struct ps_pm_s *new_pm)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -1380,7 +1424,7 @@ int ps_pm_register(struct ps_pm_s *new_pm)
 EXPORT_SYMBOL_GPL(ps_pm_register);
 
 
-int ps_pm_unregister(struct ps_pm_s *new_pm)
+int32 ps_pm_unregister(struct ps_pm_s *new_pm)
 {
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
@@ -1416,7 +1460,7 @@ EXPORT_SYMBOL_GPL(ps_pm_unregister);
 irqreturn_t bfg_wake_host_isr(int irq, void *dev_id)
 {
     struct ps_core_s *ps_core_d = NULL;
-    unsigned long flags;
+    uint64 flags;
     struct pm_drv_data *pm_data = pm_get_drvdata();
 
     if (NULL == pm_data)
@@ -1471,7 +1515,7 @@ STATIC int low_power_remove(void)
     del_timer_sync(&pm_data->dev_ack_timer);
 
     /*destory wake lock*/
-    wake_lock_destroy(&pm_data->bfg_wake_lock);
+    oal_wake_lock_exit(&pm_data->bfg_wake_lock);
 
     /*free platform driver data struct*/
     kfree(pm_data);
@@ -1483,9 +1527,9 @@ STATIC int low_power_remove(void)
     return ret;
 }
 
-STATIC void devack_timer_expire(unsigned long data)
+STATIC void devack_timer_expire(uint64 data)
 {
-    unsigned long flags;
+    uint64 flags;
     struct pm_drv_data  *pm_data = (struct pm_drv_data*)data;
     if (unlikely(NULL == pm_data))
     {
@@ -1589,7 +1633,7 @@ STATIC int low_power_probe(void)
     pm_data->bfg_irq = pm_data->board->bfgn_irq;
 
     /*init bfg wake lock */
-    wake_lock_init(&pm_data->bfg_wake_lock, WAKE_LOCK_SUSPEND, BFG_LOCK_NAME);
+    oal_wake_lock_init(&pm_data->bfg_wake_lock, BFG_LOCK_NAME);
 
     /*init mutex*/
     mutex_init(&pm_data->host_mutex);

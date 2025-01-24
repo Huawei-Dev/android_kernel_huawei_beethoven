@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_alg_if.h
-  版 本 号   : 初稿
-  作    者   : 陈艳
-  生成日期   : 2013年3月21日
-  最近修改   :
-  功能描述   : DMAC to ALG的API接口文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年3月21日
-    作    者   : 陈艳
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_ALG_IF_H__
 #define __DMAC_ALG_IF_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_types.h"
 #include "hal_ext_if.h"
@@ -38,10 +21,10 @@ extern "C" {
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_ALG_IF_H
-#define  ALG_TXRX_DATA_MAXNUM    4			/*与ALG_TXRX_DATA_BUTT相同*/
+#define  ALG_TXRX_DATA_MAXNUM    4			/*??ALG_TXRX_DATA_BUTT????*/
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 
 typedef enum
@@ -64,14 +47,14 @@ typedef enum
 typedef oal_uint8 dmac_alg_bt_state_type_uint8;
 #endif
 
-/* 常用代码简化 */
+/* ???????????? */
 #define DMAC_ALG_IS_DEV_INIT_DONE(_ul_chip_num, _ul_dev_num, _pst_mac_board)     \
         (OAL_TRUE == _pst_mac_board->ast_chip[_ul_chip_num].ast_device[_ul_dev_num].en_device_state)
 
 #define DMAC_ALG_SET_DEV_PRIV(_ul_chip_num, _ul_dev_num, _pst_mac_board, _p_alg_stru)     \
         MAC_DEV_ALG_PRIV(&_pst_mac_board->ast_chip[_ul_chip_num].ast_device[_ul_dev_num]) = (oal_void *)_p_alg_stru
 
-/* 控制面回调函数类型定义 */
+/* ?????????????????????? */
 typedef oal_uint32 (*p_alg_create_vap_notify_func)(mac_vap_stru *pst_vap);
 typedef oal_uint32 (*p_alg_delete_vap_notify_func)(mac_vap_stru *pst_vap);
 typedef oal_uint32 (*p_alg_cfg_channel_notify_func)(mac_vap_stru *pst_vap, dmac_alg_channel_bw_chg_type_uint8 en_type);
@@ -99,7 +82,7 @@ typedef oal_uint32 (*p_alg_cfg_smps_notify_func)(mac_vap_stru *pst_vap, mac_user
 #endif
 typedef oal_uint32 (*p_alg_cfg_user_spatial_stream_notify_func)(mac_user_stru *pst_user);
 
-/* 收发流程相关回调 */
+/* ???????????????? */
 typedef oal_uint32 (*p_alg_rx_notify_func)(mac_vap_stru *pst_vap,
                                                mac_user_stru *pst_user,
                                                oal_netbuf_stru *pst_buf,
@@ -125,7 +108,7 @@ typedef oal_uint32 (*p_alg_rx_event_notify_func)(oal_uint8 uc_vap_id,
                                                 oal_netbuf_stru *pst_buf,
                                                 dmac_rx_ctl_stru *pst_cb_ctrl);
 #endif
-/* 调度相关回调 */
+/* ???????????? */
 typedef oal_uint32 (*p_alg_tx_schedule_func)(mac_device_stru *pst_device, oal_uint8 uc_ac_num, mac_tid_schedule_output_stru *pst_sch_output);
 #ifdef _PRE_WLAN_FEATURE_EDCA_MULTI_USER_MULTI_AC
 typedef oal_uint32 (*p_alg_tx_schedule_stat_event_notify_func)(oal_uint8 uc_device_id, oal_uint8 uc_vap_id, oal_uint8 (*ppuc_traffic_num)[ALG_TXRX_DATA_MAXNUM]);
@@ -140,21 +123,21 @@ typedef oal_uint32 (*p_alg_downlink_flowctl_notify_func)(mac_vap_stru *pst_vap,
 typedef oal_uint32 (*p_alg_flowctl_backp_notify_func)(mac_vap_stru *pst_vap, oal_uint16 us_total_mpdu_num, oal_uint16 *pus_total_mpdu_num);
 #endif
 
-/* 定时器回调 */
+/* ?????????? */
 typedef oal_uint32 (*p_alg_timer_notify_func)(oal_void *p_args);
 
-/* 事件回调 */
+/* ???????? */
 typedef oal_uint32 (*p_alg_host_crx_event_notify_func)(frw_event_stru *pst_event);
 
-/*txbf/抗干扰处理接收管理帧回调*/
+/*txbf/????????????????????????*/
 typedef oal_uint32  (*p_alg_rx_mgmt_notify_func)(mac_vap_stru *pst_vap, mac_user_stru *pst_user, oal_netbuf_stru *pst_buf);
 
-/*txbf处理接收控制帧回调*/
+/*txbf??????????????????*/
 typedef oal_uint32  (*p_alg_txbf_rx_cntl_notify_func)(mac_vap_stru *pst_vap, mac_user_stru *pst_user, oal_netbuf_stru *pst_buf);
 
 typedef oal_uint32 (*p_alg_config_func)(mac_vap_stru *pst_mac_vap, oal_uint8 uc_argc, oal_int8 *pac_argv[]);
 
-/* 单用户跟踪获取参数回调 */
+/* ?????????????????????? */
 #ifdef _PRE_DEBUG_MODE_USER_TRACK
 typedef oal_uint32 (*p_alg_start_stat_rssi_func)(mac_user_stru *pst_mac_user);
 typedef oal_uint32 (*p_alg_get_rssi_func)(mac_user_stru *pst_mac_user, oal_int8 *pc_tx_rssi, oal_int8 *pc_rx_rssi);
@@ -181,7 +164,7 @@ typedef oal_uint32 (*p_alg_double_ant_switch_notify_func)(mac_device_stru *pst_m
 typedef oal_uint32 (*p_alg_get_mgmt_tx_pow_notify_func)(mac_user_stru *pst_user, wlan_channel_band_enum_uint8 en_freq_band,oal_uint16 *pus_tx_pow, oal_bool_enum_uint8 en_is_presicion_shift);
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
@@ -209,7 +192,7 @@ typedef enum
 //#error "error!!!"
 #endif
     DMAC_ALG_CONFIG_ID_COMMON,
-    DMAC_ALG_CONFIG_ID_ERROR,   /* 占位，不要删除*/
+    DMAC_ALG_CONFIG_ID_ERROR,   /* ??????????????*/
 
     DMAC_ALG_CONFIG_ID_BUTT
 }dmac_alg_config_id_enum;
@@ -222,7 +205,7 @@ typedef struct
     oal_uint8                       auc_resv[3];
 }dmac_alg_config_table_stru;
 
-/* 定义事件HOST_CRX事件的子类型，HMAC接收到算法APP的CRX事件后，使用这些子类型 */
+/* ????????HOST_CRX??????????????HMAC??????????APP??CRX?????????????????????? */
 typedef enum
 {
     DMAC_ALG_HOST_CRX_SUBTYPE_CFG,
@@ -231,7 +214,7 @@ typedef enum
 }dmac_alg_host_crx_subtype_enum;
 typedef oal_uint8 dmac_alg_host_crx_subtype_enum_uint8;
 
-/* HOST CRX EVENT回调函数枚举ID */
+/* HOST CRX EVENT????????????ID */
 typedef enum
 {
     DMAC_ALG_HOST_CRX_EVENT_NOTIFY_ACS,
@@ -240,7 +223,7 @@ typedef enum
 }dmac_alg_host_crx_event_notify_enum;
 typedef oal_uint8 dmac_alg_host_crx_event_notify_enum_uint8;
 
-/* 算法ID，唯一识别某个算法，ID=2的整数值 */
+/* ????ID????????????????????ID=2???????? */
 typedef enum
 {
     DMAC_ALG_ID_SCHEDULE     = 0x00000001,
@@ -264,7 +247,7 @@ typedef enum
 }dmac_alg_id_enum;
 typedef oal_uint32 dmac_alg_id_enum_uint32;
 
-/* 数据结构类型枚举定义 */
+/* ???????????????????? */
 typedef enum
 {
     DMAC_ALG_DEVICE_STRU_ID_SCHEDULE,
@@ -274,7 +257,7 @@ typedef enum
     DMAC_ALG_DEVICE_STRU_ID_TXBF,
     DMAC_ALG_DEVICE_STRU_ID_ANTI_INTF,
     DMAC_ALG_DEVICE_STRU_ID_MWO_DET,
-    DMAC_ALG_DEVICE_STRU_ID_TPC,        //TPC结构体
+    DMAC_ALG_DEVICE_STRU_ID_TPC,        //TPC??????
     DMAC_ALG_DEVICE_STRU_ID_EDCA_OPT,
     DMAC_ALG_DEVICE_STRU_ID_CCA_OPT,
 
@@ -300,9 +283,9 @@ typedef enum
     DMAC_ALG_USER_STRU_ID_TXBF,
     DMAC_ALG_USER_STRU_ID_ANTI_INTF,
     DMAC_ALG_USER_STRU_ID_MWO_DET,
-	DMAC_ALG_USER_STRU_ID_TPC_POW,      //功率信息结构体
-    DMAC_ALG_USER_STRU_ID_TPC_DIS,      //距离信息结构体
-    DMAC_ALG_USER_STRU_ID_TPC_RSSI,     //rssi信息结构体
+	DMAC_ALG_USER_STRU_ID_TPC_POW,      //??????????????
+    DMAC_ALG_USER_STRU_ID_TPC_DIS,      //??????????????
+    DMAC_ALG_USER_STRU_ID_TPC_RSSI,     //rssi??????????
     DMAC_ALG_USER_STRU_ID_CCA_OPT,
 
     DMAC_ALG_USER_STRU_ID_BUTT
@@ -363,7 +346,7 @@ typedef enum
 typedef oal_uint8 dmac_alg_ar_null_frm_notify_enum_uint8;
 
 
-/* 发送流程上获取发送参数的回调函数 */
+/* ???????????????????????????????? */
 typedef enum
 {
     DMAC_ALG_TX_START = 0,
@@ -392,7 +375,7 @@ typedef enum
 }dmac_alg_tx_notify_enum;
 typedef oal_uint8 dmac_alg_tx_notify_enum_uint8;
 
-/* 发送完成流程上获取统计信息的回调函数 */
+/* ???????????????????????????????????? */
 typedef enum
 {
     DMAC_ALG_TX_COMPLETE_START = 0,
@@ -421,7 +404,7 @@ typedef enum
 }dmac_alg_tx_complete_notify_enum;
 typedef oal_uint8 dmac_alg_tx_complete_notify_enum_uint8;
 
-/* 接收流程上的回调函数 */
+/* ???????????????????? */
 typedef enum
 {
     DMAC_ALG_RX_START = 0,
@@ -447,7 +430,7 @@ typedef enum
 }dmac_alg_rx_notify_enum;
 typedef oal_uint8 dmac_alg_rx_notify_enum_uint8;
 
-/* 添加关联用户回调函数枚举定义 */
+/* ???????????????????????????? */
 typedef enum
 {
     DMAC_ALG_ADD_USER_NOTIFY_SCHEDULE,
@@ -470,7 +453,7 @@ typedef enum
 }dmac_alg_add_user_notify_enum;
 typedef oal_uint8 dmac_alg_add_user_notify_enum_uint8;
 
-/* 删除关联用户回调函数枚举定义 */
+/* ???????????????????????????? */
 typedef enum
 {
     DMAC_ALG_DEL_USER_NOTIFY_SCHEDULE,
@@ -489,7 +472,7 @@ typedef enum
 }dmac_alg_del_user_notify_enum;
 typedef oal_uint8 dmac_alg_del_user_notify_enum_uint8;
 
-/* 创建VAP回调函数枚举定义 */
+/* ????VAP???????????????? */
 typedef enum
 {
     DMAC_ALG_ADD_VAP_NOTIFY_SCHEDULE,
@@ -502,7 +485,7 @@ typedef enum
 }dmac_alg_add_vap_notify_enum;
 typedef oal_uint8 dmac_alg_add_vap_notify_enum_uint8;
 
-/* 删除VAP回调函数枚举定义 */
+/* ????VAP???????????????? */
 typedef enum
 {
     DMAC_ALG_DEL_VAP_NOTIFY_SCHEDULE,
@@ -514,7 +497,7 @@ typedef enum
 }dmac_alg_del_vap_notify_enum;
 typedef oal_uint8 dmac_alg_del_vap_notify_enum_uint8;
 
-/* 设置信道回调函数枚举定义 */
+/* ???????????????????????? */
 typedef enum
 {
     DMAC_ALG_CFG_CHANNEL_NOTIFY_ACS,
@@ -528,7 +511,7 @@ typedef enum
 }dmac_alg_cfg_channel_notify_enum;
 typedef oal_uint8 dmac_alg_cfg_channel_notify_enum_uint8;
 
-/* 设置信道回调函数枚举定义 */
+/* ???????????????????????? */
 typedef enum
 {
     DMAC_ALG_CFG_START_CONNECT_NOTIFY_TPC,
@@ -538,7 +521,7 @@ typedef enum
 typedef oal_uint8 dmac_alg_cfg_start_connect_notify_enum_uint8;
 
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
-/* 设置信道回调函数枚举定义 */
+/* ???????????????????????? */
 typedef enum
 {
     DMAC_ALG_CFG_BTCOEX_STATE_NOTIFY_AUTO,
@@ -548,7 +531,7 @@ typedef enum
 typedef oal_uint8 dmac_alg_cfg_btcoex_state_notify_enum_uint8;
 #endif
 
-/* 设置带宽回调函数枚举定义 */
+/* ???????????????????????? */
 typedef enum
 {
     DMAC_ALG_CFG_BANDWIDTH_NOTIFY_ACS,
@@ -575,7 +558,7 @@ typedef enum
 }dmac_alg_cfg_user_ant_changed_notify_enum;
 typedef oal_uint8 dmac_alg_cfg_user_ant_changed_notify_enum_uint8;
 
-/* 改变协议模式回调函数枚举定义 */
+/* ???????????????????????????? */
 typedef enum
 {
     DMAC_ALG_CFG_USER_PROTOCOL_NOTIFY_TPC,
@@ -585,13 +568,13 @@ typedef enum
 }dmac_alg_cfg_user_protocol_notify_enum;
 typedef oal_uint8 dmac_alg_cfg_user_protocol_notify_enum_uint8;
 
-/*CCA检测到的干扰模式改变时回调函数枚举定义*/
+/*CCA??????????????????????????????????????*/
 /*CCA mode*/
 typedef enum
 {
-    DMAC_ALG_CCA_OPT_NO_INTF        = 0,    /* 无干扰 */
-    DMAC_ALG_CCA_OPT_MEDIUM_INTF    = 1,    /* 中等强度干扰 */
-    DMAC_ALG_CCA_OPT_STRONG_INTF    = 2,    /* 强干扰 */
+    DMAC_ALG_CCA_OPT_NO_INTF        = 0,    /* ?????? */
+    DMAC_ALG_CCA_OPT_MEDIUM_INTF    = 1,    /* ???????????? */
+    DMAC_ALG_CCA_OPT_STRONG_INTF    = 2,    /* ?????? */
     DMAC_ALG_CCA_OPT_INTF_MODE_BUTT
 }dmac_alg_cca_opt_intf_enum;
 typedef oal_uint8 dmac_alg_cca_opt_intf_mode_enum_uint8;
@@ -623,7 +606,7 @@ typedef enum
 }dmac_alg_cfg_user_spatial_stream_notify_enum;
 typedef oal_uint8 dmac_alg_cfg_user_spatial_stream_notify_enum_uint8;
 
-/* 接收管理帧的回调函数 */
+/* ???????????????????? */
 typedef enum
 {
     DMAC_ALG_RX_MGMT_TXBF,
@@ -636,13 +619,13 @@ typedef enum
 typedef oal_uint8 dmac_alg_rx_mgmt_notify_enum_uint8;
 
 #ifdef _PRE_WLAN_FEATURE_EDCA_OPT_AP
-/* 发送/接收数据类型 */
+/* ????/???????????? */
 typedef enum
 {
-    ALG_TX_TCP_DATA = 0,    /* 发送TCP data */
-    ALG_RX_TCP_DATA = 1,    /* 接收TCP data */
-    ALG_TX_UDP_DATA = 2,    /* 发送UDP data */
-    ALG_RX_UDP_DATA = 3,    /* 接收UDP data */
+    ALG_TX_TCP_DATA = 0,    /* ????TCP data */
+    ALG_RX_TCP_DATA = 1,    /* ????TCP data */
+    ALG_TX_UDP_DATA = 2,    /* ????UDP data */
+    ALG_RX_UDP_DATA = 3,    /* ????UDP data */
 
     ALG_TXRX_DATA_BUTT = 4,
 }alg_txrx_data_type_enum;
@@ -651,52 +634,52 @@ typedef oal_uint8 alg_txrx_data_type_enum_uint8;
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 extern  dmac_alg_config_table_stru g_ast_dmac_alg_config_table[];
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* 算法定时器结构体 */
+/* ???????????????? */
 typedef frw_timeout_stru  dmac_alg_timer_stru;
 
 
-/* 挂在各个device上的数据结构 */
+/* ????????device???????????? */
 typedef struct
 {
     oal_void       *p_alg_info[DMAC_ALG_DEVICE_STRU_ID_BUTT];
 }dmac_alg_device_stru;
 
-/* 挂在各个vap上的数据结构 */
+/* ????????vap???????????? */
 typedef struct
 {
    oal_void        *p_alg_info[DMAC_ALG_VAP_STRU_ID_BUTT];
 }dmac_alg_vap_stru;
 
-/* 挂在各个user上的数据结构 */
+/* ????????user???????????? */
 typedef struct
 {
    oal_void        *p_alg_info[DMAC_ALG_USER_STRU_ID_BUTT];
 }dmac_alg_user_stru;
 
-/* 挂在各个tid上的数据结构 */
+/* ????????tid???????????? */
 typedef struct
 {
    oal_void        *p_alg_info[DMAC_ALG_TID_STRU_ID_BUTT];
 }dmac_alg_tid_stru;
 
-/* 用户距离状态 */
+/* ???????????? */
 typedef enum
 {
     DMAC_ALG_TPC_NEAR_DISTANCE       = 0,
@@ -708,33 +691,33 @@ typedef enum
 typedef oal_uint8 dmac_alg_tpc_user_distance_enum_uint8;
 
 
-/* 用户距离通知信息结构体 */
+/* ?????????????????????? */
 typedef struct
 {
-    dmac_alg_tpc_user_distance_enum_uint8  en_old_distance;    /* 变化前的距离状态信息 */
-    dmac_alg_tpc_user_distance_enum_uint8  en_new_distance;    /* 变化后的距离状态信息 */
+    dmac_alg_tpc_user_distance_enum_uint8  en_old_distance;    /* ???????????????????? */
+    dmac_alg_tpc_user_distance_enum_uint8  en_new_distance;    /* ???????????????????? */
 }dmac_alg_distance_notify_info_stru;
 
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 
-/***************** 子算法注册注销接口 ************** */
+/***************** ?????????????????? ************** */
 extern oal_uint32  dmac_alg_register(dmac_alg_id_enum_uint32 en_alg_id);
 extern oal_uint32  dmac_alg_unregister(dmac_alg_id_enum_uint32 en_alg_id);
 extern oal_uint32  dmac_alg_is_registered(dmac_alg_id_enum_uint32 en_alg_id, oal_bool_enum_uint8 *pen_is_registered);
 
-/***************** 定时器接口 *********************** */
+/***************** ?????????? *********************** */
 extern oal_uint32  dmac_alg_register_timer(oal_uint32  ul_file_id,
                                           oal_uint32  ul_line_num,
                                           oam_module_id_enum_uint16 en_module_id,
@@ -748,7 +731,7 @@ extern oal_uint32  dmac_alg_start_timer(dmac_alg_timer_stru *pst_timer, oal_uint
 extern oal_uint32  dmac_alg_stop_timer(dmac_alg_timer_stru *pst_timer);
 
 
-/***************** 回调函数注册接口 ******************* */
+/***************** ???????????????? ******************* */
 extern oal_uint32  dmac_alg_register_tx_notify_func(dmac_alg_tx_notify_enum_uint8    en_notify_sub_type,
                                                             p_alg_tx_notify_func             p_func);
 extern oal_uint32  dmac_alg_register_tx_complete_notify_func(dmac_alg_tx_complete_notify_enum_uint8    en_notify_sub_type,
@@ -817,7 +800,7 @@ extern oal_uint32  dmac_alg_register_rx_mgmt_notify_func(dmac_alg_rx_mgmt_notify
 extern oal_uint32  dmac_alg_register_txbf_rx_cntl_notify_func(p_alg_txbf_rx_cntl_notify_func p_func);
 
 
-/***************** 回调函数注销接口 ******************* */
+/***************** ???????????????? ******************* */
 extern oal_uint32  dmac_alg_unregister_tx_notify_func(dmac_alg_tx_notify_enum_uint8    en_notify_sub_type);
 extern oal_uint32  dmac_alg_unregister_tx_complete_notify_func(dmac_alg_tx_complete_notify_enum_uint8    en_notify_sub_type);
 extern oal_uint32  dmac_alg_unregister_rx_notify_func(dmac_alg_rx_notify_enum_uint8    en_notify_sub_type);
@@ -880,7 +863,7 @@ extern oal_uint32  dmac_alg_unregister_rx_mgmt_notify_func(dmac_alg_rx_mgmt_noti
 extern oal_uint32  dmac_alg_unregister_txbf_rx_cntl_notify_func(oal_void);
 
 
-/***************** 注册数据结构接口 ******************** */
+/***************** ???????????????? ******************** */
 extern oal_uint32  dmac_alg_register_device_priv_stru(mac_device_stru                 *pst_mac_dev,
                                                    dmac_alg_device_stru_id_enum_uint8    en_dev_stru_type,
                                                    oal_void                        *p_dev_stru);
@@ -895,7 +878,7 @@ extern oal_uint32  dmac_alg_register_tid_priv_stru(mac_user_stru              *p
                                              dmac_alg_tid_stru_id_enum_uint8   en_tid_stru_type,
                                              oal_void                    *p_tid_stru);
 
-/***************** 注销数据结构接口 ****************** */
+/***************** ???????????????? ****************** */
 extern oal_uint32  dmac_alg_unregister_device_priv_stru(mac_device_stru                 *pst_mac_dev,
                                                             dmac_alg_device_stru_id_enum_uint8    en_dev_stru_type);
 extern oal_uint32  dmac_alg_unregister_vap_priv_stru(mac_vap_stru                 *pst_vap,
@@ -906,7 +889,7 @@ extern oal_uint32  dmac_alg_unregister_tid_priv_stru(mac_user_stru              
                                                        oal_uint8                    uc_tid_no,
                                                        dmac_alg_tid_stru_id_enum_uint8   en_tid_stru_type);
 
-/***************** 获取数据结构接口 ****************** */
+/***************** ???????????????? ****************** */
 extern oal_uint32  dmac_alg_get_device_priv_stru(mac_device_stru                 *pst_mac_dev,
                                              dmac_alg_device_stru_id_enum_uint8    en_dev_stru_type,
                                              oal_void                        **pp_dev_stru);
@@ -929,7 +912,7 @@ extern oal_uint32   dmac_alg_set_hal_queue_ppdu_num(oal_uint16 us_assoc_id,
                                             oal_uint8 puc_ppdu_num);
 #endif
 
-/******************DMAC其他API接口*********************/
+/******************DMAC????API????*********************/
 extern oal_bool_enum_uint8  dmac_vap_is_host(mac_vap_stru *pst_vap);
 #if 0
 extern oal_uint8  dmac_vap_get_default_ant(mac_vap_stru *pst_vap);
@@ -1067,7 +1050,7 @@ extern oal_uint32  dmac_alg_delete_ba_fail_notify(mac_user_stru *pst_mac_user);
 
 
 #ifdef _PRE_WLAN_FEATURE_EDCA_OPT_AP
-/* 抗干扰:EDCA优化统计信息事件回调函数 */
+/* ??????:EDCA???????????????????????? */
 typedef oal_uint32  (*p_alg_edca_stat_event_notify_func)(oal_uint8 uc_device_id, oal_uint8 uc_vap_id, oal_uint8 (*ppuc_traffic_num)[ALG_TXRX_DATA_BUTT]);
 extern oal_uint32  dmac_alg_register_edca_stat_event_notify(p_alg_edca_stat_event_notify_func p_func);
 extern oal_uint32  dmac_alg_unregister_edca_stat_event_notify(oal_void);

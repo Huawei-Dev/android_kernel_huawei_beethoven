@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_NET_H__
 #define __OAL_NET_H__
 
@@ -7,6 +9,10 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "platform_spec.h"
 #include "oal_types.h"
 #include "oal_mm.h"
@@ -14,15 +20,17 @@ extern "C" {
 #include "oal_schedule.h"
 #include "oal_list.h"
 #include "arch/oal_net.h"
-
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 #define OAL_IF_NAME_SIZE   16
-#define OAL_NETBUF_DEFAULT_DATA_OFFSET 48
+#define OAL_NETBUF_DEFAULT_DATA_OFFSET 48  /* 5115??????????data??head??48??????netbuf data???????? */
 
-#define OAL_ASSOC_REQ_IE_OFFSET        28
-#define OAL_ASSOC_RSP_IE_OFFSET        30
+#define OAL_ASSOC_REQ_IE_OFFSET        28    /* ???????????????????????? */
+#define OAL_ASSOC_RSP_IE_OFFSET        30    /* ???????????????????????? */
 #define OAL_AUTH_IE_OFFSET             30
 #define OAL_FT_ACTION_IE_OFFSET        40
-#define OAL_ASSOC_RSP_FIXED_OFFSET     6
+#define OAL_ASSOC_RSP_FIXED_OFFSET     6     /* ??????????????FIXED PARAMETERS?????? */
 #define OAL_MAC_ADDR_LEN               6
 #define OAL_PMKID_LEN                  16
 #define OAL_WPA_KEY_LEN                32
@@ -37,18 +45,30 @@ extern "C" {
 #define OAL_BYTE_ORDER OAL_BIG_ENDIAN
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) && defined (_PRE_WLAN_FEATURE_DFR)
+/* NETLINK_WIFI_DFR_HISI(27) ?? NETLINK_WIFI_SDT_HISI(28) ??????4.1&4.4?????????????? */
 #ifdef NETLINK_WIFI_DFR_HISI
 #define NETLINK_DEV_ERROR NETLINK_WIFI_DFR_HISI
 #else
 #define NETLINK_DEV_ERROR 27
 #endif
 #endif
+/*****************************************************************************
+  2.10 IP??????
+*****************************************************************************/
 
 #define WLAN_DSCP_PRI_SHIFT         2
 #define WLAN_IP_PRI_SHIFT           5
 #define WLAN_IPV6_PRIORITY_MASK     0x0FF00000
 #define WLAN_IPV6_PRIORITY_SHIFT    20
 
+/*****************************************************************************
+  2.11 VLAN??????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  2.12 LLC SNAP??????
+*****************************************************************************/
 #define LLC_UI                  0x3
 #define SNAP_LLC_FRAME_LEN      8
 #define SNAP_LLC_LSAP           0xaa
@@ -59,6 +79,9 @@ extern "C" {
 #define SNAP_BTEP_ORGCODE_1     0x00
 #define SNAP_BTEP_ORGCODE_2     0xf8
 
+/*****************************************************************************
+  2.13 ETHER??????
+*****************************************************************************/
 #define ETHER_ADDR_LEN  6   /* length of an Ethernet address */
 #define ETHER_TYPE_LEN  2   /* length of the Ethernet type field */
 #define ETHER_CRC_LEN   4   /* length of the Ethernet CRC */
@@ -93,11 +116,15 @@ OAL_STATIC OAL_INLINE oal_uint8 a2x(const char c)
             mac[i] = (oal_uint8)(a2x(str[i*3]) << 4) + a2x(str[i*3 + 1]);\
         }\
     } while(0)
+/* #endif */
 
+/* ip?????????????????????? */
 #define IP_PROTOCOL_TYPE_OFFSET  9
 #define IP_HDR_LEN               20
 
+/* CCMP?????????? */
 #define WLAN_CCMP_ENCRYP_LEN 16
+
 
 /* is address mcast? */
 #define ETHER_IS_MULTICAST(_a)   (*(_a) & 0x01)
@@ -132,17 +159,25 @@ OAL_STATIC OAL_INLINE oal_uint8 a2x(const char c)
 #define OAL_IPV6_ADDR_MULTICAST             0x0002U
 #define OAL_IPV6_MAC_ADDR_LEN               16
 
+
 #define OAL_IPV4_ADDR_SIZE                    4
 #define OAL_IPV6_ADDR_SIZE                    16
 #define OAL_IP_ADDR_MAX_SIZE                  OAL_IPV6_ADDR_SIZE
 
+
+/* IPv4????????: 224.0.0.0--239.255.255.255 */
 #define OAL_IPV4_IS_MULTICAST(_a)             ((oal_uint8)((_a)[0]) >= 224 && ((oal_uint8)((_a)[0]) <= 239))
 
+/* IPv4??????????????: 224.0.0.0??224.0.0.255???????????? */
 #define OAL_IPV4_PERMANET_GROUP_ADDR           0x000000E0
 #define OAL_IPV4_IS_PERMANENT_GROUP(_a)       ((((_a) & 0x00FFFFFF) ^ OAL_IPV4_PERMANET_GROUP_ADDR) == 0)
 
+/* IPv6????????: FFXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX(??????????????) */
 #define OAL_IPV6_IS_MULTICAST(_a)             ((oal_uint8)((_a)[0]) == 0xff)
 
+
+/* IPv6??????????: ::/128 ,????????????????????????????IPv6????????????????
+   ??????????????,??????????????????DAD????????. */
 #define OAL_IPV6_IS_UNSPECIFIED_ADDR(_a)   \
      ((_a)[0]  == 0x00 &&          \
       (_a)[1]  == 0x00 &&          \
@@ -161,16 +196,32 @@ OAL_STATIC OAL_INLINE oal_uint8 a2x(const char c)
       (_a)[14] == 0x00 &&          \
       (_a)[15] == 0x00)
 
+
+/* IPv6????????????: ????10??????1111111010, ????:FE80:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX  */
 #define OAL_IPV6_IS_LINK_LOCAL_ADDR(_a)       (((_a)[0] == 0xFE) && ((_a)[1] >> 6 == 2))
 
+
+
+
+ /*****************************************************************************
+   ??????  : oal_mem_state_enum_uint8
+   ????????:
+   ????????: ??????????
+ *****************************************************************************/
 typedef enum
 {
-    OAL_MEM_STATE_FREE  = 0,
-    OAL_MEM_STATE_ALLOC,
+    OAL_MEM_STATE_FREE  = 0,            /* ?????????? */
+    OAL_MEM_STATE_ALLOC,                /* ???????????? */
+
     OAL_MEM_STATE_BUTT
 }oal_mem_state_enum;
 typedef oal_uint8 oal_mem_state_enum_uint8;
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+/* ?????????????????? */
+/* ?????????????????? */
 typedef enum
 {
     OAL_PASSIVE_SCAN        = 0,
@@ -180,6 +231,7 @@ typedef enum
 }oal_scan_enum;
 typedef oal_uint8 oal_scan_enum_uint8;
 
+/* ?????????????????? */
 typedef enum
 {
     OAL_SCAN_2G_BAND        = 1,
@@ -190,24 +242,30 @@ typedef enum
 }oal_scan_band_enum;
 typedef oal_uint8 oal_scan_band_enum_uint8;
 
+/* hostapd ???????????? */
 enum HWIFI_IOCTL_CMD
 {
-    HWIFI_IOCTL_CMD_GET_STA_ASSOC_REQ_IE = 0x8EE0,
-    HWIFI_IOCTL_CMD_SET_AP_AUTH_ALG,
-    HWIFI_IOCTL_CMD_SET_COUNTRY,
-    HWIFI_IOCTL_CMD_SET_SSID,
-    HWIFI_IOCTL_CMD_SET_MAX_USER,
-    HWIFI_IOCTL_CMD_SET_FREQ,
-    HWIFI_IOCTL_CMD_SET_WPS_IE,
-    HWIFI_IOCTL_CMD_PRIV_CONNECT,
-    HWIFI_IOCTL_CMD_PRIV_DISCONNECT,
-    HWIFI_IOCTL_CMD_SET_FRAG,
-    HWIFI_IOCTL_CMD_SET_RTS,
+    /*
+     *IOCTL_CMD??????????0??????0x8EE0????????????51 WiFi????????????dhdutil????????????????????????ioctl??????
+     *??51??????????????0????????????????????ioctl????????????0????????????????????????????????????????????????WiFi??????
+     *??????WiFi??????????????????????????51 WiFi??????????????????????0x8EE0????????????????????????????????
+     */
+    HWIFI_IOCTL_CMD_GET_STA_ASSOC_REQ_IE = 0x8EE0,       /* get sta assocate request ie */
+    HWIFI_IOCTL_CMD_SET_AP_AUTH_ALG,            /* set auth alg to driver */
+    HWIFI_IOCTL_CMD_SET_COUNTRY,                /* ?????????? */
+    HWIFI_IOCTL_CMD_SET_SSID,                   /* ????ssid */
+    HWIFI_IOCTL_CMD_SET_MAX_USER,               /* ?????????????? */
+    HWIFI_IOCTL_CMD_SET_FREQ,                   /* ???????? */
+    HWIFI_IOCTL_CMD_SET_WPS_IE,                 /* ????AP WPS ???????? */
+    HWIFI_IOCTL_CMD_PRIV_CONNECT,               /* linux-2.6.30 sta????connect */
+    HWIFI_IOCTL_CMD_PRIV_DISCONNECT,            /* linux-2.6.30 sta????disconnect */
+    HWIFI_IOCTL_CMD_SET_FRAG,                   /* ?????????????? */
+    HWIFI_IOCTL_CMD_SET_RTS,                    /* ????RTS ?????? */
 #ifdef _PRE_WLAN_FEATURE_HILINK
-    HWIFI_IOCTL_CMD_PRIV_KICK_USER,
-    HWIFI_IOCTL_CMD_SET_OKC_IE,
-    HWIFI_IOCTL_CMD_START_FBT_SCAN,
-    HWIFI_IOCTL_CMD_GET_ALL_STA_INFO,
+    HWIFI_IOCTL_CMD_PRIV_KICK_USER,             /* AP???????? */
+    HWIFI_IOCTL_CMD_SET_OKC_IE,                 /* AP ????hilink???? */
+    HWIFI_IOCTL_CMD_START_FBT_SCAN,             /* ????hilink fbt????*/
+    HWIFI_IOCTL_CMD_GET_ALL_STA_INFO,           /* ??????????????STA???????? */
 #endif
     HWIFI_IOCTL_CMD_NUM
 };
@@ -245,12 +303,36 @@ typedef enum _wlan_net_queue_type_
     WLAN_NET_QUEUE_BUTT
 } wlan_net_queue_type;
 
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+
+/* net_device ioctl?????????? */
+/* hostapd/wpa_supplicant ?????????????????? */
+/* ??????????????????????????????hostapd/wpa_supplicant??????ie ???? */
+/* ????: ????????????????????????????????????????????????????????????????????app ???????? */
 struct oal_app_ie
 {
     oal_uint32              ul_ie_len;
     en_app_ie_type_uint8    en_app_ie_type;
     oal_uint8               auc_rsv[3];
-     oal_uint8               auc_ie[WLAN_WPS_IE_MAX_SIZE];
+    /* auc_ie ???????????????????? = (?????????????? - ????????) */
+    oal_uint8               auc_ie[WLAN_WPS_IE_MAX_SIZE];
 };
 typedef struct oal_app_ie oal_app_ie_stru;
 
@@ -306,6 +388,8 @@ typedef struct
     oal_uint16 check;
 }oal_udp_header_stru;
 
+
+/* WIN32??linux??????????  */
 typedef struct
 {
     oal_uint8 uc_type;
@@ -332,6 +416,7 @@ typedef struct
     oal_uint8           options[4];  /* variable-length options field */
 }oal_dhcp_packet_stru;
 
+/* ?????????????????? */
 typedef struct
 {
     oal_uint8   auc_ssid[OAL_IEEE80211_MAX_SSID_LEN];       /* ssid array */
@@ -365,19 +450,19 @@ struct hostap_all_sta_link_info{
 };
 typedef struct hostap_sta_link_info oal_net_sta_link_info_stru;
 #endif
-
+/* net_device ioctl?????????? */
 typedef struct oal_net_dev_ioctl_data_tag
 {
-    oal_int32 l_cmd;
+    oal_int32 l_cmd;                                  /* ?????? */
     union
     {
         struct
         {
             oal_uint8    auc_mac[OAL_MAC_ADDR_LEN];
             oal_uint8    auc_rsv[2];
-            oal_uint32   ul_buf_size;
-            oal_uint8   *puc_buf;
-        }assoc_req_ie;
+            oal_uint32   ul_buf_size;            /* ????????ie ???????? */
+            oal_uint8   *puc_buf;               /* ????????ie ???????? */
+        }assoc_req_ie;                          /* AP ??????????????STA ????????ie ???? */
 
         struct
         {
@@ -408,27 +493,27 @@ typedef struct oal_net_dev_ioctl_data_tag
 
         struct
         {
-            oal_int32                           l_freq;
-            oal_uint32                          ssid_len;
+            oal_int32                           l_freq;              /* ap????????????linux-2.6.34?????????????? */
+            oal_uint32                          ssid_len;            /* SSID ???? */
             oal_uint32                          ie_len;
 
             oal_uint8                          *puc_ie;
-            OAL_CONST oal_uint8                *puc_ssid;
-            OAL_CONST oal_uint8                *puc_bssid;
+            OAL_CONST oal_uint8                *puc_ssid;               /* ??????????AP SSID  */
+            OAL_CONST oal_uint8                *puc_bssid;              /* ??????????AP BSSID  */
 
-            oal_uint8                           en_privacy;
-            oal_nl80211_auth_type_enum_uint8    en_auth_type;
+            oal_uint8                           en_privacy;             /* ???????????? */
+            oal_nl80211_auth_type_enum_uint8    en_auth_type;           /* ??????????OPEN or SHARE-KEY */
 
-            oal_uint8                           uc_wep_key_len;
-            oal_uint8                           uc_wep_key_index;
-            OAL_CONST oal_uint8                *puc_wep_key;
+            oal_uint8                           uc_wep_key_len;         /* WEP KEY???? */
+            oal_uint8                           uc_wep_key_index;       /* WEP KEY???? */
+            OAL_CONST oal_uint8                *puc_wep_key;            /* WEP KEY???? */
 
-            oal_cfg80211_crypto_settings_stru   st_crypto;
+            oal_cfg80211_crypto_settings_stru   st_crypto;              /* ???????????? */
         }cfg80211_connect_params;
         struct
         {
             oal_uint8            auc_mac[OAL_MAC_ADDR_LEN];
-            oal_uint16           us_reason_code;
+            oal_uint16           us_reason_code;                        /* ?????? reason code */
         }kick_user_params;
 #ifdef _PRE_WLAN_FEATURE_HILINK
         struct hostap_all_sta_link_info all_sta_link_info;
@@ -436,26 +521,38 @@ typedef struct oal_net_dev_ioctl_data_tag
         struct
         {
             oal_uint8               auc_mac[OAL_MAC_ADDR_LEN];
-            oal_uint16              us_reason_code;
-            oal_uint8               uc_rej_user;
-            oal_uint8               uc_kick_user;
+            oal_uint16              us_reason_code;                        /* ?????? reason code */
+            oal_uint8               uc_rej_user;                           /* ????sta?????????? */
+            oal_uint8               uc_kick_user;                          /* ????:????/???????? */
             oal_uint8               auc_rsv[2];
         }fbt_kick_user_params;
 
         struct
         {
-            oal_uint8       mac[OAL_MAC_ADDR_LEN];
-            oal_uint32      ul_channel;
-            oal_uint32      ul_interval;
-            oal_uint8       en_is_on;
+            oal_uint8       mac[OAL_MAC_ADDR_LEN];                  /* ??????????sta??mac???? */
+            oal_uint32      ul_channel;                                /* ???????????????? */
+            oal_uint32      ul_interval;                               /* ???????????? */
+            oal_uint8       en_is_on;                                  /* ???????????? */
         }fbt_scan_params;
 #endif
 
-        oal_int32                l_frag;
-        oal_int32                l_rts;
+        oal_int32                l_frag;                                /* ?????????? */
+        oal_int32                l_rts;                                 /* RTS ?????? */
     }pri_data;
 }oal_net_dev_ioctl_data_stru;
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
 
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 extern oal_bool_enum_uint8 oal_netbuf_is_dhcp_port(oal_udp_header_stru *pst_udp_hdr);
 extern oal_bool_enum_uint8 oal_netbuf_is_nd(oal_ipv6hdr_stru  *pst_ipv6hdr);
 extern oal_bool_enum_uint8 oal_netbuf_is_dhcp6(oal_ipv6hdr_stru  *pst_ether_hdr);
@@ -477,6 +574,8 @@ extern oal_int32 dev_netlink_send (oal_uint8 *data, oal_int data_len);
 extern oal_int32 init_dev_excp_handler(oal_void);
 extern oal_void deinit_dev_excp_handler(oal_void);
 extern oal_int genl_msg_send_to_user(oal_void *data, oal_int i_len);
+
+
 
 #ifdef __cplusplus
     #if __cplusplus

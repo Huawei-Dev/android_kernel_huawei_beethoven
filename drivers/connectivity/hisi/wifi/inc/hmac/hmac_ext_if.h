@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_ext_if.h
-  版 本 号   : 初稿
-  作    者   : 康国昌
-  生成日期   : 2012年9月20日
-  最近修改   :
-  功能描述   : hmac对外公共接口头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月20日
-    作    者   : 康国昌
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __HMAC_EXT_IF_H__
 #define __HMAC_EXT_IF_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "frw_ext_if.h"
@@ -44,31 +27,31 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_EXT_IF_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define HMAC_RSP_MSG_MAX_LEN  64   /* get wid返回消息最大长度 */
+#define HMAC_RSP_MSG_MAX_LEN  64   /* get wid???????????????? */
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
-/* 返回值类型定义 */
+/* ?????????????? */
 typedef enum
 {
-    HMAC_TX_PASS = 0,     /* 继续往下 */
-    HMAC_TX_BUFF = 1,     /* 已被缓存 */
-    HMAC_TX_DONE = 2,     /* 组播转成单播已发送 */
+    HMAC_TX_PASS = 0,     /* ???????? */
+    HMAC_TX_BUFF = 1,     /* ???????? */
+    HMAC_TX_DONE = 2,     /* ?????????????????? */
 
-    HMAC_TX_DROP_PROXY_ARP    = 3, /* PROXY ARP检查后丢弃*/
-    HMAC_TX_DROP_USER_UNKNOWN,     /* 未知user*/
-    HMAC_TX_DROP_USER_NULL,        /* user结构体为NULL*/
-    HMAC_TX_DROP_USER_INACTIVE,    /* 目的user未关联*/
-    HMAC_TX_DROP_SECURITY_FILTER,  /* 安全检查过滤掉*/
-    HMAC_TX_DROP_BA_SETUP_FAIL,    /* BA会话创建失败*/
-    HMAC_TX_DROP_AMSDU_ENCAP_FAIL, /* amsdu封装失败*/
-    HMAC_TX_DROP_MUSER_NULL,       /*组播user为NULL */
-    HMAC_TX_DROP_MTOU_FAIL,        /* 组播转单播失败*/
-    HMAC_TX_DROP_80211_ENCAP_FAIL, /* 802.11 head封装失败*/
+    HMAC_TX_DROP_PROXY_ARP    = 3, /* PROXY ARP??????????*/
+    HMAC_TX_DROP_USER_UNKNOWN,     /* ????user*/
+    HMAC_TX_DROP_USER_NULL,        /* user????????NULL*/
+    HMAC_TX_DROP_USER_INACTIVE,    /* ????user??????*/
+    HMAC_TX_DROP_SECURITY_FILTER,  /* ??????????????*/
+    HMAC_TX_DROP_BA_SETUP_FAIL,    /* BA????????????*/
+    HMAC_TX_DROP_AMSDU_ENCAP_FAIL, /* amsdu????????*/
+    HMAC_TX_DROP_MUSER_NULL,       /*????user??NULL */
+    HMAC_TX_DROP_MTOU_FAIL,        /* ??????????????*/
+    HMAC_TX_DROP_80211_ENCAP_FAIL, /* 802.11 head????????*/
 
     HMAC_TX_BUTT
 }hmac_tx_return_type_enum;
@@ -76,38 +59,38 @@ typedef oal_uint8 hmac_tx_return_type_enum_uint8;
 
 
 /*****************************************************************************
-  枚举名  : hmac_host_ctx_event_sub_type_enum_uint8
-  协议表格:
-  枚举说明: HOST CTX事件子类型定义
+  ??????  : hmac_host_ctx_event_sub_type_enum_uint8
+  ????????:
+  ????????: HOST CTX??????????????
 *****************************************************************************/
 typedef enum
 {
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_SCAN_COMP_STA= 0,      /* STA　扫描完成子类型 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_ASOC_COMP_STA,         /* STA 关联完成子类型 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_DISASOC_COMP_STA,      /* STA 上报去关联完成 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_STA_CONNECT_AP,        /* AP 上报新加入BSS的STA情况 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_STA_DISCONNECT_AP,      /* AP 上报离开BSS的STA情况 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_MIC_FAILURE,           /* 上报MIC攻击*/
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_ACS_RESPONSE,          /* 上报ACS命令执行结果 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_RX_MGMT,               /* 上报接收到的管理帧 */
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_LISTEN_EXPIRED,        /* 上报监听超时 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_SCAN_COMP_STA= 0,      /* STA???????????????? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_ASOC_COMP_STA,         /* STA ?????????????? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_DISASOC_COMP_STA,      /* STA ?????????????? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_STA_CONNECT_AP,        /* AP ??????????BSS??STA???? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_STA_DISCONNECT_AP,      /* AP ????????BSS??STA???? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_MIC_FAILURE,           /* ????MIC????*/
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_ACS_RESPONSE,          /* ????ACS???????????? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_RX_MGMT,               /* ?????????????????? */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_LISTEN_EXPIRED,        /* ???????????? */
 #ifdef _PRE_WLAN_FEATURE_FLOWCTL
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_FLOWCTL_BACKP,         /* 上报流控反压消息 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_FLOWCTL_BACKP,         /* ???????????????? */
 #endif
     HMAC_HOST_CTX_EVENT_SUB_TYPE_INIT,
     HMAC_HOST_CTX_EVENT_SUB_TYPE_MGMT_TX_STATUS,
 #ifdef _PRE_WLAN_FEATURE_ROAM
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_ROAM_COMP_STA,         /* STA 漫游完成子类型 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_ROAM_COMP_STA,         /* STA ?????????????? */
 #endif  //_PRE_WLAN_FEATURE_ROAM
 #ifdef _PRE_WLAN_FEATURE_11R
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_FT_EVENT_STA,         /* STA 漫游完成子类型 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_FT_EVENT_STA,         /* STA ?????????????? */
 #endif //_PRE_WLAN_FEATURE_11R
 
 #ifdef _PRE_WLAN_FEATURE_DFR
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_DEV_ERROR,         /* device异常处理流程 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_DEV_ERROR,         /* device???????????? */
 #endif //_PRE_WLAN_FEATURE_DFR
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-    HMAC_HOST_CTX_EVENT_SUB_TYPE_VOWIFI_REPORT,    /* 上报vowifi质量评估结果的切换请求 */
+    HMAC_HOST_CTX_EVENT_SUB_TYPE_VOWIFI_REPORT,    /* ????vowifi?????????????????????? */
 #endif /* _PRE_WLAN_FEATURE_VOWIFI */
     HMAC_HOST_CTX_EVENT_SUB_TYPE_BUTT
 }hmac_host_ctx_event_sub_type_enum;
@@ -115,53 +98,53 @@ typedef oal_uint8 hmac_host_ctx_event_sub_type_enum_uint8;
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  5 消息头定义
-*****************************************************************************/
-
-
-/*****************************************************************************
-  6 消息定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_DFR
-/* dfr相关功能信息 */
+/* dfr???????????? */
 typedef struct
 {
     oal_uint32            *past_netdev[WLAN_VAP_MAX_NUM_PER_DEVICE_LIMIT+1];
     oal_uint32             ul_netdev_num;
-    oal_uint32             bit_hw_reset_enable              : 1,        /* 硬件不去关联复位开关 */
-                           bit_device_reset_enable          : 1,        /* device挂死异常恢复开关 */
-                           bit_soft_watchdog_enable         : 1,        /* 软狗功能开关 */
-                           bit_device_reset_process_flag    : 1,        /* device挂死异常复位操作启动 */
+    oal_uint32             bit_hw_reset_enable              : 1,        /* ???????????????????? */
+                           bit_device_reset_enable          : 1,        /* device???????????????? */
+                           bit_soft_watchdog_enable         : 1,        /* ???????????? */
+                           bit_device_reset_process_flag    : 1,        /* device???????????????????? */
 
                            bit_ready_to_recovery_flag  : 1,
-                           bit_user_disconnect_flag    : 1,            /* device挂死异常，需要在dfr恢复后告诉对端去关联的状态 */
+                           bit_user_disconnect_flag    : 1,            /* device????????????????dfr?????????????????????????? */
                            bit_resv                    : 26;
-    oal_uint32             ul_excp_type;       /* 异常类型 */
-    oal_completion         st_plat_process_comp;           /* 用来检测device异常恢复过程中平台工作是否完成的信号量 */
+    oal_uint32             ul_excp_type;       /* ???????? */
+    oal_completion         st_plat_process_comp;           /* ????????device?????????????????????????????????????? */
 
 }hmac_dfr_info_stru;
 #endif //_PRE_WLAN_FEATURE_DFR
 
 typedef struct
 {
-    oal_netbuf_head_stru            st_msdu_head;         /* msdu链表头 */
+    oal_netbuf_head_stru            st_msdu_head;         /* msdu?????? */
     frw_timeout_stru                st_amsdu_timer;
     oal_spin_lock_stru              st_amsdu_lock;        /* amsdu task lock */
 
     oal_uint8                       uc_msdu_num;          /* Number of sub-MSDUs accumulated */
-    oal_uint8                       uc_last_pad_len;      /* 最后一个msdu的pad长度 */
+    oal_uint8                       uc_last_pad_len;      /* ????????msdu??pad???? */
     oal_uint8                       uc_amsdu_maxnum;
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
-    oal_uint8                       uc_short_pkt_num;     /* 短包计数   */
+    oal_uint8                       uc_short_pkt_num;     /* ????????   */
 #else
     oal_uint8                       auc_reserve[1];
 #endif
@@ -173,31 +156,31 @@ typedef struct
     oal_uint8                       auc_eth_sa[WLAN_MAC_ADDR_LEN];
 }hmac_amsdu_stru;
 
-/* hmac配置私有结构 */
+/* hmac???????????? */
 typedef struct
 {
-    oal_wait_queue_head_stru  st_wait_queue_for_sdt_reg;            /* 用于wal_config层线程等待(wal_config-->hmac),给SDT下发读寄存器命令时用 */
+    oal_wait_queue_head_stru  st_wait_queue_for_sdt_reg;            /* ????wal_config??????????(wal_config-->hmac),??SDT???????????????????? */
     oal_bool_enum_uint8       en_wait_ack_for_sdt_reg;
     oal_uint8                 auc_resv2[3];
-    oal_int8                  ac_rsp_msg[HMAC_RSP_MSG_MAX_LEN];     /* get wid返回消息内存空间 */
+    oal_int8                  ac_rsp_msg[HMAC_RSP_MSG_MAX_LEN];     /* get wid???????????????? */
     oal_uint32                dog_tag;
 
 }hmac_vap_cfg_priv_stru;
 
-/* WAL抛事件给HMAC时的事件PAYLOAD结构体 */
+/* WAL????????HMAC????????PAYLOAD?????? */
 typedef struct
 {
-    oal_netbuf_stru        *pst_netbuf;         /* netbuf链表一个元素 */
+    oal_netbuf_stru        *pst_netbuf;         /* netbuf???????????? */
     mac_vap_stru           *pst_vap;
 }hmac_tx_event_stru;
 
-/* HMAC抛去关联完成事件结构体 */
+/* HMAC?????????????????????? */
 typedef struct
 {
     oal_uint8              *puc_msg;
 }hmac_disasoc_comp_event_stru;
 
-/* 扫描结果 */
+/* ???????? */
 typedef struct
 {
     oal_uint8     uc_num_dscr;
@@ -217,12 +200,12 @@ typedef enum
 }hmac_mgmt_status_enum;
 typedef oal_uint8   hmac_mgmt_status_enum_uint8;
 
-/* 关联结果 */
+/* ???????? */
 typedef struct
 {
-    hmac_mgmt_status_enum_uint8  en_result_code;         /* 关联成功,超时等 */
+    hmac_mgmt_status_enum_uint8  en_result_code;         /* ????????,?????? */
     oal_uint8                    auc_resv1[1];
-    mac_status_code_enum_uint16  en_status_code;         /* ieee协议规定的16位状态码  */
+    mac_status_code_enum_uint16  en_status_code;         /* ieee??????????16????????  */
 
     oal_uint8                    auc_addr_ap[WLAN_MAC_ADDR_LEN];
     oal_uint8                    auc_resv2[2];
@@ -233,7 +216,7 @@ typedef struct
     oal_uint8                    *puc_asoc_req_ie_buff;
     oal_uint8                    *puc_asoc_rsp_ie_buff;
 }hmac_asoc_rsp_stru;
-/* 漫游结果 */
+/* ???????? */
 typedef struct
 {
     oal_uint8                    auc_bssid[WLAN_MAC_ADDR_LEN];
@@ -255,7 +238,7 @@ typedef struct
 
 #endif //_PRE_WLAN_FEATURE_11R
 
-/*mic攻击*/
+/*mic????*/
 typedef struct
 {
     oal_uint8                  auc_user_mac[WLAN_MAC_ADDR_LEN];
@@ -264,18 +247,18 @@ typedef struct
     oal_int32                  l_key_id;
 }hmac_mic_event_stru;
 
-/* 上报接收到管理帧事件的数据结构 */
+/* ?????????????????????????????? */
 typedef struct
 {
     oal_uint8                  *puc_buf;
     oal_uint16                  us_len;
-    oal_uint8                   uc_rssi;        /* 已经在驱动加上HMAC_FBT_RSSI_ADJUST_VALUE将负值转成正值 */
+    oal_uint8                   uc_rssi;        /* ??????????????HMAC_FBT_RSSI_ADJUST_VALUE?????????????? */
     oal_uint8                   uc_rsv[1];
     oal_int32                   l_freq;
     oal_int8                    ac_name[OAL_IF_NAME_SIZE];
 }hmac_rx_mgmt_event_stru;
 
-/* 上报监听超时数据结构 */
+/* ???????????????????? */
 typedef struct
 {
     oal_ieee80211_channel_stru  st_listen_channel;
@@ -284,7 +267,7 @@ typedef struct
 
 }hmac_p2p_listen_expired_stru;
 
-/* 上报接收到管理帧事件的数据结构 */
+/* ?????????????????????????????? */
 typedef struct
 {
     oal_uint8                   uc_dev_mode;
@@ -294,50 +277,50 @@ typedef struct
     oal_uint32                  ul_val;
 }hmac_cfg_rx_filter_stru;
 
-/* 和device侧的mac_tx_ctl归一使用一份移到dmac_ext_if.h */
+/* ??device????mac_tx_ctl????????????????dmac_ext_if.h */
 #if 1
 struct  mac_tx_ctl_cut
 {
-    /* 该成员只在第一个netbuf中有效 */
-    oal_uint8                               bit_mpdu_num                :7;          /* ampdu中包含的MPDU个数,实际描述符填写的值为此值-1 */
-    /* 在每个MPDU的第一个NETBUF中有效 */
-    oal_uint8                               bit_netbuf_num              :1;          /* 每个MPDU占用的netbuf数目 */
+    /* ????????????????netbuf?????? */
+    oal_uint8                               bit_mpdu_num                :7;          /* ampdu????????MPDU????,????????????????????????-1 */
+    /* ??????MPDU????????NETBUF?????? */
+    oal_uint8                               bit_netbuf_num              :1;          /* ????MPDU??????netbuf???? */
 
-    oal_uint8                               bit_frame_header_length     :6;          //51四地址32 /* 该MPDU的802.11头长度 */
-    oal_uint8                               en_is_first_msdu            :1;          /* 是否是第一个子帧，OAL_FALSE不是 OAL_TRUE是 */
-    oal_uint8                               en_is_amsdu                 :1;          /* 是否AMSDU: OAL_FALSE不是，OAL_TRUE是 */
+    oal_uint8                               bit_frame_header_length     :6;          //51??????32 /* ??MPDU??802.11?????? */
+    oal_uint8                               en_is_first_msdu            :1;          /* ??????????????????OAL_FALSE???? OAL_TRUE?? */
+    oal_uint8                               en_is_amsdu                 :1;          /* ????AMSDU: OAL_FALSE??????OAL_TRUE?? */
 
-    frw_event_type_enum_uint8               bit_en_event_type           :6;          /* 取值:FRW_EVENT_TYPE_WLAN_DTX和FRW_EVENT_TYPE_HOST_DRX，作用:在释放时区分是内存池的netbuf还是原生态的 */
+    frw_event_type_enum_uint8               bit_en_event_type           :6;          /* ????:FRW_EVENT_TYPE_WLAN_DTX??FRW_EVENT_TYPE_HOST_DRX??????:??????????????????????netbuf???????????? */
     oal_uint8                               bit_is_needretry            :1;
-    oal_uint8                               bit_is_vipframe             :1;          /* 该帧是否是EAPOL帧、DHCP帧 */
+    oal_uint8                               bit_is_vipframe             :1;          /* ??????????EAPOL????DHCP?? */
 
 
-    oal_uint8                               bit_tx_user_idx             :4;          /* dmac tx 到 tx complete 传递的user结构体，目标用户地址 */
-    oal_uint8          						en_is_probe_data            :3;          /* 是否探测帧 */
-    oal_uint8                               en_ismcast                  :1;          /* 该MPDU是单播还是多播:OAL_FALSE单播，OAL_TRUE多播 */
+    oal_uint8                               bit_tx_user_idx             :4;          /* dmac tx ?? tx complete ??????user???????????????????? */
+    oal_uint8          						en_is_probe_data            :3;          /* ?????????? */
+    oal_uint8                               en_ismcast                  :1;          /* ??MPDU??????????????:OAL_FALSE??????OAL_TRUE???? */
 
     oal_uint8                               bit_retried_num             :4;
     oal_uint8                               bit_need_rsp                :1;           /* WPAS send mgmt,need dmac response tx status */
-    oal_uint8                               en_is_eapol                 :1;           /* 该帧是否是EAPOL帧 1102可以去掉 */
-    oal_uint8                               en_is_get_from_ps_queue     :1;           /* 节能特性用，标识一个MPDU是否从节能队列中取出来的 */
-    oal_uint8                               bit_is_eapol_key_ptk        :1;           /* 4 次握手过程中设置单播密钥EAPOL KEY 帧标识 */
+    oal_uint8                               en_is_eapol                 :1;           /* ??????????EAPOL?? 1102???????? */
+    oal_uint8                               en_is_get_from_ps_queue     :1;           /* ????????????????????MPDU???????????????????????? */
+    oal_uint8                               bit_is_eapol_key_ptk        :1;           /* 4 ????????????????????????EAPOL KEY ?????? */
 
     oal_uint8                               bit_tx_vap_index            :3;
-    oal_uint8                               bit_mgmt_frame_id           :4;            /* wpas 发送管理帧的frame id */
+    oal_uint8                               bit_mgmt_frame_id           :4;            /* wpas ????????????frame id */
     oal_uint8                               bit_roam_data               :1;
 
     wlan_wme_ac_type_enum_uint8             bit_ac                      :3;            /* ac */
-    wlan_tx_ack_policy_enum_uint8           en_ack_policy               :3;            /* ACK 策略 */
+    wlan_tx_ack_policy_enum_uint8           en_ack_policy               :3;            /* ACK ???? */
     oal_uint8                               bit_reserved3               :2;
 
-    oal_uint8                               uc_alg_pktno;                              /* 算法用到的字段，唯一标示该报文 */
+    oal_uint8                               uc_alg_pktno;                              /* ?????????????????????????????? */
 
     oal_uint8                               bit_tid                     :4;
     oal_uint8                               bit_tx_user_idx_bak         :4;
 
-    //oal_time_us_stru                        st_timestamp_us;                           /* 维测使用入TID队列时的时间戳 */
+    //oal_time_us_stru                        st_timestamp_us;                           /* ??????????TID?????????????? */
     oal_uint8                               reserved[8];
-    oal_uint16                              us_mpdu_bytes;                             /* mpdu字节数，维测用，不包括头尾，不包括snap，不包括padding */
+    oal_uint16                              us_mpdu_bytes;                             /* mpdu??????????????????????????????????snap????????padding */
 
 }__OAL_DECLARE_PACKED;
 typedef struct mac_tx_ctl_cut  mac_tx_ctl_cut_stru;
@@ -353,14 +336,14 @@ struct mac_rx_ctl_cut
     oal_uint8                   uc_msdu_in_buffer;
     oal_uint8                   bit_da_user_idx       :4;
     oal_uint8                   bit_ta_user_idx       :4;
-    oal_uint8                   bit_mac_header_len    :6;   /* mac header帧头长度 */
+    oal_uint8                   bit_mac_header_len    :6;   /* mac header???????? */
     oal_uint8                   bit_is_beacon         :1;
     oal_uint8                   bit_reserved1         :1;
     /*word 1*/
-    oal_uint16                  us_frame_len;               /* 帧头与帧体的总长度 */
+    oal_uint16                  us_frame_len;               /* ?????????????????? */
     oal_uint8                   uc_mac_vap_id         :4;
-    oal_uint8                   bit_buff_nums         :4;   /* 每个MPDU占用的buf数 */
-    oal_uint8                   uc_channel_number;          /* 接收帧的信道 */
+    oal_uint8                   bit_buff_nums         :4;   /* ????MPDU??????buf?? */
+    oal_uint8                   uc_channel_number;          /* ???????????? */
 }__OAL_DECLARE_PACKED;
 typedef struct mac_rx_ctl_cut  mac_rx_ctl_cut_stru;
 
@@ -372,19 +355,40 @@ typedef struct
     oal_uint8                          mgmt_frame_id;
 }oal_mgmt_tx_stru;
 
+#ifdef _PRE_WLAN_WAKEUP_SRC_PARSE
+extern   oal_uint8   g_uc_print_data_wakeup;
+extern   oal_void    hmac_parse_packet(oal_netbuf_stru *pst_netbuf_eth);
+
+#define WIFI_WAKESRC_TAG "plat:wifi_wake_src,"
+#define IPADDR(addr) \
+        ((oal_uint8*)&addr)[0], \
+        ((oal_uint8*)&addr)[3]
+
+#define IPADDR6(addr) \
+        ntohs((addr).s6_addr16[0]), \
+        ntohs((addr).s6_addr16[7])
+
+#define IPV6_ADDRESS_SIZEINBYTES 0x10
+
+struct ieee8021x_hdr {
+    oal_uint8 version;
+    oal_uint8 type;
+    oal_uint16 length;
+};
+#endif
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_void  hmac_board_get_instance(mac_board_stru **ppst_hmac_board);
 extern oal_int32  hmac_main_init(oal_void);
@@ -540,7 +544,7 @@ extern oal_uint32  hmac_config_set_freq_skew(mac_vap_stru *pst_mac_vap, oal_uint
 #ifdef _PRE_DEBUG_MODE
 extern oal_uint32  hmac_config_adjust_ppm(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 #endif //#ifdef _PRE_DEBUG_MODE
-extern oal_uint32  hmac_config_pcie_pm_level(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
+extern oal_uint32  hmac_config_rx_filter_frag(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 extern oal_uint32  hmac_config_reg_info(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 extern oal_uint32  hmac_config_dbb_scaling_amend(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 
@@ -944,6 +948,11 @@ oal_uint32 hmac_config_vendor_cmd_get_channel_list(mac_vap_stru *pst_mac_vap, oa
 extern oal_uint32  hmac_config_get_ant_info(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 extern oal_uint32  hmac_config_double_ant_switch(mac_vap_stru *pst_mac_vap, oal_uint16 us_len, oal_uint8 *puc_param);
 #endif
+
+#ifdef _PRE_WLAN_WAKEUP_SRC_PARSE
+extern  oal_void hmac_print_data_wakeup_en(oal_bool_enum_uint8 uc_en);
+#endif
+
 #ifdef __cplusplus
     #if __cplusplus
         }

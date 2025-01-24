@@ -1,22 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_vap.c
-  版 本 号   : 初稿
-  作    者   : huxiaotong
-  生成日期   : 2012年10月19日
-  最近修改   : DMAC不需要destroy的动作，
-               因为destroy是从hmac发起的，分别会调用down和del
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_ext_if.h"
 
@@ -63,7 +45,7 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_VAP_C
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
 oal_uint16 g_us_occupied_point[BTCOEX_LINKLOSS_OCCUPIED_NUMBER];
@@ -73,23 +55,9 @@ oal_uint16 g_us_occupied_point[BTCOEX_LINKLOSS_OCCUPIED_NUMBER];
 extern oal_uint8 g_pm_switch;
 #endif
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_vap_linkloss_init
- 功能描述  :  初始化linkloss检测工具
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月14日
-    作    者   : zhongwen
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_vap_linkloss_init(dmac_vap_stru *pst_dmac_vap)
 {
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
@@ -100,17 +68,17 @@ oal_void dmac_vap_linkloss_init(dmac_vap_stru *pst_dmac_vap)
     dmac_vap_linkloss_clean(pst_dmac_vap);
     if (WLAN_VAP_MODE_BSS_STA != pst_dmac_vap->st_vap_base_info.en_vap_mode)
     {
-        pst_dmac_vap->st_linkloss_info.us_linkloss_threshold  = 0; /* 无效 */
+        pst_dmac_vap->st_linkloss_info.us_linkloss_threshold  = 0; /* ???? */
         return;
     }
 
-    /* 尚未关联，预先设置对端ap的beacon周期为100 */
+    /* ??????????????????????ap??beacon??????100 */
     pst_dmac_vap->st_linkloss_info.ul_old_dot11BeaconPeriod = WLAN_BEACON_INTVAL_DEFAULT;
     pst_dmac_vap->st_linkloss_info.uc_linkloss_times = 1;
     pst_dmac_vap->st_linkloss_info.en_old_bt_on        = OAL_FALSE;
     pst_dmac_vap->st_linkloss_info.en_old_dbac_runing  = OAL_FALSE;
     pst_dmac_vap->st_linkloss_info.en_old_far_distance = OAL_FALSE;
-    /* staut/p2p cl linkloss门限一致 */
+    /* staut/p2p cl linkloss???????? */
     pst_dmac_vap->st_linkloss_info.us_linkloss_threshold  = (oal_uint16)(40); /* 4s */
 
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
@@ -128,21 +96,7 @@ oal_void dmac_vap_linkloss_init(dmac_vap_stru *pst_dmac_vap)
 
 }
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-/*****************************************************************************
- 函 数 名  : dmac_vap_vowifi_init
- 功能描述  : 初始化dmac vowifi的信息
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月19日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void dmac_vap_vowifi_init(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint64  ull_timestamp_ms;
@@ -166,21 +120,7 @@ void dmac_vap_vowifi_init(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->pst_vowifi_status->ull_rssi_timestamp_ms = ull_timestamp_ms;
     pst_dmac_vap->pst_vowifi_status->ull_arp_timestamp_ms  = ull_timestamp_ms;
 }
-/*****************************************************************************
- 函 数 名  : dmac_vap_vowifi_exit
- 功能描述  : 去初始化dmac vowifi的信息
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月19日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void dmac_vap_vowifi_exit(dmac_vap_stru *pst_dmac_vap)
 {
     mac_vowifi_status_stru    *pst_vowifi_status;
@@ -192,28 +132,14 @@ void dmac_vap_vowifi_exit(dmac_vap_stru *pst_dmac_vap)
 
     pst_vowifi_status = pst_dmac_vap->pst_vowifi_status;
 
-    /*先置空再释放*/
+    /*????????????*/
     pst_dmac_vap->pst_vowifi_status = OAL_PTR_NULL;
     OAL_MEM_FREE(pst_vowifi_status, OAL_TRUE);
 
 }
 #endif /* _PRE_WLAN_FEATURE_VOWIFI */
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init
- 功能描述  : 初始化要添加的dmac vap的一些特性信息
- 输入参数  : 指向要添加的vap的指针
- 输出参数  : 无
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月24日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init(
                 dmac_vap_stru              *pst_dmac_vap,
                 oal_uint8                   uc_chip_id,
@@ -231,17 +157,17 @@ oal_uint32  dmac_vap_init(
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* DMAC VAP 部分初始清零 */
+    /* DMAC VAP ???????????? */
     OAL_MEMZERO(((oal_uint8 *)pst_dmac_vap) + OAL_SIZEOF(mac_vap_stru), OAL_SIZEOF(dmac_vap_stru) - OAL_SIZEOF(mac_vap_stru));
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
 
-    /* 统计信息清零 */
+    /* ???????????? */
     oam_stats_clear_vap_stat_info(uc_vap_id);
 #endif
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /* 在非OFFLOAD情况下，这些操作HMAC都已经做过了 */
-    /* 初始化mac vap */
+    /* ????OFFLOAD????????????????HMAC???????????? */
+    /* ??????mac vap */
     ul_ret = mac_vap_init(&pst_dmac_vap->st_vap_base_info,
                            uc_chip_id,
                            uc_device_id,
@@ -268,14 +194,14 @@ oal_uint32  dmac_vap_init(
     pst_dmac_vap->en_multi_user_multi_ac_flag = OAL_FALSE;
     pst_dmac_vap->uc_traffic_type    = OAL_TRAFFIC_NORMAL;
 
-    /* 初始化特性标识中BEACON帧不轮流发送 */
+    /* ????????????????BEACON???????????? */
     pst_dmac_vap->en_beacon_chain_active = OAL_FALSE;
 
-    /* VAP发送通道默认值赋值，按照device下能力赋值 */
+    /* VAP????????????????????????device?????????? */
     pst_dmac_vap->uc_vap_tx_chain = pst_mac_device->uc_tx_chain;
 
-    /* 速率结构体赋初值 */
-    /* 按照PHY给出的初始值 ul_value = 0x00800211 */
+    /* ???????????????? */
+    /* ????PHY???????????? ul_value = 0x00800211 */
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_tx_count = 1;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_stbc_mode = 0;
@@ -288,13 +214,13 @@ oal_uint32  dmac_vap_init(
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.un_nss_rate.st_ht_rate.bit_ht_mcs = 0;
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.un_nss_rate.st_ht_rate.bit_protocol_mode = WLAN_HT_PHY_PROTOCOL_MODE;
 
-    /* 默认是HOST VAP */
+    /* ??????HOST VAP */
     pst_dmac_vap->en_is_host_vap = OAL_TRUE;
 
-    /* 默认天线组合 */
+    /* ???????????? */
     pst_dmac_vap->uc_default_ant_bitmap = 0xFF;
 
-    /* 初始化节能相关参数 */
+    /* ?????????????????? */
     pst_dmac_vap->uc_ps_user_num = 0;
     pst_dmac_vap->uc_dtim_count  = WLAN_DTIM_DEFAULT;
 #ifdef _PRE_WLAN_CHIP_TEST
@@ -311,8 +237,7 @@ oal_uint32  dmac_vap_init(
             pst_dmac_vap->puc_tim_bitmap = OAL_PTR_NULL;
         }
 
-        /* DTS2015050301014,双芯片实现时bitmap_len计算要乘以device(也即是chip)个数  */
-        /* 下述计算tim_bitmap需要的字节数((user_num + 7)>>3表示多少字节的bitmap能表达所有的用户 ) */
+        /* ????????tim_bitmap????????????((user_num + 7)>>3??????????????bitmap???????????????? ) */
         pst_dmac_vap->uc_tim_bitmap_len = (oal_uint8)(2 + ((MAC_RES_MAX_USER_NUM + 7 ) >> 3));
         pst_dmac_vap->puc_tim_bitmap = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, pst_dmac_vap->uc_tim_bitmap_len, OAL_TRUE);
         if (OAL_PTR_NULL == pst_dmac_vap->puc_tim_bitmap)
@@ -349,7 +274,7 @@ oal_uint32  dmac_vap_init(
     OAL_MEMZERO(pst_dmac_vap->pst_rrm_info, OAL_SIZEOF(mac_rrm_info_stru));
     oal_dlist_init_head(&(pst_dmac_vap->pst_rrm_info->st_meas_rpt_list));
 
-    pst_dmac_vap->bit_bcn_table_switch  = OAL_FALSE; //宏打开时默认使能，可修改
+    pst_dmac_vap->bit_bcn_table_switch  = OAL_FALSE; //????????????????????????
     //pst_dmac_vap->bit_voe_enable        = OAL_FALSE;
     pst_dmac_vap->bit_11k_enable        = OAL_FALSE;
     pst_dmac_vap->bit_11v_enable        = OAL_FALSE;
@@ -360,7 +285,7 @@ oal_uint32  dmac_vap_init(
     pst_dmac_vap->bit_11r_enable        = OAL_FALSE;
 #endif
 
-    /* 初始化重排序超时时间 */
+    /* ???????????????????? */
     pst_dmac_vap->us_del_timeout                = DMAC_BA_DELBA_TIMEOUT;
 
 #ifdef _PRE_WLAN_FEATURE_ARP_OFFLOAD
@@ -401,28 +326,14 @@ oal_uint32  dmac_vap_init(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_data_ucast
- 功能描述  : 初始化单播数据帧发送速率参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月7日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_vap_init_tx_data_ucast(dmac_vap_stru *pst_dmac_vap,oal_uint8 uc_protocol_mode, oal_uint8 uc_legacy_rate)
 {
     oal_uint32          ul_data_rate = 0;
 
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].ul_value = 0x0;
 
-    /* 单播数据帧参数 */
+    /* ?????????????? */
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_tx_count           = 3;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_stbc_mode          = 0;
@@ -435,7 +346,7 @@ oal_void dmac_vap_init_tx_data_ucast(dmac_vap_stru *pst_dmac_vap,oal_uint8 uc_pr
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_rts_cts_enable     = 0;
     pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_txbf_mode          = 0;
 
-    /* 11b 1M速率不可以使用短导码 */
+    /* 11b 1M???????????????????? */
     if ((WLAN_11B_PHY_PROTOCOL_MODE == uc_protocol_mode) && (0 == uc_legacy_rate))
     {
         pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_preamble_mode  = 1;
@@ -462,21 +373,7 @@ oal_void dmac_vap_init_tx_data_ucast(dmac_vap_stru *pst_dmac_vap,oal_uint8 uc_pr
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_data_mcast
- 功能描述  : 初始化组播数据帧发送速率参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_vap_init_tx_data_mcast(
                 dmac_vap_stru               *pst_dmac_vap,
                 wlan_protocol_enum_uint8     en_protocol,
@@ -497,7 +394,7 @@ oal_void dmac_vap_init_tx_data_mcast(
                 uc_protocol_mode = WLAN_11B_PHY_PROTOCOL_MODE;
                 uc_legacy_rate   = 0;
 #ifdef _PRE_WLAN_FEATURE_P2P
-                /* P2P 设备不能发送11b 速率的帧 */
+                /* P2P ????????????11b ???????? */
                 uc_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
                 uc_legacy_rate   = 0xB;
 #endif  /* _PRE_WLAN_FEATURE_P2P */
@@ -535,7 +432,7 @@ oal_void dmac_vap_init_tx_data_mcast(
 
     pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].ul_value = 0x0;
 
-    /* 广播数据帧参数 */
+    /* ?????????????? */
     pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].rate_bit_stru.bit_tx_count           = 3;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].rate_bit_stru.bit_stbc_mode          = 0;
@@ -558,7 +455,7 @@ oal_void dmac_vap_init_tx_data_mcast(
     pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].rate_bit_stru.bit_rts_cts_enable     = 0;
     pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].rate_bit_stru.bit_txbf_mode          = 0;
 
-    /* 11b 1M速率不可以使用短导码 */
+    /* 11b 1M???????????????????? */
     if ((WLAN_11B_PHY_PROTOCOL_MODE == uc_protocol_mode) && (0 == uc_legacy_rate))
     {
         pst_dmac_vap->st_tx_data_mcast.ast_per_rate[0].rate_bit_stru.bit_preamble_mode  = 1;
@@ -585,21 +482,7 @@ oal_void dmac_vap_init_tx_data_mcast(
     pst_dmac_vap->st_tx_data_mcast.st_rate.bit_lsig_txop = OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_data_bcast
- 功能描述  : 初始化广播数据帧发送速率参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init_tx_data_bcast(
                 dmac_vap_stru               *pst_dmac_vap,
                 wlan_protocol_enum_uint8     en_protocol,
@@ -620,7 +503,7 @@ oal_uint32  dmac_vap_init_tx_data_bcast(
                 uc_protocol_mode = WLAN_11B_PHY_PROTOCOL_MODE;
                 uc_legacy_rate   = 0;
 #ifdef _PRE_WLAN_FEATURE_P2P
-                /* P2P 设备不能发送11b 速率的帧 */
+                /* P2P ????????????11b ???????? */
                 uc_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
                 uc_legacy_rate   = 0xB;
 #endif  /* _PRE_WLAN_FEATURE_P2P */
@@ -657,7 +540,7 @@ oal_uint32  dmac_vap_init_tx_data_bcast(
 
     pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].ul_value = 0x0;
 
-    /* 广播数据帧参数 */
+    /* ?????????????? */
     pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].rate_bit_stru.bit_tx_count           = 3;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].rate_bit_stru.bit_stbc_mode          = 0;
@@ -680,7 +563,7 @@ oal_uint32  dmac_vap_init_tx_data_bcast(
     pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].rate_bit_stru.bit_rts_cts_enable     = 0;
     pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].rate_bit_stru.bit_txbf_mode          = 0;
 
-    /* 11b 1M速率不可以使用短导码 */
+    /* 11b 1M???????????????????? */
     if ((WLAN_11B_PHY_PROTOCOL_MODE == uc_protocol_mode) && (0 == uc_legacy_rate))
     {
         pst_dmac_vap->st_tx_data_bcast.ast_per_rate[0].rate_bit_stru.bit_preamble_mode  = 1;
@@ -709,26 +592,12 @@ oal_uint32  dmac_vap_init_tx_data_bcast(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_mgmt_ucast
- 功能描述  : 初始化单播管理帧发送速率参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init_tx_mgmt_ucast(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint32 ul_value;
 
-    /* 初始化2.4G参数 */
+    /* ??????2.4G???? */
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_tx_count             = 3;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_stbc_mode            = 0;
@@ -748,14 +617,14 @@ oal_uint32  dmac_vap_init_tx_mgmt_ucast(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_short_gi_enable      = 0;
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_reserve              = 0;
 
-    /* 2.4G初始化为11b 1M, long preable */
+    /* 2.4G????????11b 1M, long preable */
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0;
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_11B_PHY_PROTOCOL_MODE;
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_preamble_mode                            = 1;
 #ifdef _PRE_WLAN_FEATURE_P2P
     if (!IS_LEGACY_VAP(&(pst_dmac_vap->st_vap_base_info)))
     {
-        /* P2P 设备不能发送11b 速率的帧 */
+        /* P2P ????????????11b ???????? */
         pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0xb;  /* 6M */
         pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
     }
@@ -769,7 +638,7 @@ oal_uint32  dmac_vap_init_tx_mgmt_ucast(dmac_vap_stru *pst_dmac_vap)
 
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_2G].st_rate.bit_lsig_txop = OAL_FALSE;
 
-    /* 初始化5G参数 */
+    /* ??????5G???? */
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_tx_count             = 3;
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_stbc_mode            = 0;
@@ -782,7 +651,7 @@ oal_uint32  dmac_vap_init_tx_mgmt_ucast(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_short_gi_enable      = 0;
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_reserve              = 0;
 
-    /* 5G初始化为OFDM 6M, short preable */
+    /* 5G????????OFDM 6M, short preable */
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0xb;  /* 6M */
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
     pst_dmac_vap->ast_tx_mgmt_ucast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_preamble_mode                            = 0;
@@ -798,26 +667,12 @@ oal_uint32  dmac_vap_init_tx_mgmt_ucast(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_mgmt_bmcast
- 功能描述  : 初始化组播、广播管理帧发送速率参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init_tx_mgmt_bmcast(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint32  ul_data_rate;
 
-    /* 初始化2.4G参数 */
+    /* ??????2.4G???? */
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].ul_value                               = 0x0;
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_tx_count             = 4;
@@ -841,15 +696,14 @@ oal_uint32  dmac_vap_init_tx_mgmt_bmcast(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_short_gi_enable      = 0;
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_reserve              = 0;
 
-    /* 2.4G初始化为11b 1M, long preable */
+    /* 2.4G????????11b 1M, long preable */
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0;
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_11B_PHY_PROTOCOL_MODE;
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.bit_preamble_mode                            = 1;
 #ifdef _PRE_WLAN_FEATURE_P2P
     if (!IS_LEGACY_VAP(&(pst_dmac_vap->st_vap_base_info)))
     {
-        /* P2P 设备不能发送11b 速率的帧 */
-		/* DTS2015033002930:初始化P2P 广播管理帧发送速率和协议模式为6Mbps，OFDM  */
+        /* P2P ????????????11b ???????? */
         pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0xb;  /* 6M */
         pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
     }
@@ -863,7 +717,7 @@ oal_uint32  dmac_vap_init_tx_mgmt_bmcast(dmac_vap_stru *pst_dmac_vap)
 
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_2G].st_rate.bit_lsig_txop = OAL_FALSE;
 
-    /* 初始化5G参数 */
+    /* ??????5G???? */
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].ul_value                               = 0x0;
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_tx_count             = 4;
@@ -880,7 +734,7 @@ oal_uint32  dmac_vap_init_tx_mgmt_bmcast(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_short_gi_enable      = 0;
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_reserve              = 0;
 
-    /* 5G初始化为OFDM 6M, short preable */
+    /* 5G????????OFDM 6M, short preable */
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_legacy_rate   = 0xb;  /* 6M */
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.un_nss_rate.st_legacy_rate.bit_protocol_mode = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
     pst_dmac_vap->ast_tx_mgmt_bmcast[WLAN_BAND_5G].ast_per_rate[0].rate_bit_stru.bit_preamble_mode                            = 0;
@@ -896,62 +750,34 @@ oal_uint32  dmac_vap_init_tx_mgmt_bmcast(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_tx_frame_init
- 功能描述  : 初始化除单播数据帧以外帧的发送速率
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init_tx_frame_params(dmac_vap_stru *pst_dmac_vap, oal_bool_enum_uint8  en_mgmt_rate_init_flag)
 {
-    wlan_protocol_enum_uint8            en_protocol;        /* 工作的协议模式 */
-    wlan_channel_band_enum_uint8        en_band;            /* 频段 */
+    wlan_protocol_enum_uint8            en_protocol;        /* ?????????????? */
+    wlan_channel_band_enum_uint8        en_band;            /* ???? */
 
     en_protocol  = pst_dmac_vap->st_vap_base_info.en_protocol;
     en_band      = pst_dmac_vap->st_vap_base_info.st_channel.en_band;
 
     if (OAL_TRUE == en_mgmt_rate_init_flag)
     {
-        /* 初始化单播管理帧参数 */
+        /* ???????????????????? */
         dmac_vap_init_tx_mgmt_ucast(pst_dmac_vap);
 
-        /* 初始化组播、广播管理帧参数 */
+        /* ?????????????????????????? */
         dmac_vap_init_tx_mgmt_bmcast(pst_dmac_vap);
     }
 
-    /* 初始化组播数据帧发送参数 */
+    /* ???????????????????????? */
     dmac_vap_init_tx_data_mcast(pst_dmac_vap, en_protocol, en_band);
 
-    /* 初始化广播数据帧发送参数 */
+    /* ???????????????????????? */
     dmac_vap_init_tx_data_bcast(pst_dmac_vap, en_protocol, en_band);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_init_tx_ucast_data_frame_params
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月7日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_init_tx_ucast_data_frame(dmac_vap_stru *pst_dmac_vap)
 {
     switch(pst_dmac_vap->st_vap_base_info.en_protocol)
@@ -996,62 +822,20 @@ oal_uint32  dmac_vap_init_tx_ucast_data_frame(dmac_vap_stru *pst_dmac_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_is_host
- 功能描述  : 判断是否是master VAP,需要export_symbol
- 输入参数  : pst_vap VAP结构体;
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月4日
-    作    者   : chenyan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8  dmac_vap_is_host(mac_vap_stru *pst_vap)
 {
     return ((dmac_vap_stru *)pst_vap)->en_is_host_vap;
 }
 
 #if 0
-/*****************************************************************************
- 函 数 名  : dmac_vap_get_default_ant
- 功能描述  : 获取VAP下默认的天线组合，返回的是可以填写到描述符中的BITMAP
- 输入参数  : pst_vap VAP结构体;
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月4日
-    作    者   : chenyan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8  dmac_vap_get_default_ant(mac_vap_stru *pst_vap)
 {
     return ((dmac_vap_stru *)pst_vap)->uc_default_ant_bitmap;
 }
 #endif
-/*****************************************************************************
- 函 数 名  : dmac_vap_sta_reset
- 功能描述  : STA与某个AP去关联后的复位操作
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月21日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_sta_reset(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint8                       auc_bssid[WLAN_MAC_ADDR_LEN] = {0, 0, 0, 0, 0, 0};
@@ -1062,19 +846,19 @@ oal_uint32  dmac_vap_sta_reset(dmac_vap_stru *pst_dmac_vap)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 恢复帧过滤寄存器 */
+    /* ???????????????? */
     //hal_disable_non_frame_filter(pst_dmac_vap->pst_hal_device);
 
-    /* 删除BSSID */
+    /* ????BSSID */
     hal_set_sta_bssid(pst_dmac_vap->pst_hal_vap, auc_bssid);
 
-    /* 停止STA tsf */
+    /* ????STA tsf */
     hal_disable_sta_tsf_tbtt(pst_dmac_vap->pst_hal_vap);
 
-    /* 恢复slottime类型为short */
+    /* ????slottime??????short */
     hal_cfg_slottime_type(pst_dmac_vap->pst_hal_device, 0);
 
-    /* 恢复TXOP不使能状态 */
+    /* ????TXOP?????????? */
     if (pst_device->en_txop_enable)
     {
         pst_device->en_txop_enable = OAL_FALSE;
@@ -1085,21 +869,7 @@ oal_uint32  dmac_vap_sta_reset(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_vap_pause_tx
- 功能描述  : 暂停VAP, 置vap状态为pause，期望调度判断此状态: 如果为pause则停止调度
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_vap_pause_tx(mac_vap_stru *pst_vap)
 {
     pst_vap->en_vap_state = MAC_VAP_STATE_PAUSE;
@@ -1107,21 +877,7 @@ oal_uint32  mac_vap_pause_tx(mac_vap_stru *pst_vap)
     return  OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_vap_resume_tx
- 功能描述  : 使能VAP
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_vap_resume_tx(mac_vap_stru *pst_vap)
 {
     pst_vap->en_vap_state = MAC_VAP_STATE_UP;
@@ -1130,21 +886,7 @@ oal_uint32  mac_vap_resume_tx(mac_vap_stru *pst_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_pause_tx
- 功能描述  : 暂停此VAP的发送
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_vap_pause_tx(mac_vap_stru *pst_mac_vap)
 {
     dmac_vap_stru  *pst_dmac_vap;
@@ -1167,21 +909,7 @@ oal_void  dmac_vap_pause_tx(mac_vap_stru *pst_mac_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_pause_tx_by_chl
- 功能描述  : 切信道前，暂停原信道上VAP的发送
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月6日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_vap_pause_tx_by_chl(mac_device_stru *pst_device, mac_channel_stru *pst_src_chl)
 {
     oal_uint8               uc_vap_idx;
@@ -1205,22 +933,7 @@ oal_void  dmac_vap_pause_tx_by_chl(mac_device_stru *pst_device, mac_channel_stru
 }
 
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
-/*****************************************************************************
- 函 数 名  : dmac_one_packet_send_null_data
- 功能描述  : 通过one packet机制发送null报文
- 输入参数  : pst_dmac_vap
-             pst_dmac_user
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或者其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月4日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_one_packet_send_null_data(mac_device_stru *pst_mac_device, mac_vap_stru *pst_mac_vap, oal_bool_enum_uint8 en_ps)
 {
     mac_fcs_mgr_stru               *pst_fcs_mgr;
@@ -1235,7 +948,7 @@ oal_void  dmac_one_packet_send_null_data(mac_device_stru *pst_mac_device, mac_va
     mac_fcs_prepare_one_packet_cfg(pst_mac_vap, &pst_fcs_cfg->st_one_packet_cfg, 20);
     mac_fcs_send_one_packet_start(pst_fcs_mgr, &pst_fcs_cfg->st_one_packet_cfg, pst_mac_device->pst_device_stru, &st_status, en_ps);
 
-    /* 开关PA只需要在02的产品中打开 */
+    /* ????PA????????02???????????? */
     hal_disable_machw_phy_and_pa(pst_mac_device->pst_device_stru);
 
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
@@ -1251,24 +964,7 @@ oal_void  dmac_one_packet_send_null_data(mac_device_stru *pst_mac_device, mac_va
 #endif /* _PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1102_DEV */
 
 #ifdef _PRE_WLAN_SW_CTRL_RSP
-/*****************************************************************************
- 函 数 名  : dmac_vap_update_rsp_frm_rate
- 功能描述  : 根据输入数据的协议模式、带宽和速率来更新响应帧速率
- 输入参数  : uc_vap_id: vap id
-             uc_protocol_mode: 协议模式
-             uc_bandwidth:带宽
-             uc_ref_rate:速率
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月12日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_vap_update_rsp_frm_rate(oal_uint8 uc_vap_id, oal_uint8 uc_protocol_mode, oal_uint8 uc_bandwidth, oal_uint8 uc_ref_rate)
 {
     mac_vap_stru                    *pst_mac_vap = OAL_PTR_NULL;
@@ -1288,41 +984,20 @@ oal_void dmac_vap_update_rsp_frm_rate(oal_uint8 uc_vap_id, oal_uint8 uc_protocol
         return;
     }
 
-    /* 数据速率为11ac */
-    if (WLAN_VHT_PHY_PROTOCOL_MODE == uc_protocol_mode)
+    /* ??????????11ac/11n */
+    if ((WLAN_VHT_PHY_PROTOCOL_MODE == uc_protocol_mode) ||
+        (WLAN_HT_PHY_PROTOCOL_MODE == uc_protocol_mode))
     {
-        /* 80M */
-        if (uc_bandwidth >= WLAN_BAND_ASSEMBLE_80M)
+        /* 80M/40M????????CTS????6Mbps */
+        if (uc_bandwidth >= WLAN_BAND_ASSEMBLE_40M)
         {
-            /* 响应帧使用24M速率 */
-            if (WLAN_PHY_RATE_24M != pst_dmac_dev->uc_rsp_frm_rate_val)
+            if (WLAN_PHY_RATE_6M != pst_dmac_dev->uc_rsp_frm_rate_val)
             {
-                pst_dmac_dev->uc_rsp_frm_rate_val = WLAN_PHY_RATE_24M;
+                pst_dmac_dev->uc_rsp_frm_rate_val = WLAN_PHY_RATE_6M;
                 hal_set_rsp_rate((oal_uint32)pst_dmac_dev->uc_rsp_frm_rate_val);
             }
         }
-        /* 40M */
-        else if (uc_bandwidth >= WLAN_BAND_ASSEMBLE_40M)
-        {
-            if (WLAN_VHT_MCS0 == uc_ref_rate)
-            {
-                if (WLAN_PHY_RATE_12M != pst_dmac_dev->uc_rsp_frm_rate_val)
-                {
-                    pst_dmac_dev->uc_rsp_frm_rate_val = WLAN_PHY_RATE_12M;
-                    hal_set_rsp_rate((oal_uint32)pst_dmac_dev->uc_rsp_frm_rate_val);
-                }
-            }
-            else
-            {
-                /* 响应帧使用24M速率 */
-                if (WLAN_PHY_RATE_24M != pst_dmac_dev->uc_rsp_frm_rate_val)
-                {
-                    pst_dmac_dev->uc_rsp_frm_rate_val = WLAN_PHY_RATE_24M;
-                    hal_set_rsp_rate((oal_uint32)pst_dmac_dev->uc_rsp_frm_rate_val);
-                }
-            }
-        }
-        /* 20M带宽 */
+        /* 20M???? */
         else
         {
             if (uc_ref_rate >= WLAN_VHT_MCS3)
@@ -1365,7 +1040,7 @@ oal_void dmac_vap_update_rsp_frm_rate(oal_uint8 uc_vap_id, oal_uint8 uc_protocol
             hal_set_rsp_rate((oal_uint32)pst_dmac_dev->uc_rsp_frm_rate_val);
         }
     }
-    /* DBAC场景，1个VAP为11b时 */
+    /* DBAC??????1??VAP??11b?? */
     else if (WLAN_11B_PHY_PROTOCOL_MODE == uc_protocol_mode)
     {
         if (WLAN_11B_PHY_PROTOCOL_MODE != pst_dmac_dev->uc_rsp_frm_rate_val)
@@ -1377,21 +1052,7 @@ oal_void dmac_vap_update_rsp_frm_rate(oal_uint8 uc_vap_id, oal_uint8 uc_protocol
 }
 #endif /* _PRE_WLAN_SW_CTRL_RSP */
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_resume_tx_by_chl
- 功能描述  : 切信道后，恢复目的信道上VAP的发送
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月6日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_vap_resume_tx_by_chl(mac_device_stru *pst_device, mac_channel_stru *pst_dst_channel)
 {
     dmac_vap_stru                  *pst_dmac_vap;
@@ -1414,7 +1075,7 @@ oal_void  dmac_vap_resume_tx_by_chl(mac_device_stru *pst_device, mac_channel_str
         if (OAL_TRUE == mac_fcs_is_same_channel(&(pst_dmac_vap->st_vap_base_info.st_channel), pst_dst_channel))
         {
 #ifdef _PRE_WLAN_FEATURE_ROAM
-            /* 当回到漫游vap所在的信道时，不需要切vap的状态。*/
+            /* ??????????vap??????????????????????vap????????*/
             if (MAC_VAP_STATE_ROAMING == pst_dmac_vap->st_vap_base_info.en_vap_state)
             {
                 pst_dmac_user = mac_res_get_dmac_user(pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id);
@@ -1449,7 +1110,7 @@ oal_void  dmac_vap_resume_tx_by_chl(mac_device_stru *pst_device, mac_channel_str
             mac_vap_resume_tx(&(pst_dmac_vap->st_vap_base_info));
             hal_vap_beacon_resume(pst_dmac_vap->pst_hal_vap);
 
-            /* 判断目的信道上的vap模式, 如果是sta则需要发节能位置0的null data */
+            /* ????????????????vap????, ??????sta????????????????0??null data */
             if (WLAN_VAP_MODE_BSS_STA == pst_dmac_vap->st_vap_base_info.en_vap_mode)
             {
                 pst_dmac_user = mac_res_get_dmac_user(pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id);
@@ -1481,24 +1142,9 @@ oal_void  dmac_vap_resume_tx_by_chl(mac_device_stru *pst_device, mac_channel_str
     dmac_tx_complete_schedule(pst_device->pst_device_stru, WLAN_WME_AC_BE);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_update_bi_from_hw
- 功能描述  : 读取硬件beacon周期寄存器，更新mib值
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年12月9日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_vap_update_bi_from_hw(mac_vap_stru *pst_mac_vap)
 {
-    /* DTS2015122404462 1151 STAUT不支持从硬件读Beacon周期，不需要此动作 */
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
     dmac_vap_stru *pst_dmac_vap;
 
@@ -1514,21 +1160,7 @@ oal_void  dmac_vap_update_bi_from_hw(mac_vap_stru *pst_mac_vap)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_is_in_p2p_listen
- 功能描述  : DMAC判断是否是在p2p listen状态
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_vap_is_in_p2p_listen(mac_vap_stru *pst_mac_vap)
 {
     mac_device_stru *pst_mac_device;
@@ -1549,27 +1181,13 @@ oal_uint32  dmac_vap_is_in_p2p_listen(mac_vap_stru *pst_mac_vap)
     return OAL_FALSE;
 }
 #ifdef _PRE_WLAN_FEATURE_OPMODE_NOTIFY
-/*****************************************************************************
- 函 数 名  : dmac_ie_proc_opmode_notify
- 功能描述  : 处理Operating Mode字段
- 输入参数  : pst_mac_user: MAC USER结构体指针
-             puc_payload : 指向Operating Mode Notification IE的指针
- 输出参数  :
- 返 回 值  : OAL_SUCC或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月7日
-    作    者   : liuzhengqi
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 dmac_ie_proc_opmode_notify(mac_user_stru *pst_mac_user, mac_vap_stru *pst_mac_vap, mac_opmode_notify_stru *pst_opmode_notify)
 {
     oal_uint32              ul_relt;
-    wlan_bw_cap_enum_uint8  en_bwcap_user = 0;                      /* user之前的带宽信息 */
-	oal_uint8               uc_avail_bf_num_spatial_stream;         /* 用户支持的Beamforming空间流个数 */
-    oal_uint8               uc_avail_num_spatial_stream;            /* Tx和Rx支持Nss的交集,供算法调用 */
+    wlan_bw_cap_enum_uint8  en_bwcap_user = 0;                      /* user?????????????? */
+	oal_uint8               uc_avail_bf_num_spatial_stream;         /* ??????????Beamforming?????????? */
+    oal_uint8               uc_avail_num_spatial_stream;            /* Tx??Rx????Nss??????,?????????? */
 
     if ((OAL_PTR_NULL == pst_mac_vap) || (OAL_PTR_NULL == pst_mac_user) || (OAL_PTR_NULL == pst_opmode_notify))
     {
@@ -1589,11 +1207,11 @@ oal_uint32 dmac_ie_proc_opmode_notify(mac_user_stru *pst_mac_user, mac_vap_stru 
         return ul_relt;
     }
 
-    /* opmode带宽改变通知算法,并同步带宽信息到HOST */
+    /* opmode????????????????,????????????????HOST */
     if (pst_mac_user->en_avail_bandwidth != en_bwcap_user)
     {
 
-        /* user级别调用算法改变带宽通知链 */
+        /* user?????????????????????????? */
         dmac_alg_cfg_user_bandwidth_notify(pst_mac_vap, pst_mac_user);
 
         if (OAL_SUCC != dmac_config_d2h_user_info_syn(pst_mac_vap, pst_mac_user))
@@ -1606,31 +1224,13 @@ oal_uint32 dmac_ie_proc_opmode_notify(mac_user_stru *pst_mac_user, mac_vap_stru 
     if ((pst_mac_user->uc_avail_bf_num_spatial_stream != uc_avail_bf_num_spatial_stream) ||
           (pst_mac_user->uc_avail_num_spatial_stream != uc_avail_num_spatial_stream))
     {
-        /* 调用算法钩子函数 */
+        /* ???????????????? */
         dmac_alg_cfg_user_spatial_stream_notify(pst_mac_user);
     }
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_check_opmode_notify
- 功能描述  : 检查请求关联的STA的Operating Mode Notification
- 输入参数  : hmac_vap_stru    *pst_hmac_vap --VAP指针
-             oal_uint8        *puc_mac_hdr, --帧头指针
-             oal_uint8        *puc_payload  --payload指针
-             oal_uint16        us_info_elem_offset--偏移长度
-             oal_uint32        ul_msg_len----信息长度
-             hmac_user_stru   *pst_hmac_user_sta --用户指针
- 输出参数  : 无
- 返 回 值  : oal_uint16
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月10日
-    作    者   : z00241943
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 dmac_check_opmode_notify(
                 mac_vap_stru                   *pst_mac_vap,
                 oal_uint8                       *puc_payload,

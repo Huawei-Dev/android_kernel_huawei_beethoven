@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oal_main.c
-  版 本 号   : 初稿
-  作    者   : 康国昌
-  生成日期   : 2012年9月18日
-  最近修改   :
-  功能描述   : OAM模块初始化与卸载
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_main.h"
 #include "oam_log.h"
@@ -44,37 +27,37 @@ extern "C" {
 
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
-/* OAM模块统一使用的全局操作变量上下文，包括OAM其他子模块全局上下文 */
+/* OAM??????????????????????????????????????OAM???????????????????? */
 oam_mng_ctx_stru    g_st_oam_mng_ctx;
 
-/* 打印类型函数定义 */
+/* ???????????????? */
 OAL_STATIC oal_print_func g_pa_oam_print_type_func[OAM_OUTPUT_TYPE_BUTT]=
 {
-    oam_print_to_console,   /* OAM_OUTPUT_TYPE_CONSOLE 控制台输出 */
-    oam_print_to_file,      /* OAM_OUTPUT_TYPE_FS 写到文件系统 */
-    oam_print_to_sdt,       /* OAM_OUTPUT_TYPE_SDT 输出到SDT,上报字符串不宜大于2048 */
+    oam_print_to_console,   /* OAM_OUTPUT_TYPE_CONSOLE ?????????? */
+    oam_print_to_file,      /* OAM_OUTPUT_TYPE_FS ???????????? */
+    oam_print_to_sdt,       /* OAM_OUTPUT_TYPE_SDT ??????SDT,??????????????????2048 */
 };
 
-/* 用于和SDT工具交互的全局变量 */
+/* ??????SDT?????????????????? */
 oam_sdt_func_hook_stru          g_st_oam_sdt_func_hook;
 oam_wal_func_hook_stru          g_st_oam_wal_func_hook;
 oam_sdt_stat_info_stru          g_st_sdt_stat_info;
 
 oal_uint8 g_auc_bcast_addr[WLAN_MAC_ADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-#ifdef _PRE_DEBUG_MODE  /* 调试特性默认开关状态 */
+#ifdef _PRE_DEBUG_MODE  /* ???????????????????? */
 oal_uint32          g_aul_debug_feature_switch[OAM_DEBUG_TYPE_BUTT] =
 {
     OAL_SWITCH_OFF,   /* OAM_DEBUG_TYPE_ECHO_REG */
 };
 #endif
 
-/* 特性列表 */
+/* ???????? */
 oam_software_feature_stru   gst_oam_feature_list[OAM_SOFTWARE_FEATURE_BUTT] =
 {
-    /*特性宏ID                  特性名缩写*/
+    /*??????ID                  ??????????*/
     /* 0 */
     {OAM_SF_SCAN,               "scan"},
     {OAM_SF_AUTH,               "auth"},
@@ -179,23 +162,9 @@ oam_software_feature_stru   gst_oam_feature_list[OAM_SOFTWARE_FEATURE_BUTT] =
 };
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : oam_print
- 功能描述  : OAM模块提供的总体入口
- 输入参数  : 格式化的字符串
- 输出参数  : 无
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月13日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_print(oal_int8 *pc_string)
 {
     oam_output_type_enum_uint8 en_output_type;
@@ -216,21 +185,7 @@ oal_uint32  oam_print(oal_int8 *pc_string)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_print_to_console
- 功能描述  : 打印信息到标准输出窗口中
- 输入参数  : pc_string : 需要打印到标准输出窗口中的字符串，以\0结束。
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其他错误码。
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月15日
-    作    者   : c59720
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_print_to_console(oal_int8 *pc_string)
 {
     if (OAL_UNLIKELY(OAL_PTR_NULL == pc_string))
@@ -243,26 +198,12 @@ oal_uint32 oam_print_to_console(oal_int8 *pc_string)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_print_to_file
- 功能描述  : 打印信息到文件中
- 输入参数  : pc_string : 需要打印到文件中的字符串，以\0结束。
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其他错误码。
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月15日
-    作    者   : c59720
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32   oam_print_to_file(oal_int8 *pc_string)
 {
 #ifdef _PRE_WIFI_DMT
 
-    oal_file_stru            *f_file_ret;                                 /* 用于保存写文件后的返回值 */
+    oal_file_stru            *f_file_ret;                                 /* ???????????????????????? */
     oal_file_stru            *f_event_file;
     oal_int32                 l_rslt;
 
@@ -304,21 +245,7 @@ oal_uint32   oam_print_to_file(oal_int8 *pc_string)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_print_to_sdt
- 功能描述  : 打印信息到PC侧可维可测工具平台中
- 输入参数  : pc_string : 需要打印到可维可测工具平台中的字符串，以\0结束。
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其他错误码。
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月15日
-    作    者   : c59720
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_print_to_sdt(oal_int8 *pc_string)
 {
     oal_netbuf_stru                *pst_skb;
@@ -335,7 +262,7 @@ oal_uint32 oam_print_to_sdt(oal_int8 *pc_string)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 上报sdt字符串以'0'结束 */
+    /* ????sdt????????'0'???? */
     us_strlen = (oal_uint16)OAL_STRLEN(pc_string);
 
     us_strlen = (us_strlen > OAM_REPORT_MAX_STRING_LEN) ? OAM_REPORT_MAX_STRING_LEN : us_strlen;
@@ -346,31 +273,17 @@ oal_uint32 oam_print_to_sdt(oal_int8 *pc_string)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* COPY打印的内容 */
+    /* COPY?????????? */
     oal_memset(oal_netbuf_data(pst_skb), 0, us_strlen);
     oal_memcopy(oal_netbuf_data(pst_skb), pc_string, (oal_uint32)us_strlen);
 
-    /* 下发至sdt接收队列，若队列满则串口输出 */
+    /* ??????sdt???????????????????????????? */
     ul_ret = oam_report_data2sdt(pst_skb, OAM_DATA_TYPE_STRING, OAM_PRIMID_TYPE_OUTPUT_CONTENT);
 
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_upload_log_to_sdt
- 功能描述  : 打印信息到PC侧可维可测工具平台中
- 输入参数  : pc_string : 需要打印到可维可测工具平台中的字符串，以\0结束。
- 输出参数  : 无
- 返 回 值  : OAL_SUCC或其他错误码。
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月15日
-    作    者   : c59720
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_upload_log_to_sdt(oal_int8 *pc_string)
 {
     oal_netbuf_stru        *pst_skb;
@@ -393,10 +306,10 @@ oal_uint32 oam_upload_log_to_sdt(oal_int8 *pc_string)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* COPY打印的内容 */
+    /* COPY?????????? */
     oal_memcopy(oal_netbuf_data(pst_skb), pc_string, OAL_SIZEOF(oam_log_info_stru));
 
-    /* 下发至sdt接收队列，若队列满则串口输出 */
+    /* ??????sdt???????????????????????????? */
     ul_ret = oam_report_data2sdt(pst_skb, OAM_DATA_TYPE_LOG, OAM_PRIMID_TYPE_OUTPUT_CONTENT);
 
     return ul_ret;
@@ -420,10 +333,10 @@ oal_uint32 oam_upload_device_log_to_sdt(oal_uint8 *pc_string, oal_uint16 len)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* COPY打印的内容 */
+    /* COPY?????????? */
     oal_memcopy(oal_netbuf_data(pst_skb), pc_string, len);
 
-    /* 下发至sdt接收队列，若队列满则串口输出 */
+    /* ??????sdt???????????????????????????? */
     ul_ret = oam_report_data2sdt(pst_skb, OAM_DATA_TYPE_DEVICE_LOG, OAM_PRIMID_TYPE_OUTPUT_CONTENT);
 
     return ul_ret;
@@ -460,7 +373,7 @@ oal_int32 oam_rx_post_action_function(oal_uint8 stype,
         return OAL_SUCC;
     }
 
-    /* 调用OAM接口*/
+    /* ????OAM????*/
     oam_send_device_data2sdt(puc_data, (oal_uint16)pst_hcc_netbuf->len);
 
     oal_netbuf_free(pst_hcc_netbuf->pst_netbuf);
@@ -481,22 +394,7 @@ oal_int32 chr_rx_post_action_function(oal_uint8 stype,
 
 #endif
 
-/*****************************************************************************
- 函 数 名  : oam_get_output_type
- 功能描述  : 获取可维可测输出方式
- 输入参数  : 无
- 输出参数  : 可维可测输出方式
- 返 回 值  : 1) OAL_ERR_CODE_PTR_NULL: 空指针
-             2) OAL_SUCC: 成功
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年9月28日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_get_output_type(oam_output_type_enum_uint8 *pen_output_type)
 {
 
@@ -505,22 +403,7 @@ oal_uint32  oam_get_output_type(oam_output_type_enum_uint8 *pen_output_type)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_set_output_type
- 功能描述  : 设置可维可测输出方式
- 输入参数  : 输出方式
- 输出参数  : 无
- 返 回 值  : OAL_SUCC: 设置成功
-             OAL_FAIL: 设置失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年9月25日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_set_output_type(oam_output_type_enum_uint8 en_output_type)
 {
     if (en_output_type >= OAM_OUTPUT_TYPE_BUTT)
@@ -533,23 +416,7 @@ oal_uint32  oam_set_output_type(oam_output_type_enum_uint8 en_output_type)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_set_file_path
- 功能描述  : 1) 用于设置可维可测文件路径
-             2) 文件路径字符串的长度(包括\0)
- 输入参数  : 指向可维可测文件路径的指针
- 输出参数  : 无
- 返 回 值  : 1) OAL_ERR_CODE_PTR_NULL: 空指针
-             2) OAL_SUCC: 成功
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年9月26日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_set_file_path(oal_int8 *pc_file_path, oal_uint32 ul_length)
 {
 #ifdef _PRE_WIFI_DMT
@@ -569,7 +436,7 @@ oal_uint32  oam_set_file_path(oal_int8 *pc_file_path, oal_uint32 ul_length)
     puc_file_path = DmtStub_GetDebugFilePath();
     oal_memcopy(g_st_oam_mng_ctx.ac_file_path, puc_file_path, strlen(puc_file_path));
 
-    /* 以下操作是为了将上一次的日志文件清空 */
+    /* ???????????????????????????????????? */
     f_event_file = oal_file_open_rw(g_st_oam_mng_ctx.ac_file_path);
 	if (OAL_FILE_FAIL == f_event_file)
     {
@@ -600,23 +467,7 @@ oal_uint32  oam_set_file_path(oal_int8 *pc_file_path, oal_uint32 ul_length)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_dump_buff_by_hex
- 功能描述  : buff按十六进格式固定长度打印输出，每输出l_num个换行
- 输入参数  : oal_uint8 *puc_buff
-             oal_int32 l_len
-             oal_int32 l_num
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月10日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oam_dump_buff_by_hex(oal_uint8 *puc_buff, oal_int32 l_len, oal_int32 l_num)
 {
     oal_int32       l_loop;
@@ -634,70 +485,28 @@ oal_void  oam_dump_buff_by_hex(oal_uint8 *puc_buff, oal_int32 l_len, oal_int32 l
     OAL_IO_PRINT("\n");
 }
 
-/*****************************************************************************
- 函 数 名  : oam_drv_func_hook_init
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月8日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void oam_drv_func_hook_init(oal_void)
 {
-    /* sdt侧对外钩子函数初始化 */
+    /* sdt???????????????????? */
     g_st_oam_sdt_func_hook.p_sdt_report_data_func       = OAL_PTR_NULL;
     g_st_oam_sdt_func_hook.p_sdt_get_wq_len_func        = OAL_PTR_NULL;
 
-    /* wal侧对外钩子函数初始化 */
+    /* wal???????????????????? */
     g_st_oam_wal_func_hook.p_wal_recv_cfg_data_func     = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_mem_data_func     = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_reg_data_func     = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_global_var_func   = OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_sdt_func_fook_register
- 功能描述  : oam模块注册sdt模块的钩子函数,供其他模块统一调用
- 输入参数  : oam_sdt_func_hook_stru *pfun_st_oam_sdt_hook
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月12日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_sdt_func_fook_register(oam_sdt_func_hook_stru *pfun_st_oam_sdt_hook)
 {
     g_st_oam_sdt_func_hook.p_sdt_report_data_func = pfun_st_oam_sdt_hook->p_sdt_report_data_func;
     g_st_oam_sdt_func_hook.p_sdt_get_wq_len_func  = pfun_st_oam_sdt_hook->p_sdt_get_wq_len_func;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_wal_func_fook_register
- 功能描述  : oam模块注册wal模块的钩子函数,供其他模块统一调用
- 输入参数  : oam_sdt_func_hook_stru *pfun_st_oam_sdt_hook
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月12日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_wal_func_fook_register(oam_wal_func_hook_stru *pfun_st_oam_wal_hook)
 {
     g_st_oam_wal_func_hook.p_wal_recv_cfg_data_func     = pfun_st_oam_wal_hook->p_wal_recv_cfg_data_func;
@@ -706,21 +515,7 @@ oal_void oam_wal_func_fook_register(oam_wal_func_hook_stru *pfun_st_oam_wal_hook
     g_st_oam_wal_func_hook.p_wal_recv_global_var_func   = pfun_st_oam_wal_hook->p_wal_recv_global_var_func;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_filter_data2sdt
- 功能描述  : sdt消息入队是否需要过滤
- 输入参数  : oam_data_type_enum_uint8 en_type
- 输出参数  : 无
- 返 回 值  : oal_uint32 0 不过滤 1过滤
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月26日,星期六
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_filter_data2sdt(oam_data_type_enum_uint8 en_type)
 {
     if (g_st_sdt_stat_info.ul_wq_len < WLAN_SDT_MSG_FLT_HIGH_THD)
@@ -731,35 +526,16 @@ oal_uint32  oam_filter_data2sdt(oam_data_type_enum_uint8 en_type)
     else if ((g_st_sdt_stat_info.ul_wq_len >= WLAN_SDT_MSG_FLT_HIGH_THD)
               && (g_st_sdt_stat_info.ul_wq_len < WLAN_SDT_MSG_QUEUE_MAX_LEN))
     {
-        /* 消息队列达到过滤上限，过滤非日志消息 */
+        /* ???????????????????????????????????? */
         g_st_sdt_stat_info.en_filter_switch = OAL_TRUE;
-        return ((oal_uint8)OAM_DATA_TYPE_LOG == en_type) ? OAM_FLT_PASS : OAM_FLT_DROP;/* [false alarm]:返回值为布尔值0或者1，不影响*/
+        return ((oal_uint8)OAM_DATA_TYPE_LOG == en_type) ? OAM_FLT_PASS : OAM_FLT_DROP;/* [false alarm]:??????????????0????1????????*/
     }
 
-    /* 消息队列满全部过滤 */
+    /* ?????????????????? */
     return OAM_FLT_DROP;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_alloc_data2sdt
- 功能描述  : 封装发往sdt app侧的netlink消息
-             1) ul_data_len与oal_mem_sdt_netbuf_alloc 传入的长度含不含SDT头；由接口适配
-             2) 申请好的netbuf直接往数据指针长度即可
 
-             SDT与NLK消息头在本接口中不用考虑，由上报接口统一填写
-
- 输入参数  : oal_uint32  ul_data_len
- 输出参数  : 无
- 返 回 值  : oal_netbuf_stru *
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2014年4月28日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_netbuf_stru *oam_alloc_data2sdt(oal_uint16  us_data_len)
 {
     oal_netbuf_stru    *pst_netbuf = OAL_PTR_NULL;
@@ -777,28 +553,12 @@ oal_netbuf_stru *oam_alloc_data2sdt(oal_uint16  us_data_len)
     return pst_netbuf;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_report_data2sdt
- 功能描述  : oam将消息下发至sdt侧，由sdt侧统一上报至app侧
- 输入参数  : oal_netbuf_stru *pst_netbuf
-             oam_data_type_enum_uint8 en_type
-             oam_primid_type_enum_uint8 en_prim
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月11日,星期二
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_report_data2sdt(oal_netbuf_stru *pst_netbuf,
                                oam_data_type_enum_uint8 en_type,
                                oam_primid_type_enum_uint8 en_prim)
 {
-    /* 判断sdt发送消息队列是否已满，若满输出至串口 */
+    /* ????sdt???????????????????????????????????? */
     if (OAL_LIKELY(OAL_PTR_NULL != g_st_oam_sdt_func_hook.p_sdt_get_wq_len_func))
     {
         g_st_sdt_stat_info.ul_wq_len = (oal_uint32)g_st_oam_sdt_func_hook.p_sdt_get_wq_len_func();
@@ -810,8 +570,7 @@ oal_uint32 oam_report_data2sdt(oal_netbuf_stru *pst_netbuf,
         oal_mem_sdt_netbuf_free(pst_netbuf, OAL_TRUE);
         //oal_netbuf_free(pst_netbuf);
 
-        /* DTS2015071003114, 在SDT处理太慢导致上报失败时候，减少SDT打印 0x778d WARNING的数量，每隔1000个打印一次*/
-        /* Note: 目前上层函数仅仅使用该返回值打印warning信息而已*/
+        /* Note: ????????????????????????????????warning????????*/
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
         if(0 != ((g_st_sdt_stat_info.ul_filter_cnt) % OAM_DATA2SDT_FAIL_COUNT))
         {
@@ -832,71 +591,29 @@ oal_uint32 oam_report_data2sdt(oal_netbuf_stru *pst_netbuf,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_sdt_func_fook_unregister
- 功能描述  : 提供给SDT工具模块的去注册函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月8日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_sdt_func_fook_unregister(oal_void)
 {
-    /* 函数指针赋值 */
+    /* ???????????? */
     g_st_oam_sdt_func_hook.p_sdt_report_data_func           = OAL_PTR_NULL;
     g_st_oam_sdt_func_hook.p_sdt_get_wq_len_func            = OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_wal_func_fook_unregister
- 功能描述  : wal对外钩子函数去注册
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月13日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_wal_func_fook_unregister(oal_void)
 {
-    /* 函数指针赋值 */
+    /* ???????????? */
     g_st_oam_wal_func_hook.p_wal_recv_cfg_data_func         = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_global_var_func       = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_mem_data_func         = OAL_PTR_NULL;
     g_st_oam_wal_func_hook.p_wal_recv_reg_data_func         = OAL_PTR_NULL;
 }
-/*****************************************************************************
- 函 数 名  : oam_main_init
- 功能描述  : OAM模块初始化总入口，包含OAM模块内部所有特性的初始化。
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  oam_main_init(oal_void)
 {
     oal_uint32 ul_rslt;
 
-    /* 初始化可维可测试FILE路径 */
+    /* ????????????????FILE???? */
     ul_rslt = oam_set_file_path(WLAN_OAM_FILE_PATH, (OAL_STRLEN(WLAN_OAM_FILE_PATH) + 1));
     if (OAL_SUCC != ul_rslt)
     {
@@ -905,7 +622,7 @@ oal_int32  oam_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 初始化可维可测输出方式 */
+    /* ?????????????????????? */
     ul_rslt = oam_set_output_type(OAM_OUTPUT_TYPE_SDT);
     if (OAL_SUCC != ul_rslt)
     {
@@ -914,7 +631,7 @@ oal_int32  oam_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 完成LOG模块的初始化操作 */
+    /* ????LOG???????????????? */
     ul_rslt = oam_log_init();
     if (OAL_SUCC != ul_rslt)
     {
@@ -923,7 +640,7 @@ oal_int32  oam_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 完成EVENT模块的初始化操作 */
+    /* ????EVENT???????????????? */
     ul_rslt = oam_event_init();
     if (OAL_SUCC != ul_rslt)
     {
@@ -932,11 +649,11 @@ oal_int32  oam_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 初始化5115timer，用于代码中获取高精度时间戳 */
+    /* ??????5115timer???????????????????????????? */
     oal_5115timer_init();
 
 #ifdef _PRE_PROFILING_MODE
-    /* 完成PROFILING模块的初始化操作 */
+    /* ????PROFILING???????????????? */
     ul_rslt = oam_profiling_init();
     if (OAL_SUCC != ul_rslt)
     {
@@ -946,15 +663,15 @@ oal_int32  oam_main_init(oal_void)
     }
 #endif
 
-    /* 初始化oam模块的钩子函数 */
+    /* ??????oam?????????????? */
     oam_drv_func_hook_init();
 
-    /* 统计模块初始化 */
+    /* ?????????????? */
     oam_statistics_init();
 
-/*TBD，待命令触发定制化初始操作*/
+/*TBD??????????????????????????*/
 #if 0
-    /* 从配置文件中获取配置信息，保存到OAM内部结构中 */
+    /* ????????????????????????????????OAM?????????? */
     for (ul_counter= 0; ul_counter < OM_MODULEID_BUTT; ul_counter++)
     {
         if (OAL_PTR_NULL != g_oam_customize.customize_init[ul_counter])
@@ -971,7 +688,7 @@ oal_int32  oam_main_init(oal_void)
 #if ((_PRE_OS_VERSION_RAW != _PRE_OS_VERSION) && (_PRE_OS_VERSION_WIN32_RAW != _PRE_OS_VERSION))
         /* ??netlink */
  #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-    /* 所用的端口号在系统中已被占用，02无法使用这个接口，需要修改 TBD */
+    /* ??????????????????????????????02?????????????????????????? TBD */
         ul_rslt = oam_netlink_kernel_create();
         if (OAL_SUCC != ul_rslt)
         {
@@ -988,36 +705,22 @@ oal_int32  oam_main_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_main_exit
- 功能描述  : OAM模块卸载
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 模块卸载返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oam_main_exit(oal_void)
 {
 
-    /* 初始化5115timer，用于代码中获取高精度时间戳 */
+    /* ??????5115timer???????????????????????????? */
     oal_5115timer_exit();
 
 #ifdef _PRE_WLAN_DFT_REG
     oam_reg_exit();
 #endif
-    /* 去注册全局变量读写总接口 */
+    /* ???????????????????????? */
 
-    /* 卸载成功后，输出打印 */
+    /* ???????????????????? */
 #if ((_PRE_OS_VERSION_RAW != _PRE_OS_VERSION) && (_PRE_OS_VERSION_WIN32_RAW != _PRE_OS_VERSION))
     #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-       /* 所用的端口号在系统中已被占用，02无法使用这个接口，需要修改 TBD */
+       /* ??????????????????????????????02?????????????????????????? TBD */
 
         oam_netlink_kernel_release();
     #endif

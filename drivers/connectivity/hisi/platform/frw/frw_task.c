@@ -1,21 +1,44 @@
+
+
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include "platform_spec.h"
 #include "frw_main.h"
 #include "frw_event_main.h"
 #include "frw_task.h"
 #include "hal_ext_if.h"
 
+#if ((_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0)))
+#include <linux/sched/signal.h>
+#endif
+
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_FRW_TASK_C
 
+
+/*****************************************************************************
+  2 ????????????
+*****************************************************************************/
+/******************************************************************************
+    ????????????????
+*******************************************************************************/
 frw_task_stru g_ast_event_task[WLAN_FRW_MAX_NUM_CORES];
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
 #if (_PRE_FRW_FEATURE_PROCCESS_ENTITY_TYPE == _PRE_FRW_FEATURE_PROCCESS_ENTITY_THREAD)
+
 
 OAL_STATIC void frw_set_thread_property(oal_task_stru *p, int policy, struct sched_param *param, long nice)
 {
@@ -34,6 +57,7 @@ OAL_STATIC void frw_set_thread_property(oal_task_stru *p, int policy, struct sch
     }
 
 }
+
 
 OAL_STATIC oal_int32 frw_task_thread(oal_void* ul_bind_cpu)
 {
@@ -54,10 +78,13 @@ OAL_STATIC oal_int32 frw_task_thread(oal_void* ul_bind_cpu)
             break;
         }
 
+        /*state??TASK_INTERRUPTIBLE??condition????????????????????????????????waitqueue*/
+        /*lint -e730*/
 #ifdef  _PRE_FRW_EVENT_PROCESS_TRACE_DEBUG
         frw_event_last_pc_trace(__FUNCTION__,__LINE__, (oal_uint32)(oal_ulong)ul_bind_cpu);
 #endif
         ret = OAL_WAIT_EVENT_INTERRUPTIBLE(g_ast_event_task[(oal_uint)ul_bind_cpu].frw_wq,  OAL_TRUE == frw_task_thread_condition_check((oal_uint)ul_bind_cpu));
+        /*lint +e730*/
         if(OAL_UNLIKELY(-ERESTARTSYS == ret))
         {
             OAL_IO_PRINT("wifi task %s was interrupted by a signal\n", oal_get_current_task_name());
@@ -72,6 +99,7 @@ OAL_STATIC oal_int32 frw_task_thread(oal_void* ul_bind_cpu)
 #if (_PRE_FRW_FEATURE_PROCCESS_ENTITY_TYPE == _PRE_FRW_FEATURE_PROCCESS_ENTITY_THREAD)
         if(ul_event_count == g_ast_event_task[(oal_uint)ul_bind_cpu].ul_total_event_cnt)
         {
+            /*????*/
             ul_empty_count++;
             if(ul_empty_count == 10000)
             {
@@ -94,6 +122,7 @@ OAL_STATIC oal_int32 frw_task_thread(oal_void* ul_bind_cpu)
 
     return 0;
 }
+
 
 oal_uint32  frw_task_init(oal_void)
 {
@@ -126,6 +155,7 @@ oal_uint32  frw_task_init(oal_void)
     return OAL_SUCC;
 }
 
+
 oal_void frw_task_exit(oal_void)
 {
     oal_uint32       ul_core_id;
@@ -143,15 +173,18 @@ oal_void frw_task_exit(oal_void)
     }
 }
 
+
 oal_void  frw_task_event_handler_register(oal_void (*p_func)(oal_uint))
 {
 
 }
 
+
 oal_void frw_task_sched(oal_uint32 ul_core_id)
 {
     OAL_WAIT_QUEUE_WAKE_UP_INTERRUPT(&g_ast_event_task[ul_core_id].frw_wq);
 }
+
 
 oal_void frw_task_set_state(oal_uint32 ul_core_id, oal_uint8 uc_task_state)
 {
@@ -165,6 +198,7 @@ oal_uint8 frw_task_get_state(oal_uint32 ul_core_id)
 
 #elif (_PRE_FRW_FEATURE_PROCCESS_ENTITY_TYPE == _PRE_FRW_FEATURE_PROCCESS_ENTITY_TASKLET)
 
+
 oal_uint32  frw_task_init(oal_void)
 {
     oal_uint32 ul_core_id;
@@ -176,6 +210,7 @@ oal_uint32  frw_task_init(oal_void)
     return OAL_SUCC;
 }
 
+
 oal_void frw_task_exit(oal_void)
 {
     oal_uint32       ul_core_id;
@@ -185,6 +220,7 @@ oal_void frw_task_exit(oal_void)
         oal_task_kill(&g_ast_event_task[ul_core_id].st_event_tasklet);
     }
 }
+
 
 oal_void  frw_task_event_handler_register(oal_void (*p_func)(oal_uint))
 {
@@ -202,16 +238,19 @@ oal_void  frw_task_event_handler_register(oal_void (*p_func)(oal_uint))
     }
 }
 
+
 OAL_STATIC oal_void frw_remote_task_receive(void *info)
 {
     oal_tasklet_stru *pst_task = (oal_tasklet_stru *)info;
     oal_task_sched(pst_task);
 }
 
+
 OAL_STATIC oal_void frw_task_sched_on_cpu(oal_tasklet_stru *pst_task, oal_uint32 ul_core_id)
 {
     oal_smp_call_function_single(ul_core_id, frw_remote_task_receive, (void *)pst_task, 0);
 }
+
 
 oal_void frw_task_sched(oal_uint32 ul_core_id)
 {
@@ -232,9 +271,11 @@ oal_void frw_task_sched(oal_uint32 ul_core_id)
     }
 }
 
+
 oal_void frw_task_set_state(oal_uint32 ul_core_id, oal_uint8 uc_task_state)
 {
 }
+
 
 oal_uint8 frw_task_get_state(oal_uint32 ul_core_id)
 {
@@ -253,3 +294,4 @@ oal_module_symbol(frw_task_get_state);
         }
     #endif
 #endif
+

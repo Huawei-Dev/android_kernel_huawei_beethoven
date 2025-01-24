@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_tid.c
-  版 本 号   : 初稿
-  作    者   : mayuan
-  生成日期   : 2012年11月15日
-  最近修改   :
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年11月15日
-    作    者   : mayuan
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "dmac_tid.h"
 #include "dmac_main.h"
@@ -46,28 +29,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_TID_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_tid_tx_queue_init
- 功能描述  : 初始化一个用户的TID缓存队列
- 输入参数  : past_tx_tid_queue: 发送tid缓存队列指针
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月16日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_tx_queue_init(dmac_tid_stru *past_tx_tid_queue, mac_user_stru *pst_user)
 {
     oal_uint8        uc_tid;
@@ -99,13 +68,13 @@ oal_uint32  dmac_tid_tx_queue_init(dmac_tid_stru *past_tx_tid_queue, mac_user_st
 #else
         oal_dlist_init_head(&pst_tid_queue->st_hdr);
 #endif /* _PRE_WLAN_FEATURE_TX_DSCR_OPT */
-        /* 初始化HT相关的内容 */
+        /* ??????HT?????????? */
         pst_tid_queue->st_ht_tx_hdl.uc_ampdu_max_num    = 0;
         pst_tid_queue->st_ht_tx_hdl.us_ampdu_max_size   = 0;
         pst_tid_queue->st_ht_tx_hdl.ul_ampdu_max_size_vht   = 0;
         pst_tid_queue->en_tx_mode                       = DMAC_TX_MODE_NORMAL;
 
-        /* 初始化BA相关的内容 */
+        /* ??????BA?????????? */
         pst_tid_queue->pst_ba_rx_hdl = OAL_PTR_NULL;
         pst_tid_queue->pst_ba_tx_hdl = OAL_PTR_NULL;
 
@@ -113,7 +82,7 @@ oal_uint32  dmac_tid_tx_queue_init(dmac_tid_stru *past_tx_tid_queue, mac_user_st
         pst_tid_queue->uc_rx_wrong_ampdu_num = 0;
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
-        /* 初始化seq_num 12位全为1 */
+        /* ??????seq_num 12??????1 */
         pst_tid_queue->us_last_seq_frag_num   = 65535;
 
     #ifdef _PRE_WLAN_DFT_STAT
@@ -177,21 +146,7 @@ oal_uint32  dmac_tid_tx_queue_init(dmac_tid_stru *past_tx_tid_queue, mac_user_st
     return ul_rst;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_tx_queue_exit
- 功能描述  : tid queue退出时释放内存，用户删除时调用
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_tid_tx_queue_exit(dmac_user_stru *pst_dmac_user)
 {
     oal_uint8           uc_tid_idx;
@@ -225,22 +180,7 @@ oal_void  dmac_tid_tx_queue_exit(dmac_user_stru *pst_dmac_user)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_tx_queue_enqueue_head
- 功能描述  : 将一个MPDU或多个MPDU加入用户的TID缓存队列的头部
- 输入参数  : pst_tid_queue: 发送tid缓存队列指针
-             pst_netbuf   : netbuf指针
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月15日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_tx_queue_enqueue_head(dmac_tid_stru *pst_tid_queue, oal_dlist_head_stru *pst_tx_dscr_list_hdr, oal_uint8 uc_mpdu_num)
 {
     mac_device_stru     *pst_device;
@@ -288,7 +228,7 @@ oal_uint32  dmac_tid_tx_queue_enqueue_head(dmac_tid_stru *pst_tid_queue, oal_dli
 #endif
         return OAL_ERR_CODE_PTR_NULL;
     }
-    /* 更新device结构体下的统计信息 */
+    /* ????device?????????????????? */
     pst_device = mac_res_get_dev(pst_user->st_user_base_info.uc_device_id);
 
     if (OAL_PTR_NULL == pst_device)
@@ -315,7 +255,7 @@ oal_uint32  dmac_tid_tx_queue_enqueue_head(dmac_tid_stru *pst_tid_queue, oal_dli
 #endif
 #endif
 #ifdef _PRE_WLAN_PERFORM_STAT
-        /* 性能统计日志 */
+        /* ???????????? */
         dmac_stat_tid_per(&(pst_user->st_user_base_info), pst_tid_queue->uc_tid, 0, uc_mpdu_num, DMAC_STAT_PER_SW_RETRY_OVERFLOW);
 #endif
         return OAL_FAIL;
@@ -353,22 +293,7 @@ oal_uint32  dmac_tid_tx_queue_enqueue_head(dmac_tid_stru *pst_tid_queue, oal_dli
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_get_mpdu_by_index
- 功能描述  : 获取TID的某个MPDU,
- 输入参数  : pst_tid      : 指向tid的指针
-             us_mpdu_index: MPDU索引,从0开始
- 输出参数  : ppst_netbuf_stru: 指向netbuf的指针
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
                                         oal_uint16 us_mpdu_index,
                                         oal_netbuf_stru **ppst_netbuf_stru)
@@ -387,7 +312,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 判断us_mpdu_index是否超出当前的mpdu数量 */
+    /* ????us_mpdu_index??????????????mpdu???? */
     if (OAL_UNLIKELY(us_mpdu_index > pst_tid_queue->us_mpdu_num))
     {
         OAM_WARNING_LOG2(0, OAM_SF_ANY, "{dmac_tid_get_mpdu_by_index::us_mpdu_index[%d] > us_mpdu_num[%d].}",
@@ -398,7 +323,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
     }
 
 #ifdef _PRE_WLAN_FEATURE_TX_DSCR_OPT
-    /* 先遍历重传队列 */
+    /* ?????????????? */
     uc_mpdu_idx     = 0;
     pst_dscr_entry  = OAL_PTR_NULL;
     if (OAL_TRUE != oal_dlist_is_empty(&pst_tid_queue->st_retry_q))
@@ -406,7 +331,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
         pst_dscr_entry = pst_tid_queue->st_retry_q.pst_next;
         for (uc_mpdu_idx = 0; uc_mpdu_idx < us_mpdu_index; uc_mpdu_idx++)
         {
-            /* 入参us_mpdu_index=0表示第一个缓存包 */
+            /* ????us_mpdu_index=0???????????????? */
             pst_dscr_entry = pst_dscr_entry->pst_next;
             if (pst_dscr_entry == &pst_tid_queue->st_retry_q)
             {
@@ -417,7 +342,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
 
     }
 
-    /* 判断在重传队列是否找到 */
+    /* ?????????????????????? */
     if ((uc_mpdu_idx == us_mpdu_index) && (pst_dscr_entry != OAL_PTR_NULL))
     {
         pst_dscr = OAL_DLIST_GET_ENTRY(pst_dscr_entry, hal_tx_dscr_stru, st_entry);
@@ -426,11 +351,11 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
         return OAL_SUCC;
     }
 
-    /* 如果在重传队列没有找到 */
+    /* ?????????????????????? */
     us_mpdu_index -= uc_mpdu_idx;
     uc_mpdu_idx    = 0;
     pst_netbuf_tmp = OAL_PTR_NULL;
-    /* 再遍历netbuf队列 */
+    /* ??????netbuf???? */
     if (OAL_TRUE == oal_netbuf_list_empty(&pst_tid_queue->st_buff_head))
     {
         *ppst_netbuf_stru = OAL_PTR_NULL;
@@ -450,18 +375,18 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
         }
     }
 
-    /* 在netbuf队列找到 */
+    /* ??netbuf???????? */
     if (pst_netbuf_tmp != OAL_PTR_NULL)
     {
         *ppst_netbuf_stru = pst_netbuf_tmp;
         return OAL_SUCC;
     }
 
-    /* 没有找到 */
+    /* ???????? */
     *ppst_netbuf_stru = OAL_PTR_NULL;
     return OAL_FAIL;
 #else
-    /* 如果tid缓存队列为空，程序直接退出 */
+    /* ????tid?????????????????????????? */
     if (OAL_TRUE == oal_dlist_is_empty(&pst_tid_queue->st_hdr))
     {
         OAM_WARNING_LOG0(0, OAM_SF_ANY, "{dmac_tid_get_mpdu_by_index::queue empty.}");
@@ -472,7 +397,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
     pst_dscr_entry = pst_tid_queue->st_hdr.pst_next;
     for (uc_mpdu_idx = 0; uc_mpdu_idx < us_mpdu_index; uc_mpdu_idx++)
     {
-        /* 获取CB */
+        /* ????CB */
         pst_dscr_entry = pst_dscr_entry->pst_next;
     }
     pst_dscr = OAL_DLIST_GET_ENTRY(pst_dscr_entry, hal_tx_dscr_stru, st_entry);
@@ -482,23 +407,7 @@ oal_uint32  dmac_tid_get_mpdu_by_index(dmac_tid_stru *pst_tid_queue,
 #endif /* _PRE_WLAN_FEATURE_TX_DSCR_OPT */
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_get_min_max_mpdu_length
- 功能描述  : 获取TID队首指定数目MPDU中的最小和最大的MPDU长度
- 输入参数  : pst_tid         : 指向tid的指针
-             us_head_mpdu_num:
- 输出参数  : pus_min_mpdu_len: 最小MPDU长度
-             pus_max_mpdu_len: 最大MPDU长度
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月30日
-    作    者   : liwenjun 68207
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_get_min_max_mpdu_length(mac_user_stru *pst_mac_user,
                                             oal_uint8 uc_tid_num,
                                         oal_uint16      us_head_mpdu_num,
@@ -539,7 +448,7 @@ oal_uint32  dmac_tid_get_min_max_mpdu_length(mac_user_stru *pst_mac_user,
     us_min_mpdu_len = 0;
     us_max_mpdu_len = 0;
 
-    /* 先遍历重传队列 */
+    /* ?????????????? */
     if (OAL_TRUE != oal_dlist_is_empty(&pst_tid_queue->st_retry_q))
     {
         pst_dscr_entry  = pst_tid_queue->st_retry_q.pst_next;
@@ -569,7 +478,7 @@ oal_uint32  dmac_tid_get_min_max_mpdu_length(mac_user_stru *pst_mac_user,
     {
         us_mpdu_num = us_head_mpdu_num - pst_tid_queue->uc_retry_num;
 
-        /* 再遍历缓存队列 */
+        /* ?????????????? */
         pst_netbuf   = pst_tid_queue->st_buff_head.pst_next;
         for (us_mpdu_idx = 0; us_mpdu_idx < us_mpdu_num; us_mpdu_idx++)
         {
@@ -593,7 +502,7 @@ oal_uint32  dmac_tid_get_min_max_mpdu_length(mac_user_stru *pst_mac_user,
 
     }
 #else
-    /* 如果tid缓存队列为空，程序直接退出 */
+    /* ????tid?????????????????????????? */
     if (OAL_TRUE == oal_dlist_is_empty(&pst_tid_queue->st_hdr))
     {
         *pus_min_mpdu_len = 0;
@@ -630,22 +539,7 @@ oal_uint32  dmac_tid_get_min_max_mpdu_length(mac_user_stru *pst_mac_user,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_tx_queue_remove_list
- 功能描述  : 将一个MPDU从TID缓存队列中删除并释放，算法只有突发情况才会调用,性能不敏感
- 输入参数  : pst_tid_queue: TID缓存队列
-             uc_mpdu_num  : 需从tid缓存队列中删除的MPDU个数
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月22日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_delete_mpdu_head(
                 dmac_tid_stru              *pst_tid_queue,
                 oal_uint16                  us_mpdu_num)
@@ -689,7 +583,7 @@ oal_uint32  dmac_tid_delete_mpdu_head(
         return OAL_ERR_CODE_PTR_NULL;
     }
 #ifdef _PRE_WLAN_FEATURE_TX_DSCR_OPT
-    /* 先遍历重传队列 */
+    /* ?????????????? */
     us_num_tmp      = OAL_MIN(pst_tid_queue->uc_retry_num, us_mpdu_num);
     for (us_mpdu_idx = 0; us_mpdu_idx < us_num_tmp; us_mpdu_idx++)
     {
@@ -747,7 +641,7 @@ oal_uint32  dmac_tid_delete_mpdu_head(
 #else
     for (us_mpdu_idx = 0; us_mpdu_idx < us_mpdu_num; us_mpdu_idx++)
     {
-        /* 如果tid缓存队列为空，程序直接退出 */
+        /* ????tid?????????????????????????? */
         if (OAL_TRUE == oal_dlist_is_empty(&pst_tid_queue->st_hdr))
         {
             break;
@@ -787,7 +681,7 @@ oal_uint32  dmac_tid_delete_mpdu_head(
     }
 #endif /* _PRE_TX_DSCR */
 
-    /* 更新tid_dlist链表 */
+    /* ????tid_dlist???? */
     dmac_alg_tid_update_notify(pst_tid_queue);
 
 #ifdef _PRE_WLAN_FEATURE_FLOWCTL
@@ -798,22 +692,7 @@ oal_uint32  dmac_tid_delete_mpdu_head(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_delete_mpdu_tail
- 功能描述  : 删除并释放TID队尾若干个MPDU,算法只有突发情况才会调用,性能不敏感
- 输入参数  : pst_tid    : 指向TID的指针
-             uc_mpdu_num: MPDU个数
- 输出参数  : 无
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 us_mpdu_num)
 {
     mac_device_stru            *pst_mac_device;
@@ -862,7 +741,7 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
         return OAL_ERR_CODE_PTR_NULL;
     }
 #ifdef _PRE_WLAN_FEATURE_TX_DSCR_OPT
-    /* 先删除netbuf队列 */
+    /* ??????netbuf???? */
     us_num_tmp = us_mpdu_num;
     for (us_mpdu_idx = 0; us_mpdu_idx < us_num_tmp; us_mpdu_idx++)
     {
@@ -879,7 +758,7 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
         pst_mac_device->aus_ac_mpdu_num[WLAN_WME_TID_TO_AC(pst_tid_queue->uc_tid)]--;
     }
 
-    /* 再删除重传队列 */
+    /* ?????????????? */
     if (us_mpdu_num > us_mpdu_idx)
     {
         us_num_tmp = us_mpdu_num - us_mpdu_idx;
@@ -919,7 +798,7 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
         }
     }
 #else
-    /* 删除从pst_netbuf开始的N个MPDU */
+    /* ??????pst_netbuf??????N??MPDU */
     for (us_mpdu_idx = 0; us_mpdu_idx < us_mpdu_num; us_mpdu_idx++)
     {
         pst_dscr_entry = oal_dlist_delete_tail(&pst_tid_queue->st_hdr);
@@ -949,7 +828,6 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
 
         pst_tid_queue->us_mpdu_num--;
 
-        /*zourong维测验证DTS2014071403907*/
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
         if(pst_tid_queue->us_mpdu_num < pst_tid_queue->uc_retry_num)
         {
@@ -964,7 +842,7 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
     }
 #endif /* _PRE_WLAN_FEATURE_TX_DSCR_OPT */
 
-    /* 更新tid_dlist链表 */
+    /* ????tid_dlist???? */
     dmac_alg_tid_update_notify(pst_tid_queue);
 
 #ifdef _PRE_WLAN_FEATURE_FLOWCTL
@@ -975,22 +853,7 @@ oal_uint32  dmac_tid_delete_mpdu_tail(dmac_tid_stru *pst_tid_queue, oal_uint16 u
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_get_util_ratio
- 功能描述  : 获取device下所有TID的使用率,算法约50ms调一次
- 输入参数  : uc_chip_id  : chip ID
-             uc_device_id: device ID
- 输出参数  : puc_ratio   : 使用率
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_get_util_ratio(oal_uint8 uc_chip_id, oal_uint8 uc_device_id, oal_uint8 *puc_ratio)
 {
     mac_device_stru *pst_device;
@@ -1011,28 +874,13 @@ oal_uint32  dmac_tid_get_util_ratio(oal_uint8 uc_chip_id, oal_uint8 uc_device_id
 
     pst_device = mac_res_get_dev(uc_device_id);
 
-    /* 使用率(%) = (当前总数 * 100 )/最大数 = (当前总数 * 100 )/256 = (当前总数 * 100 ) >> 8 */
+    /* ??????(%) = (???????? * 100 )/?????? = (???????? * 100 )/256 = (???????? * 100 ) >> 8 */
     *puc_ratio = (oal_uint8)((pst_device->us_total_mpdu_num * 100 ) >> WLAN_TID_MPDU_NUM_BIT);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_get_normal_rate_stats
- 功能描述  : 读取某个TID速率统计信息
- 输入参数  : pst_mac_user: 指向user的指针
-             uc_tid_id   : TID
- 输出参数  : ppst_rate_stats_info: 指向速率统计信息的指针
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_get_normal_rate_stats(
                 mac_user_stru                      *pst_mac_user,
                 oal_uint8                           uc_tid_id,
@@ -1069,23 +917,7 @@ oal_uint32  dmac_tid_get_normal_rate_stats(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_set_normal_rate_stats
- 功能描述  : 设置某个TID的速率统计信息
- 输入参数  : pst_mac_user: 指向用户的指针
-             uc_tid_id   : TID
-             pst_rate_stats_info: 指向速率统计信息的指针
- 输出参数  : 无
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月5日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_set_normal_rate_stats(
                 mac_user_stru                      *pst_mac_user,
                 oal_uint8                           uc_tid_id,
@@ -1130,21 +962,7 @@ oal_uint32  dmac_tid_set_normal_rate_stats(
     return OAL_SUCC;
 }
 #if 0
-/*****************************************************************************
- 函 数 名  : dmac_tid_flush_retry_frame
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月16日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_tid_flush_retry_frame(mac_device_stru *pst_device, dmac_tid_stru *pst_tid)
 {
     oal_uint8            uc_dscr_index;
@@ -1153,7 +971,7 @@ oal_void  dmac_tid_flush_retry_frame(mac_device_stru *pst_device, dmac_tid_stru 
     oal_netbuf_stru     *pst_netbuf = OAL_PTR_NULL;
 
 
-    //维测，计算下tid队列的长度，和retry_num做比较
+    //????????????tid??????????????retry_num??????
     oal_dlist_head_stru *pst_dlist_pos;
     oal_uint16           us_num = 0 ;
 
@@ -1286,21 +1104,7 @@ oal_uint32  dmac_release_tid_buffs_by_vap(dmac_vap_stru     *pst_dmac_vap,
     return ul_free_nums;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_release_tid_buffs
- 功能描述  : 内存紧张时删除tid中的数据，从当前VAP开始，先删除低优先级tid队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月14日
-    作    者   : z00262551 zhouxinfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_release_tid_buffs(dmac_vap_stru     *pst_dmac_vap,
                                         mac_device_stru  *pst_device,
                                         oal_uint32       ul_nums)
@@ -1310,7 +1114,7 @@ oal_uint32  dmac_release_tid_buffs(dmac_vap_stru     *pst_dmac_vap,
     oal_uint8  uc_vap_idx;
     dmac_vap_stru  *pst_dmac_crr_vap = NULL;
 
-    /*优先删除当前VAP*/
+    /*????????????VAP*/
     if(NULL != pst_dmac_vap)
     {
         ul_free_nums += dmac_release_tid_buffs_by_vap(pst_dmac_vap, ul_remain_nums);
@@ -1323,7 +1127,7 @@ oal_uint32  dmac_release_tid_buffs(dmac_vap_stru     *pst_dmac_vap,
 
     ul_remain_nums = ul_nums - ul_free_nums;
 
-    /* 遍历device下所有vap， */
+    /* ????device??????vap?? */
     for (uc_vap_idx = 0; uc_vap_idx < pst_device->uc_vap_num; uc_vap_idx++)
     {
         pst_dmac_crr_vap = (dmac_vap_stru *)mac_res_get_dmac_vap(pst_device->auc_vap_id[uc_vap_idx]);
@@ -1354,21 +1158,7 @@ oal_uint32  dmac_release_tid_buffs(dmac_vap_stru     *pst_dmac_vap,
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_clear
- 功能描述  : 删除tid队列中的所有信息
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月16日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac_device)
 {
     oal_uint32                      ul_tid_idx;
@@ -1397,7 +1187,7 @@ oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac
         pst_tid_queue = &(pst_dmac_user->ast_tx_tid_queue[ul_tid_idx]);
 
     #ifdef _PRE_WLAN_FEATURE_TX_DSCR_OPT
-        /* 释放重传包 */
+        /* ?????????? */
         pst_entry = pst_tid_queue->st_retry_q.pst_next;
         while (pst_entry != &pst_tid_queue->st_retry_q)
         {
@@ -1414,7 +1204,7 @@ oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac
         pst_netbuf  = pst_tid_queue->st_buff_head.pst_next;
         while (pst_netbuf != (oal_netbuf_stru *)&pst_tid_queue->st_buff_head)
         {
-            /* 再释放netbuf缓存队列 */
+            /* ??????netbuf???????? */
             pst_netbuf  = dmac_tx_dequeue_first_mpdu(&pst_tid_queue->st_buff_head);
             pst_mac_device->us_total_mpdu_num--;
             pst_mac_device->aus_vap_mpdu_num[pst_tid_queue->uc_vap_id]--;
@@ -1424,7 +1214,7 @@ oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac
             pst_netbuf  = pst_tid_queue->st_buff_head.pst_next;
         }
     #else
-        /* 释放TID缓存中的包 */
+        /* ????TID?????????? */
         pst_entry = pst_tid_queue->st_hdr.pst_next;
         if (OAL_PTR_NULL == pst_entry)
         {
@@ -1447,7 +1237,7 @@ oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac
         pst_tid_queue->us_mpdu_num = 0;
         pst_tid_queue->uc_retry_num = 0;
 
-        /* 释放BA相关的内容 */
+        /* ????BA?????????? */
         if (OAL_PTR_NULL != pst_tid_queue->pst_ba_rx_hdl)
         {
             //dmac_mgmt_delba(pst_dmac_vap, pst_dmac_user, (oal_uint8)ul_tid_idx, MAC_RECIPIENT_DELBA, MAC_QSTA_LEAVING_NETWORK);
@@ -1470,21 +1260,7 @@ oal_uint32  dmac_tid_clear(mac_user_stru *pst_mac_user, mac_device_stru *pst_mac
 }
 
 #ifdef _PRE_WLAN_DFT_EVENT
-/*****************************************************************************
- 函 数 名  : dmac_event_pause_tid
- 功能描述  : 暂停或者恢复tid事件消息上报
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月4日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void  dmac_tid_status_change_event_to_sdt(
                                      dmac_tid_stru        *pst_tid,
                                      oal_uint8             uc_is_tid_paused)
@@ -1501,21 +1277,7 @@ OAL_STATIC OAL_INLINE oal_void  dmac_tid_status_change_event_to_sdt(
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_pause
- 功能描述  : 暂停TID队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_pause(dmac_tid_stru *pst_tid, oal_uint8 uc_type)
 {
     oal_uint8   uc_is_paused;
@@ -1538,7 +1300,7 @@ oal_uint32  dmac_tid_pause(dmac_tid_stru *pst_tid, oal_uint8 uc_type)
 
     if (0 == uc_is_paused)
     {
-        /* 通知算法 */
+        /* ???????? */
         dmac_alg_tid_update_notify(pst_tid);
     }
 
@@ -1550,21 +1312,7 @@ oal_uint32  dmac_tid_pause(dmac_tid_stru *pst_tid, oal_uint8 uc_type)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_tid_resume
- 功能描述  : 恢复TID队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tid_resume(hal_to_dmac_device_stru *pst_hal_device, dmac_tid_stru *pst_tid, oal_uint8 uc_type)
 {
     if ((OAL_PTR_NULL == pst_tid) || (OAL_PTR_NULL == pst_hal_device))
@@ -1586,14 +1334,32 @@ oal_uint32  dmac_tid_resume(hal_to_dmac_device_stru *pst_hal_device, dmac_tid_st
 #ifdef _PRE_WLAN_DFT_EVENT
         dmac_tid_status_change_event_to_sdt(pst_tid, pst_tid->uc_is_paused);
 #endif
-        /* 通知算法 */
+        /* ???????? */
         dmac_alg_tid_update_notify(pst_tid);
         dmac_tx_complete_schedule(pst_hal_device, WLAN_WME_TID_TO_AC(pst_tid->uc_tid));
     }
 
     return OAL_SUCC;
 }
+oal_uint32 dmac_clear_tid_by_rm_ptk_key(mac_vap_stru *pst_mac_vap, mac_user_stru *pst_mac_user)
+{
+    mac_device_stru *pst_mac_device = OAL_PTR_NULL;
 
+#ifdef _PRE_WLAN_FEATURE_ROAM
+    /* ????????tid????pause,??????tid?????????????????? */
+    if (pst_mac_vap->en_vap_state == MAC_VAP_STATE_ROAMING) {
+        return OAL_SUCC;
+    }
+#endif
+
+    pst_mac_device = mac_res_get_dev(pst_mac_vap->uc_device_id);
+    if (pst_mac_device == OAL_PTR_NULL) {
+        OAM_ERROR_LOG0(pst_mac_vap->uc_vap_id, OAM_SF_TX, "{dmac_clear_tid_by_rm_ptk_key::pst_mac_device is null.}");
+        return OAL_ERR_CODE_PTR_NULL;
+    }
+
+    return dmac_tid_clear(pst_mac_user, pst_mac_device);
+}
 
 /*lint -e578*//*lint -e19*/
 oal_module_symbol(dmac_tid_get_util_ratio);

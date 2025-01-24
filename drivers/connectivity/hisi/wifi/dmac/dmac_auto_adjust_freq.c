@@ -1,24 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_auto_adjust_freq.c
-  版 本 号   : 初稿
-  作    者   : w00316376
-  生成日期   : 2015年6月26日
-  最近修改   :
-  功能描述   :device调频相关函数实现
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年6月26日
-    作    者   : w00316376
-    修改内容   : 创建文件
-  2.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : Device独立调频
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -28,7 +8,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
 #include "pm_extern.h"
@@ -49,13 +29,13 @@ extern "C" {
 
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 dmac_pps_statistics_stru g_device_pps_statistics = {0};
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
 
-/*device主频类型*/
+/*device????????*/
 oal_uint16 g_device_speed_freq[][FREQ_BUTT] = {
     {PM_40MHZ,PM_160MHZ,PM_240MHZ,PM_480MHZ},     /*WLAN_BW_20*/
     {PM_40MHZ,PM_160MHZ,PM_240MHZ,PM_480MHZ},    /*WLAN_HT_BW_40*/
@@ -63,27 +43,27 @@ oal_uint16 g_device_speed_freq[][FREQ_BUTT] = {
     {PM_80MHZ,PM_160MHZ,PM_240MHZ,PM_480MHZ},   /*WLAN_VHT_BW_80*/
 };
 
-/*由定制化进行初始化*/
+/*??????????????????*/
 device_pps_freq_level_stru g_device_ba_pps_freq_level[] = {
-    /*pps门限                   CPU主频level */
+    /*pps????                   CPU????level */
     {PPS_VALUE_0,          FREQ_IDLE},
     {PPS_VALUE_1,          FREQ_MIDIUM},
     {PPS_VALUE_2,          FREQ_HIGHER},
     {PPS_VALUE_3,          FREQ_HIGHEST},
 };
 device_pps_freq_level_stru g_device_no_ba_pps_freq_level[] = {
-    /*pps门限                   CPU主频level */
+    /*pps????                   CPU????level */
     {NO_BA_PPS_VALUE_0,    FREQ_IDLE},
     {NO_BA_PPS_VALUE_1,    FREQ_MIDIUM},
     {NO_BA_PPS_VALUE_2,    FREQ_HIGHER},
     {NO_BA_PPS_VALUE_3,    FREQ_HIGHEST},
 };
 
-/* device调频控制结构体 */
+/* device?????????????? */
 dmac_freq_control_stru g_device_freq_type = {0};
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 dmac_freq_control_stru* dmac_get_auto_freq_handle(oal_void)
 {
@@ -94,21 +74,7 @@ device_pps_freq_level_stru* dmac_get_ba_pps_freq_level(oal_void)
 {
     return g_device_ba_pps_freq_level;
 }
-/*****************************************************************************
- 函 数 名  : dmac_get_device_freq_level
- 功能描述  : 获取device的调频等级
- 输入参数  : 无
- 输出参数  : device的调频类型
- 返 回 值  : oal_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年11月16日
-    作    者   : z00185449
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 dmac_get_device_freq_level(void)
 {
     oal_uint8     uc_vap_idx;
@@ -138,7 +104,7 @@ oal_uint8 dmac_get_device_freq_level(void)
         }
 
         if ((pst_mac_vap->en_protocol != WLAN_VHT_MODE) &&
-            (pst_mac_vap->en_protocol != WLAN_VHT_ONLY_MODE))   /*非11ac*/
+            (pst_mac_vap->en_protocol != WLAN_VHT_ONLY_MODE))   /*??11ac*/
         {
             if ((WLAN_BAND_WIDTH_40MINUS == pst_mac_vap->st_channel.en_bandwidth) ||
                 (WLAN_BAND_WIDTH_40PLUS == pst_mac_vap->st_channel.en_bandwidth))
@@ -168,23 +134,7 @@ oal_uint8 dmac_get_device_freq_level(void)
     }
     return uc_auto_freq_bw_type;
 }
-/*****************************************************************************
- 函 数 名  : dmac_get_device_freq_value
- 功能描述  : 获取device的调频类型
- 输入参数  : 无
- 输出参数  : oal_device_freq_type_enum_uint8 uc_device_freq_type,device的调频类型,
-             wlan_auto_freq_bw_enum_uint8 uc_auto_freq_bw_type,调频频宽类型
-             oal_uint16* pusdevice_freq_value,device主频值
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年11月16日
-    作    者   : z00185449
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_get_device_freq_value(oal_device_freq_type_enum_uint8 uc_device_freq_type,wlan_auto_freq_bw_enum_uint8 uc_auto_freq_bw_type,oal_uint16* pusdevice_freq_value)
 {
     if (uc_device_freq_type > FREQ_HIGHEST)
@@ -202,28 +152,14 @@ oal_uint32 dmac_get_device_freq_value(oal_device_freq_type_enum_uint8 uc_device_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_set_device_freq
- 功能描述  : device的调频函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_auto_set_device_freq(oal_void)
 {
     wlan_auto_freq_bw_enum_uint8 uc_auto_freq_bw_type = WLAN_BW_20;
     oal_uint16                   us_device_freq = PM_40MHZ;
     oal_uint32                    uc_ret;
 
-    /* 相等不需要调频 */
+    /* ?????????????? */
     if(g_device_freq_type.uc_curr_freq_level == g_device_freq_type.uc_req_freq_level)
     {
         return;
@@ -273,37 +209,23 @@ oal_void dmac_auto_set_device_freq(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_netbuf_notify
- 功能描述  : device根据netbuf剩余量的调频函数
- 输入参数  : large netbuf 剩余量
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_auto_freq_netbuf_notify(oal_uint32 ul_free_cnt)
 {
     dmac_freq_control_stru   *pst_freq_handle = &g_device_freq_type;
 
-    /* 如果不使能，则不设置 */
+    /* ???????????????????? */
     if(OAL_FALSE == pst_freq_handle->uc_auto_freq_enable)
     {
         return;
     }
-    /* 如果低功耗睡眠，则不设置 */
+    /* ???????????????????????? */
     if(OAL_FALSE == pst_freq_handle->uc_pm_enable)
     {
         return;
     }
 
-    /* 触发高优先级流控时，调高频率 */
+    /* ???????????????????????????? */
     if ((ul_free_cnt <= (WLAN_AUTO_FREQ_NETBUF_THRESHOLD + 1)) && (pst_freq_handle->uc_curr_freq_level != FREQ_HIGHEST))
     {
         //OAM_WARNING_LOG1(0, OAM_SF_ANY, "{dmac_auto_freq_netbuf_notify:ul_free_cnt[%d].}", ul_free_cnt);
@@ -312,27 +234,13 @@ oal_void dmac_auto_freq_netbuf_notify(oal_uint32 ul_free_cnt)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_set_pps_level
- 功能描述  : device根据吞吐率获取对应的cpu调频level
- 输入参数  : 吞吐率
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_auto_freq_set_pps_level(oal_uint32 ul_pps_rate)
 {
     dmac_freq_control_stru   *pst_freq_handle = &g_device_freq_type;
     oal_uint8 level_idx = 0;
 
-    if(dmac_is_ba_setup())/* 已经建立BA */
+    if(dmac_is_ba_setup())/* ????????BA */
     {
         if (ul_pps_rate <= g_device_ba_pps_freq_level[1].ul_speed_level)
         {
@@ -381,21 +289,7 @@ oal_void dmac_auto_freq_set_pps_level(oal_uint32 ul_pps_rate)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_pps_process
- 功能描述  : device根据吞吐率判断是否需要调频
- 输入参数  : 定时器周期内的收发帧个数
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_auto_freq_pps_process(oal_uint32 ul_pkt_count)
 {
     dmac_freq_control_stru   *pst_freq_handle = &g_device_freq_type;
@@ -404,7 +298,7 @@ oal_void dmac_auto_freq_pps_process(oal_uint32 ul_pkt_count)
     {
         if(pst_freq_handle->uc_req_freq_level < pst_freq_handle->uc_curr_freq_level)
         {
-            /*连续MAX_DEGRADE_FREQ_TIME_THRESHOLD后才降频，保证性能*/
+            /*????MAX_DEGRADE_FREQ_TIME_THRESHOLD??????????????????*/
             pst_freq_handle->ul_pps_loop_count++;
             if(0 != ul_pkt_count)
             {
@@ -425,10 +319,10 @@ oal_void dmac_auto_freq_pps_process(oal_uint32 ul_pkt_count)
         }
         else
         {
-            /*升频不等待，立即执行保证性能*/
+            /*????????????????????????????*/
             pst_freq_handle->ul_pps_loop_count = 0;
 
-            /* 当需要升频时，一次性burst到最高频;然后再根据流量下调频率 */
+            /* ????????????????????burst????????;?????????????????????? */
             if(FREQ_HIGHEST != pst_freq_handle->uc_curr_freq_level)
             {
                 pst_freq_handle->uc_req_freq_level = FREQ_HIGHEST;
@@ -444,21 +338,7 @@ oal_void dmac_auto_freq_pps_process(oal_uint32 ul_pkt_count)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_pps_timeout
- 功能描述  : device调频功能初始化函数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_init(oal_void)
 {
     dmac_freq_control_stru   *pst_freq_handle = &g_device_freq_type;
@@ -468,14 +348,14 @@ oal_void dmac_set_auto_freq_init(oal_void)
     pst_freq_handle->uc_auto_freq_enable = OAL_TRUE;
     pst_freq_handle->uc_pm_enable = OAL_FALSE;
     pst_freq_handle->uc_curr_freq_level = FREQ_HIGHEST;
-    pst_freq_handle->uc_req_freq_level = FREQ_IDLE; /* 默认处于最低工作频率 */
+    pst_freq_handle->uc_req_freq_level = FREQ_IDLE; /* ???????????????????? */
     pst_freq_handle->ul_pps_loop_count = 0;
 
     pst_pps_handle->ul_pps_rate = 0;
     pst_pps_handle->ul_last_timeout = 0;
     pst_pps_handle->ul_hcc_rxtx_total = 0;
 
-    /* 初始设为level0 */
+    /* ????????level0 */
     dmac_auto_set_device_freq();
 
     if(OAL_FALSE == pst_timer->en_is_registerd)
@@ -494,21 +374,7 @@ oal_void dmac_set_auto_freq_init(oal_void)
     g_device_pps_statistics.uc_timer_reuse_count++;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_set_auto_freq_deinit
- 功能描述  : device调频功能去初始化函数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_deinit(oal_void)
 {
     frw_timeout_stru  *pst_timer = &g_device_pps_statistics.timer;
@@ -519,7 +385,7 @@ oal_void dmac_set_auto_freq_deinit(oal_void)
     {
         g_device_pps_statistics.uc_timer_reuse_count --;
 
-        /* 由最后退出的模块删除定时器 */
+        /* ?????????????????????????? */
         if (0 == g_device_pps_statistics.uc_timer_reuse_count)
         {
             FRW_TIMER_IMMEDIATE_DESTROY_TIMER(pst_timer);
@@ -529,21 +395,7 @@ oal_void dmac_set_auto_freq_deinit(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_set_auto_freq_exit
- 功能描述  : device调频功能去初始化函数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_exit(oal_void)
 {
     dmac_set_auto_freq_deinit();
@@ -552,21 +404,7 @@ oal_void dmac_set_auto_freq_exit(oal_void)
    dmac_auto_set_device_freq();
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_pps_timeout
- 功能描述  : device调频注册钩子函数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_process_func(oal_void)
 {
     struct oal_process_func_handler    *pst_func_handle;
@@ -578,21 +416,7 @@ oal_void dmac_set_auto_freq_process_func(oal_void)
 #endif /* end of _PRE_WLAN_FEATURE_AUTO_FREQ */
 
 
-/*****************************************************************************
- 函 数 名  : dmac_auto_freq_pps_timeout
- 功能描述  : device调频吞吐率统计定时器
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_auto_freq_pps_timeout(void *prg)
 {
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
@@ -616,7 +440,7 @@ oal_uint32 dmac_auto_freq_pps_timeout(void *prg)
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
     if (OAL_TRUE == pst_freq_handle->uc_auto_freq_enable)
     {
-        /* 根据吞吐量获取调频级别 */
+        /* ?????????????????????? */
         dmac_auto_freq_set_pps_level(pst_pps_handle->ul_pps_rate);
 
         dmac_auto_freq_pps_process(ul_return_total_count);
@@ -624,7 +448,7 @@ oal_uint32 dmac_auto_freq_pps_timeout(void *prg)
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_GREEN_AP
-    /* green ap处理函数 */
+    /* green ap???????? */
     dmac_green_ap_pps_process(pst_pps_handle->ul_pps_rate);
 #endif
 
@@ -634,21 +458,7 @@ oal_uint32 dmac_auto_freq_pps_timeout(void *prg)
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_set_auto_freq_pps_reuse
- 功能描述  : 复用Device数据流量PPS统计接口(启动timer,其他模块调用)
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_pps_reuse(oal_void)
 {
     frw_timeout_stru         *pst_timer = &g_device_pps_statistics.timer;
@@ -668,21 +478,7 @@ oal_void dmac_set_auto_freq_pps_reuse(oal_void)
 
     g_device_pps_statistics.uc_timer_reuse_count ++;
 }
-/*****************************************************************************
- 函 数 名  : dmac_set_auto_freq_pps_reuse_deinit
- 功能描述  : 复用Device数据流量PPS停止统计接口(注销timer,其他模块调用)
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月12日
-    作    者   : l00324381
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_auto_freq_pps_reuse_deinit(oal_void)
 {
     frw_timeout_stru         *pst_timer = &g_device_pps_statistics.timer;
@@ -691,7 +487,7 @@ oal_void dmac_set_auto_freq_pps_reuse_deinit(oal_void)
     {
         g_device_pps_statistics.uc_timer_reuse_count --;
 
-        /* 由最后退出的模块删除定时器 */
+        /* ?????????????????????????? */
         if (0 == g_device_pps_statistics.uc_timer_reuse_count)
         {
             FRW_TIMER_IMMEDIATE_DESTROY_TIMER(pst_timer);

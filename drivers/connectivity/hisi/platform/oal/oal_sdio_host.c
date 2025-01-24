@@ -10,9 +10,14 @@ extern "C" {
 #include "oal_sdio_host_if.h"
 #include "oal_net.h"
 #include "oal_ext_if.h"
+
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+#include <linux/sched/debug.h>
+#endif
 #include "board.h"
 #endif
+
 #ifdef CONFIG_MMC
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -199,7 +204,7 @@ oal_void oal_sdio_exception_submit(struct oal_sdio *hi_sdio, oal_int32 excep_typ
         return;
     }
 
-    /*先获取claim host锁，自选锁内必须确保已经获取到锁。*/
+    /*??????claim host??????????????????????????????????*/
     oal_sdio_claim_host(hi_sdio);
     oal_spin_lock_irq_save(&hi_sdio->sdio_excp_lock, &flags);
     if(work_busy(&hi_sdio->sdio_excp_worker))
@@ -557,7 +562,7 @@ OAL_STATIC OAL_INLINE oal_int32 oal_sdio_msg_stat(struct oal_sdio *hi_sdio, oal_
     }
 #ifdef CONFIG_SDIO_D2H_MSG_ACK
     /*read from old register*/
-    /*当使用0x30寄存器时需要下发CMD52读0x2B 才会产生HOST2ARM ACK中断*/
+    /*??????0x30????????????????CMD52??0x2B ????????HOST2ARM ACK????*/
     (void)oal_sdio_readb(hi_sdio->func, HISDIO_REG_FUNC1_MSG_HIGH_FROM_DEV, &ret);
     if (ret)
     {
@@ -615,7 +620,7 @@ oal_int32 oal_sdio_msg_irq(struct oal_sdio *hi_sdio)
     oal_sdio_release_host(hi_sdio);
     oal_sdio_rx_transfer_unlock(hi_sdio);
 
-    /*优先处理Panic消息*/
+    /*????????Panic????*/
     if(test_and_clear_bit(D2H_MSG_DEVICE_PANIC, &msg64))
     {
         bit = D2H_MSG_DEVICE_PANIC;
@@ -704,7 +709,7 @@ OAL_STATIC OAL_INLINE oal_int32 oal_sdio_extend_buf_get(struct oal_sdio *hi_sdio
 			                    HISDIO_COMM_REG_SEQ_GET(hi_sdio->sdio_extend->credit_info));
             oal_print_hex_dump((oal_void*)hi_sdio->sdio_extend,sizeof(struct hisdio_extend_func),32,"extend :");
 
-            /* 此credit更新只在调试时使用 */
+            /* ??credit?????????????????? */
             if(oal_sdio_credit_info_update(hi_sdio))
             {
                 if(OAL_LIKELY(hi_sdio->credit_update_cb))
@@ -1221,7 +1226,7 @@ OAL_STATIC irqreturn_t wlan_gpio_irq(oal_int32 irq, oal_void *dev_id)
     //OAL_IO_PRINT(KERN_ERR"[SDIO][DBG]wlan_gpio_irq get pm state=%d\r\n",(oal_uint32)ul_state);
     if(0 == ul_state)
     {
-        /*0==HOST_DISALLOW_TO_SLEEP表示不允许休眠*/
+        /*0==HOST_DISALLOW_TO_SLEEP??????????????*/
         hi_sdio->data_int_count++;
 
         //OAL_IO_PRINT("[SDIO][DBG]Sdio Rx Data Interrupt.\n");
@@ -1231,7 +1236,7 @@ OAL_STATIC irqreturn_t wlan_gpio_irq(oal_int32 irq, oal_void *dev_id)
     }
     else
     {
-        /*1==HOST_ALLOW_TO_SLEEP表示当前是休眠，唤醒host*/
+        /*1==HOST_ALLOW_TO_SLEEP????????????????????host*/
         OAL_BUG_ON(!hi_sdio->pst_pm_callback->wlan_pm_wakeup_host);
         hi_sdio->wakeup_int_count++;
         g_ul_pm_wakeup_event = OAL_TRUE;
@@ -1309,21 +1314,7 @@ oal_void oal_unregister_gpio_intr(struct oal_sdio *hi_sdio)
     hi_sdio->gpio_rx_tsk = NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_wlan_gpio_intr_enable
- 功能描述  : 使能/关闭 WLAN GPIO 中断
- 输入参数  : 1:enable; 0:disenable
- 输出参数  : 无
- 返 回 值  : 成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oal_wlan_gpio_intr_enable(struct oal_sdio *hi_sdio,oal_uint32  ul_en)
 {
     oal_uint            flags;
@@ -1700,26 +1691,12 @@ failed_sdio_alloc:
 }
 
 #if 0
-/*****************************************************************************
- 函 数 名  : oal_sdio_wake_release_lock
- 功能描述  : 释放指定次数wakelock锁
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int  oal_sdio_wake_release_lock(struct oal_sdio *pst_hi_sdio, oal_uint32 ul_locks)
 {
     oal_int ret = 0;
-#ifdef CONFIG_WAKELOCK
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37))
     oal_uint ul_flags;
     if(!ul_locks)
     {
@@ -1740,33 +1717,18 @@ oal_int  oal_sdio_wake_release_lock(struct oal_sdio *pst_hi_sdio, oal_uint32 ul_
         if(!pst_hi_sdio->ul_wklock_cnt)
         {
             OAL_IO_PRINT("release wakelock:%s", pst_hi_sdio->st_wklock_wifi.ws.name);
-            wake_unlock(&pst_hi_sdio->st_wklock_wifi);
+            oal_wake_unlock(&pst_hi_sdio->st_wklock_wifi);
         }
     }
 
     oal_spin_lock_irq_save(&pst_hi_sdio->st_wklock_spinlock, &ul_flags);
     return pst_hi_sdio->ul_wklock_cnt;
 #endif
-
     return ret;
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : oal_sdio_wakelocks_release_detect
- 功能描述  : 强行释放wakelock锁
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_void oal_sdio_wakelocks_release_detect(struct oal_sdio *pst_hi_sdio)
 {
@@ -1774,9 +1736,9 @@ oal_void oal_sdio_wakelocks_release_detect(struct oal_sdio *pst_hi_sdio)
     OAL_BUG_ON(!pst_hi_sdio);
     if (oal_sdio_wakelock_active(pst_hi_sdio))
     {
-#ifdef CONFIG_WAKELOCK
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37))
         OAL_IO_PRINT("[E]We still hold %s   %lu wake locks, Now release all",
-                    pst_hi_sdio->st_sdio_wakelock.st_wakelock.ws.name,
+                    pst_hi_sdio->st_sdio_wakelock.st_wakelock.name,
                     pst_hi_sdio->st_sdio_wakelock.lock_count);
 #endif
         DECLARE_DFT_TRACE_KEY_INFO("wlan_wakelock_error_hold", OAL_DFT_TRACE_EXCEP);
@@ -2046,6 +2008,9 @@ OAL_STATIC oal_int32 _oal_sdio_transfer_scatt(struct oal_sdio *hi_sdio, oal_int3
         sdio_release_host(func);
         return -OAL_EFAIL;
     }
+#ifdef CONFIG_HISI_SDIO_TIME_DEBUG
+    time_start = ktime_get();
+#endif
     ret = oal_mmc_io_rw_scat_extended(hi_sdio, write,
                                    hi_sdio->func->num, addr,
                                    0, sg,
@@ -2268,6 +2233,10 @@ OAL_STATIC oal_int32 oal_sdio_suspend(struct device *dev)
     struct sdio_func *func;
     struct oal_sdio *hi_sdio;
 
+#ifdef _PRE_WLAN_WAKEUP_SRC_PARSE
+    struct wlan_pm_s *pst_wlan_pm;
+#endif
+
     OAL_IO_PRINT(KERN_ERR"+++++++sdio suspend+++++++++++++\n");
     if (NULL == dev)
     {
@@ -2296,7 +2265,16 @@ OAL_STATIC oal_int32 oal_sdio_suspend(struct device *dev)
         up(&sdio_wake_sema);
         return -OAL_EFAIL;
     }
-    DECLARE_DFT_TRACE_KEY_INFO("sdio_android_suspend", OAL_DFT_TRACE_SUCC);
+
+#ifdef _PRE_WLAN_WAKEUP_SRC_PARSE
+    pst_wlan_pm = wlan_pm_get_drv();
+    if(pst_wlan_pm && pst_wlan_pm->st_wifi_srv_handler.p_data_wkup_print_en_func)
+    {
+        pst_wlan_pm->st_wifi_srv_handler.p_data_wkup_print_en_func(OAL_TRUE);
+    }
+#endif
+
+    DECLARE_DFT_TRACE_KEY_INFO("sdio_system_suspend", OAL_DFT_TRACE_SUCC);
     hi_sdio->ul_sdio_suspend++;
     return OAL_SUCC;
 }
@@ -2325,7 +2303,7 @@ OAL_STATIC oal_int32 oal_sdio_resume(struct device *dev)
     up(&sdio_wake_sema);
 
     hi_sdio->ul_sdio_resume++;
-    DECLARE_DFT_TRACE_KEY_INFO("sdio_android_resume", OAL_DFT_TRACE_SUCC);
+    DECLARE_DFT_TRACE_KEY_INFO("sdio_system_resume", OAL_DFT_TRACE_SUCC);
 
     return OAL_SUCC;
 }
@@ -2344,7 +2322,7 @@ OAL_STATIC const struct dev_pm_ops oal_sdio_pm_ops = {
 
 oal_void oal_sdio_dev_shutdown(struct device *dev)
 {
-    /*android poweroff*/
+    /*poweroff*/
     struct oal_sdio *hi_sdio = oal_get_sdio_default_handler();
     if(NULL == hi_sdio)
         return;
@@ -2355,7 +2333,7 @@ oal_void oal_sdio_dev_shutdown(struct device *dev)
         return;
     }
 
-    /*disable sdio/gpio interrupt before android poweroff*/
+    /*disable sdio/gpio interrupt before poweroff*/
     if(hisdio_intr_mode)
     {
         /*gpio interrupt*/
@@ -2467,6 +2445,9 @@ oal_int32 oal_sdio_func_probe(struct oal_sdio* hi_sdio)
     else
     {
         OAL_IO_PRINT("sdio enum timeout, reason[%s]\n", sdio_enum_err_str);
+#ifdef CONFIG_HUAWEI_DSM
+        hw_1102_dsm_client_notify(DSM_SDIO_PROBE_FAIL, "%s: sdio probe fail\n", __FUNCTION__);
+#endif
         goto failed_sdio_enum;
     }
 
@@ -2474,7 +2455,7 @@ oal_int32 oal_sdio_func_probe(struct oal_sdio* hi_sdio)
     oal_sdio_claim_host(hi_sdio);
     oal_disable_sdio_state(hi_sdio, OAL_SDIO_ALL);
 #ifndef HAVE_HISI_NFC
-    /*等到读取完nfc低电的log数据再拉低GPIO*/
+    /*??????????nfc??????log??????????GPIO*/
     hi_wlan_power_set(0);
 #endif
     oal_sdio_release_host(hi_sdio);
@@ -2510,7 +2491,7 @@ oal_int32 oal_sdio_device_panic_callback(void *data)
 	return OAL_SUCC;
 }
 
-/*检查DEVICE WAKEUP HOST gpio 是否拉高。*/
+/*????DEVICE WAKEUP HOST gpio ??????????*/
 oal_int32 oal_dev2host_gpio_hold_time_check(oal_uint32 switch_timeout, oal_uint32 hold_time)
 {
     oal_ulong timeout;

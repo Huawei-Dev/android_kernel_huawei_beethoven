@@ -1,9 +1,16 @@
+
+
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include "frw_timer.h"
 #include "frw_main.h"
 #include "frw_task.h"
@@ -11,16 +18,20 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_FRW_TIMER_C
 
+/*****************************************************************************
+  2 ????????????
+*****************************************************************************/
 oal_dlist_head_stru         g_ast_timer_list[WLAN_FRW_MAX_NUM_CORES];
 oal_spin_lock_stru          g_ast_timer_list_spinlock[WLAN_FRW_MAX_NUM_CORES];
 oal_timer_list_stru         g_st_timer;
-oal_spin_lock_stru          g_st_sys_timer_spinlock;
+oal_spin_lock_stru          g_st_sys_timer_spinlock;    //????timer????????????????????
 oal_uint32                  g_ul_stop_timestamp = 0;
 oal_uint32                  g_ul_restart_timestamp = 0;
-oal_uint32                  g_ul_max_deep_sleep_time = 0;
+oal_uint32                  g_ul_max_deep_sleep_time = 0;        //????????????????????
 oal_uint32                  g_ul_need_restart = OAL_FALSE;
-oal_uint32                  g_ul_frw_open = OAL_FALSE;
-oal_uint32                  g_ul_frw_timer_running = 0;
+oal_uint32                  g_ul_frw_open = OAL_FALSE;  //????timer????????????????
+oal_uint32                  g_ul_frw_timer_running = 0; //timer????????
+
 
 #ifdef _PRE_DEBUG_MODE
 
@@ -28,10 +39,14 @@ oal_uint32                  g_ul_os_time = 0;
 frw_timeout_track_stru      g_st_timeout_track[FRW_TIMEOUT_TRACK_NUM];
 oal_uint8                   g_uc_timeout_track_idx = 0;
 #endif
-
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void __frw_timer_immediate_destroy_timer(oal_uint32 ul_file_id,
                                                                                oal_uint32 ul_line_num,
                                                                                frw_timeout_stru *pst_timeout);
+
+
 
 oal_void  frw_timer_sys_start(void)
 {
@@ -54,6 +69,8 @@ oal_void  frw_timer_sys_start(void)
 
 }
 
+
+
 oal_void  frw_timer_sys_stop(void)
 {
     OAL_IO_PRINT("frw_timer_sys_stop\r\n");
@@ -74,6 +91,8 @@ oal_void  frw_timer_sys_stop(void)
 
 }
 
+
+
 oal_void  frw_timer_sys_restart(void)
 {
     oal_spin_lock_bh(&g_st_sys_timer_spinlock);
@@ -91,6 +110,9 @@ oal_void  frw_timer_sys_restart(void)
     oal_spin_unlock_bh(&g_st_sys_timer_spinlock);
 
 }
+
+
+
 
 oal_void  frw_timer_init(oal_uint32 ul_delay, oal_timer_func p_func, oal_uint ui_arg)
 {
@@ -111,13 +133,16 @@ oal_void  frw_timer_init(oal_uint32 ul_delay, oal_timer_func p_func, oal_uint ui
 #endif
 }
 
+
 oal_void  frw_timer_exit(oal_void)
 {
     oal_timer_delete_sync(&g_st_timer);
 }
 
+
 oal_void  frw_timer_restart(oal_void)
 {
+    /* ??????????*/
     if(OAL_FALSE == g_ul_need_restart)
     {
         return;
@@ -127,6 +152,8 @@ oal_void  frw_timer_restart(oal_void)
 
     g_ul_need_restart = OAL_FALSE;
 }
+
+
 
 oal_void  frw_timer_stop(oal_void)
 {
@@ -138,6 +165,7 @@ oal_void  frw_timer_stop(oal_void)
     g_ul_need_restart = OAL_TRUE;
 
 }
+
 
 OAL_STATIC oal_void  frw_timer_dump(oal_uint32 ul_core_id)
 {
@@ -181,6 +209,29 @@ OAL_STATIC oal_void  frw_timer_dump(oal_uint32 ul_core_id)
     }
 }
 
+
+#if 0
+
+OAL_STATIC oal_uint32  frw_timer_check_list(oal_void)
+{
+    oal_dlist_head_stru   *pst_timeout_entry;
+
+    pst_timeout_entry = g_st_timer_list.pst_next;
+    while (pst_timeout_entry != &g_st_timer_list)
+    {
+       if (OAL_PTR_NULL == pst_timeout_entry)
+        {
+            OAM_ERROR_LOG0(0, OAM_SF_FRW, "{frw_timer_check_list:: the timer list is broken! }");
+            return OAL_FAIL;
+        }
+
+        pst_timeout_entry = pst_timeout_entry->pst_next;
+    }
+
+    return OAL_SUCC;
+}
+#endif
+
 oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
 {
     oal_dlist_head_stru *pst_timeout_entry;
@@ -213,6 +264,7 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
 
     ul_core_id = OAL_GET_CORE_ID();
 
+    /* ?????????????? */
     oal_spin_lock_bh(&g_ast_timer_list_spinlock[ul_core_id]);
     pst_timeout_entry = g_ast_timer_list[ul_core_id].pst_next;
 
@@ -229,6 +281,7 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
 
         pst_timeout_element = OAL_DLIST_GET_ENTRY(pst_timeout_entry, frw_timeout_stru, st_entry);
 
+        /* ?????????????????????????????????????????????? */
         if ((OAL_TRUE == pst_timeout_element->en_is_deleting)
          || (OAL_FALSE == pst_timeout_element->en_is_enabled))
         {
@@ -239,6 +292,8 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
         pst_timeout_element->ul_curr_time_stamp = ul_present_time;
         ul_runtime = (oal_uint32)OAL_TIME_GET_RUNTIME(pst_timeout_element->ul_time_stamp, ul_present_time);
 
+        /* ??????????????????????????????????????????????????pst_timeout_element->ul_time_stamp????????ul_present_time
+           ????ul_runtime????????????ul_runtime?????????????? */
         if (ul_runtime >= pst_timeout_element->ul_timeout && ul_runtime < FRW_TIMER_MAX_TIMEOUT)
         {
             if (OAL_TRUE != pst_timeout_element->en_is_periodic)
@@ -318,6 +373,7 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
     }
 #endif
 
+    /* ???????????????????? */
     oal_spin_lock_bh(&g_ast_timer_list_spinlock[ul_core_id]);
     pst_timeout_entry = g_ast_timer_list[ul_core_id].pst_next;
 
@@ -348,7 +404,7 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
 
     ul_end_time = (oal_uint32)OAL_TIME_GET_STAMP_MS();
     ul_runtime = (oal_uint32)OAL_TIME_GET_RUNTIME(ul_present_time, ul_end_time);
-
+    /* ??device?????????????????? */
     if (ul_runtime > (oal_uint32)OAL_JIFFIES_TO_MSECS(2))
     {
         OAM_WARNING_LOG1(0, OAM_SF_FRW, "{frw_timer_timeout_proc:: timeout process exucte time too long time[%d]}", ul_runtime);
@@ -356,6 +412,9 @@ oal_uint32  frw_timer_timeout_proc(frw_event_mem_stru *pst_timeout_event)
 
     return OAL_SUCC;
 }
+
+
+
 
 oal_void  frw_timer_add_timer(frw_timeout_stru *pst_timeout)
 {
@@ -367,6 +426,7 @@ oal_void  frw_timer_add_timer(frw_timeout_stru *pst_timeout)
 
     oal_dlist_add_tail(&pst_timeout->st_entry, &g_ast_timer_list[pst_timeout->ul_core_id]);
 }
+
 
 oal_void  frw_timer_create_timer(
 							oal_uint32 ul_file_id,
@@ -401,14 +461,14 @@ oal_void  frw_timer_create_timer(
     pst_timeout->en_module_id   = en_module_id;
     pst_timeout->ul_file_id     = ul_file_id;
     pst_timeout->ul_line_num    = ul_line_num;
-    pst_timeout->en_is_enabled  = OAL_TRUE;
+    pst_timeout->en_is_enabled  = OAL_TRUE;       /* ???????? */
     pst_timeout->en_is_deleting = OAL_FALSE;
 
 
     if (OAL_TRUE != pst_timeout->en_is_registerd)
     {
         pst_timeout->en_is_running  = OAL_FALSE;
-        pst_timeout->en_is_registerd= OAL_TRUE;
+        pst_timeout->en_is_registerd= OAL_TRUE;       /* ???????? */
         frw_timer_add_timer(pst_timeout);
     }
 
@@ -416,6 +476,7 @@ oal_void  frw_timer_create_timer(
 
     return;
 }
+
 
 oal_void  frw_timer_destroy_timer(oal_uint32 ul_file_id,
                                        oal_uint32 ul_line_num,
@@ -438,6 +499,7 @@ oal_void  frw_timer_destroy_timer(oal_uint32 ul_file_id,
 
     // oam_report_timer_track(ul_file_id, ul_line_num, OAM_TIMER_TRACK_TYPE_DESTROY);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void __frw_timer_immediate_destroy_timer(oal_uint32 ul_file_id,
                                                     oal_uint32 ul_line_num,
@@ -469,6 +531,8 @@ OAL_STATIC OAL_INLINE oal_void __frw_timer_immediate_destroy_timer(oal_uint32 ul
     oal_dlist_delete_entry(&pst_timeout->st_entry);
 }
 
+
+
 oal_void  frw_timer_immediate_destroy_timer(oal_uint32 ul_file_id,
                                                     oal_uint32 ul_line_num,
                                                     frw_timeout_stru *pst_timeout)
@@ -477,6 +541,7 @@ oal_void  frw_timer_immediate_destroy_timer(oal_uint32 ul_file_id,
     __frw_timer_immediate_destroy_timer(ul_file_id, ul_line_num, pst_timeout);
     oal_spin_unlock_bh(&g_ast_timer_list_spinlock[pst_timeout->ul_core_id]);
 }
+
 
 oal_void  frw_timer_restart_timer(frw_timeout_stru *pst_timeout, oal_uint32 ul_timeout, oal_bool_enum_uint8  en_is_periodic)
 {
@@ -494,6 +559,8 @@ oal_void  frw_timer_restart_timer(frw_timeout_stru *pst_timeout, oal_uint32 ul_t
     pst_timeout->en_is_deleting     = OAL_FALSE;
 }
 
+
+
 oal_void  frw_timer_stop_timer(frw_timeout_stru *pst_timeout)
 {
     if (OAL_PTR_NULL == pst_timeout)
@@ -504,6 +571,7 @@ oal_void  frw_timer_stop_timer(frw_timeout_stru *pst_timeout)
 
     pst_timeout->en_is_enabled = OAL_FALSE;
 }
+
 
 oal_uint8 g_uc_timer_pause = OAL_FALSE;
 #if defined(_PRE_FRW_TIMER_BIND_CPU) && defined(CONFIG_NR_CPUS)
@@ -537,6 +605,7 @@ oal_void  frw_timer_timeout_proc_event(oal_uint ui_arg)
 
     g_ul_frw_timer_running++;
 
+    /*??2048*10ms,??20s????????*/
     if(0==(g_ul_frw_timer_running&0x7FF))
     {
         OAL_IO_PRINT("frw_timer_timeout_proc_event %d\r\n",g_ul_frw_timer_running);
@@ -558,22 +627,26 @@ oal_void  frw_timer_timeout_proc_event(oal_uint ui_arg)
        return;
     }
 
+/*lint -e539*//*lint -e830*/
 #ifdef _PRE_WLAN_FEATURE_SMP_SUPPORT
     for(ul_core_id = 0; ul_core_id < WLAN_FRW_MAX_NUM_CORES; ul_core_id++)
     {
         if(frw_task_get_state(ul_core_id))
         {
 #endif
+            /* ??????????????????????????????????????????????????????2 */
             if(OAL_FALSE == frw_is_vap_event_queue_empty(ul_core_id, uc_vap_id, FRW_EVENT_TYPE_TIMEOUT))
             {
+                /* ?????????? */
                 frw_timer_sys_restart();
                 return ;
             }
 
             pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(frw_event_stru));
-
+            /* ?????????? */
             if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
             {
+                /* ?????????? */
                 frw_timer_sys_restart();
                 OAM_ERROR_LOG0(0, OAM_SF_FRW, "{frw_timer_timeout_proc_event:: FRW_EVENT_ALLOC failed!}");
                 return;
@@ -581,6 +654,7 @@ oal_void  frw_timer_timeout_proc_event(oal_uint ui_arg)
 
             pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
+            /* ?????????? */
             FRW_FIELD_SETUP((&pst_event->st_event_hdr), en_type, (FRW_EVENT_TYPE_TIMEOUT));
             FRW_FIELD_SETUP((&pst_event->st_event_hdr), uc_sub_type, (FRW_TIMEOUT_TIMER_EVENT));
             FRW_FIELD_SETUP((&pst_event->st_event_hdr), us_length, (WLAN_MEM_EVENT_SIZE1));
@@ -589,6 +663,7 @@ oal_void  frw_timer_timeout_proc_event(oal_uint ui_arg)
             FRW_FIELD_SETUP((&pst_event->st_event_hdr), uc_device_id, (0));
             FRW_FIELD_SETUP((&pst_event->st_event_hdr), uc_vap_id, (0));
 
+            /* ?????? */
 #ifdef _PRE_WLAN_FEATURE_SMP_SUPPORT
             frw_event_post_event(pst_event_mem, ul_core_id);
 #else
@@ -599,10 +674,14 @@ oal_void  frw_timer_timeout_proc_event(oal_uint ui_arg)
         }
     }
 #endif
-
+/*lint +e539*//*lint +e830*/
+    /* ?????????? */
     frw_timer_sys_restart();
 
 }
+
+
+
 
 oal_void  frw_timer_delete_all_timer(oal_void)
 {
@@ -615,7 +694,7 @@ oal_void  frw_timer_delete_all_timer(oal_void)
     for(ul_core_id = 0; ul_core_id < WLAN_FRW_MAX_NUM_CORES; ul_core_id++)
     {
         oal_spin_lock_bh(&g_ast_timer_list_spinlock[ul_core_id]);
-
+        /* ???????????????????? */
         pst_timeout_entry = g_ast_timer_list[ul_core_id].pst_next;
 
         while (pst_timeout_entry != &g_ast_timer_list[ul_core_id])
@@ -624,6 +703,7 @@ oal_void  frw_timer_delete_all_timer(oal_void)
 
             pst_timeout_entry = pst_timeout_entry->pst_next;
 
+            /* ?????????? */
             oal_dlist_delete_entry(&pst_timeout_element->st_entry);
 #if 0
 	        if (oal_dlist_is_empty(&g_st_timer_list))
@@ -636,6 +716,7 @@ oal_void  frw_timer_delete_all_timer(oal_void)
     }
 
 }
+
 
 oal_void  frw_timer_dump_timer(oal_uint32 ul_core_id)
 {
@@ -660,6 +741,7 @@ oal_void  frw_timer_dump_timer(oal_uint32 ul_core_id)
 
 }
 
+/*lint -e578*//*lint -e19*/
 oal_module_symbol(frw_timer_restart_timer);
 oal_module_symbol(frw_timer_destroy_timer);
 oal_module_symbol(frw_timer_create_timer);
@@ -680,8 +762,15 @@ oal_module_symbol(frw_timer_stop);
 oal_module_symbol(frw_timer_sys_start);
 oal_module_symbol(g_ul_frw_open);
 
+
+
+
+
+
+
 #ifdef __cplusplus
     #if __cplusplus
         }
     #endif
 #endif
+

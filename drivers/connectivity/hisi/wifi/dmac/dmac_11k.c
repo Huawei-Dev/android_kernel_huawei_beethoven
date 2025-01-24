@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_11k.c
-  版 本 号   : 初稿
-  作    者   : y00196452
-  生成日期   : 2016年5月4日
-  最近修改   :
-  功能描述   : 11k Radio Resource Measurement功能处理
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2016年5月4日
-    作    者   : y00196452
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +10,7 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_11K
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oal_net.h"
@@ -52,28 +35,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_11K_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_exit_quiet
- 功能描述  : 退出Quiet模式，恢复硬件发送功能
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_exit_quiet(oal_void *para)
 {
     dmac_vap_stru       *pst_dmac_vap;
@@ -96,17 +65,17 @@ oal_uint32 dmac_rrm_exit_quiet(oal_void *para)
             OAM_ERROR_LOG0(0, OAM_SF_RRM, "{dmac_rrm_exit_quiet::pst_dmac_user null.");
             return OAL_ERR_CODE_PTR_NULL;
         }
-        /* 恢复user，恢复该user的每一个tid */
+        /* ????user????????user????????tid */
         dmac_user_resume(pst_dmac_user);
     }
 
-    /* 恢复硬件发送 */
+    /* ???????????? */
     dmac_chan_enable_machw_tx(&pst_dmac_vap->st_vap_base_info);
 
-    /* quiet period为0，表示不使用周期性quiet interval，静默结束后，设为IDLE状态 */
+    /* quiet period??0??????????????????quiet interval??????????????????IDLE???? */
     if (pst_rrm_info->uc_quiet_period)
     {
-        /* 退出quiet后对period开始倒计时，直到下一个quiet interval所在的tbtt中断到来，循环处理MAC_QUIET_STATE_PRD_DEC状态 */
+        /* ????quiet????period??????????????????????quiet interval??????tbtt??????????????????MAC_QUIET_STATE_PRD_DEC???? */
         pst_rrm_info->en_quiet_state = MAC_QUIET_STATE_PRD_DEC;
     }
     else
@@ -116,21 +85,7 @@ oal_uint32 dmac_rrm_exit_quiet(oal_void *para)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_enter_quiet
- 功能描述  : 进入Quiet模式，关闭硬件发送功能
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_enter_quiet(oal_void *para)
 {
     mac_device_stru         *pst_mac_device;
@@ -164,10 +119,10 @@ oal_uint32 dmac_rrm_enter_quiet(oal_void *para)
     }
     pst_rrm_info = pst_dmac_vap->pst_rrm_info;
 
-    /* 关闭硬件发送功能，禁止硬件回ack和cts */
+    /* ????????????????????????????ack??cts */
     dmac_chan_disable_machw_tx(&(pst_dmac_vap->st_vap_base_info));
 
-    /* 进入quiet状态，启动quiet超时定时器 */
+    /* ????quiet??????????quiet?????????? */
     pst_rrm_info->en_quiet_state = MAC_QUIET_STATE_QUIET;
     FRW_TIMER_CREATE_TIMER(&pst_rrm_info->st_quiet_timer,
                                dmac_rrm_exit_quiet,
@@ -180,21 +135,7 @@ oal_uint32 dmac_rrm_enter_quiet(oal_void *para)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_handle_quiet
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_handle_quiet(dmac_vap_stru  *pst_dmac_vap)
 {
     OAL_STATIC oal_uint8        uc_count = 0;
@@ -221,11 +162,11 @@ oal_uint32 dmac_rrm_handle_quiet(dmac_vap_stru  *pst_dmac_vap)
         case MAC_QUIET_STATE_INIT:
         case MAC_QUIET_STATE_IDLE:
             break;
-        /* beacon中quiet ie有更新时，进入START状态 */
+        /* beacon??quiet ie??????????????START???? */
         case MAC_QUIET_STATE_START:
             uc_count = pst_rrm_info->uc_quiet_count;
             ul_tbtt_timer = 0;
-            /* START阶段，删除已注册的quiet和offset定时器 */
+            /* START??????????????????quiet??offset?????? */
             if (pst_rrm_info->st_offset_timer.en_is_registerd)
             {
                 FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_rrm_info->st_offset_timer);
@@ -234,7 +175,7 @@ oal_uint32 dmac_rrm_handle_quiet(dmac_vap_stru  *pst_dmac_vap)
             {
                 FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_rrm_info->st_quiet_timer);
             }
-            /* quiet count为0时，表示该TBTT内需要静默，启动offset定时器，超时后进入quiet阶段 */
+            /* quiet count??0??????????TBTT????????????????offset??????????????????quiet???? */
             if (0 != uc_count)
             {
                 uc_count--;
@@ -277,7 +218,7 @@ oal_uint32 dmac_rrm_handle_quiet(dmac_vap_stru  *pst_dmac_vap)
             break;
         case MAC_QUIET_STATE_PRD_DEC:
             ul_tbtt_timer++;
-            /* quiet period等于0不会进PRD_DEC状态 */
+            /* quiet period????0??????PRD_DEC???? */
             if(0 == (ul_tbtt_timer % pst_rrm_info->uc_quiet_period))
             {
 
@@ -298,21 +239,7 @@ oal_uint32 dmac_rrm_handle_quiet(dmac_vap_stru  *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_parse_quiet
- 功能描述  : 解析Quiet IE，记录帧内容，内容有变化时触发Quiet过程
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_parse_quiet(dmac_vap_stru  *pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint16                   us_frame_len;
@@ -325,7 +252,7 @@ oal_uint32 dmac_rrm_parse_quiet(dmac_vap_stru  *pst_dmac_vap, oal_netbuf_stru *p
 
     pst_rx_ctrl         = (dmac_rx_ctl_stru *)oal_netbuf_cb(pst_netbuf);
     pst_rx_info         = (mac_rx_ctl_stru *)(&(pst_rx_ctrl->st_rx_info));
-    us_frame_len        = pst_rx_info->us_frame_len - pst_rx_info->bit_mac_header_len; /* 帧体长度 */
+    us_frame_len        = pst_rx_info->us_frame_len - pst_rx_info->bit_mac_header_len; /* ???????? */
     puc_payload         = OAL_NETBUF_PAYLOAD(pst_netbuf);
 
     if (OAL_PTR_NULL == pst_dmac_vap)
@@ -390,21 +317,7 @@ oal_uint32 dmac_rrm_parse_quiet(dmac_vap_stru  *pst_dmac_vap, oal_netbuf_stru *p
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_proc_pwr_constraint
- 功能描述  : 根据功率约束调整本地允许发送的最大功率值
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint16                   us_frame_len;
@@ -424,7 +337,7 @@ oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf
 
     pst_rx_ctrl         = (dmac_rx_ctl_stru *)oal_netbuf_cb(pst_netbuf);
     pst_rx_info         = (mac_rx_ctl_stru *)(&(pst_rx_ctrl->st_rx_info));
-    us_frame_len        = pst_rx_info->us_frame_len - pst_rx_info->bit_mac_header_len; /* 帧体长度 */
+    us_frame_len        = pst_rx_info->us_frame_len - pst_rx_info->bit_mac_header_len; /* ???????? */
     puc_payload         = OAL_NETBUF_PAYLOAD(pst_netbuf);
 
     /* Power Constraint IE */
@@ -448,7 +361,7 @@ oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf
         return OAL_FAIL;
     }
 
-    /* 值变化时才设置本地最大功率 */
+    /* ?????????????????????????? */
     if (pst_rrm_info->uc_local_pwr_constraint != pst_pwr_constraint->uc_local_pwr_constraint)
     {
         pst_rrm_info->uc_local_pwr_constraint = pst_pwr_constraint->uc_local_pwr_constraint;
@@ -459,7 +372,7 @@ oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf
             return OAL_ERR_CODE_PTR_NULL;
         }
 
-        /* 设置管制域最大功率以控制TPC发送最大功率*/
+        /* ????????????????????????TPC????????????*/
         pst_regdom_info = mac_get_channel_num_rc_info(pst_dmac_vap->st_vap_base_info.st_channel.en_band, pst_dmac_vap->st_vap_base_info.st_channel.uc_chan_number);
         if (OAL_PTR_NULL == pst_regdom_info)
         {
@@ -470,15 +383,15 @@ oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf
         {
             if (0 == pst_rrm_info->uc_ori_max_pwr_flush_flag)
             {
-                /* 要使功率约束生效，需要修改管制域最大功率，先将原始最大功率保存 */
+                /* ?????????????????????????????????????????????????????????????? */
                 pst_rrm_info->uc_ori_max_reg_pwr = pst_regdom_info->uc_max_reg_tx_pwr;
                 pst_rrm_info->uc_ori_max_pwr_flush_flag++;
             }
-            /* 根据power constraint设置当前功率为最大功率减去pwr constraint */
+            /* ????power constraint??????????????????????????pwr constraint */
             if (pst_rrm_info->uc_ori_max_reg_pwr > pst_rrm_info->uc_local_pwr_constraint)
             {
                 pst_regdom_info->uc_max_reg_tx_pwr = pst_rrm_info->uc_ori_max_reg_pwr - pst_rrm_info->uc_local_pwr_constraint;
-                /* 使之生效 */
+                /* ???????? */
                 dmac_alg_cfg_channel_notify(&pst_dmac_vap->st_vap_base_info, CH_BW_CHG_TYPE_SCAN);
             }
         }
@@ -486,22 +399,7 @@ oal_uint32 dmac_rrm_proc_pwr_constraint(dmac_vap_stru  *pst_dmac_vap, oal_netbuf
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_gen_random16
- 功能描述  : 产生16位随机数
- 输入参数  : ul_val: 随机种子
-            us_rst_flag: 是否使用随机种子
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint16  dmac_rrm_gen_random16(oal_uint32 ul_val, oal_uint8 us_rst_flag)
 {
     OAL_STATIC oal_uint32 ul_rand = 0;
@@ -513,22 +411,7 @@ oal_uint16  dmac_rrm_gen_random16(oal_uint32 ul_val, oal_uint8 us_rst_flag)
     return (oal_uint16) (ul_rand >> 16);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_get_link_req_info
- 功能描述  : 获取link req帧内容
- 输入参数  : pst_dmac_vap: dmac vap结构体
-             puc_link_req_frame: link req帧体
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_get_link_req_info(dmac_vap_stru *pst_dmac_vap, oal_uint8 *puc_link_req_frame)
 {
     oal_uint8       uc_offset = 0;
@@ -546,28 +429,14 @@ oal_void dmac_rrm_get_link_req_info(dmac_vap_stru *pst_dmac_vap, oal_uint8 *puc_
     /* ------------------------------------------------------------------------------- */
     /*                                                                                 */
     /***********************************************************************************/
-    /* 从link measurement request中获得tx pwr，保存下来 */
+    /* ??link measurement request??????tx pwr?????????? */
     uc_offset += MAC_ACTION_OFFSET_ACTION + 1;
     pst_dmac_vap->pst_rrm_info->uc_link_dialog_token    = puc_link_req_frame[uc_offset++];
     pst_dmac_vap->pst_rrm_info->c_link_tx_pwr_used      = (oal_int8)puc_link_req_frame[uc_offset++];
     pst_dmac_vap->pst_rrm_info->c_link_max_tx_pwr       = (oal_int8)puc_link_req_frame[uc_offset++];
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_fill_basic_rm_rpt_action
- 功能描述  : 申请管理帧内存，填充管理帧和Radio Measurement Report的固定域
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_fill_basic_rm_rpt_action(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint8                       *puc_mac_header;
@@ -588,7 +457,7 @@ oal_uint32 dmac_rrm_fill_basic_rm_rpt_action(dmac_vap_stru *pst_dmac_vap)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 申请管理帧内存 */
+    /* ?????????????? */
     pst_rrm_info->pst_rm_rpt_mgmt_buf = OAL_MEM_NETBUF_ALLOC(OAL_NORMAL_NETBUF, WLAN_LARGE_NETBUF_SIZE, OAL_NETBUF_PRIORITY_MID);
     if (OAL_PTR_NULL == pst_rrm_info->pst_rm_rpt_mgmt_buf)
     {
@@ -615,10 +484,10 @@ oal_uint32 dmac_rrm_fill_basic_rm_rpt_action(dmac_vap_stru *pst_dmac_vap)
     /*************************************************************************/
     puc_mac_header = oal_netbuf_header(pst_rrm_info->pst_rm_rpt_mgmt_buf);
 
-    /* 帧控制字段全为0，除了type和subtype */
+    /* ??????????????0??????type??subtype */
     mac_hdr_set_frame_control(puc_mac_header, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_ACTION);
 
-    /* 设置分片序号为0 */
+    /* ??????????????0 */
     mac_hdr_set_fragment_number(puc_mac_header, 0);
 
     pst_mac_user = mac_res_get_mac_user(pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id);
@@ -630,13 +499,13 @@ oal_uint32 dmac_rrm_fill_basic_rm_rpt_action(dmac_vap_stru *pst_dmac_vap)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 设置地址1，用户地址 */
+    /* ????????1?????????? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR1_OFFSET, pst_mac_user->auc_user_mac_addr);
 
-    /* 设置地址2为自己的MAC地址 */
+    /* ????????2????????MAC???? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR2_OFFSET, pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
 
-    /* 地址3，为VAP自己的MAC地址 */
+    /* ????3????VAP??????MAC???? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR3_OFFSET, pst_dmac_vap->st_vap_base_info.auc_bssid);
 
     /*************************************************************************/
@@ -662,21 +531,7 @@ oal_uint32 dmac_rrm_fill_basic_rm_rpt_action(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_start_scan_for_bcn_req
- 功能描述  : 更新实际测量起始时间
- 输入参数  : uc_vap_id: vap id
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_start_scan_for_bcn_req(dmac_vap_stru *pst_dmac_vap)
 {
     mac_device_stru     *pst_mac_device;
@@ -702,21 +557,7 @@ oal_uint32 dmac_rrm_start_scan_for_bcn_req(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_encap_meas_rpt
- 功能描述  : 组装Measurement Report IE的固定域
- 输入参数  : pst_dmac_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_encap_meas_rpt(dmac_vap_stru *pst_dmac_vap)
 {
     mac_rrm_info_stru       *pst_rrm_info;
@@ -805,7 +646,7 @@ oal_void dmac_rrm_encap_meas_rpt(dmac_vap_stru *pst_dmac_vap)
         pst_meas_rpt_ie->uc_len += uc_curr_beacon_item_len;
         pst_rrm_info->us_rm_rpt_action_len    += uc_curr_beacon_item_len;
 
-        /* 下一个Measurement Report的位置 */
+        /* ??????Measurement Report?????? */
         pst_meas_rpt_ie = (mac_meas_rpt_ie_stru *)((oal_uint8 *)pst_meas_rpt_ie + pst_meas_rpt_ie->uc_len + 2);
 
         oal_dlist_delete_entry(pst_meas_rpt_node);
@@ -819,21 +660,7 @@ oal_void dmac_rrm_encap_meas_rpt(dmac_vap_stru *pst_dmac_vap)
     } while (!oal_dlist_is_empty(&(pst_rrm_info->st_meas_rpt_list)));
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_extract_bcn_rpt_fix_field
- 功能描述  : 填充Beacon report固定长度域
- 输入参数  : pst_dmac_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_extract_bcn_rpt_fix_field(  dmac_vap_stru *pst_dmac_vap,
                                                         mac_meas_rpt_bcn_item_stru *pst_meas_rpt_bcn_item,
                                                         dmac_rx_ctl_stru *pst_rx_ctrl,
@@ -878,21 +705,7 @@ oal_void dmac_rrm_extract_bcn_rpt_fix_field(  dmac_vap_stru *pst_dmac_vap,
     hal_vap_tsf_get_32bit(pst_dmac_vap->pst_hal_vap, (oal_uint32 *)&(pst_meas_rpt_bcn_item->ul_parent_tsf));
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_extract_bcn_rpt_detail
- 功能描述  : 填充Beacon report的frame body
- 输入参数  : pst_dmac_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void dmac_rrm_extract_bcn_rpt_detail(dmac_vap_stru *pst_dmac_vap,
                                                 oal_uint8  *puc_frame_body,
                                                 oal_uint16   us_frame_len,
@@ -910,13 +723,13 @@ void dmac_rrm_extract_bcn_rpt_detail(dmac_vap_stru *pst_dmac_vap,
 
     pst_rrm_info = pst_dmac_vap->pst_rrm_info;
 
-    /* 填充Report Frame Body */
+    /* ????Report Frame Body */
     if (0 == pst_rrm_info->st_bcn_req_info.uc_rpt_detail)
     {
         OAM_ERROR_LOG0(0, OAM_SF_RRM, "{dmac_rrm_extract_bcn_rpt_detail::rpt detail is 0}");
         return;
     }
-    /* report detail内容要放在Meas Rpt中，最长不能超过Meas rpt的长度 */
+    /* report detail??????????Meas Rpt????????????????Meas rpt?????? */
     puc_rpt_detail_data = (oal_uint8 *)OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, MAC_MAX_RPT_DETAIL_LEN, OAL_TRUE);
     if (OAL_PTR_NULL == puc_rpt_detail_data)
     {
@@ -926,23 +739,23 @@ void dmac_rrm_extract_bcn_rpt_detail(dmac_vap_stru *pst_dmac_vap,
 
     pst_meas_rpt_bcn->puc_rpt_detail_data = puc_rpt_detail_data;
 
-    /* 定长field拷贝 */
+    /* ????field???? */
     uc_fix_len = MAC_TIME_STAMP_LEN + MAC_BEACON_INTERVAL_LEN + MAC_CAP_INFO_LEN;
     oal_memcopy(puc_rpt_detail_data, puc_frame_body, uc_fix_len);
     puc_rpt_detail_data += uc_fix_len;
     pst_meas_rpt_bcn->ul_rpt_detail_act_len = uc_fix_len;
 
-    /* 要寻找的IE个数及IEID */
+    /* ????????IE??????IEID */
     puc_req_elements = pst_rrm_info->st_bcn_req_info.puc_reqinfo_ieid;
     uc_element_num = pst_rrm_info->st_bcn_req_info.uc_req_ie_num;
 
     puc_rx_frame = puc_frame_body + uc_fix_len;
     l_tmp_len = us_frame_len - MAC_80211_FRAME_LEN - uc_fix_len;
 
-    /* 存在有多个相同IE的场景，要找全 */
+    /* ??????????????IE?????????????? */
     while (l_tmp_len > MAC_IE_HDR_LEN )
     {
-        /* 沿着被搜索对象，依次核对是否有被搜索EID */
+        /* ????????????????????????????????????EID */
         for (uc_element_idx = 0; uc_element_idx < uc_element_num; uc_element_idx++)
         {
             if (puc_rx_frame[0] == puc_req_elements[uc_element_idx])
@@ -974,22 +787,7 @@ void dmac_rrm_extract_bcn_rpt_detail(dmac_vap_stru *pst_dmac_vap,
         }
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_rrm_get_bcn_info_from_rx
- 功能描述  : 从接收的Beacon/Probe Rsp中获取Beacon Req所需信息, Active/Passive模式使用
- 输入参数  : pst_dmac_vap : dmac vap结构体
-             pst_netbuf   : 接收帧netbuf
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_get_bcn_info_from_rx(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru  *pst_netbuf)
 {
     oal_uint8                    *puc_ssid_ie = OAL_PTR_NULL;
@@ -1019,14 +817,14 @@ oal_void dmac_rrm_get_bcn_info_from_rx(dmac_vap_stru *pst_dmac_vap, oal_netbuf_s
         return;
     }
 
-    /* 获取该buffer的控制信息 */
+    /* ??????buffer?????????? */
     pst_rx_ctrl = (dmac_rx_ctl_stru *)oal_netbuf_cb(pst_netbuf);
     if (OAL_PTR_NULL == pst_rx_ctrl)
     {
         OAM_ERROR_LOG0(0, OAM_SF_RRM, "{dmac_rrm_get_bcn_info_from_rx::pst_rx_ctrl NULL!}");
         return;
     }
-    /* 获取帧信息 */
+    /* ?????????? */
     pst_frame_hdr  = (mac_ieee80211_frame_stru *)mac_get_rx_cb_mac_hdr(&(pst_rx_ctrl->st_rx_info));
     puc_frame_body = MAC_GET_RX_PAYLOAD_ADDR(&(pst_rx_ctrl->st_rx_info), pst_netbuf);
 
@@ -1047,17 +845,17 @@ oal_void dmac_rrm_get_bcn_info_from_rx(dmac_vap_stru *pst_dmac_vap, oal_netbuf_s
     /*                                                                       */
     /*************************************************************************/
 
-    /* BSSID过滤 */
+    /* BSSID???? */
     if (!ETHER_IS_BROADCAST(pst_rrm_info->st_bcn_req_info.auc_bssid))
     {
-        /* 请求中的bssid不是wildcard，则需要bssid匹配，不匹配时不上报 */
+        /* ????????bssid????wildcard????????bssid???????????????????? */
         if (MEMCMP(pst_rrm_info->st_bcn_req_info.auc_bssid, pst_frame_hdr->auc_address3, WLAN_MAC_ADDR_LEN))
         {
             return;
         }
     }
 
-    /* 判断该BSSID的信息是否已经保存过，若已保存过，则不再保存 更新? */
+    /* ??????BSSID???????????????????????????????????????????? ????? */
     if (!oal_dlist_is_empty(&(pst_rrm_info->st_meas_rpt_list)))
     {
         OAL_DLIST_SEARCH_FOR_EACH(pst_meas_rpt_entry, &(pst_rrm_info->st_meas_rpt_list))
@@ -1070,17 +868,17 @@ oal_void dmac_rrm_get_bcn_info_from_rx(dmac_vap_stru *pst_dmac_vap, oal_netbuf_s
         }
     }
 
-    /* SSID过滤，若请求中ssid长度为0，则不过滤 */
+    /* SSID??????????????ssid??????0?????????? */
     if (0 != pst_rrm_info->st_bcn_req_info.uc_ssid_len)
     {
-        /* 查找ssid的ie */
+        /* ????ssid??ie */
         uc_tmp_len = MAC_TIME_STAMP_LEN + MAC_BEACON_INTERVAL_LEN + MAC_CAP_INFO_LEN;
         puc_ssid_ie = mac_find_ie(MAC_EID_SSID, (puc_frame_body + uc_tmp_len), (oal_int32)(us_frame_len - uc_tmp_len));
         if ((OAL_PTR_NULL != puc_ssid_ie) && (puc_ssid_ie[1] < WLAN_SSID_MAX_LEN))
         {
-            /* 获取ssid ie的长度 */
+            /* ????ssid ie?????? */
             uc_ssid_len = puc_ssid_ie[1];
-            puc_ssid_ie += 2; /* 指向ssid字符串 */
+            puc_ssid_ie += 2; /* ????ssid?????? */
         }
         else
         {
@@ -1088,7 +886,7 @@ oal_void dmac_rrm_get_bcn_info_from_rx(dmac_vap_stru *pst_dmac_vap, oal_netbuf_s
             return;
         }
 
-        /* ssid不匹配的不处理 */
+        /* ssid?????????????? */
         if ((pst_rrm_info->st_bcn_req_info.uc_ssid_len != uc_ssid_len )
         || (0 != MEMCMP(pst_rrm_info->st_bcn_req_info.puc_ssid, puc_ssid_ie, pst_rrm_info->st_bcn_req_info.uc_ssid_len)))
         {
@@ -1142,23 +940,7 @@ oal_void dmac_rrm_prepare_basic_scan_params(dmac_vap_stru *pst_dmac_vap, mac_bcn
     pst_scan_req->uc_probe_delay = 0;
     oal_set_mac_addr(pst_scan_req->auc_sour_mac_addr, pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
 }
-/*****************************************************************************
- 函 数 名  : dmac_rrm_meas_bcn
- 功能描述  : 根据不同测量模式，准备扫描参数并启动扫描
- 输入参数  : pst_dmac_vap : dmac vap结构体指针
-             pst_bcn_req  : Beacon Req信息指针
-             pst_scan_req : 保存扫描参数结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_meas_bcn(dmac_vap_stru *pst_dmac_vap, mac_bcn_req_stru *pst_bcn_req, mac_scan_req_stru   *pst_scan_req)
 {
     mac_rrm_info_stru               *pst_rrm_info;
@@ -1172,10 +954,10 @@ oal_uint32 dmac_rrm_meas_bcn(dmac_vap_stru *pst_dmac_vap, mac_bcn_req_stru *pst_
 
     pst_rrm_info = pst_dmac_vap->pst_rrm_info;
 
-    /* 根据模式进行测量 */
+    /* ???????????????? */
     switch (pst_bcn_req->en_mode)
     {
-        /* Passive:触发扫描，不发probe req，测量收到的Beacon和probe rsp */
+        /* Passive:??????????????probe req????????????Beacon??probe rsp */
         case RM_BCN_REQ_MEAS_MODE_PASSIVE:
             if (OAL_FALSE == pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.en_dot11RMBeaconPassiveMeasurementActivated)
             {
@@ -1194,13 +976,13 @@ oal_uint32 dmac_rrm_meas_bcn(dmac_vap_stru *pst_dmac_vap, mac_bcn_req_stru *pst_
             dmac_rrm_prepare_basic_scan_params(pst_dmac_vap, pst_bcn_req, pst_scan_req);
 
             pst_scan_req->en_scan_type = WLAN_SCAN_TYPE_PASSIVE;
-            /* 测量时间, 需要足够长的时间以保证可以收到指定beacon */
+            /* ????????, ??????????????????????????????????beacon */
             pst_scan_req->us_scan_time = 1200;//WLAN_DEFAULT_PASSIVE_SCAN_TIME;
 
             dmac_rrm_start_scan_for_bcn_req(pst_dmac_vap);
 
             break;
-        /* Active:触发扫描，发probe req，测量收到的Beacon和probe rsp */
+        /* Active:????????????probe req????????????Beacon??probe rsp */
         case RM_BCN_REQ_MEAS_MODE_ACTIVE:
             if (OAL_FALSE == pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.en_dot11RMBeaconActiveMeasurementActivated)
             {
@@ -1217,12 +999,12 @@ oal_uint32 dmac_rrm_meas_bcn(dmac_vap_stru *pst_dmac_vap, mac_bcn_req_stru *pst_
 
             dmac_rrm_prepare_basic_scan_params(pst_dmac_vap, pst_bcn_req, pst_scan_req);
             pst_scan_req->en_scan_type = WLAN_SCAN_TYPE_ACTIVE;
-            /* 测量时间 TBD*/
+            /* ???????? TBD*/
             pst_scan_req->us_scan_time = WLAN_DEFAULT_ACTIVE_SCAN_TIME;
 
             dmac_rrm_start_scan_for_bcn_req(pst_dmac_vap);
             break;
-        /* Table:上报保存的扫描结果 */
+        /* Table:?????????????????? */
         case RM_BCN_REQ_MEAS_MODE_TABLE:
             if (OAL_FALSE == pst_dmac_vap->bit_bcn_table_switch)
             {
@@ -1257,24 +1039,7 @@ oal_uint32 dmac_rrm_meas_bcn(dmac_vap_stru *pst_dmac_vap, mac_bcn_req_stru *pst_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_get_bcn_rpt_channels
- 功能描述  : 根据channel number及operating class计算所需测量的信道
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
-             ppst_ap_chn_rpt    : 指向AP Channel Report的指针数组
-             uc_ap_chn_rpt_num  : AP Channel Report个数
-             pst_scan_req       : 扫描信息结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_chn_rpt_stru **ppst_ap_chn_rpt, oal_uint8 uc_ap_chn_rpt_num, mac_scan_req_stru *pst_scan_req)
 {
     oal_uint8                       uc_chan_idx;
@@ -1286,7 +1051,7 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
     wlan_channel_band_enum_uint8    en_chan_band;
     oal_uint8                       uc_chan_count;
 
-    /* 对应指定用例进行打桩 */
+    /* ???????????????????? */
     if (12 == pst_bcn_req->uc_optclass)
     {
         en_chan_band = WLAN_BAND_2G;
@@ -1298,10 +1063,10 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
         uc_chan_count = (oal_uint8)MAC_CHANNEL_FREQ_5_BUTT;
     }
 
-    /* 当前operating class下的所有chan，先不处理regclass，使用2.4G信道总集 */
+    /* ????operating class????????chan??????????regclass??????2.4G???????? */
     if (0 == pst_bcn_req->uc_channum)
     {
-        /* 根据channel_bitmap解析出对应的信道号集合 */
+        /* ????channel_bitmap?????????????????????? */
         for (uc_chan_idx = 0; uc_chan_idx < uc_chan_count; uc_chan_idx++)
         {
             mac_get_channel_num_from_idx(en_chan_band, uc_chan_idx, &uc_chan_num);
@@ -1311,7 +1076,7 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
         }
         pst_scan_req->uc_channel_nums = uc_chan_avail_idx;
     }
-    /* 当前operating class与AP chan rpt的交集 */
+    /* ????operating class??AP chan rpt?????? */
     else if (255 == pst_bcn_req->uc_channum)
     {
         if (0 == uc_ap_chn_rpt_num)
@@ -1322,7 +1087,7 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
 
         for (uc_ap_chan_rpt_count = 0; uc_ap_chan_rpt_count < uc_ap_chn_rpt_num; uc_ap_chan_rpt_count++)
         {
-            /* 请求的信道个数，根据长度计算 */
+            /* ???????????????????????????? */
             uc_ap_chan_num = ppst_ap_chn_rpt[uc_ap_chan_rpt_count]->uc_length - 1;
 
             for (uc_chan_idx = 0; uc_chan_idx < uc_ap_chan_num; uc_chan_idx++)
@@ -1337,13 +1102,13 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
         }
         pst_scan_req->uc_channel_nums = uc_chan_avail_idx;
     }
-    /* 当前chan num */
+    /* ????chan num */
     else
     {
         uc_chan_num = pst_bcn_req->uc_channum;
         pst_scan_req->uc_channel_nums = 1;
         mac_get_channel_idx_from_num(en_chan_band, uc_chan_num, &uc_ap_chan_idx);
-        /* 临时调试，需要更新管制类表格 */
+        /* ???????????????????????????? */
         pst_scan_req->ast_channel_list[0].uc_chan_number = uc_chan_num;
         pst_scan_req->ast_channel_list[0].uc_idx         = uc_ap_chan_idx;
         pst_scan_req->ast_channel_list[0].en_band        = en_chan_band;
@@ -1351,22 +1116,7 @@ oal_uint32 dmac_rrm_get_bcn_rpt_channels(mac_bcn_req_stru *pst_bcn_req, mac_ap_c
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_parse_beacon_req
- 功能描述  : 解析Beacon Request信息，并准备测量
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
-             pst_meas_req_ie    : Measurement Request IE指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_stru  *pst_meas_req_ie)
 {
     mac_bcn_req_stru               *pst_bcn_req;
@@ -1417,7 +1167,7 @@ oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_
     /*                                                                       */
     /*************************************************************************/
 
-    /* 从Subelements中获取被测信道集合,AP Channel Report可能会有多个 */
+    /* ??Subelements??????????????????,AP Channel Report???????????? */
     c_bcn_req_sub_len = pst_meas_req_ie->uc_len - 16;
     if (c_bcn_req_sub_len <= 0)
     {
@@ -1445,7 +1195,7 @@ oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_
 
         dmac_rrm_get_bcn_rpt_channels(pst_bcn_req, apst_ap_chn_rpt,  uc_ap_chn_rpt_count, &st_scan_req);
 
-        /* 获取SSID */
+        /* ????SSID */
         puc_ssid_search_addr = pst_bcn_req->auc_subelm;
         puc_ssid_sub_element = mac_find_ie(0, puc_ssid_search_addr, c_bcn_req_sub_len);
         if (OAL_PTR_NULL != puc_ssid_sub_element)
@@ -1469,7 +1219,7 @@ oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_
             }
         }
 
-        /* 获取Reporting detail */
+        /* ????Reporting detail */
         puc_rpt_detail_search_addr = pst_bcn_req->auc_subelm;
         puc_reporting_detail = mac_find_ie(2, puc_rpt_detail_search_addr, c_bcn_req_sub_len);
         if (OAL_PTR_NULL != puc_reporting_detail)
@@ -1477,7 +1227,7 @@ oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_
             pst_rrm_info->st_bcn_req_info.uc_rpt_detail = *(puc_reporting_detail + 2);
         }
 
-        /* 获取ReqInfo */
+        /* ????ReqInfo */
         puc_reqinfo_search_addr = pst_bcn_req->auc_subelm;
         puc_reqinfo = mac_find_ie(MAC_EID_REQINFO, puc_reqinfo_search_addr, c_bcn_req_sub_len);
         if (OAL_PTR_NULL != puc_reqinfo)
@@ -1499,21 +1249,7 @@ oal_void dmac_rrm_parse_beacon_req(dmac_vap_stru *pst_dmac_vap, mac_meas_req_ie_
     dmac_rrm_meas_bcn(pst_dmac_vap, pst_bcn_req, &st_scan_req);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_send_rm_rpt_action
- 功能描述  : 发送已经组装好的Radio Measurement Report帧
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_rrm_send_rm_rpt_action(dmac_vap_stru* pst_dmac_vap)
 {
     mac_tx_ctl_stru                 *pst_tx_ctl;
@@ -1539,14 +1275,14 @@ oal_uint32 dmac_rrm_send_rm_rpt_action(dmac_vap_stru* pst_dmac_vap)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 填写netbuf的cb字段，供发送管理帧和发送完成接口使用 */
+    /* ????netbuf??cb???????????????????????????????????? */
     pst_tx_ctl = (mac_tx_ctl_stru *)oal_netbuf_cb(pst_mgmt_buf);
     OAL_MEMZERO(pst_tx_ctl, sizeof(mac_tx_ctl_stru));
 
     MAC_GET_CB_TX_USER_IDX(pst_tx_ctl)  =(oal_uint8)pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id;
     mac_set_cb_ac(pst_tx_ctl, WLAN_WME_AC_MGMT);
 
-    /* 调用发送管理帧接口 */
+    /* ?????????????????? */
     ul_ret = dmac_tx_mgmt(pst_dmac_vap, pst_mgmt_buf, pst_dmac_vap->pst_rrm_info->us_rm_rpt_action_len);
     if (OAL_SUCC != ul_ret)
     {
@@ -1558,21 +1294,7 @@ oal_uint32 dmac_rrm_send_rm_rpt_action(dmac_vap_stru* pst_dmac_vap)
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_encap_and_send_bcn_rpt
- 功能描述  : 组Beacon report rsp Action帧，可能由多个Action帧共同完成信息传递
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_encap_and_send_bcn_rpt(dmac_vap_stru* pst_dmac_vap)
 {
     if (OAL_PTR_NULL == pst_dmac_vap)
@@ -1593,22 +1315,7 @@ oal_void dmac_rrm_encap_and_send_bcn_rpt(dmac_vap_stru* pst_dmac_vap)
         dmac_rrm_send_rm_rpt_action(pst_dmac_vap);
     }while (!oal_dlist_is_empty(&(pst_dmac_vap->pst_rrm_info->st_meas_rpt_list)));
 }
-/*****************************************************************************
- 函 数 名  : dmac_rrm_proc_rm_request
- 功能描述  : 解析Radio Measurement Request，并处理Beacon Request
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
-             pst_netbuf         : RM Request的netbuf
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     mac_action_rm_req_stru          *pst_rm_req;
@@ -1631,7 +1338,7 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
         return;
     }
 
-    /* 获取帧体指针 */
+    /* ???????????? */
     puc_data = OAL_NETBUF_PAYLOAD(pst_netbuf);
 
     pst_rx_ctrl      = (dmac_rx_ctl_stru *)oal_netbuf_cb(pst_netbuf);
@@ -1655,14 +1362,14 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
 
     pst_rrm_info->st_bcn_req_info.uc_dialog_token = pst_rm_req->uc_dialog_token;
 
-    /* 重复测试次数暂不处理 */
+    /* ???????????????????? */
     pst_rrm_info->st_bcn_req_info.us_repetition = OAL_NTOH_16(pst_rm_req->us_num_rpt);
 
-    /* 是否有Meas Req */
+    /* ??????Meas Req */
     if (us_framebody_len <= 5)
     {
-        /* 如果没有MR IE，也回一个不带Meas Rpt的Radio Meas Rpt */
-        /* 申请管理帧内存并填充头部信息 */
+        /* ????????MR IE??????????????Meas Rpt??Radio Meas Rpt */
+        /* ???????????????????????????? */
         if ( OAL_SUCC != dmac_rrm_fill_basic_rm_rpt_action(pst_dmac_vap))
         {
             return;
@@ -1682,10 +1389,10 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
     /* --------------------------------------------------------------------- */
     /*                                                                       */
     /*************************************************************************/
-    /* TO BE DONE:可能有多个Measurement Req IEs */
+    /* TO BE DONE:??????????Measurement Req IEs */
     if (MAC_EID_MEASREQ == pst_meas_req_ie->uc_eid)
     {
-        /* Req中不允许发送对应的report */
+        /* Req??????????????????report */
         if ((1 == pst_meas_req_ie->st_reqmode.bit_enable) && (0 == pst_meas_req_ie->st_reqmode.bit_rpt))
         {
             OAM_WARNING_LOG0(0, OAM_SF_RRM, "{rpt now allowed!}");
@@ -1695,7 +1402,7 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
         pst_rrm_info->st_bcn_req_info.uc_meas_token = pst_meas_req_ie->uc_token;
         pst_rrm_info->st_bcn_req_info.uc_meas_type  = pst_meas_req_ie->uc_reqtype;
 
-        /* 只处理beacon req */
+        /* ??????beacon req */
         if (5 != pst_meas_req_ie->uc_reqtype)
         {
             if ( OAL_SUCC != dmac_rrm_fill_basic_rm_rpt_action(pst_dmac_vap))
@@ -1712,10 +1419,10 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
             return;
         }
 
-        /* 处理Beacon req */
+        /* ????Beacon req */
         dmac_rrm_parse_beacon_req(pst_dmac_vap, pst_meas_req_ie);
     }
-    /* MR IE错误，不回，报错 */
+    /* MR IE???????????????? */
     else
     {
         OAM_WARNING_LOG1(0, OAM_SF_RRM, "{Error Request, Expect Measurement Request, but got EID[%d]!}", pst_meas_req_ie->uc_eid);
@@ -1723,22 +1430,7 @@ oal_void dmac_rrm_proc_rm_request(dmac_vap_stru* pst_dmac_vap, oal_netbuf_stru *
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_encap_link_meas_rpt
- 功能描述  : 组装Link Measurement Report
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
-             puc_buffer         : link measurement report帧的地址
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_netbuf, oal_netbuf_stru *pst_rx_netbuf)
 {
     oal_uint8                     uc_offset = 0;
@@ -1771,10 +1463,10 @@ oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netb
 
     puc_mac_header = oal_netbuf_header(pst_netbuf);
 
-    /* 帧控制字段全为0，除了type和subtype */
+    /* ??????????????0??????type??subtype */
     mac_hdr_set_frame_control(puc_mac_header, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_ACTION);
 
-    /* 设置分片序号为0 */
+    /* ??????????????0 */
     mac_hdr_set_fragment_number(puc_mac_header, 0);
 
     pst_mac_user = mac_res_get_mac_user(pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id);
@@ -1785,13 +1477,13 @@ oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netb
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 设置地址1，用户地址 */
+    /* ????????1?????????? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR1_OFFSET, pst_mac_user->auc_user_mac_addr);
 
-    /* 设置地址2为自己的MAC地址 */
+    /* ????????2????????MAC???? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR2_OFFSET, pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
 
-    /* 地址3，为VAP自己的MAC地址 */
+    /* ????3????VAP??????MAC???? */
     oal_set_mac_addr(puc_mac_header + WLAN_HDR_ADDR3_OFFSET, pst_dmac_vap->st_vap_base_info.auc_bssid);
 
     /*************************************************************************/
@@ -1818,16 +1510,16 @@ oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netb
     puc_payload                                     = puc_mac_header + MAC_80211_FRAME_LEN;
 #endif
 
-    /* 设置Action的Category   */
+    /* ????Action??Category   */
     puc_payload[uc_offset++] = MAC_ACTION_CATEGORY_RADIO_MEASURMENT;
 
-    /* 设置Link Measurement Report Action Field */
+    /* ????Link Measurement Report Action Field */
     puc_payload[uc_offset++] = MAC_RM_ACTION_LINK_MEASUREMENT_REPORT;
 
-    /* Dialog Token,与LM Req中相同 */
+    /* Dialog Token,??LM Req?????? */
     puc_payload[uc_offset++]= pst_dmac_vap->pst_rrm_info->uc_link_dialog_token;
 
-    /* TPC Report，管理帧， 2G:1M  5G:6M，查找功率速率表g_auc_rate_pow_table_margin */
+    /* TPC Report?????????? 2G:1M  5G:6M????????????????g_auc_rate_pow_table_margin */
     /********************************************************************************
                 -------------------------------------------------
                 |ElementID  |Length  |TransmitPower  |LinkMargin|
@@ -1835,12 +1527,12 @@ oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netb
        Octets:  |1          |1       |1              |1         |
                 -------------------------------------------------
 
-    TransimitPower, 此帧的传送功率，以dBm为单位
+    TransimitPower, ??????????????????dBm??????
     ********************************************************************************/
     puc_payload[uc_offset++] = MAC_EID_TPCREP;
     puc_payload[uc_offset++] = MAC_TPCREP_IE_LEN;
 
-    /* Tx Pwr，根据power constraint值的改变而改变 */
+    /* Tx Pwr??????power constraint?????????????? */
 
     pst_regdom_info = mac_get_channel_num_rc_info(pst_dmac_vap->st_vap_base_info.st_channel.en_band, pst_dmac_vap->st_vap_base_info.st_channel.uc_chan_number);
     dmac_alg_get_mgmt_tx_pow(pst_mac_user, pst_dmac_vap->st_vap_base_info.st_channel.en_band, &uc_tx_pow);
@@ -1866,21 +1558,7 @@ oal_uint32    dmac_rrm_encap_link_meas_rpt(dmac_vap_stru *pst_dmac_vap, oal_netb
     return (oal_uint32)(uc_offset + MAC_80211_FRAME_LEN);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_rrm_send_link_meas_rpt_action
- 功能描述  : 发送Link Measurement Report
- 输入参数  : pst_dmac_vap       : dmac vap结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月29日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_rrm_send_link_meas_rpt_action(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_rx_netbuf)
 {
     oal_netbuf_stru        *pst_mgmt_buf;
@@ -1901,7 +1579,7 @@ oal_void dmac_rrm_send_link_meas_rpt_action(dmac_vap_stru *pst_dmac_vap, oal_net
         return;
     }
 
-    /* 申请管理帧内存 */
+    /* ?????????????? */
     pst_mgmt_buf = OAL_MEM_NETBUF_ALLOC(OAL_MGMT_NETBUF, WLAN_MGMT_NETBUF_SIZE, OAL_NETBUF_PRIORITY_HIGH);
     if (OAL_PTR_NULL == pst_mgmt_buf)
     {
@@ -1914,7 +1592,7 @@ oal_void dmac_rrm_send_link_meas_rpt_action(dmac_vap_stru *pst_dmac_vap, oal_net
     oal_set_netbuf_next(pst_mgmt_buf,OAL_PTR_NULL);
     OAL_MEM_NETBUF_TRACE(pst_mgmt_buf, OAL_TRUE);
 
-    /* 封装 Link Measurement Report 帧 */
+    /* ???? Link Measurement Report ?? */
     us_mgmt_len = (oal_uint16)dmac_rrm_encap_link_meas_rpt(pst_dmac_vap, pst_mgmt_buf, pst_rx_netbuf);
     if (0 == us_mgmt_len)
     {
@@ -1923,14 +1601,14 @@ oal_void dmac_rrm_send_link_meas_rpt_action(dmac_vap_stru *pst_dmac_vap, oal_net
         return;
     }
 
-    /* 填写netbuf的cb字段，供发送管理帧和发送完成接口使用 */
+    /* ????netbuf??cb???????????????????????????????????? */
     pst_tx_ctl = (mac_tx_ctl_stru *)oal_netbuf_cb(pst_mgmt_buf);
 
     OAL_MEMZERO(pst_tx_ctl, sizeof(mac_tx_ctl_stru));
     MAC_GET_CB_TX_USER_IDX(pst_tx_ctl)  =(oal_uint8)pst_dmac_vap->st_vap_base_info.uc_assoc_vap_id;
     mac_set_cb_ac(pst_tx_ctl, WLAN_WME_AC_MGMT);
 
-    /* 调用发送管理帧接口 */
+    /* ?????????????????? */
     ul_ret = dmac_tx_mgmt(pst_dmac_vap, pst_mgmt_buf, us_mgmt_len);
     if (OAL_SUCC != ul_ret)
     {

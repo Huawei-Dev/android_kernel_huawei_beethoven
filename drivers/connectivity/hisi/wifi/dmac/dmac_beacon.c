@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_beacon.c
-  版 本 号   : 初稿
-  作    者   : zhangheng
-  生成日期   : 2013年3月28日
-  最近修改   :
-  功能描述   : Beacon帧组帧 发送
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年3月28日
-    作    者   : zhangheng
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_spec.h"
 #include "wlan_types.h"
@@ -87,13 +70,13 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_BEACON_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_CHIP_TEST
-static dmac_beacon_test_stru g_beacon_offload_test; /*仅用于测试*/
+static dmac_beacon_test_stru g_beacon_offload_test; /*??????????*/
 #endif
 
-/* wlan远场近场/p2p linkloss门限 */
+/* wlan????????/p2p linkloss???? */
 dmac_beacon_linkloss_stru g_st_beacon_linkloss = {40, 100, 40, {0},};
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
 extern oal_uint16 g_us_occupied_point[BTCOEX_LINKLOSS_OCCUPIED_NUMBER];
@@ -101,26 +84,11 @@ extern oal_uint16 g_us_occupied_point[BTCOEX_LINKLOSS_OCCUPIED_NUMBER];
 #define RX_DATA_RATE                            (50000) /* 50M */
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 extern oal_uint8  dmac_psm_is_tid_queues_empty(dmac_vap_stru  *pst_dmac_vap);
 
-/*****************************************************************************
- 函 数 名  : dmac_init_dtim_count_ap
- 功能描述  : 初始化设置DTIM count为DTIM period -1;次函数需在beacon alloc时，
-             encap beacon前调用，否则会造成 Beacon 的第一帧的DTIM count 不正常
- 输入参数  : pst_dmac_vap: 指向vap结构体
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月5日
-    作    者   : lixiaochuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void dmac_init_dtim_count_ap(dmac_vap_stru *pst_dmac_vap)
 {
     if (0 == pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod)
@@ -131,25 +99,10 @@ OAL_STATIC OAL_INLINE oal_void dmac_init_dtim_count_ap(dmac_vap_stru *pst_dmac_v
     pst_dmac_vap->uc_dtim_count = (oal_uint8)(pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod - 1);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_update_dtim_count_ap
- 功能描述  : 在tbtt中断中，更新dtim count，保证每次tbtt中断来，dtim count自
-             动减1
- 输入参数  : dmac_vap_stru *pst_dmac_vap
- 输出参数  : 无
- 返 回 值  : void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月16日
-    作    者   : lixiaochuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void dmac_update_dtim_count_ap(dmac_vap_stru *pst_dmac_vap)
 {
-    /* 将vap中保存的dtim_count值赋给DTIM Count字段，每次都会减1，在区间[0,DTIM_period]中循环 */
+    /* ??vap????????dtim_count??????DTIM Count????????????????1????????[0,DTIM_period]?????? */
     if (0 == pst_dmac_vap->uc_dtim_count)
     {
         pst_dmac_vap->uc_dtim_count = (oal_uint8)(pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod - 1);
@@ -160,23 +113,7 @@ OAL_STATIC OAL_INLINE oal_void dmac_update_dtim_count_ap(dmac_vap_stru *pst_dmac
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_set_tim_ie
- 功能描述  : vap启动时以及每次tbtt中断，ap把本地的tim_bitmap拷贝到beacon帧里的
-             TIM信息元素空间
- 输入参数  : pst_vap: 指向vap
-             puc_buffer: 指向buffer
- 输出参数  : puc_ie_len: element的长度
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_set_tim_ie(oal_void *pst_vap, oal_uint8 *puc_buffer, oal_uint8 *puc_ie_len)
 {
     dmac_vap_stru  *pst_dmac_vap;
@@ -208,32 +145,17 @@ oal_void dmac_set_tim_ie(oal_void *pst_vap, oal_uint8 *puc_buffer, oal_uint8 *pu
     puc_buffer[3] = (oal_uint8)pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11DTIMPeriod;
     puc_buffer[4] = pst_dmac_vap->puc_tim_bitmap[1];
 
-    /* 保存Beacon帧中DTIM Control bit0的值，用于下次TBTT中断到来时来判断是否需要发送缓存广播和组播帧 */
+    /* ????Beacon????DTIM Control bit0??????????????TBTT???????????????????????????????????????????? */
     pst_dmac_vap->en_dtim_ctrl_bit0 = (oal_bool_enum_uint8)(pst_dmac_vap->puc_tim_bitmap[1] & BIT0);
 
-    /* 将vap本地的bitmap不为0的部分复制到beacon帧相应空间，作为Partial Virtual Bitmap */
+    /* ??vap??????bitmap????0????????????beacon????????????????Partial Virtual Bitmap */
     oal_memcopy(&puc_buffer[5], pst_dmac_vap->puc_tim_bitmap + uc_tim_offset, uc_PVBitmap_len);
 
 
     *puc_ie_len = MAC_IE_HDR_LEN + MAC_TIM_LEN_EXCEPT_PVB + uc_PVBitmap_len;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_encap_beacon
- 功能描述  : beacon帧组帧
- 输入参数  : pst_dmac_vap  : 指向vap的结构体
-             puc_beacon_buf: 指向beacon buffer
- 输出参数  : puc_beacon_len: beacon帧的长度
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月28日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_encap_beacon(
                 dmac_vap_stru               *pst_dmac_vap,
                 oal_uint8                   *puc_beacon_buf,
@@ -270,26 +192,26 @@ oal_uint32  dmac_encap_beacon(
     /* --------------------------------------------------------------------  */
     /*                                                                       */
     /*************************************************************************/
-    /* 设置Frame Control字段 */
+    /* ????Frame Control???? */
     mac_hdr_set_frame_control(puc_beacon_buf, WLAN_PROTOCOL_VERSION| WLAN_FC0_TYPE_MGT | WLAN_FC0_SUBTYPE_BEACON);
 
-    /* 设置duration为0，由硬件填 */
+    /* ????duration??0?????????? */
     mac_hdr_set_duration(puc_beacon_buf, 0);
 
-    /* 设置address1, DA是一个广播地址 */
+    /* ????address1, DA?????????????? */
     oal_memcopy(puc_beacon_buf + WLAN_HDR_ADDR1_OFFSET, BROADCAST_MACADDR, WLAN_MAC_ADDR_LEN);
 
-    /* 设置address2，SA是mac地址 */
+    /* ????address2??SA??mac???? */
     oal_memcopy(puc_beacon_buf + WLAN_HDR_ADDR2_OFFSET,
                 pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID,
                 WLAN_MAC_ADDR_LEN);
 
-    /* 设置address3, BSSID */
+    /* ????address3, BSSID */
     oal_memcopy(puc_beacon_buf + WLAN_HDR_ADDR3_OFFSET,
                 pst_dmac_vap->st_vap_base_info.auc_bssid,
                 WLAN_MAC_ADDR_LEN);
 
-    /* 设置分片序号为0，beacon帧没有sequence number */
+    /* ??????????????0??beacon??????sequence number */
     mac_hdr_set_fragment_number(puc_beacon_buf, 0);
 
     /*************************************************************************/
@@ -315,112 +237,112 @@ oal_uint32  dmac_encap_beacon(
     /* ----------------------------------------------------------------------*/
     /* |3-8                   |                                              */
     /*************************************************************************/
-    /* timestamp由硬件设置 */
+    /* timestamp?????????? */
     puc_beacon_buf += MAC_80211_FRAME_LEN;
     OAL_MEMZERO(puc_beacon_buf, 8);
 
     /* Initialize index */
     puc_beacon_buf += MAC_TIME_STAMP_LEN;
 
-    /* 设置beacon interval */
+    /* ????beacon interval */
     mac_set_beacon_interval_field(pst_mac_vap, puc_beacon_buf);
     puc_beacon_buf += MAC_BEACON_INTERVAL_LEN;
 
-    /* 设置capability information */
+    /* ????capability information */
     mac_set_cap_info_ap(pst_mac_vap, puc_beacon_buf);
     puc_beacon_buf += MAC_CAP_INFO_LEN;
 
-    /* 设置ssid element,如果打开隐藏ssid开关的话，则不填ssid */
+    /* ????ssid element,????????????ssid????????????????ssid */
     mac_set_ssid_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len, WLAN_FC0_SUBTYPE_BEACON);
     puc_beacon_buf += uc_ie_len;
 
-    /* 设置支持的速率集 */
+    /* ???????????????? */
     mac_set_supported_rates_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 设置dsss参数集 */
+    /* ????dsss?????? */
     mac_set_dsss_params(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
-    /* 更新TIM信息元素在beacon帧中的偏移 */
+    /* ????TIM??????????beacon?????????? */
     pst_dmac_vap->uc_tim_offset_in_beacon = (oal_uint8)(puc_beacon_buf - puc_bf_origin);
 
-    /* 填充tim信息 */
+    /* ????tim???? */
     dmac_set_tim_ie(pst_dmac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
 #ifdef _PRE_WLAN_FEATURE_11D
-    /* 填充country信息 */
+    /* ????country???? */
     mac_set_country_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 #endif
 
-    /* 填充power constraint信息 */
+    /* ????power constraint???? */
     mac_set_pwrconstraint_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充quiet信息 */
+    /* ????quiet???? */
     mac_set_quiet_ie(pst_mac_vap, puc_beacon_buf, MAC_QUIET_COUNT, MAC_QUIET_PERIOD,
                       MAC_QUIET_DURATION, MAC_QUIET_OFFSET, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充TPC Report信息 */
+    /* ????TPC Report???? */
     mac_set_tpc_report_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充erp信息 */
+    /* ????erp???? */
     mac_set_erp_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
 #if defined(_PRE_WLAN_FEATURE_WPA2)
-    /* 填充WPA2 安全相关信息 */
+    /* ????WPA2 ???????????? */
     mac_set_security_ie_authenticator(pst_mac_vap, puc_beacon_buf, &uc_ie_len, DMAC_RSNA_802_11I);
     puc_beacon_buf += uc_ie_len;
 #endif /* (_PRE_WLAN_FEATURE_WPA2) */
 
 #if defined (_PRE_WLAN_FEATURE_WPA)
-    /* 填充WPA 安全相关信息 */
+    /* ????WPA ???????????? */
     mac_set_security_ie_authenticator(pst_mac_vap, puc_beacon_buf, &uc_ie_len, DMAC_WPA_802_11I);
     puc_beacon_buf += uc_ie_len;
 #endif /* (_PRE_WLAN_FEATURE_WPA) */
 
-    /* 填充wmm信息 */
+    /* ????wmm???? */
     //mac_set_wmm_params_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     mac_set_wmm_params_ie(pst_mac_vap, puc_beacon_buf, pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.en_dot11QosOptionImplemented, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充extended supported rates信息 */
+    /* ????extended supported rates???? */
     mac_set_exsup_rates_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充bss load信息 */
+    /* ????bss load???? */
     mac_set_bssload_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充HT Capabilities信息 */
+    /* ????HT Capabilities???? */
     mac_set_ht_capabilities_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充HT Operation信息 */
+    /* ????HT Operation???? */
     mac_set_ht_opern_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充Overlapping BSS Scan信息 */
+    /* ????Overlapping BSS Scan???? */
     mac_set_obss_scan_params(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充Extended Capabilities信息 */
+    /* ????Extended Capabilities???? */
     mac_set_ext_capabilities_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充vht cap信息 */
+    /* ????vht cap???? */
     mac_set_vht_capabilities_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充vht opern信息 */
+    /* ????vht opern???? */
     mac_set_vht_opern_ie(pst_mac_vap, puc_beacon_buf, &uc_ie_len);
     puc_beacon_buf += uc_ie_len;
 
-    /* 填充CSA IE */
+    /* ????CSA IE */
 
     if (OAL_TRUE == pst_mac_vap->st_ch_switch_info.en_csa_present_in_bcn)
     {
@@ -453,16 +375,16 @@ oal_uint32  dmac_encap_beacon(
     puc_beacon_buf += uc_ie_len;
 #endif
 
-    /* 填充WPS信息 */
+    /* ????WPS???? */
     mac_add_app_ie((oal_void *)pst_mac_vap, puc_beacon_buf, &us_app_ie_len, OAL_APP_BEACON_IE);
     puc_beacon_buf += us_app_ie_len;
 #ifdef _PRE_WLAN_FEATURE_HILINK
-    /* 填充OKC IE信息 */
+    /* ????OKC IE???? */
     mac_add_app_ie((oal_void *)pst_mac_vap, puc_beacon_buf, &us_app_ie_len, OAL_APP_OKC_BEACON_IE);
     puc_beacon_buf += us_app_ie_len;
 #endif
 #ifdef _PRE_WLAN_FEATURE_P2P
-    /* 填充p2p noa Attribute*/
+    /* ????p2p noa Attribute*/
     if((IS_P2P_GO(&pst_dmac_vap->st_vap_base_info))&&
         (IS_P2P_NOA_ENABLED(pst_dmac_vap) || IS_P2P_OPPPS_ENABLED(pst_dmac_vap)))
     {
@@ -475,21 +397,7 @@ oal_uint32  dmac_encap_beacon(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_beacon_alloc
- 功能描述  : 申请beacon帧内存
- 输入参数  : pst_dmac_vap: 指向vap结构体
- 输出参数  : 无
- 返 回 值  : 错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月28日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
 {
     oal_uint8                  *pauc_beacon_buf[DMAC_VAP_BEACON_BUFFER_BUTT];
@@ -498,14 +406,14 @@ oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
     hal_tx_txop_alg_stru       *pst_tx_param;
     wlan_channel_band_enum_uint8 en_band;
 
-    /* 目前acs会把up的vap做一次wait再up，这个时候beacon帧在第一次up的时候内存已经申请，这里再次进入时直接返回即可 */
+    /* ????acs????up??vap??????wait??up??????????beacon??????????up?????????????????????????????????????????????? */
     if((OAL_PTR_NULL != pst_dmac_vap->pauc_beacon_buffer[0]) && (OAL_PTR_NULL != pst_dmac_vap->pauc_beacon_buffer[1]))
     {
         OAM_WARNING_LOG0(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_WIFI_BEACON, "{dmac_beacon_alloc::vap beacon buf has been alloc.}\r\n");
         return OAL_SUCC;
     }
 
-    /* 申请第一个beacon帧内存 */
+    /* ??????????beacon?????? */
     pauc_beacon_buf[0] = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_SHARED_MGMT_PKT, WLAN_MEM_SHARED_MGMT_PKT_SIZE1, OAL_TRUE);
     if (OAL_PTR_NULL == pauc_beacon_buf[0])
     {
@@ -514,35 +422,35 @@ oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 申请第二个beacon帧内存 */
+    /* ??????????beacon?????? */
     pauc_beacon_buf[1] = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_SHARED_MGMT_PKT, WLAN_MEM_SHARED_MGMT_PKT_SIZE1, OAL_TRUE);
     if (OAL_PTR_NULL == pauc_beacon_buf[1])
     {
         OAM_ERROR_LOG0(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_WIFI_BEACON, "{dmac_beacon_alloc::pauc_beacon_buf[1] null.}");
 
-        /* 释放已申请的内存 */
+        /* ???????????????? */
         OAL_MEM_FREE(pauc_beacon_buf[0], OAL_TRUE);
         pauc_beacon_buf[0] = OAL_PTR_NULL;
 
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 第一次初始化DTIM count,规范化使其从period -1开始 */
+    /* ????????????DTIM count,????????????period -1???? */
     dmac_init_dtim_count_ap(pst_dmac_vap);
 
-    /* 初始beacon组帧 */
+    /* ????beacon???? */
     dmac_encap_beacon(pst_dmac_vap, pauc_beacon_buf[0], &us_beacon_len);
 
     oal_memcopy(pauc_beacon_buf[1], pauc_beacon_buf[0], us_beacon_len);
 
-    /* 将beacon帧挂到vap上 */
+    /* ??beacon??????vap?? */
     pst_dmac_vap->pauc_beacon_buffer[0] = pauc_beacon_buf[0];
     pst_dmac_vap->pauc_beacon_buffer[1] = pauc_beacon_buf[1];
 
-    pst_dmac_vap->uc_beacon_idx = 0;    /* 初始化放入硬件的beacon帧索引 */
+    pst_dmac_vap->uc_beacon_idx = 0;    /* ????????????????beacon?????? */
     pst_dmac_vap->us_beacon_len = us_beacon_len;
 
-    /* 填写发送Beacon帧参数 */
+    /* ????????Beacon?????? */
     en_band  = pst_dmac_vap->st_vap_base_info.st_channel.en_band;
     pst_tx_param = &pst_dmac_vap->ast_tx_mgmt_bmcast[en_band];
     pst_tx_param->ast_per_rate[0].rate_bit_stru.bit_reserve = 0;
@@ -551,13 +459,13 @@ oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
     st_beacon_tx_params.us_pkt_len   = us_beacon_len;
     st_beacon_tx_params.pst_tx_param = pst_tx_param;
 
-    /* 设置beacon period */
+    /* ????beacon period */
     hal_vap_set_machw_beacon_period(pst_dmac_vap->pst_hal_vap, (oal_uint16)pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod);
 
-    /* 判断是否开启了双路轮流发送 */
+    /* ?????????????????????????? */
     if(1 == pst_dmac_vap->en_beacon_chain_active)
     {
-        /* 第一个beacon帧由通道0发送，第二个beacon帧由通道1发送 */
+        /* ??????beacon????????0????????????beacon????????1???? */
         if(pst_dmac_vap->uc_beacon_idx == DMAC_VAP_BEACON_BUFFER1)
         {
             pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_tx_chain_selection = 1;
@@ -568,13 +476,13 @@ oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
         }
     }
 
-    /* HAL发送Beacon帧接口 */
+    /* HAL????Beacon?????? */
     hal_vap_send_beacon_pkt(pst_dmac_vap->pst_hal_vap, &st_beacon_tx_params);
 
-    /* DBAC使能后，让DBAC自行启动TSF */
+    /* DBAC??????????DBAC????????TSF */
 #ifdef _PRE_WLAN_FEATURE_DBAC
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-     /* 1102 DBAC todo DBAC未启动的时候，通过enable信息判断，导致GO不会发送Beacon帧*/
+     /* 1102 DBAC todo DBAC??????????????????enable??????????????GO????????Beacon??*/
     {
         mac_device_stru *pst_device = mac_res_get_dev((oal_uint32)pst_dmac_vap->st_vap_base_info.uc_device_id);
 
@@ -588,27 +496,13 @@ oal_uint32  dmac_beacon_alloc(dmac_vap_stru *pst_dmac_vap)
 #endif
 #endif
 
-    /* 开启tsf */
+    /* ????tsf */
     hal_vap_start_tsf(pst_dmac_vap->pst_hal_vap, OAL_FALSE);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_beacon_free
- 功能描述  : 释放beacon帧内存
- 输入参数  : pst_dmac_vap: 指向dmac vap
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月28日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_beacon_free(dmac_vap_stru *pst_dmac_vap)
 {
     OAL_MEM_FREE(pst_dmac_vap->pauc_beacon_buffer[0], OAL_TRUE);
@@ -617,41 +511,26 @@ oal_uint32  dmac_beacon_free(dmac_vap_stru *pst_dmac_vap)
     pst_dmac_vap->pauc_beacon_buffer[0] = OAL_PTR_NULL;
     pst_dmac_vap->pauc_beacon_buffer[1] = OAL_PTR_NULL;
 
-    /* 关闭tsf */
+    /* ????tsf */
     hal_vap_set_machw_tsf_disable(pst_dmac_vap->pst_hal_vap);
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tbtt_exception_handler
- 功能描述  : 统计MAC错误中断计数
- 输入参数  : pst_dmac_vap: DMAC VAP结构体指针
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年7月28日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_tbtt_exception_handler(dmac_vap_stru *pst_dmac_vap)
 {
     hal_to_dmac_device_stru         *pst_hal_device = pst_dmac_vap->pst_hal_device;
     hal_dfr_err_opern_stru          *pst_dfr_err;
     hal_mac_error_type_enum_uint8    en_error_id;
 
-    /* DTS2015120501662 begin--vap删除，tbtt中断发现pst_hal_device为空 */
     if (OAL_PTR_NULL == pst_hal_device)
     {
         OAM_WARNING_LOG1(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_ACS, "{vap %d may be deleted::tbtt exception handle err!}", pst_dmac_vap->st_vap_base_info.uc_vap_id);
         return;
     }
 
-    /* 遍历所有错误类型 */
+    /* ???????????????? */
     for (en_error_id = 0; en_error_id < HAL_MAC_ERROR_TYPE_BUTT; en_error_id++)
     {
         pst_dfr_err = &(pst_hal_device->st_dfr_err_opern[en_error_id]);
@@ -662,48 +541,33 @@ OAL_STATIC oal_void  dmac_tbtt_exception_handler(dmac_vap_stru *pst_dmac_vap)
         {
             pst_dfr_err->us_tbtt_cnt = 0;
 
-            /* 每10次TBTT中断，将此计数清零 */
+            /* ??10??TBTT?????????????????? */
             pst_dfr_err->us_err_cnt = 0;
         }
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_handle_tbtt_chan_mgmt_ap
- 功能描述  : AP侧TBTT中断中进行信道管理
- 输入参数  : pst_dmac_vap: DMAC VAP结构体指针，指向AP
- 输出参数  : pst_dmac_vap: DMAC VAP结构体指针，指向ap
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年2月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_handle_tbtt_chan_mgmt_ap(dmac_vap_stru *pst_dmac_vap)
 {
     mac_vap_stru              *pst_mac_vap = &(pst_dmac_vap->st_vap_base_info);
     mac_ch_switch_info_stru   *pst_csi = &(pst_mac_vap->st_ch_switch_info);
 
-    /* AP准备进行信道切换 */
+    /* AP???????????????? */
     if (WLAN_CH_SWITCH_STATUS_1 == pst_csi->en_ch_switch_status)
     {
         if (0 == pst_csi->uc_ch_switch_cnt)
         {
             oal_uint8   auc_null_addr[6] = {0};
 
-            /* 在当前信道挂起beacon帧发送 */
+            /* ??????????????beacon?????? */
             hal_vap_beacon_suspend(pst_dmac_vap->pst_hal_vap);
 
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-            /* DTS2015122204079,防止切换信道前最后一个Beacon帧发送失败*/
             oal_mdelay(50);
 #endif
 
-            /* 从Beacon帧中移除Channel Switch Announcement IE */
+            /* ??Beacon????????Channel Switch Announcement IE */
             pst_csi->en_csa_present_in_bcn = OAL_FALSE;
 
             mac_vap_set_bssid(pst_mac_vap, auc_null_addr);
@@ -721,7 +585,7 @@ OAL_STATIC oal_void  dmac_handle_tbtt_chan_mgmt_ap(dmac_vap_stru *pst_dmac_vap)
 
             pst_csi->en_bw_switch_status = WLAN_BW_SWITCH_DONE;
 
-            /* 现在VAP下的"带宽模式"应该为 WLAN_BAND_WIDTH_20MHz */
+            /* ????VAP????"????????"?????? WLAN_BAND_WIDTH_20MHz */
             dmac_chan_select_channel_mac(pst_mac_vap, pst_mac_vap->st_channel.uc_chan_number, pst_mac_vap->st_channel.en_bandwidth);
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
             dmac_switch_complete_notify(pst_mac_vap, OAL_FALSE);
@@ -730,21 +594,7 @@ OAL_STATIC oal_void  dmac_handle_tbtt_chan_mgmt_ap(dmac_vap_stru *pst_dmac_vap)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_send_disasoc_misc_event
- 功能描述  : DMAC发送去关联MISC事件
- 输入参数  : pst_mac_vap: MAC VAP结构体指针
-             uc_sub_type: 事件子类型
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : zhangyu 00241943
-    修改内容   : 新生成函数
-****************************************************************************/
 oal_uint32  dmac_send_disasoc_misc_event(mac_vap_stru *pst_mac_vap, oal_uint16 us_user_idx, oal_uint16 us_disasoc_reason)
 {
     frw_event_mem_stru       *pst_event_mem;
@@ -752,7 +602,7 @@ oal_uint32  dmac_send_disasoc_misc_event(mac_vap_stru *pst_mac_vap, oal_uint16 u
     oal_uint32                ul_ret;
     dmac_disasoc_misc_stru    st_disasoc_misc;
 
-    /* 申请事件内存 */
+    /* ???????????? */
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_disasoc_misc_stru));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
     {
@@ -763,7 +613,7 @@ oal_uint32  dmac_send_disasoc_misc_event(mac_vap_stru *pst_mac_vap, oal_uint16 u
 
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
-    /* 填写事件头 */
+    /* ?????????? */
     FRW_EVENT_HDR_INIT(&(pst_event->st_event_hdr),
                             FRW_EVENT_TYPE_DMAC_MISC,
                             DMAC_MISC_SUB_TYPE_DISASOC,
@@ -780,7 +630,7 @@ oal_uint32  dmac_send_disasoc_misc_event(mac_vap_stru *pst_mac_vap, oal_uint16 u
     st_disasoc_misc.us_user_idx       = us_user_idx;
     oal_memcopy(pst_event->auc_event_data, &st_disasoc_misc, OAL_SIZEOF(dmac_disasoc_misc_stru));
 
-    /* 分发事件 */
+    /* ???????? */
     ul_ret = frw_event_dispatch_event(pst_event_mem);
 
     if (OAL_SUCC != ul_ret)
@@ -790,27 +640,13 @@ oal_uint32  dmac_send_disasoc_misc_event(mac_vap_stru *pst_mac_vap, oal_uint16 u
         return ul_ret;
     }
 
-    /* 释放事件 */
+    /* ???????? */
     FRW_EVENT_FREE(pst_event_mem);
     return OAL_SUCC;
 }
 #ifdef _PRE_WLAN_FEATURE_ROAM
 #define ROAM_RSSI_LINKLOSS_TYPE           (-121)
-/*****************************************************************************
- 函 数 名  : dmac_sta_roam_trigger_init
- 功能描述  : 初始化roam_trigger信息, 在上层下发 connect 时重新初始化。
- 输入参数  : pst_dmac_vap
 
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2015年7月10日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 dmac_sta_roam_trigger_init(dmac_vap_stru *pst_dmac_vap)
 {
     if (OAL_PTR_NULL == pst_dmac_vap)
@@ -826,21 +662,7 @@ oal_uint32 dmac_sta_roam_trigger_init(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_roam_trigger_check
- 功能描述  : 判断漫游触发是否需要上报HMAC
- 输入参数  : pst_dmac_vap
 
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2015年7月10日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
 {
     mac_device_stru          *pst_mac_device;
@@ -852,7 +674,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
     oal_int8                  c_trigger_rssi    = 0;
     oal_int8                  c_current_rssi    = 0;
     oal_uint8                 uc_vap_id;
-    oal_uint16                us_linkloss_threshold = 0;       /*  LinkLoss门限  */
+    oal_uint16                us_linkloss_threshold = 0;       /*  LinkLoss????  */
     oal_uint32                ul_cur_time       = 0;
 
     if (OAL_PTR_NULL == pst_dmac_vap)
@@ -866,13 +688,13 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
         OAM_ERROR_LOG0(0, OAM_SF_WIFI_BEACON, "{dmac_sta_roam_trigger_check::pst_mac_device is null.}");
         return OAL_ERR_CODE_PTR_NULL;
     }
-     /* 过滤非 WLAN0 设备 */
+     /* ?????? WLAN0 ???? */
     if (!(IS_LEGACY_VAP(&pst_dmac_vap->st_vap_base_info)))
     {
         return OAL_FAIL;
     }
 
-     /* p2p在运行,直接return
+     /* p2p??????,????return
     if ((OAL_SUCC == mac_device_is_p2p_connected(pst_mac_device)))
     {
         return OAL_FAIL;
@@ -895,10 +717,10 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
     }
     else
     {
-        /* 连续若干次rssi小于门限时发起一次漫游  */
+        /* ??????????rssi??????????????????????  */
         if (pst_dmac_vap->st_roam_trigger.ul_cnt++ >= ROAM_TRIGGER_COUNT_THRESHOLD)
         {
-            /* 漫游触发事件需要满足上报最小间隔 */
+            /* ???????????????????????????????? */
             ul_cur_time    = (oal_uint32)OAL_TIME_GET_STAMP_MS();
             ul_delta_time  = (oal_uint32)OAL_TIME_GET_RUNTIME(pst_dmac_vap->st_roam_trigger.ul_time_stamp, ul_cur_time);
 
@@ -912,11 +734,11 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
         }
     }
 
-    /* WLAN0: LINK LOSS计数满足3/4的门限时发起一次漫游，rssi为0表示强制漫游  */
+    /* WLAN0: LINK LOSS????????3/4??????????????????????rssi??0????????????  */
     us_linkloss_threshold = pst_dmac_vap->st_linkloss_info.us_linkloss_threshold;
     if (pst_dmac_vap->st_linkloss_info.us_link_loss == (us_linkloss_threshold >> 1) + (us_linkloss_threshold >> 2))
     {
-        /* 为了防止重复上报，强制+1 */
+        /* ??????????????????????+1 */
         pst_dmac_vap->st_linkloss_info.us_link_loss++;
         c_current_rssi     = ROAM_RSSI_LINKLOSS_TYPE;
         en_trigger_enable  = OAL_TRUE;
@@ -927,7 +749,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
         return OAL_FAIL;
     }
 
-    /* 漫游触发需要与正常关联保持时间间隔，WIFI+切换频繁，与漫游冲突。正常关联，并且 IP ADDR 已获取 */
+    /* ????????????????????????????????????WIFI+???????????????????????????????????? IP ADDR ?????? */
     ul_delta_time  = (oal_uint32)OAL_TIME_GET_RUNTIME(pst_dmac_vap->st_roam_trigger.ul_ip_obtain_stamp, ul_cur_time);
 
     if(OAL_FALSE == pst_dmac_vap->st_roam_trigger.ul_ip_addr_obtained ||
@@ -940,7 +762,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
 
     uc_vap_id      = pst_dmac_vap->st_vap_base_info.uc_vap_id;
 
-    /* 申请事件内存 */
+    /* ???????????? */
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_disasoc_misc_stru));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
     {
@@ -950,7 +772,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
 
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
-    /* 填写事件头 */
+    /* ?????????? */
     FRW_EVENT_HDR_INIT(&(pst_event->st_event_hdr),
                             FRW_EVENT_TYPE_DMAC_MISC,
                             DMAC_MISC_SUB_TYPE_ROAM_TRIGGER,
@@ -962,7 +784,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
 
     oal_memcopy(pst_event->auc_event_data, &c_current_rssi, OAL_SIZEOF(oal_uint8));
 
-    /* 分发事件 */
+    /* ???????? */
     ul_ret = frw_event_dispatch_event(pst_event_mem);
     if (OAL_SUCC != ul_ret)
     {
@@ -971,7 +793,7 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
         return ul_ret;
     }
 
-    /* 释放事件 */
+    /* ???????? */
     FRW_EVENT_FREE(pst_event_mem);
 
     pst_dmac_vap->st_roam_trigger.ul_time_stamp = (oal_uint32)OAL_TIME_GET_STAMP_MS();
@@ -979,55 +801,27 @@ oal_uint32 dmac_sta_roam_trigger_check(dmac_vap_stru *pst_dmac_vap)
     return OAL_SUCC;
 }
 #endif //_PRE_WLAN_FEATURE_ROAM
-/*****************************************************************************
- 函 数 名  : dmac_LinkLoss_send_probe_req
- 功能描述  :  非背景扫描阶段，LinkLoss计数器超过一半，准备开始发送单播探测帧接口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月14日
-    作    者   : zhongwen
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_linkloss_send_probe_req(dmac_vap_stru *pst_dmac_vap, mac_device_stru *pst_mac_device)
 {
     mac_vap_stru       *pst_mac_vap;
 
     pst_mac_vap = &(pst_dmac_vap->st_vap_base_info);
 
-    /* 扫描、雷达、2040切信道时候，linkloss计数器不计数,所以不额外发送单播探测帧 */
+    /* ????????????2040????????????linkloss????????????,???????????????????????? */
     if ((0 == pst_mac_vap->st_ch_switch_info.uc_new_ch_swt_cnt)&&
         (MAC_SCAN_STATE_RUNNING != pst_mac_device->en_curr_scan_state))
     {
-        /* 根据索引号，准备probe req帧的ssid信息 */
+        /* ????????????????probe req????ssid???? */
         dmac_scan_send_probe_req_frame(pst_dmac_vap,
                                        pst_mac_vap->auc_bssid,
                                        (oal_int8 *)(pst_mac_vap->pst_mib_info->st_wlan_mib_sta_config.auc_dot11DesiredSSID));
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_vap_linkloss_incr
- 功能描述  : 对linkloss计数器加1
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月14日
-    作    者   : zhongwen
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_vap_linkloss_incr(dmac_vap_stru *pst_dmac_vap, mac_device_stru *pst_mac_device)
 {
-    /* 扫描、雷达、2040切信道时候，linkloss计数器不计数 */
+    /* ????????????2040????????????linkloss???????????? */
     if ((0 == pst_dmac_vap->st_vap_base_info.st_ch_switch_info.uc_new_ch_swt_cnt)&&
         (MAC_SCAN_STATE_RUNNING != pst_mac_device->en_curr_scan_state))
     {
@@ -1036,21 +830,7 @@ OAL_STATIC oal_void dmac_vap_linkloss_incr(dmac_vap_stru *pst_dmac_vap, mac_devi
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_vap_update_linkloss_threshold
- 功能描述  :  更新linkloss门限值
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月14日
-    作    者   : zhongwen
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_vap, mac_device_stru *pst_mac_device)
 {
     oal_uint32                         ul_dot11BeaconPeriod;
@@ -1067,7 +847,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
 #endif
     ul_dot11BeaconPeriod = pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod;
 
-    /* 无效beacon间隔(为0)，强行按照beacon间隔为100ms计算linkloss门限 */
+    /* ????beacon????(??0)??????????beacon??????100ms????linkloss???? */
     if (0 == ul_dot11BeaconPeriod)
     {
         OAM_WARNING_LOG1(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_RX,
@@ -1079,7 +859,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
 
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
     en_bt_on = pst_dmac_vap->pst_hal_device->st_btcoex_btble_status.un_bt_status.st_bt_status.bit_bt_on;
-    /* 如果bt开关改变 */
+    /* ????bt???????? */
     if (pst_linkloss_info->en_old_bt_on != en_bt_on)
     {
         OAM_WARNING_LOG1(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_RX,
@@ -1089,7 +869,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
 
         pst_linkloss_info->us_link_loss = (en_bt_on) ?
                         ((oal_uint16)(pst_linkloss_info->us_link_loss << 1)) :
-                        ((oal_uint16)(pst_linkloss_info->us_link_loss >> 1));  /* 关闭bt恢复linkloss基础器2倍之前的值 */
+                        ((oal_uint16)(pst_linkloss_info->us_link_loss >> 1));  /* ????bt????linkloss??????2?????????? */
     }
 #endif
     en_dbac_running = mac_is_dbac_running(pst_mac_device);
@@ -1099,7 +879,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
             "{dmac_vap_update_linkloss_threshold::dbac_runing change to [%d]!}", en_dbac_running);
         en_threshold_change_flag = OAL_TRUE;
         pst_linkloss_info->en_old_dbac_runing = en_dbac_running;
-        pst_linkloss_info->us_link_loss = (en_dbac_running) ? ((oal_uint16)(pst_linkloss_info->us_link_loss << 1)) :(pst_linkloss_info->us_link_loss >> 1); /* 停止dbac恢复linkloss基础器2倍之前的值 */
+        pst_linkloss_info->us_link_loss = (en_dbac_running) ? ((oal_uint16)(pst_linkloss_info->us_link_loss << 1)) :(pst_linkloss_info->us_link_loss >> 1); /* ????dbac????linkloss??????2?????????? */
     }
 
     en_far_distance = (pst_dmac_vap->st_query_stats.ul_signal < WLAN_FAR_DISTANCE_RSSI);
@@ -1107,10 +887,10 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
     {
         en_threshold_change_flag = OAL_TRUE;
         pst_linkloss_info->en_old_far_distance = en_far_distance;
-        pst_linkloss_info->us_link_loss = (en_far_distance) ? ((oal_uint16)(pst_linkloss_info->us_link_loss << 1)) : (pst_linkloss_info->us_link_loss >> 1);  /* 状态切换近场恢复linkloss基础器2倍之前的值 */
+        pst_linkloss_info->us_link_loss = (en_far_distance) ? ((oal_uint16)(pst_linkloss_info->us_link_loss << 1)) : (pst_linkloss_info->us_link_loss >> 1);  /* ????????????????linkloss??????2?????????? */
     }
 
-    /* 如果beacon周期改变 */
+    /* ????beacon???????? */
     if (ul_dot11BeaconPeriod != pst_linkloss_info->ul_old_dot11BeaconPeriod)
     {
         OAM_WARNING_LOG2(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_RX,
@@ -1121,7 +901,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
         pst_linkloss_info->ul_old_dot11BeaconPeriod = ul_dot11BeaconPeriod;
     }
 
-    /* 状态无改变，不用重新刷新门限 */
+    /* ???????????????????????????? */
     if (OAL_TRUE != en_threshold_change_flag)
     {
         return;
@@ -1129,10 +909,10 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
 
     pst_linkloss_info->uc_linkloss_times = (WLAN_BEACON_INTVAL_DEFAULT > ul_dot11BeaconPeriod) ? (WLAN_BEACON_INTVAL_DEFAULT / ul_dot11BeaconPeriod) : 1;
 
-    /* 设置门限基数。当beacon周期为默认设置时，优化为用位移方式(约等于 time*10>>8) */
+    /* ????????????????beacon??????????????????????????????????(?????? time*10>>8) */
     if (IS_LEGACY_VAP(&pst_dmac_vap->st_vap_base_info))
     {
-        /* 近场 */
+        /* ???? */
         if (WLAN_FAR_DISTANCE_RSSI <= pst_dmac_vap->st_query_stats.ul_signal)
         {
             us_linkloss_threshold  = (WLAN_BEACON_INTVAL_DEFAULT == ul_dot11BeaconPeriod) ? (oal_uint16)(g_st_beacon_linkloss.us_linkloss_threshold_wlan_near)  : (oal_uint16)(100*g_st_beacon_linkloss.us_linkloss_threshold_wlan_near / ul_dot11BeaconPeriod); /* 4s in normal BeaconPeriod*/
@@ -1149,20 +929,20 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
     }
 
 
-    /* 根据具体情况调整门限值 */
+    /* ?????????????????????? */
     if (OAL_TRUE == en_dbac_running)
     {
-        us_linkloss_threshold = (oal_uint16)(us_linkloss_threshold << 1); /* DBAC模式，门限翻2倍 */
+        us_linkloss_threshold = (oal_uint16)(us_linkloss_threshold << 1); /* DBAC????????????2?? */
     }
 
     if (OAL_TRUE == en_bt_on)
     {
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
-        us_linkloss_threshold = (oal_uint16)(us_linkloss_threshold << 1); /* 共存模式，门限翻2倍 */
+        us_linkloss_threshold = (oal_uint16)(us_linkloss_threshold << 1); /* ????????????????2?? */
 #endif
     }
 
-    /* 异常保护:当linkloss门限过低，在糟糕的环境下极容易出现linkloss。此处设置门限最低值 */
+    /* ????????:??linkloss??????????????????????????????????linkloss???????????????????? */
     if (WLAN_LINKLOSS_MIN_THRESHOLD > us_linkloss_threshold)
     {
         OAM_WARNING_LOG3(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_RX,
@@ -1190,21 +970,7 @@ OAL_STATIC oal_void dmac_vap_update_linkloss_threshold(dmac_vap_stru *pst_dmac_v
 
 }
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-/*****************************************************************************
- 函 数 名  : dmac_vap_update_vowifi_status
- 功能描述  : 更新VoWiFi的检测状态，并决定是否触发上报vowifi切换申请
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月19日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
 {
     mac_vowifi_status_stru    *pst_vowifi_status;
@@ -1228,9 +994,10 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
         return ;
     }
 
-    if (VOWIFI_DISABLE_REPORT == pst_vowifi_cfg_param->en_vowifi_mode)
+    if (VOWIFI_LOW_THRES_REPORT != pst_vowifi_cfg_param->en_vowifi_mode &&
+        VOWIFI_HIGH_THRES_REPORT != pst_vowifi_cfg_param->en_vowifi_mode)
     {
-        /* 不使能vowifi情况，直接退出 */
+        /* ??????vowifi?????????????? */
         return ;
     }
 
@@ -1242,21 +1009,21 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
     }
 
     /*
-    vowifi质量评估持续检测的点:
-    1.RSSI连续超出门限
-    2.连续TX/RX 失败
-    3.arp req探测后5s 内无数据接收
-    4.linkloss超过。。。
+    vowifi????????????????????:
+    1.RSSI????????????
+    2.????TX/RX ????
+    3.arp req??????5s ????????????
+    4.linkloss??????????
     */
 
     ul_rx_succ_pkts = (pst_dmac_user->st_query_stats.ul_drv_rx_pkts >= pst_dmac_user->st_query_stats.ul_rx_dropped_misc)?
                       (pst_dmac_user->st_query_stats.ul_drv_rx_pkts - pst_dmac_user->st_query_stats.ul_rx_dropped_misc) : 0;
 
-    /* step1, 更新统计值 */
+    /* step1, ?????????? */
     ull_timestamp_ms = OAL_TIME_GET_STAMP_MS();
     if (ull_timestamp_ms >= (pst_vowifi_status->ull_rssi_timestamp_ms + pst_vowifi_cfg_param->us_rssi_period_ms))
     {
-        /* 更新信号vowifi rssi统计值 */
+        /* ????????vowifi rssi?????? */
         pst_vowifi_status->uc_rssi_trigger_cnt = ((VOWIFI_LOW_THRES_REPORT == pst_vowifi_cfg_param->en_vowifi_mode) ?
                                                (pst_dmac_vap->st_query_stats.ul_signal <= pst_vowifi_cfg_param->c_rssi_low_thres):
                                                (pst_dmac_vap->st_query_stats.ul_signal >= pst_vowifi_cfg_param->c_rssi_high_thres)) ?
@@ -1267,14 +1034,14 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
 
     if (ul_rx_succ_pkts != pst_vowifi_status->ul_arp_rx_succ_pkts)
     {
-        /* 有新的接收帧，说明"无RX 帧"的探测点无效，更新相关时间戳 */
+        /* ??????????????????"??RX ??"???????????????????????????? */
         pst_vowifi_status->ull_arp_timestamp_ms = ull_timestamp_ms;
     }
 
 
 
-    /* step2，检查统计状态 */
-    /* vowifi RSSI检测 */
+    /* step2?????????????? */
+    /* vowifi RSSI???? */
     if (pst_vowifi_status->uc_rssi_trigger_cnt >= pst_vowifi_cfg_param->uc_trigger_count_thres)
     {
         OAM_WARNING_LOG2(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_VOWIFI, "{dmac_vap_update_vowifi_status::RSSI_monitor reporting,rssi[%d], count[%d].}",
@@ -1284,13 +1051,13 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
         return ;
     }
 
-    /* 高门限模式的信号质量检测工作到此结束 */
+    /* ???????????????????????????????????? */
     if (VOWIFI_HIGH_THRES_REPORT == pst_vowifi_cfg_param->en_vowifi_mode)
     {
         return ;
     }
 
-    /* Linkloss 计数值到了一半，切换vowifi状态 */
+    /* Linkloss ????????????????????vowifi???? */
     if (pst_dmac_vap->st_linkloss_info.us_link_loss == (pst_dmac_vap->st_linkloss_info.us_linkloss_threshold >> 1))
     {
         OAM_WARNING_LOG2(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_VOWIFI, "{dmac_vap_update_vowifi_status::Linkloss reporting,linkloss_cnt[%d], linkloss_thres[%d].}",
@@ -1300,7 +1067,7 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
         return ;
     }
 
-    /* tx arp req后5s无任何成功接收的数据帧 */
+    /* tx arp req??5s?????????????????????? */
     if (ul_rx_succ_pkts == pst_vowifi_status->ul_arp_rx_succ_pkts)
     {
         if (ull_timestamp_ms >= (pst_vowifi_status->ull_arp_timestamp_ms + 5000))
@@ -1313,7 +1080,7 @@ OAL_STATIC void dmac_vap_update_vowifi_status(dmac_vap_stru *pst_dmac_vap)
 
     }
 
-    /* 连续10个包发送失败 */
+    /* ????10???????????? */
     ul_pkt_drop_count = pst_dmac_user->st_query_stats.ul_tx_failed - pst_vowifi_status->ul_tx_failed;
     if (ul_pkt_drop_count >= 10)
     {
@@ -1354,14 +1121,14 @@ OAL_STATIC void dmac_sta_tbtt_prior_linkloss_handler(dmac_vap_stru *pst_dmac_vap
 #define LINKLOSS_DFT_PERIOD  10
     us_linkloss_period = (pst_dmac_vap->st_linkloss_info.us_link_loss % LINKLOSS_DFT_PERIOD);
 
-    /* linkloss计数超过一半,"且每隔16个tbtt周期" or "linklos门限计数值小于16"，准备发送单播探测帧 */
+    /* linkloss????????????,"??????16??tbtt????" or "linklos??????????????16"???????????????????? */
     if ((pst_dmac_vap->st_linkloss_info.us_link_loss >= (pst_dmac_vap->st_linkloss_info.us_linkloss_threshold >> 1))&&
         ((0 == us_linkloss_period) || (pst_dmac_vap->st_linkloss_info.us_linkloss_threshold < LINKLOSS_DFT_PERIOD )))
     {
         dmac_linkloss_send_probe_req(pst_dmac_vap, pst_mac_device);
     }
 
-    /*linkloss每统计达到10次，上报一次维测信息，扫描或切信道时刻不打印*/
+    /*linkloss??????????10????????????????????????????????????????????*/
     if ((0 == us_linkloss_period) && (0 == pst_dmac_vap->st_vap_base_info.st_ch_switch_info.uc_new_ch_swt_cnt)&&
         (MAC_SCAN_STATE_RUNNING != pst_mac_device->en_curr_scan_state))
     {
@@ -1371,21 +1138,7 @@ OAL_STATIC void dmac_sta_tbtt_prior_linkloss_handler(dmac_vap_stru *pst_dmac_vap
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_up_misc
- 功能描述  : up状态下, misc事件处理.向ap发去关联。如果sta与ap处于关联状态，应
-             使用去关联踢掉对方。
- 输入参数  : dmac_vap_stru *pst_dmac_sta
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月4日
-    作    者   : zhangyu 00241943
-    修改内容   : 新生成函数
- ****************************************************************************/
  OAL_STATIC void dmac_sta_up_misc(dmac_vap_stru *pst_dmac_vap)
  {
 
@@ -1403,7 +1156,7 @@ OAL_STATIC void dmac_sta_tbtt_prior_linkloss_handler(dmac_vap_stru *pst_dmac_vap
     dmac_sta_tbtt_prior_linkloss_handler(pst_dmac_vap);
 
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-    /* 检查vowifi的检测状态 */
+    /* ????vowifi?????????? */
     dmac_vap_update_vowifi_status(pst_dmac_vap);
 #endif /* _PRE_WLAN_FEATURE_VOWIFI */
 #ifdef _PRE_WLAN_FEATURE_ROAM
@@ -1412,7 +1165,7 @@ OAL_STATIC void dmac_sta_tbtt_prior_linkloss_handler(dmac_vap_stru *pst_dmac_vap
 
     dmac_handle_tbtt_chan_mgmt_sta(pst_dmac_vap);
 
-    /* sta与ap丢失连接超过上限处理 */
+    /* sta??ap???????????????????? */
     if (DMAC_IS_LINKLOSS(pst_dmac_vap))
     {
         OAM_WARNING_LOG4(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_ANY,
@@ -1431,21 +1184,7 @@ OAL_STATIC void dmac_sta_tbtt_prior_linkloss_handler(dmac_vap_stru *pst_dmac_vap
     return ;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tbtt_event_sta
- 功能描述  : sta tbtt中断处理, 抛到hmac去处理
- 输入参数  : pst_dmac_vap: DMAC VAP
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月8日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_tbtt_event_sta(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru  *pst_event;
@@ -1475,24 +1214,10 @@ OAL_STATIC oal_void  dmac_tbtt_event_sta(frw_event_mem_stru *pst_event_mem)
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_tbtt_event_ap
- 功能描述  : ap tbtt中断处理
- 输入参数  : pst_dmac_vap: DMAC VAP
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月8日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
 {
-    oal_uint8                    uc_bcn_idx_for_soft;   /* 软件更新beacon帧编号 */
+    oal_uint8                    uc_bcn_idx_for_soft;   /* ????????beacon?????? */
     oal_uint8                   *puc_bcn_buf;
     hal_beacon_tx_params_stru    st_beacon_tx_params;
     hal_tx_txop_alg_stru        *pst_tx_param;
@@ -1524,10 +1249,10 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
                        "{dmac_tbtt_event_ap::dev is null!}");
         return;
     }
-    /* 计算软件更新beacon帧编号 */
+    /* ????????????beacon?????? */
     uc_bcn_idx_for_soft = (DMAC_VAP_BEACON_BUFFER_BUTT == (pst_dmac_vap->uc_beacon_idx + 1)) ? DMAC_VAP_BEACON_BUFFER1 : DMAC_VAP_BEACON_BUFFER2;
 
-    /* 软件要更新的beacon帧 */
+    /* ????????????beacon?? */
     puc_bcn_buf = pst_dmac_vap->pauc_beacon_buffer[uc_bcn_idx_for_soft];
 
     if(puc_bcn_buf == NULL)
@@ -1538,7 +1263,7 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
 
     if (0 == pst_dmac_vap->uc_dtim_count)
     {
-        /* 如果此次tbtt中断对应的是DTIM周期，则需要发送组播/广播节能队列中的缓存帧 */
+        /* ????????tbtt????????????DTIM????????????????????/?????????????????????? */
         if(OAL_TRUE == pst_dmac_vap->en_dtim_ctrl_bit0)
         {
             pst_dmac_multi_user = mac_res_get_dmac_user(pst_dmac_vap->st_vap_base_info.us_multi_user_idx);
@@ -1547,12 +1272,12 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
                 OAM_ERROR_LOG1(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_WIFI_BEACON, "{dmac_tbtt_event_ap::get multi user[%d] fail.}", pst_dmac_vap->st_vap_base_info.us_multi_user_idx);
                 return;
             }
-            /* 解决当前PSM未开启时引入的节能队列刷新问题 */
+            /* ????????PSM?????????????????????????????? */
             dmac_psm_queue_flush(pst_dmac_vap, pst_dmac_multi_user);
         }
 
     #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-        /*多用户场景，遍历用户，找到正在节能的用户，检查其节能队列是否有包，连续5个dtim周期有包，且数目大于128，则进行丢弃*/
+        /*??????????????????????????????????????????????????????????????????????5??dtim????????????????????128????????????*/
         if((1 <= pst_dmac_vap->st_vap_base_info.us_user_nums) && (0 != pst_dmac_vap->uc_ps_user_num))
         {
             dmac_user_ps_queue_overrun_notify(&pst_dmac_vap->st_vap_base_info);
@@ -1560,7 +1285,6 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
     #endif
     }
 
-    /* DTS2015121601339 确保DTIM count在tbtt中更新，保证count值顺序减1 */
     dmac_update_dtim_count_ap(pst_dmac_vap);
 
     if((WITP_TX_CHAIN_DOUBLE == pst_macdev->uc_tx_chain)&&
@@ -1573,7 +1297,7 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
         uc_bcn_chain_switch = 0;
     }
 
-    /* 信道管理 */
+    /* ???????? */
     dmac_handle_tbtt_chan_mgmt_ap(pst_dmac_vap);
 
     en_band = pst_dmac_vap->st_vap_base_info.st_channel.en_band;
@@ -1583,7 +1307,7 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
     ul_bcn_interval_temp = pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod;
 #endif
 #ifdef  _PRE_WLAN_FEATURE_PM
-    /*保存配置值,本函数结束后恢复*/
+    /*??????????,????????????????*/
     st_tx_power_temp     = pst_tx_param->st_tx_power;
     pst_mac_pm_handle    = (mac_pm_handler_stru *)(pst_dmac_vap->pst_pm_handler);
 
@@ -1597,7 +1321,7 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
         #ifdef _PRE_WLAN_FEATURE_DBAC
         if (!mac_is_dbac_enabled(mac_res_get_dev(pst_dmac_vap->st_vap_base_info.uc_device_id)))
         {
-            // DBAC使能时,beacon不做调整
+            // DBAC??????,beacon????????
             pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod = WLAN_BEACON_INTVAL_IDLE;
         }
         #endif
@@ -1608,19 +1332,19 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
 
 #endif
 
-    /* 更新beacon帧 */
+    /* ????beacon?? */
     dmac_encap_beacon(pst_dmac_vap, puc_bcn_buf, &(pst_dmac_vap->us_beacon_len));
 
-    /* 将更新的beacon帧写入硬件beacon帧寄存器 */
-    /* 填写发送Beacon帧参数 */
+    /* ????????beacon??????????beacon???????? */
+    /* ????????Beacon?????? */
     st_beacon_tx_params.pst_tx_param = pst_tx_param;
     st_beacon_tx_params.ul_pkt_ptr   = (oal_uint32)puc_bcn_buf;
     st_beacon_tx_params.us_pkt_len   = pst_dmac_vap->us_beacon_len;
 
-    /* 判断是否开启了双路轮流发送 */
+    /* ?????????????????????????? */
     if(1 == uc_bcn_chain_switch)
     {
-        /* 第一个beacon帧由通道0发送，第二个beacon帧由通道1发送 */
+        /* ??????beacon????????0????????????beacon????????1???? */
         if(pst_dmac_vap->uc_beacon_idx == DMAC_VAP_BEACON_BUFFER1)
         {
             //pst_dmac_vap->st_tx_alg.ast_per_rate[0].rate_bit_stru.bit_tx_chain_selection = 1;
@@ -1648,13 +1372,13 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
     hal_btcoex_update_ap_beacon_count(&ul_beacon_count_new);
     pst_dmac_vap_btcoex_occupied = &(pst_dmac_vap->st_dmac_vap_btcoex.st_dmac_vap_btcoex_occupied);
 
-    /* 每5个beacon发送失败上报一次BEACON MISS中断，所以在发出了5个beacon后，计数减1 */
+    /* ??5??beacon????????????????BEACON MISS??????????????????5??beacon??????????1 */
     if (ul_beacon_count_new - pst_dmac_vap_btcoex_occupied->ul_ap_beacon_count >= 5)
     {
         pst_dmac_vap_btcoex_occupied->ul_ap_beacon_count += 5;
         pst_dmac_vap_btcoex_occupied->uc_ap_beacon_miss = OAL_SUB(pst_dmac_vap_btcoex_occupied->uc_ap_beacon_miss, 1);
 
-        /* 如果存在大于5的情况，则可能出现过TBTT中断丢失，实际确有发生beacon miss计数无法清零的情况 */
+        /* ????????????5????????????????????TBTT??????????????????????beacon miss?????????????????? */
         if (ul_beacon_count_new > pst_dmac_vap_btcoex_occupied->ul_ap_beacon_count)
         {
             OAM_WARNING_LOG2(pst_dmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_WIFI_BEACON, "{TBTT interrupt miss may be happened: new beacon cnt [%d] & record beacon cnt [%d]!}", \
@@ -1663,13 +1387,13 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
     }
     else if (ul_beacon_count_new < pst_dmac_vap_btcoex_occupied->ul_ap_beacon_count)
     {
-        /* 防止硬件的beacon计数翻转 */
+        /* ??????????beacon???????? */
         pst_dmac_vap_btcoex_occupied->ul_ap_beacon_count = ul_beacon_count_new;
     }
 
     if (pst_macdev->pst_device_stru->st_btcoex_btble_status.un_bt_status.st_bt_status.bit_bt_page)
     {
-        /* 达到30个beacon miss就拉高occupied */
+        /* ????30??beacon miss??????occupied */
         if (pst_dmac_vap_btcoex_occupied->uc_ap_beacon_miss > 5)
         {
             hal_set_btcoex_occupied_period(10000);  // 10ms
@@ -1678,7 +1402,7 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
 
 #endif
 
-    /* HAL发送Beacon帧接口 */
+    /* HAL????Beacon?????? */
     hal_vap_send_beacon_pkt(pst_dmac_vap->pst_hal_vap, &st_beacon_tx_params);
 
     ul_ret = oam_report_beacon(puc_bcn_buf, MAC_80211_FRAME_LEN,
@@ -1690,14 +1414,14 @@ OAL_STATIC oal_void  dmac_tbtt_event_ap(dmac_vap_stru *pst_dmac_vap)
     }
 
 #ifdef _PRE_WLAN_DFT_STAT
-    /* 发送beacon帧数目统计 */
+    /* ????beacon?????????? */
     DMAC_DFT_MGMT_STAT_INCR(pst_macdev->st_mgmt_stat.aul_tx_mgmt_soft[WLAN_BEACON]);
 #endif
-    /* 交换两个beacon帧 */
+    /* ????????beacon?? */
     pst_dmac_vap->uc_beacon_idx = uc_bcn_idx_for_soft;
 
 #ifdef  _PRE_WLAN_FEATURE_PM
-/*恢复配置值*/
+/*??????????*/
     pst_dmac_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.ul_dot11BeaconPeriod = ul_bcn_interval_temp;
     pst_tx_param->st_tx_power = st_tx_power_temp;
 #endif
@@ -1730,13 +1454,13 @@ OAL_STATIC OAL_INLINE oal_void dmac_btcoex_linkloss_occupied_process(dmac_vap_st
     {
         return;
     }
-    /* linkloss 大于1/4门限值进行处理 */
+    /* linkloss ????1/4?????????????? */
     if (us_linkloss < (us_linkloss_threshold >> 2))
     {
         return;
     }
 
-    /* 门限值为异常值，即beacon周期很大 */
+    /* ??????????????????beacon???????? */
     if (us_linkloss_threshold <= WLAN_LINKLOSS_MIN_THRESHOLD)
     {
         hal_set_btcoex_occupied_period(COEX_LINKLOSS_OCCUP_PERIOD);
@@ -1753,7 +1477,7 @@ OAL_STATIC OAL_INLINE oal_void dmac_btcoex_linkloss_occupied_process(dmac_vap_st
         pst_dmac_vap_btcoex_occupied->uc_occupied_times = 0;
         pst_dmac_vap_btcoex_occupied->uc_linkloss_index++;
     }
-    /* 在整个linkloss阶段拉高occupied 6-7个阶段, 每个阶段为300ms，每100ms拉一次20ms, 连续拉3次 */
+    /* ??????linkloss????????occupied 6-7??????, ??????????300ms????100ms??????20ms, ??????3?? */
     else if (us_linkloss == us_linkloss_tmp)
     {
         pst_dmac_vap_btcoex_occupied->uc_occupied_times += uc_linkloss_times;
@@ -1781,21 +1505,7 @@ OAL_STATIC OAL_INLINE oal_void dmac_btcoex_linkloss_occupied_process(dmac_vap_st
 #ifndef WIN32
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
 
-/*****************************************************************************
- 函 数 名  : dmac_over_temp_handler
- 功能描述  : dmac层过温保护函数
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月24日
-    作    者   : wangzhenzhong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_over_temp_handler(mac_device_stru* pst_device)
 {
     dmac_reset_para_stru        st_reset_param;
@@ -1829,29 +1539,7 @@ oal_void dmac_over_temp_handler(mac_device_stru* pst_device)
 #endif
 #endif  /* WIN32 */
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_update_txop_process
- 功能描述  : 配置txop值，在如下条件时 配置为enable
-             1.发送非聚合模式,
-             2.没有non-erp设备,
-             3.且不处于bt和dbac模式时
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年11月25日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-  2.日    期   : 2015年12月9日
-    作    者   : s00304087
-    修改内容   : 修改为不只是11bg,只要非聚合模式即使能TXOP
-  2.日    期   : 2015年1月5日
-    作    者   : s00304087
-    修改内容   : 更新策略,聚合个数少时使能TXOP
-*****************************************************************************/
 OAL_STATIC oal_void dmac_update_txop_process(mac_vap_stru* pst_mac_vap)
 {
     mac_device_stru*   pst_mac_dev;
@@ -1908,21 +1596,7 @@ OAL_STATIC oal_void dmac_update_txop_process(mac_vap_stru* pst_mac_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_tbtt_event_handler
- 功能描述  : TBTT中断事件处理函数
- 输入参数  : pst_event_mem: 指向事件内存
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年3月28日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
 {
     dmac_vap_stru               *pst_dmac_vap;
@@ -1976,7 +1650,7 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
         if(pst_mac_device->s_upc_amend != s_power_comp_val)
         {
             pst_mac_device->s_upc_amend = s_power_comp_val;
-            /* 通知算法 */
+            /* ???????? */
             dmac_alg_cfg_channel_notify(&pst_dmac_vap->st_vap_base_info, CH_BW_CHG_TYPE_MOVE_WORK);
         }
     }
@@ -2009,7 +1683,6 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
     {
 
 #ifndef WIN32
-        //t00231215 超近距离饱和门限处理
 #if (_PRE_MULTI_CORE_MODE ==_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC)
 
         c_current_rssi = (oal_int8)pst_dmac_vap->st_query_stats.ul_signal;
@@ -2017,7 +1690,7 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
         hal_agc_threshold_handle(pst_mac_device->pst_device_stru, c_current_rssi);
 #endif
 #endif
-        /* STA侧pspoll低功耗处理 */
+        /* STA??pspoll?????????? */
 #ifdef _PRE_WLAN_FEATURE_STA_PM
         dmac_psm_process_tbtt_sta(pst_dmac_vap, pst_mac_device);
 #endif
@@ -2025,7 +1698,7 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
         dmac_tbtt_event_sta(pst_event_mem);
 #endif
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
-        /* 扫描、雷达、2040切信道时候，不进入bt防护wifi linkloss流程 */
+        /* ????????????2040??????????????????bt????wifi linkloss???? */
         if ((0 == pst_dmac_vap->st_vap_base_info.st_ch_switch_info.uc_new_ch_swt_cnt)&&
             (MAC_SCAN_STATE_RUNNING != pst_mac_device->en_curr_scan_state))
         {
@@ -2039,8 +1712,8 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
         }
 #endif //_PRE_WLAN_FEATURE_11K
     }
-    /* 清除mac错误计数器，保证每一个tbtt间隙中，最多处理的错误数 */
-    /* 当多vap时，会有误差，暂不处理误差*/
+    /* ????mac??????????????????????tbtt???????????????????????? */
+    /* ????vap??????????????????????????*/
     dmac_mac_error_cnt_clr(pst_mac_device);
     st_err_state.ul_error1_val = 0xffffffff;
     st_err_state.ul_error2_val = 0xffffffdf;
@@ -2051,7 +1724,7 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
 #endif
 
 #if 0
-    /* 1102芯片测试，打印所有tsf的状态 */
+    /* 1102??????????????????tsf?????? */
     if (pst_dmac_vap->pst_hal_vap->uc_vap_id == 4)
     {
         oal_uint8             i;
@@ -2087,21 +1760,7 @@ oal_uint32  dmac_tbtt_event_handler(frw_event_mem_stru *pst_event_mem)
 }
 
 #ifdef _PRE_WLAN_FEATURE_P2P
-/*****************************************************************************
- 函 数 名  : dmac_beacon_set_p2p_noa
- 功能描述  : 设置beacon帧中的p2p ie noa属性
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_beacon_set_p2p_noa(
                 mac_vap_stru           *pst_mac_vap,
                 oal_uint32              ul_start_tsf,
@@ -2110,7 +1769,7 @@ oal_uint32  dmac_beacon_set_p2p_noa(
                 oal_uint8               uc_count)
 {
     dmac_vap_stru              *pst_dmac_vap;
-    /*保存节能参数，用于encap beacon,probe response*/
+    /*??????????????????encap beacon,probe response*/
     pst_dmac_vap = (dmac_vap_stru *)mac_res_get_dmac_vap(pst_mac_vap->uc_vap_id);
     if (OAL_PTR_NULL == pst_dmac_vap)
     {
@@ -2130,20 +1789,7 @@ oal_module_symbol(dmac_beacon_set_p2p_noa);
 
 #endif
 #ifdef _PRE_WLAN_CHIP_TEST
-/*****************************************************************************
- 函 数 名  : dmac_sta_test_info_dump
- 功能描述  : 仅用于测试，模拟host sleep场景
- 输入参数  : uc_host_sleep
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月3日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-*****************************************************************************/
 void dmac_sta_test_info_dump(mac_vap_stru *pst_mac_vap)
 {
     mac_opmode_notify_stru *pst_opmode;
@@ -2164,20 +1810,7 @@ void dmac_sta_test_info_dump(mac_vap_stru *pst_mac_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_host_force_sleep
- 功能描述  : 仅用于测试，模拟host sleep场景
- 输入参数  : uc_host_sleep
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月3日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-*****************************************************************************/
 void dmac_sta_beacon_offload_test(mac_vap_stru *pst_mac_vap, oal_uint8 *uc_param)
 {
     if (!uc_param)
@@ -2190,7 +1823,7 @@ void dmac_sta_beacon_offload_test(mac_vap_stru *pst_mac_vap, oal_uint8 *uc_param
                 uc_param[0], uc_param[1], uc_param[2], uc_param[3]);
     switch (uc_param[0])
     {
-    case 0: //打开，关闭测试
+    case 0: //??????????????
         g_beacon_offload_test.uc_test_flag = uc_param[1];
         if (1 == uc_param[1])
         {
@@ -2205,16 +1838,16 @@ void dmac_sta_beacon_offload_test(mac_vap_stru *pst_mac_vap, oal_uint8 *uc_param
         }
         break;
 
-    case 1: //手动模拟host sleep
+    case 1: //????????host sleep
         g_beacon_offload_test.uc_host_sleep = uc_param[1];
         break;
 
-    case 2: //设置opmode ie
+    case 2: //????opmode ie
         g_beacon_offload_test.uc_opmode_in_beacon = uc_param[1];
         g_beacon_offload_test.uc_opmode = uc_param[2];
         break;
 
-    case 3: //设置csa ie
+    case 3: //????csa ie
         g_beacon_offload_test.uc_csa_in_beacon = uc_param[1];
         g_beacon_offload_test.uc_announced_channel = uc_param[2];
         g_beacon_offload_test.uc_switch_cnt = uc_param[3];
@@ -2235,22 +1868,7 @@ void dmac_sta_beacon_offload_test(mac_vap_stru *pst_mac_vap, oal_uint8 *uc_param
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_opmode_is_changed
- 功能描述  : 判断beacon帧中opmode ie相对于上一个beacon帧是否发生改变
- 输入参数  : pst_mac_vap
-             puc_frame_body
-             us_frame_len
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月15日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_bool_enum_uint8 dmac_sta_host_is_sleep(void)
 {
 #ifdef _PRE_WLAN_CHIP_TEST
@@ -2259,29 +1877,10 @@ oal_bool_enum_uint8 dmac_sta_host_is_sleep(void)
         return OAL_TRUE;
     }
 #endif
-    //l00311403 加上zourong的接口
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_edca_is_changed
- 功能描述  : 判断beacon帧中EDCA ie相对于上一个beacon帧是否发生改变
- 输入参数  : pst_mac_vap
-             puc_frame_body
-             us_frame_len
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月15日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-  2.日    期   : 2015年5月26日
-    作    者   : wanran
-    修改内容   : 只在多核下更新dmac的count
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8 dmac_sta_edca_is_changed(
                 mac_vap_stru  *pst_mac_vap,
                 oal_uint8     *puc_frame_body,
@@ -2317,22 +1916,7 @@ OAL_STATIC oal_bool_enum_uint8 dmac_sta_edca_is_changed(
     return uc_modify_flag;
 }
 #if 0
-/*****************************************************************************
- 函 数 名  : dmac_sta_channel_is_changed
- 功能描述  : 判断beacon帧中DSSS ie信息，是否和sta vap 中保存的信道信息相同。
- 输入参数  : pst_mac_vap        staut vap 结构
-             puc_frame_body     beacon 帧体
-             us_frame_len       beacon 整体长度
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月30日
-    作    者   : d00194999
-    修改内容   : 新生成函数
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8 dmac_sta_channel_is_changed(
                 mac_vap_stru  *pst_mac_vap,
                 oal_uint8     *puc_frame_body,
@@ -2367,20 +1951,7 @@ OAL_STATIC oal_bool_enum_uint8 dmac_sta_channel_is_changed(
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_sta_update_slottime
- 功能描述  : 在有non_erp站点时更新slottime
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月22日
-    作    者   : y00196452
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_void dmac_sta_update_slottime(mac_vap_stru* pst_mac_vap, mac_user_stru *pst_mac_user, oal_uint8 *puc_payload, oal_uint16 us_msg_len)
 {
     dmac_vap_stru              *pst_dmac_vap;
@@ -2390,21 +1961,21 @@ oal_void dmac_sta_update_slottime(mac_vap_stru* pst_mac_vap, mac_user_stru *pst_
 
     pst_dmac_vap = (dmac_vap_stru*)pst_mac_vap;
 
-    /* 保存non_erp信息,sta模式下，保存BSS中是否有erp站点的信息 */
+    /* ????non_erp????,sta????????????BSS????????erp?????????? */
     puc_erp_ie = mac_find_ie(MAC_EID_ERP, puc_payload, us_msg_len);
     if (OAL_PTR_NULL == puc_erp_ie)
     {
         return;
     }
 
-    /* IE长度异常，不更新slottime类型 */
+    /* IE????????????????slottime???? */
     if ( puc_erp_ie[1] < MAC_ERP_IE_LEN)
     {
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_RX, "{dmac_sta_update_slottime::invalid erp ie len[%d].}", puc_erp_ie[1]);
         return;
     }
 
-    /* NON_ERP站点进出时更新slottime类型 */
+    /* NON_ERP??????????????slottime???? */
     pst_erp_ie = (mac_erp_params_stru*)&(puc_erp_ie[MAC_IE_HDR_LEN]);
     if (pst_dmac_vap->en_non_erp_exist != pst_erp_ie->bit_non_erp)
     {
@@ -2417,28 +1988,11 @@ oal_void dmac_sta_update_slottime(mac_vap_stru* pst_mac_vap, mac_user_stru *pst_
             return;
         }
 
-        /* 有NON_ERP站点时，使用short slottime发数据；否则使用long slottime */
+        /* ??NON_ERP????????????short slottime????????????????long slottime */
         hal_cfg_slottime_type(pst_hal_device, pst_erp_ie->bit_non_erp);
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_sta_up_process_erp_ie
- 功能描述  : STA接收到beacon帧后,检查ERP信息元素是否改变
- 输入参数  : puc_payload         :帧体
-             ul_msg_len          :帧体长度
-             us_info_elem_offset :当前指向的帧体位置
-             pst_mac_user        :user结构体
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月18日
-    作    者   : c00260463
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_void dmac_sta_up_process_erp_ie(
                     oal_uint8               *puc_payload,
                     oal_uint16               us_msg_len,
@@ -2462,7 +2016,7 @@ OAL_STATIC  oal_void dmac_sta_up_process_erp_ie(
         return;
     }
 
-    /* IE长度校验 */
+    /* IE???????? */
     if ( puc_erp_ie[1] < MAC_ERP_IE_LEN)
     {
         OAM_WARNING_LOG1(0, OAM_SF_RX, "{dmac_sta_up_process_erp_ie::invalid erp ie len[%d].}", puc_erp_ie[1]);
@@ -2476,11 +2030,11 @@ OAL_STATIC  oal_void dmac_sta_up_process_erp_ie(
         OAM_WARNING_LOG2(0, OAM_SF_FRAME_FILTER,"dmac_sta_is_erp_ie_changed::ap new barker mode[%d],defalut[%d]",
                             pst_erp_params->bit_preamble_mode,pst_mac_user->st_cap_info.bit_barker_preamble_mode);
 
-        /* 保存preamble mode */
+        /* ????preamble mode */
         mac_user_set_barker_preamble_mode(pst_mac_user, pst_erp_params->bit_preamble_mode);
     }
 
-    /* 检查erp保护是否改变 */
+    /* ????erp???????????? */
     if (pst_mac_user->st_cap_info.bit_erp_use_protect != pst_erp_params->bit_use_protection)
     {
         OAM_WARNING_LOG2(0, OAM_SF_FRAME_FILTER,"dmac_sta_is_erp_ie_changed::ap new erp protection[%d],defalut[%d]",
@@ -2489,22 +2043,7 @@ OAL_STATIC  oal_void dmac_sta_up_process_erp_ie(
         pst_mac_user->st_cap_info.bit_erp_use_protect = pst_erp_params->bit_use_protection;
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_protection_set_rtscts_mechanism
- 功能描述  : 设置并配置rts发送参数
- 输入参数  : pst_mac_vap : mac vap结构体指针
-             en_flag      : 0:关闭erp保护   / 1: 打开erp保护
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月18日
-    作    者   : c00260463
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_protection_set_rtscts_mechanism(mac_vap_stru *pst_mac_vap, oal_switch_enum_uint8 en_flag, wlan_prot_mode_enum_uint8 en_prot_mode)
 {
     mac_device_stru            *pst_device           = OAL_PTR_NULL;
@@ -2520,56 +2059,26 @@ OAL_STATIC oal_void dmac_protection_set_rtscts_mechanism(mac_vap_stru *pst_mac_v
     }
     mac_protection_set_rts_tx_param(pst_mac_vap,en_flag,en_prot_mode,&st_rts_tx_param);
 
-    /*mac参数赋值给hal参数*/
+    /*mac??????????hal????*/
     oal_memcopy(&st_hal_rts_tx_param, &st_rts_tx_param, OAL_SIZEOF(st_hal_rts_tx_param));
 
     hal_set_rts_rate_params(pst_device->pst_device_stru, &st_hal_rts_tx_param);
 
-    /*数据帧/管理帧发送时候，需要根据bit_rts_cts_protect_mode值填写发送描述符中的RTS/CTS enable位*/
+    /*??????/????????????????????????bit_rts_cts_protect_mode????????????????????RTS/CTS enable??*/
     pst_mac_vap->st_protection.bit_rts_cts_protect_mode = en_flag;
 }
-/*****************************************************************************
- 函 数 名  : dmac_protection_set_erp_protection
- 功能描述  : 设置erp保护是否开启
- 输入参数  : pst_hmac_vap : hmac vap结构体指针
-             en_flag      : 0:关闭erp保护   / 1: 打开erp保护
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月18日
-    作    者   : c00260463
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_protection_set_erp_protection(mac_vap_stru *pst_mac_vap, oal_switch_enum_uint8 en_flag)
 {
     dmac_protection_set_rtscts_mechanism(pst_mac_vap, en_flag, WLAN_PROT_ERP);
 }
-/*****************************************************************************
- 函 数 名  : dmac_protection_set_ht_protection
- 功能描述  : 设置ht保护是否开启
- 输入参数  : pst_mac_vap : mac vap结构体指针
-             en_flag      : 0:关闭ht保护   / 1: 打开ht保护
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月18日
-    作    者   : c00260463
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_protection_set_ht_protection (mac_vap_stru *pst_mac_vap, oal_switch_enum_uint8 en_flag)
 {
     oal_bool_enum   en_lsigtxop = OAL_FALSE;
 
     en_lsigtxop = mac_protection_lsigtxop_check(pst_mac_vap);
-    /*优先使用lsigtxop保护，开销小*/
+    /*????????lsigtxop????????????*/
     if (OAL_TRUE == en_lsigtxop)
     {
         mac_protection_set_lsig_txop_mechanism(pst_mac_vap, en_flag);
@@ -2580,29 +2089,14 @@ oal_void dmac_protection_set_ht_protection (mac_vap_stru *pst_mac_vap, oal_switc
     }
 
 }
-/*****************************************************************************
- 函 数 名  : dmac_sta_set_protection_mode
- 功能描述  : 设置保护模式mode
- 输入参数  : pst_mac_vap : mac vap结构体指针
-             en_protection_mode      :保护模式类型
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月18日
-    作    者   : c00260463
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_sta_set_protection_mode(dmac_vap_stru *pst_dmac_vap,wlan_prot_mode_enum_uint8 en_protection_mode)
 {
     mac_vap_stru    *pst_mac_vap = &(pst_dmac_vap->st_vap_base_info);
 
     if (en_protection_mode != pst_mac_vap->st_protection.en_protection_mode)
     {
-        /*关闭之前的保护模式*/
+        /*??????????????????*/
         if (WLAN_PROT_ERP == pst_mac_vap->st_protection.en_protection_mode)
         {
             dmac_protection_set_erp_protection(pst_mac_vap, OAL_SWITCH_OFF);
@@ -2613,7 +2107,7 @@ oal_void dmac_sta_set_protection_mode(dmac_vap_stru *pst_dmac_vap,wlan_prot_mode
         }
         else
         {
-            /*GF保护和无保护无需额外操作*/
+            /*GF????????????????????????*/
         }
 
         OAM_WARNING_LOG2(pst_mac_vap->uc_vap_id, OAM_SF_FRAME_FILTER,"dmac_sta_up_update_protection_mode::ap new protection_mode[%d],defalut[%d]",
@@ -2621,7 +2115,7 @@ oal_void dmac_sta_set_protection_mode(dmac_vap_stru *pst_dmac_vap,wlan_prot_mode
 
         pst_mac_vap->st_protection.en_protection_mode = en_protection_mode;
 
-        /*开启新的保护模式*/
+        /*????????????????*/
         if (WLAN_PROT_ERP == en_protection_mode)
         {
             dmac_protection_set_erp_protection(pst_mac_vap, OAL_SWITCH_ON);
@@ -2632,34 +2126,19 @@ oal_void dmac_sta_set_protection_mode(dmac_vap_stru *pst_dmac_vap,wlan_prot_mode
         }
         else
         {
-            /*GF保护和无保护无需额外操作*/
+            /*GF????????????????????????*/
         }
 
         dmac_tx_update_protection_all_txop_alg(pst_dmac_vap);
     }
 }
-/*****************************************************************************
- 函 数 名  : dmac_sta_protection_mode_is_changed
- 功能描述  : STA接收到beacon帧后,检查protection_mode是否改变
- 输入参数  : pst_mac_vap        :vap结构体
-             pst_mac_user       :user结构体
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月8日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_void  dmac_sta_up_update_protection_mode(dmac_vap_stru *pst_dmac_vap,mac_user_stru *pst_mac_user)
 {
     mac_vap_stru                        *pst_mac_vap = &(pst_dmac_vap->st_vap_base_info);
     wlan_prot_mode_enum_uint8            en_protection_mode;
 
-    /*如果保护机制不启用,直接返回*/
+    /*??????????????????,????????*/
     if (OAL_SWITCH_OFF == mac_vap_protection_autoprot_is_enabled(pst_mac_vap))
     {
         return;
@@ -2669,33 +2148,18 @@ OAL_STATIC  oal_void  dmac_sta_up_update_protection_mode(dmac_vap_stru *pst_dmac
 
     dmac_sta_set_protection_mode(pst_dmac_vap,en_protection_mode);
 }
-/*****************************************************************************
- 函 数 名  : dmac_sta_11ntxbf_is_changed
- 功能描述  : STA接收到beacon帧后,检查txbf是否改变,漫游重关联在host侧使用
- 输入参数  : pst_mac_vap        :vap结构体
-             pst_mac_user       :user结构体
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年4月8日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_bool_enum_uint8  dmac_sta_11ntxbf_is_changed(mac_user_stru *pst_mac_user,oal_uint8 *puc_frame_body,oal_uint16  us_frame_len)
 {
 #ifdef _PRE_WLAN_FEATURE_TXBF
     mac_11ntxbf_vendor_ie_stru      *pst_vendor_ie;
     oal_uint8                       *puc_txbf_vendor_ie;
 
-    /* 更新11n txbf能力 */
+    /* ????11n txbf???? */
     puc_txbf_vendor_ie = mac_find_vendor_ie(MAC_HUAWEI_VENDER_IE, MAC_EID_11NTXBF, puc_frame_body, us_frame_len);
     if (puc_txbf_vendor_ie != OAL_PTR_NULL)
     {
-        /* 检测到vendor ie*/
+        /* ??????vendor ie*/
         pst_vendor_ie = (mac_11ntxbf_vendor_ie_stru *)puc_txbf_vendor_ie;
         if (pst_mac_user->st_cap_info.bit_11ntxbf != pst_vendor_ie->st_11ntxbf.bit_11ntxbf)
         {
@@ -2707,21 +2171,7 @@ OAL_STATIC  oal_bool_enum_uint8  dmac_sta_11ntxbf_is_changed(mac_user_stru *pst_
 #endif
     return OAL_FALSE;
 }
-/*****************************************************************************
- 函 数 名  : dmac_sta_up_rx_beacon
- 功能描述  : 判断beacon帧是否需要上报HMAC
- 输入参数  : pst_dmac_vap
-             pst_netbuf
- 输出参数  : pen_go_on
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月15日
-    作    者   : l00311403
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  dmac_sta_up_rx_beacon(
                 dmac_vap_stru   *pst_dmac_vap,
                 oal_netbuf_stru *pst_netbuf,
@@ -2752,17 +2202,16 @@ oal_uint32  dmac_sta_up_rx_beacon(
     pst_frame_hdr  = (mac_ieee80211_frame_stru *)mac_get_rx_cb_mac_hdr(&(pst_rx_ctl->st_rx_info));
     pst_rx_info    = (mac_rx_ctl_stru *)(&(pst_rx_ctl->st_rx_info));
     puc_payload    = MAC_GET_RX_PAYLOAD_ADDR(pst_rx_info, pst_netbuf);
-    us_msg_len     = MAC_GET_RX_CB_PAYLOAD_LEN(pst_rx_info);  /*帧体长度*/
+    us_msg_len     = MAC_GET_RX_CB_PAYLOAD_LEN(pst_rx_info);  /*????????*/
 
-    /* 来自其它bss的Beacon不做处理 */
+    /* ????????bss??Beacon???????? */
     ul_ret = oal_compare_mac_addr(pst_mac_vap->auc_bssid, pst_frame_hdr->auc_address3);
     if(0 != ul_ret)
     {
         return OAL_SUCC;
     }
 
-    /* BEGIN:DTS2017022700518:判断接收到的beacon 帧和本VAP 是相同信道，才清零linkloss 计数 */
-    /* 获取beacon 帧中的信道 */
+    /* ????beacon ?????????? */
     uc_frame_channel = mac_ie_get_chan_num(puc_payload,
                                             (us_msg_len - MAC_80211_FRAME_LEN),
                                             MAC_TIME_STAMP_LEN + MAC_BEACON_INTERVAL_LEN + MAC_CAP_INFO_LEN,
@@ -2772,9 +2221,8 @@ oal_uint32  dmac_sta_up_rx_beacon(
     {
         dmac_vap_linkloss_clean(pst_dmac_vap);
     }
-    /* END:DTS2017022700518:判断接收到的beacon 帧和本VAP 是相同信道，才清零linkloss 计数 */
 
-    /* 成功接收到beacon, beacon timeout超时的计数清零 */
+    /* ??????????beacon, beacon timeout?????????????? */
     pst_dmac_vap->bit_beacon_timeout_times = 0;
 
 #if (_PRE_OS_VERSION_RAW == _PRE_PRODUCT_ID_HI1102_DEV)
@@ -2799,7 +2247,6 @@ oal_uint32  dmac_sta_up_rx_beacon(
     puc_payload += us_ie_offset;
     us_msg_len  -= us_ie_offset;
 #if 0
-    /* BEGIN:DTS2015052810869 STA发现AP信道修改，则删除用户，而不发送去认证帧 */
     if (OAL_TRUE == dmac_sta_channel_is_changed(pst_mac_vap, puc_payload, us_msg_len))
     {
         ul_ret = dmac_send_disasoc_misc_event(pst_mac_vap, pst_mac_vap->uc_assoc_vap_id, DMAC_DISASOC_MISC_CHANNEL_MISMATCH);
@@ -2809,7 +2256,6 @@ oal_uint32  dmac_sta_up_rx_beacon(
                        "{dmac_sta_up_rx_beacon::dmac_send_disasoc_misc_event fail.}");
         }
     }
-    /* END:DTS2015052810869 STA发现AP信道修改，则删除用户，而不发送去认证帧 */
 #endif
     pst_mac_user = (mac_user_stru *)mac_res_get_mac_user(MAC_GET_RX_CB_TA_USER_IDX(&(pst_rx_ctl->st_rx_info)));
     if (OAL_PTR_NULL == pst_mac_user)
@@ -2819,7 +2265,7 @@ oal_uint32  dmac_sta_up_rx_beacon(
         return OAL_FALSE;
     }
 
-    /* 有non_erp站点时使用long slottime */
+    /* ??non_erp??????????long slottime */
     if (WLAN_BAND_2G == pst_mac_vap->st_channel.en_band)
     {
         dmac_sta_update_slottime(pst_mac_vap, pst_mac_user, puc_payload, us_msg_len);
@@ -2829,19 +2275,19 @@ oal_uint32  dmac_sta_up_rx_beacon(
 
 #endif
 
-    /*处理HT 相关信息元素*/
+    /*????HT ????????????*/
     ul_change_flag |= dmac_sta_up_update_ht_params(pst_mac_vap, puc_payload, us_msg_len, pst_mac_user);
 
-    /* 处理 VHT 相关信息元素 */
+    /* ???? VHT ???????????? */
     ul_change_flag |= dmac_sta_up_update_vht_params(pst_mac_vap, puc_payload, us_msg_len, pst_mac_user);
 
-    /* 保护模式相关 */
+    /* ???????????? */
     dmac_sta_up_process_erp_ie(puc_payload, us_msg_len, pst_mac_user);
 
     dmac_sta_up_update_protection_mode(pst_dmac_vap, pst_mac_user);
 
 #ifdef _PRE_WLAN_FEATURE_OPMODE_NOTIFY
-    /* 处理Operating Mode Notification 信息元素 */
+    /* ????Operating Mode Notification ???????? */
     ul_ret = dmac_check_opmode_notify(pst_mac_vap, puc_payload, us_msg_len, pst_mac_user);
     if (OAL_SUCC != ul_ret)
     {
@@ -2850,9 +2296,9 @@ oal_uint32  dmac_sta_up_rx_beacon(
     }
 #endif
 
-    /* ht在device只有辅信道和保护模式相关的会变化,而这些都已经下移device,host不需要这些信息 */
-    /* vht在device处理了带宽和uc_channel_center_freq_seg0 uc_channel_center_freq_seg1,这些host都不需要 */
-    /* 目前仅打印,不上报 */
+    /* ht??device????????????????????????????????,????????????????device,host?????????????? */
+    /* vht??device????????????uc_channel_center_freq_seg0 uc_channel_center_freq_seg1,????host???????? */
+    /* ??????????,?????? */
     if ((MAC_HT_CHANGE & ul_change_flag)|| (MAC_VHT_CHANGE & ul_change_flag))
     {
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ASSOC,
@@ -2863,10 +2309,8 @@ oal_uint32  dmac_sta_up_rx_beacon(
     if (MAC_BW_CHANGE & ul_change_flag)
     {
         OAM_WARNING_LOG3(pst_mac_vap->uc_vap_id, OAM_SF_ASSOC,
-                           "{dmac_sta_up_rx_beacon::change BW. ul_change[0x%x], uc_channel[%d], en_bandwidth[%d].}",
-                           ul_change_flag,
-                           pst_mac_vap->st_channel.uc_chan_number,
-                           pst_mac_vap->st_channel.en_bandwidth);
+            "{dmac_sta_up_rx_beacon::change BW. ul_change[0x%x], uc_channel[%d], en_bandwidth[%d].}", ul_change_flag,
+            pst_mac_vap->st_channel.uc_chan_number, pst_mac_vap->st_channel.en_bandwidth);
 
         dmac_chan_select_channel_mac(pst_mac_vap, pst_mac_vap->st_channel.uc_chan_number, pst_mac_vap->st_channel.en_bandwidth);
 
@@ -2875,26 +2319,28 @@ oal_uint32  dmac_sta_up_rx_beacon(
             pst_mac_vap->st_ch_switch_info.bit_wait_bw_change = OAL_FALSE;
         }
 
-        /* user级别调用算法改变带宽通知链 */
+        /* user?????????????????????????? */
         dmac_alg_cfg_user_bandwidth_notify(pst_mac_vap, pst_mac_user);
 
         dmac_config_d2h_user_info_syn(pst_mac_vap, pst_mac_user);
     }
 
-    /* 带宽未改变,检查notify channel width的action帧是否通知过算法改变带宽 */
+    /* ??????????,????notify channel width??action???????????????????????? */
     else
     {
         if (OAL_TRUE == pst_mac_vap->st_ch_switch_info.bit_wait_bw_change)
         {
             pst_mac_vap->st_ch_switch_info.bit_wait_bw_change = OAL_FALSE;
 
-            /* 调用算法改变带宽通知链 */
+            /* ?????????????????????? */
             dmac_alg_cfg_user_bandwidth_notify(pst_mac_vap, pst_mac_user);
         }
     }
 
-    /* 信道切换处理 */
-    dmac_chan_update_csw_info(pst_mac_vap, puc_payload, us_msg_len);
+    /* ???????????? */
+    if (!pst_mac_vap->st_ch_switch_info.uc_switch_fail) {
+        dmac_chan_update_csw_info(pst_mac_vap, puc_payload, us_msg_len);
+    }
 
     if ((OAL_TRUE == dmac_sta_edca_is_changed(pst_mac_vap, puc_payload, us_msg_len)) ||
         (OAL_TRUE == dmac_sta_11ntxbf_is_changed(pst_mac_user, puc_payload, us_msg_len)))
@@ -2905,21 +2351,7 @@ oal_uint32  dmac_sta_up_rx_beacon(
     return OAL_SUCC;
 }
 
-/****************************************************************************
- 函 数 名  : dmac_beacon_timeout_event_hander
- 功能描述  : 等待beacon超时中断处理事件
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月30日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_beacon_timeout_event_hander(frw_event_mem_stru *pst_event_mem)
 {
 #ifdef _PRE_WLAN_FEATURE_STA_PM
@@ -2974,14 +2406,14 @@ oal_uint32  dmac_beacon_timeout_event_hander(frw_event_mem_stru *pst_event_mem)
 
     hal_set_beacon_timeout_val(pst_dmac_vap->pst_hal_device, pst_dmac_vap->us_beacon_timeout + us_beacon_timeout_adjust);
 
-    /*每次发生beacon timeout,外置和内置offset提前,收到beacon随即恢复*/
+    /*????????beacon timeout,??????????offset????,????beacon????????*/
     //hal_set_psm_ext_tbtt_offset(pst_dmac_vap->pst_hal_vap, (pst_dmac_vap->us_ext_tbtt_offset+1));
     hal_set_psm_tbtt_offset(pst_dmac_vap->pst_hal_vap, (pst_dmac_vap->us_in_tbtt_offset + DMAC_BEACON_TIMEOUT_FIX_OFFSET));
 
-    /* 接收beacon超时计数 */
+    /* ????beacon???????? */
     pst_dmac_vap->bit_beacon_timeout_times++;
 
-    /* 接收beacon超时计数 */
+    /* ????beacon???????? */
     pst_mac_sta_pm_handle->aul_pmDebugCount[PM_MSG_BEACON_TIMEOUT_CNT]++;
 
     if (pst_mac_sta_pm_handle->ul_psm_pkt_cnt)
@@ -2989,16 +2421,16 @@ oal_uint32  dmac_beacon_timeout_event_hander(frw_event_mem_stru *pst_event_mem)
         return OAL_SUCC;
     }
 
-    /* p2p 开启了noa oppps时beacon超时不投睡眠票,仅在noa oppps期间浅睡 */
+    /* p2p ??????noa oppps??beacon??????????????,????noa oppps???????? */
     if (OAL_TRUE == (oal_uint8)IS_P2P_PS_ENABLED(pst_dmac_vap))
     {
         return OAL_SUCC;
     }
 
-    /* 低功耗模式下才会有beacon timeout 睡眠 */
+    /* ??????????????????beacon timeout ???? */
     if (WLAN_MIB_PWR_MGMT_MODE_PWRSAVE == (mac_mib_get_powermanagementmode(&(pst_dmac_vap->st_vap_base_info))))
     {
-        /* 接收beacon超时计数且投票睡的计数 */
+        /* ????beacon?????????????????????? */
         pst_mac_sta_pm_handle->aul_pmDebugCount[PM_MSG_BCN_TOUT_SLEEP]++;
         pst_mac_sta_pm_handle->en_ps_deep_sleep = OAL_TRUE;
         if (OAL_TRUE == dmac_psm_is_tid_queues_empty(pst_dmac_vap))
@@ -3014,21 +2446,7 @@ oal_uint32  dmac_beacon_timeout_event_hander(frw_event_mem_stru *pst_event_mem)
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
 extern oal_uint64 g_ull_sta0_tsf_timestamp;
 extern oal_uint64 g_ull_sta1_tsf_timestamp;
-/****************************************************************************
- 函 数 名  : dmac_get_tsf_from_bcn
- 功能描述  : 通过Beacon帧获取tsf, 保证该函数是STA调用且只有Beacon帧模式调用
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月12日
-    作    者   : z00241943
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_get_tsf_from_bcn(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint32                          ul_beacon_timestamp_low    = 0;
@@ -3062,21 +2480,7 @@ oal_void dmac_get_tsf_from_bcn(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst
 }
 #endif
 #ifdef _PRE_WLAN_FEATURE_TSF_SYNC
-/****************************************************************************
- 函 数 名  : dmac_sync_tsf_by_bcn
- 功能描述  : tp_link_841 timestamps error end DTS2013101403081
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月12日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_sync_tsf_by_bcn(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_netbuf)
 {
     oal_uint16                          us_beacon_interval         = 0;
@@ -3105,7 +2509,7 @@ oal_void dmac_sync_tsf_by_bcn(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_
     ul_beacon_timestamp_high |= (puc_payload[7] << 24);
     /*lint +e647*/
 
-    /* 用于keep alive计时之用 */
+    /* ????keep alive???????? */
     //g_stKeepAliveTime.ulLow  = beacon_timestamp_low;
     //g_stKeepAliveTime.ulHigh = beacon_timestamp_high;
 
@@ -3134,7 +2538,7 @@ oal_void dmac_sync_tsf_by_bcn(dmac_vap_stru *pst_dmac_vap, oal_netbuf_stru *pst_
     }
     else if ((0 == pst_dmac_vap->uc_beacon_miss_cnt) && (0 != pst_dmac_vap->ul_old_beacon_timestamp))
     {
-        /* cal the SyncTsfValue after receive the second beacon beacon帧会有抖动，需要加入5ms防抖 */
+        /* cal the SyncTsfValue after receive the second beacon beacon????????????????????5ms???? */
         if (((oal_uint64)((ul_beacon_timestamp >> 10) - (pst_dmac_vap->ul_old_beacon_timestamp >> 10))) < (oal_uint64)(us_beacon_interval - 5))
         {
             pst_dmac_vap->us_sync_tsf_value = us_beacon_interval - (oal_uint16)((oal_uint64)((ul_beacon_timestamp >> 10) - ((pst_dmac_vap->ul_old_beacon_timestamp) >> 10))) + 70;

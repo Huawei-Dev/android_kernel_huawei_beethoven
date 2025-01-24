@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_fcs.c
-  版 本 号   : 初稿
-  作    者   : g00196511 gaolin
-  生成日期   : 2012年12月13日
-  最近修改   :
-  功能描述   : 调度算法
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年12月13日
-    作    者   : gaolin
-    修改内容   : 创建文件
-
-******************************************************************************/
 #ifdef  __cplusplus
 #if     __cplusplus
 extern  "C" {
@@ -23,7 +6,7 @@ extern  "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
  *****************************************************************************/
 #include    "wlan_spec.h"
 #include    "mac_device.h"
@@ -43,12 +26,17 @@ extern  "C" {
 #define THIS_FILE_ID OAM_FILE_ID_MAC_FCS_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
  *****************************************************************************/
 
 #define BT_COEX_RELEASE_TIMEOUT 1000
+#define WLAN_PROT_DATARATE_1M             (0x08000113)
+#define WLAN_PROT_DATARATE_6M             (0x004b0113)
+#define WLAN_PROT_DATARATE_12M            (0x004a0113)
+#define WLAN_PROT_DATARATE_24M            (0x00490113)
 
-/* FIXME : 设置初始值 */
+
+/* FIXME : ?????????? */
 mac_fcs_reg_record_stru g_ast_fcs_mac_regs[] = {
     { 0x0000, { 0,        0,       } },     /* MAC_REG_PA_CTRL        */
     { 0x000C, { 0,        0,       } },     /* MAC_REG_HT_CTRL        */
@@ -71,29 +59,14 @@ mac_fcs_reg_record_stru g_ast_fcs_phy_regs[] = {
     { 0x0024, { 0,        0,       } },     /* RX_ONE_ANT_SEL         */
 };
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 ****************************************************************************/
 
 OAL_STATIC oal_void mac_fcs_notify_chain_init(mac_fcs_notify_chain_stru *pst_chain)
 {
     oal_memset(pst_chain, 0, sizeof(mac_fcs_notify_chain_stru));
 }
-/*****************************************************************************
- 函 数 名  : mac_fcs_set_channel
- 功能描述  : 用于FCS的设置信道接口，不会重启MAC
- 输入参数  : mac_device_stru    *pst_mac_device
-             mac_channel_stru   *pst_channel
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_fcs_set_channel(mac_device_stru    *pst_mac_device,
                                 mac_channel_stru   *pst_channel)
 {
@@ -107,7 +80,7 @@ oal_uint32  mac_fcs_set_channel(mac_device_stru    *pst_mac_device,
         return OAL_FAIL;
     }
 
-    /* 检测信道号是否合法 */
+    /* ?????????????????? */
     ul_ret = mac_is_channel_num_valid(pst_channel->en_band, pst_channel->uc_chan_number);
     if (OAL_SUCC != ul_ret)
     {
@@ -122,16 +95,16 @@ oal_uint32  mac_fcs_set_channel(mac_device_stru    *pst_mac_device,
         return OAL_FAIL;
     }
 
-    /* 关中断，挂起硬件发送需要关中断 */
+    /* ?????????????????????????????? */
     oal_irq_save(&ul_irq_flag, OAL_5115IRQ_MFSC);
 
-    /* 关闭pa */
+    /* ????pa */
     //hal_disable_machw_phy_and_pa(pst_hal_device);
 
-    /* 设置频段 */
+    /* ???????? */
     hal_set_freq_band(pst_hal_device, pst_channel->en_band);
 
-    /* 设置带宽 */
+    /* ???????? */
 #if (_PRE_WLAN_CHIP_ASIC == _PRE_WLAN_CHIP_VERSION)
         /*dummy*/
 #else
@@ -143,14 +116,14 @@ oal_uint32  mac_fcs_set_channel(mac_device_stru    *pst_mac_device,
 #endif
     hal_set_bandwidth_mode(pst_hal_device, pst_channel->en_bandwidth);
 
-    /* 设置信道号 */
+    /* ?????????? */
     hal_set_primary_channel(pst_hal_device, pst_channel->uc_chan_number, pst_channel->en_band, pst_channel->uc_idx, pst_channel->en_bandwidth);
 
-    /* 打开pa */
+    /* ????pa */
     //hal_enable_machw_phy_and_pa(pst_hal_device);
     //OAM_WARNING_LOG0(0, OAM_SF_DBAC, "{mac_fcs_set_channel::after set channel enable pa!}");
 
-    /* 开中断 */
+    /* ?????? */
     oal_irq_restore(&ul_irq_flag, OAL_5115IRQ_MFSC);
 
 #ifdef _PRE_WLAN_DFT_EVENT
@@ -161,23 +134,7 @@ oal_uint32  mac_fcs_set_channel(mac_device_stru    *pst_mac_device,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_init
- 功能描述  : FCS初始化接口
- 输入参数  : mac_fcs_mgr_stru  *pst_fcs_mgr
-             oal_uint8           uc_chip_id
-             oal_uint8           uc_device_id
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32    mac_fcs_init(mac_fcs_mgr_stru  *pst_fcs_mgr,
                             oal_uint8         uc_chip_id,
                             oal_uint8         uc_device_id)
@@ -215,23 +172,7 @@ oal_uint32    mac_fcs_init(mac_fcs_mgr_stru  *pst_fcs_mgr,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_request
- 功能描述  : 申请占用FCS
- 输入参数  : mac_fcs_mgr_stru             *pst_fcs_mgr
-             mac_fcs_state_enum_uint8     *puc_state
-             mac_fcs_cfg_stru             *pst_fcs_cfg
- 输出参数  : 无
- 返 回 值  : mac_fcs_err_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 mac_fcs_err_enum_uint8  mac_fcs_request(mac_fcs_mgr_stru             *pst_fcs_mgr,
                                         mac_fcs_state_enum_uint8     *puc_state,
                                         mac_fcs_cfg_stru             *pst_fcs_cfg)
@@ -244,7 +185,7 @@ mac_fcs_err_enum_uint8  mac_fcs_request(mac_fcs_mgr_stru             *pst_fcs_mg
         return MAC_FCS_ERR_NULL_PTR;
     }
 
-    /* 02mips优化，51&02 fcs暂无并发，注掉 */
+    /* 02mips??????51&02 fcs?????????????? */
     //oal_spin_lock_irq_save(&pst_fcs_mgr->st_lock, &ul_irq_save);
 
     if (puc_state != OAL_PTR_NULL)
@@ -279,21 +220,7 @@ mac_fcs_err_enum_uint8  mac_fcs_request(mac_fcs_mgr_stru             *pst_fcs_mg
 
     return en_ret;
 }
-/*****************************************************************************
- 函 数 名  : mac_fcs_release
- 功能描述  : 释放FCS
- 输入参数  : mac_fcs_mgr_stru *pst_fcs_mgr
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void    mac_fcs_release(mac_fcs_mgr_stru *pst_fcs_mgr)
 {
 #if 0
@@ -310,21 +237,7 @@ oal_void    mac_fcs_release(mac_fcs_mgr_stru *pst_fcs_mgr)
     pst_fcs_mgr->en_fcs_state = MAC_FCS_STATE_STANDBY;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_flush_event_by_channel
- 功能描述  : fcs切信道之前flush事件队列
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  mac_fcs_flush_event_by_channel(mac_device_stru *pst_mac_device, mac_channel_stru *pst_chl)
 {
     oal_uint8               uc_vap_idx;
@@ -346,21 +259,7 @@ OAL_STATIC oal_void  mac_fcs_flush_event_by_channel(mac_device_stru *pst_mac_dev
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_wait_one_packet_done
- 功能描述  : 等待one packet中断
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  mac_fcs_wait_one_packet_done(mac_fcs_mgr_stru *pst_fcs_mgr)
 {
     oal_uint32 ul_delay_cnt = 0;
@@ -383,21 +282,35 @@ OAL_STATIC oal_uint32  mac_fcs_wait_one_packet_done(mac_fcs_mgr_stru *pst_fcs_mg
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_send_one_packet_start
- 功能描述  : 发送一次one packet 报文
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
+OAL_STATIC oal_uint32  mac_fcs_wait_one_packet_done_same_channel(mac_fcs_mgr_stru *pst_fcs_mgr)
+{
+    oal_uint32 ul_delay_cnt = 0;
+    oal_uint16 us_timeout   = pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_wait_timeout;
 
-*****************************************************************************/
+    if (OAL_PTR_NULL == pst_fcs_mgr)
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "mac_fcs_wait_one_packet_done_same_channel:pst_fcs_mgr is null");
+        return OAL_ERR_CODE_PTR_NULL;
+    }
+    while (OAL_TRUE != pst_fcs_mgr->en_fcs_done)
+    {
+        /* en_fcs_done will be set 1 in one_packet_done_isr */
+        oal_udelay(10);
+
+        ul_delay_cnt++;
+
+        if (ul_delay_cnt > us_timeout)
+        {
+            OAM_WARNING_LOG0(0, OAM_SF_ANY, "wait one packet done timeout > 10ms !");
+            return OAL_FAIL;
+        }
+    }
+    return OAL_SUCC;
+}
+
+
+
 oal_void mac_fcs_send_one_packet_start(mac_fcs_mgr_stru *pst_fcs_mgr,
                                             hal_one_packet_cfg_stru *pst_one_packet_cfg,
                                             hal_to_dmac_device_stru *pst_device,
@@ -407,7 +320,7 @@ oal_void mac_fcs_send_one_packet_start(mac_fcs_mgr_stru *pst_fcs_mgr,
     oal_uint32                  ul_ret;
     mac_ieee80211_frame_stru   *pst_mac_header;
 
-    /* 准备报文 */
+    /* ???????? */
     if (HAL_FCS_PROTECT_TYPE_NULL_DATA == pst_one_packet_cfg->en_protect_type)
     {
         pst_mac_header = (mac_ieee80211_frame_stru *)pst_one_packet_cfg->auc_protect_frame;
@@ -417,13 +330,13 @@ oal_void mac_fcs_send_one_packet_start(mac_fcs_mgr_stru *pst_fcs_mgr,
     pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
     mac_fcs_verify_timestamp(MAC_FCS_STAGE_ONE_PKT_START);
 
-    /* 启动发送 */
+    /* ???????? */
     hal_one_packet_start(pst_device, pst_one_packet_cfg);
 #if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)||(_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)) && (_PRE_TEST_MODE == _PRE_TEST_MODE_UT)
     pst_fcs_mgr->en_fcs_done = OAL_TRUE;
 #endif
 
-    /* 等待发送结束 */
+    /* ???????????? */
     ul_ret = mac_fcs_wait_one_packet_done(pst_fcs_mgr);
     if (OAL_SUCC != ul_ret)
     {
@@ -437,24 +350,92 @@ oal_void mac_fcs_send_one_packet_start(mac_fcs_mgr_stru *pst_fcs_mgr,
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_start
- 功能描述  : 启动one packet，将发送队列保存到虚假队列，切信道
- 输入参数  : pst_fcs_mgr: fcs mgr
-             pst_fcs_cfg: fcs配置
-             uc_fake_tx_q_id: 将当前硬件队列帧保存到哪个虚假队列中去
-             mac_fcs_cfg_stru    *pst_fcs_cfg
- 输出参数  : pst_status: 获取one packet的状态
- 返 回 值  : mac_fcs_err_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
+oal_void mac_fcs_send_one_packet_start_same_channel(mac_fcs_mgr_stru *pst_fcs_mgr,
+                                            hal_one_packet_cfg_stru *pst_one_packet_cfg,
+                                            hal_to_dmac_device_stru *pst_device,
+                                            hal_one_packet_status_stru *pst_status,
+                                            oal_bool_enum_uint8  en_ps)
+{
+    oal_uint32                  ul_ret;
+    mac_ieee80211_frame_stru   *pst_mac_header;
 
-*****************************************************************************/
+    if ((OAL_PTR_NULL == pst_fcs_mgr) || (OAL_PTR_NULL == pst_one_packet_cfg) || (OAL_PTR_NULL == pst_device))
+    {
+        OAM_ERROR_LOG3(0, OAM_SF_ANY, "mac_fcs_send_one_packet_start_same_channel:pst_fcs_mgr=%x,pst_one_packet_cfg=%x,pst_device=%x"
+                       ,pst_fcs_mgr,pst_one_packet_cfg,pst_device);
+        return ;
+    }
+    /* ???????? */
+    if (HAL_FCS_PROTECT_TYPE_NULL_DATA == pst_one_packet_cfg->en_protect_type)
+    {
+        pst_mac_header = (mac_ieee80211_frame_stru *)pst_one_packet_cfg->auc_protect_frame;
+        pst_mac_header->st_frame_control.bit_power_mgmt = en_ps;
+    }
+
+    pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
+    mac_fcs_verify_timestamp(MAC_FCS_STAGE_ONE_PKT_START);
+
+    /* ???????? */
+    hal_one_packet_start(pst_device, pst_one_packet_cfg);
+#if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)||(_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)) && (_PRE_TEST_MODE == _PRE_TEST_MODE_UT)
+    pst_fcs_mgr->en_fcs_done = OAL_TRUE;
+#endif
+    /* ???????????? */
+    ul_ret = mac_fcs_wait_one_packet_done_same_channel(pst_fcs_mgr);
+    if (OAL_SUCC != ul_ret)
+    {
+        hal_show_fsm_info(pst_device);
+    }
+
+    mac_fcs_verify_timestamp(MAC_FCS_STAGE_ONE_PKT_DONE);
+    if (OAL_PTR_NULL != pst_status)
+    {
+        hal_one_packet_get_status(pst_device, pst_status);
+    }
+}
+
+
+
+oal_void  dmac_fcs_set_one_pkt_timeout_time(mac_fcs_mgr_stru *pst_fcs_mgr)
+{
+    if (OAL_PTR_NULL == pst_fcs_mgr)
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "dmac_fcs_set_one_pkt_timeout_time:pst_fcs_mgr is null");
+        return;
+    }
+    if (OAL_PTR_NULL == pst_fcs_mgr->pst_fcs_cfg)
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY,"dmac_fcs_set_one_pkt_timeout_time:pst_fcs_mgr->pst_fcs_cfg is null");
+        return;
+    }
+    /* ????one pkt???????????????? */
+    if(HAL_FCS_SERVICE_TYPE_BTCOEX_NORMAL == pst_fcs_mgr->en_fcs_service_type)
+    {
+        /* ????btcoex????????????????????????20slot??????m2s??null???????????????? */
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT3;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT3;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT3;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT3;
+    }
+    else if(HAL_FCS_SERVICE_TYPE_BTCOEX_LDAC == pst_fcs_mgr->en_fcs_service_type)
+    {
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT;
+    }
+    else
+    {
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_timeout = MAC_FCS_DEFAULT_PROTECT_TIME_OUT;
+        pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2.us_wait_timeout = MAC_ONE_PACKET_TIME_OUT;
+    }
+}
+
+
+
 mac_fcs_err_enum_uint8    mac_fcs_start(
                 mac_fcs_mgr_stru            *pst_fcs_mgr,
                 mac_fcs_cfg_stru            *pst_fcs_cfg,
@@ -465,8 +446,8 @@ mac_fcs_err_enum_uint8    mac_fcs_start(
     mac_device_stru                    *pst_mac_device;
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
 #if (_PRE_WLAN_CHIP_ASIC != _PRE_WLAN_CHIP_VERSION)
-    oal_uint32 							ul_mode_sel;
-	oal_uint32 							coex_cnt = 0;
+    oal_uint32                          ul_mode_sel;
+    oal_uint32                          coex_cnt = 0;
 #endif
 #endif
     if ((OAL_PTR_NULL == pst_fcs_mgr) || (OAL_PTR_NULL == pst_fcs_cfg))
@@ -507,13 +488,12 @@ mac_fcs_err_enum_uint8    mac_fcs_start(
     pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_IN_PROGESS;
 
 #ifdef _PRE_WLAN_FEATURE_STA_PM
-    /* 深睡眠唤醒后，背景扫描 one packet timeout修改 */
+    /* ?????????????????????? one packet timeout???? */
     dmac_pm_enable_front_end(pst_mac_device, OAL_TRUE);
 #endif
-    /* 函数封装 */
+    /* ???????? */
     mac_fcs_send_one_packet_start(pst_fcs_mgr, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg, pst_device, pst_status, OAL_TRUE);
 
-    /* DTS2015080801407 发null data等待ACK时可能导致one packet超时，开关一下pa */
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
     hal_disable_machw_phy_and_pa(pst_device);
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
@@ -524,10 +504,10 @@ mac_fcs_err_enum_uint8    mac_fcs_start(
 #endif
 #endif
 
-    /* flush发送完成事件 */
+    /* flush???????????? */
     mac_fcs_flush_event_by_channel(pst_mac_device, &pst_fcs_cfg->st_src_chl);
 
-    /* 保存当前硬件队列的帧到虚假队列 */
+    /* ?????????????????????????????? */
     if (uc_fake_tx_q_id < HAL_TX_FAKE_QUEUE_NUM)
     {
         dmac_tx_save_tx_queue(pst_mac_device->pst_device_stru, uc_fake_tx_q_id);
@@ -558,24 +538,213 @@ mac_fcs_err_enum_uint8    mac_fcs_start(
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_start_enhanced
- 功能描述  : 增强版FCS接口，启动两次onepacket 用于双STA背景扫描
- 输入参数  : pst_fcs_mgr: fcs mgr
-             pst_fcs_cfg: fcs配置
-             uc_fake_tx_q_id: 将当前硬件队列帧保存到哪个虚假队列中去
-             mac_fcs_cfg_stru    *pst_fcs_cfg
- 输出参数  : pst_status: 获取one packet的状态
- 返 回 值  : mac_fcs_err_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
+mac_fcs_err_enum_uint8    mac_fcs_start_same_channel(
+                mac_fcs_mgr_stru            *pst_fcs_mgr,
+                mac_fcs_cfg_stru            *pst_fcs_cfg,
+                hal_one_packet_status_stru  *pst_status,
+                oal_uint8                    uc_fake_tx_q_id)
+{
+    hal_to_dmac_device_stru            *pst_device;
+    mac_device_stru                    *pst_mac_device;
+    if ((OAL_PTR_NULL == pst_fcs_mgr) || (OAL_PTR_NULL == pst_fcs_cfg))
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{mac_fcs_start::param null.}");
+        return  MAC_FCS_ERR_INVALID_CFG;
+    }
 
-*****************************************************************************/
+    pst_mac_device = mac_res_get_dev(pst_fcs_mgr->uc_device_id);
+    if (OAL_PTR_NULL == pst_mac_device)
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{mac_fcs_start::pst_mac_device null.}");
+        return  MAC_FCS_ERR_INVALID_CFG;
+    }
+    pst_fcs_mgr->pst_fcs_cfg    = pst_fcs_cfg;
+    pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_IN_PROGESS;
+    /* ??MAC????????????????????????NULL DATA???????????? */
+    /* doing */
+    dmac_fcs_set_one_pkt_timeout_time(pst_fcs_mgr);
+
+    pst_device = pst_mac_device->pst_device_stru;
+    if (OAL_PTR_NULL == pst_device)
+    {
+        OAM_ERROR_LOG0(0,0,"mac_fcs_start_same_channel:pst_device is null");
+        return MAC_FCS_ERR_INVALID_CFG;
+    }
+
+#ifdef _PRE_WLAN_FEATURE_STA_PM
+    /* ?????????????????????? one packet timeout???? */
+    dmac_pm_enable_front_end(pst_mac_device, OAL_TRUE);
+#endif
+    /* ???????? */
+    mac_fcs_send_one_packet_start_same_channel(pst_fcs_mgr, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg, pst_device, pst_status, OAL_TRUE);
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    /* ????PA????????????????02A??????one pkt?????????????? */
+    hal_disable_machw_phy_and_pa(pst_device);
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+/* ????????????????one packet??BT??????????bug???????????????? */
+#ifdef _PRE_WLAN_MAC_BUGFIX_BTCOEX_ONEPKT_AT_SAME_TIME
+    if(1 == pst_device->st_btcoex_btble_status.un_bt_status.st_bt_status.bit_bt_on)
+    {
+        hal_reset_phy_machw(pst_device, HAL_RESET_HW_TYPE_MAC, HAL_RESET_MAC_LOGIC, OAL_FALSE, OAL_FALSE);
+    }
+#endif//_PRE_WLAN_MAC_BUGFIX_BTCOEX_ONEPKT_AT_SAME_TIME
+#endif
+#endif
+    /* flush???????????? */
+    mac_fcs_flush_event_by_channel(pst_mac_device, &pst_fcs_cfg->st_src_chl);
+
+    /* ?????????????????????????????? */
+    if (uc_fake_tx_q_id < HAL_TX_FAKE_QUEUE_NUM)
+    {
+        dmac_tx_save_tx_queue(pst_mac_device->pst_device_stru, uc_fake_tx_q_id);
+    }
+
+    mac_fcs_verify_timestamp(MAC_FCS_STAGE_RESET_HW_START);
+    /* ??????????????????????????????one pkt?????????? */
+    //mac_fcs_set_channel(pst_mac_device,  &pst_fcs_cfg->st_dst_chl);
+    //hal_reset_nav_timer(pst_device);
+    hal_clear_hw_fifo(pst_device);
+    hal_one_packet_stop(pst_device);
+
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    hal_enable_machw_phy_and_pa(pst_device);
+#endif
+
+    mac_fcs_verify_timestamp(MAC_FCS_STAGE_RESET_HW_DONE);
+
+    pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_REQUESTED;
+    pst_fcs_mgr->pst_fcs_cfg    = OAL_PTR_NULL;
+
+    /* ??MAC????????????????????????NULL DATA??????????????????????????occupied */
+    /* doing */
+
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+#if (_PRE_WLAN_CHIP_ASIC != _PRE_WLAN_CHIP_VERSION)
+    hal_set_btcoex_occupied_period(0);    // 0us
+#endif
+#endif
+
+    return MAC_FCS_SUCCESS;
+}
+
+
+mac_fcs_err_enum_uint8    mac_fcs_start_enhanced_same_channel(
+                mac_fcs_mgr_stru            *pst_fcs_mgr,
+                mac_fcs_cfg_stru            *pst_fcs_cfg)
+{
+    hal_to_dmac_device_stru            *pst_device;
+    mac_device_stru                    *pst_mac_device;
+    hal_one_packet_status_stru          st_status;
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+#if (_PRE_WLAN_CHIP_ASIC != _PRE_WLAN_CHIP_VERSION)
+    oal_uint32                          ul_mode_sel;
+    oal_uint32                          coex_cnt = 0;
+#endif
+#endif
+
+    if ((OAL_PTR_NULL == pst_fcs_mgr) || (OAL_PTR_NULL == pst_fcs_cfg))
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{mac_fcs_start::param null.}");
+        return  MAC_FCS_ERR_INVALID_CFG;
+    }
+
+    pst_mac_device = mac_res_get_dev(pst_fcs_mgr->uc_device_id);
+    if (OAL_PTR_NULL == pst_mac_device)
+    {
+        OAM_ERROR_LOG0(0, OAM_SF_ANY, "{mac_fcs_start::pst_mac_device null.}");
+        return  MAC_FCS_ERR_INVALID_CFG;
+    }
+
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+#if (_PRE_WLAN_CHIP_ASIC != _PRE_WLAN_CHIP_VERSION)
+    hal_set_btcoex_occupied_period(15000);    // 15ms
+    hal_get_btcoex_pa_status(&ul_mode_sel);
+    while ((BIT23 == (ul_mode_sel & BIT23)) && (coex_cnt < BTCOEX_RELEASE_TIMEOUT))//wait 10ms for BT release
+    {
+        hal_get_btcoex_pa_status(&ul_mode_sel);
+        coex_cnt++;/*10us*/
+    }
+
+    if(coex_cnt == BTCOEX_RELEASE_TIMEOUT)
+    {
+        OAM_WARNING_LOG0(0, OAM_SF_DBAC, "{alg_dbac_fcs_event_handler::bt release timeout!}");
+    }
+    oal_udelay(50);     // delay 50us
+#endif
+#endif
+
+    pst_device = pst_mac_device->pst_device_stru;
+
+    pst_fcs_mgr->pst_fcs_cfg    = pst_fcs_cfg;
+    pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_IN_PROGESS;
+
+    /* ??????????one packet */
+    pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
+
+    hal_one_packet_start(pst_device, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg);
+    mac_fcs_wait_one_packet_done_same_channel(pst_fcs_mgr);
+    hal_one_packet_get_status(pst_device, &st_status);
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    hal_disable_machw_phy_and_pa(pst_device);
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+    if(1 == pst_device->st_btcoex_btble_status.un_bt_status.st_bt_status.bit_bt_on)
+    {
+        hal_reset_phy_machw(pst_device, HAL_RESET_HW_TYPE_MAC, HAL_RESET_MAC_LOGIC, OAL_FALSE, OAL_FALSE);
+    }
+#endif
+#endif
+
+    hal_clear_hw_fifo(pst_device);
+
+    /* flush???????????? */
+    mac_fcs_flush_event_by_channel(pst_mac_device, &pst_fcs_cfg->st_src_chl);
+
+    dmac_tx_save_tx_queue(pst_mac_device->pst_device_stru, HAL_TX_FAKE_QUEUE_BGSCAN_ID);
+
+    hal_one_packet_stop(pst_device);
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    hal_enable_machw_phy_and_pa(pst_device);
+#endif
+
+    /* ??????????one packet???? */
+    pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
+
+    hal_one_packet_start(pst_device, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2);
+    mac_fcs_wait_one_packet_done_same_channel(pst_fcs_mgr);
+    hal_one_packet_get_status(pst_device, &st_status);
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    hal_disable_machw_phy_and_pa(pst_device);
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+#ifdef _PRE_WLAN_MAC_BUGFIX_BTCOEX_ONEPKT_AT_SAME_TIME
+    if(1 == pst_device->st_btcoex_btble_status.un_bt_status.st_bt_status.bit_bt_on)
+    {
+        hal_reset_phy_machw(pst_device, HAL_RESET_HW_TYPE_MAC, HAL_RESET_MAC_LOGIC, OAL_FALSE, OAL_FALSE);
+    }
+#endif
+#endif
+#endif
+
+    //mac_fcs_set_channel(pst_mac_device,  &pst_fcs_cfg->st_dst_chl);
+    //hal_reset_nav_timer(pst_device);
+    hal_one_packet_stop(pst_device);
+#if defined(_PRE_PRODUCT_ID_HI110X_DEV)
+    hal_enable_machw_phy_and_pa(pst_device);
+#endif
+
+    pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_REQUESTED;
+    pst_fcs_mgr->pst_fcs_cfg    = OAL_PTR_NULL;
+
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+#if (_PRE_WLAN_CHIP_ASIC != _PRE_WLAN_CHIP_VERSION)
+    hal_set_btcoex_occupied_period(0);    // 0us
+#endif
+#endif
+
+    return MAC_FCS_SUCCESS;
+}
+
+
 mac_fcs_err_enum_uint8    mac_fcs_start_enhanced(
                 mac_fcs_mgr_stru            *pst_fcs_mgr,
                 mac_fcs_cfg_stru            *pst_fcs_cfg)
@@ -626,7 +795,7 @@ mac_fcs_err_enum_uint8    mac_fcs_start_enhanced(
     pst_fcs_mgr->pst_fcs_cfg    = pst_fcs_cfg;
     pst_fcs_mgr->en_fcs_state   = MAC_FCS_STATE_IN_PROGESS;
 
-    /* 第一次启动one packet */
+    /* ??????????one packet */
     pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
 
     hal_one_packet_start(pst_device, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg);
@@ -644,7 +813,7 @@ mac_fcs_err_enum_uint8    mac_fcs_start_enhanced(
 
     hal_clear_hw_fifo(pst_device);
 
-    /* flush发送完成事件 */
+    /* flush???????????? */
     mac_fcs_flush_event_by_channel(pst_mac_device, &pst_fcs_cfg->st_src_chl);
 
     dmac_tx_save_tx_queue(pst_mac_device->pst_device_stru, HAL_TX_FAKE_QUEUE_BGSCAN_ID);
@@ -654,7 +823,7 @@ mac_fcs_err_enum_uint8    mac_fcs_start_enhanced(
     hal_enable_machw_phy_and_pa(pst_device);
 #endif
 
-    /* 再一次启动one packet模式 */
+    /* ??????????one packet???? */
     pst_fcs_mgr->en_fcs_done    = OAL_FALSE;
 
     hal_one_packet_start(pst_device, &pst_fcs_mgr->pst_fcs_cfg->st_one_packet_cfg2);
@@ -689,24 +858,7 @@ mac_fcs_err_enum_uint8    mac_fcs_start_enhanced(
     return MAC_FCS_SUCCESS;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_notify_chain_register
- 功能描述  : 注册FCS通知链
- 输入参数  : mac_fcs_mgr_stru               *pst_fcs_mgr
-             mac_fcs_notify_type_enum_uint8  uc_notify_type
-             mac_fcs_hook_id_enum_uint8      en_hook_id
-             mac_fcs_notify_func             p_func
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 mac_fcs_notify_chain_register(mac_fcs_mgr_stru               *pst_fcs_mgr,
                                          mac_fcs_notify_type_enum_uint8  uc_notify_type,
                                          mac_fcs_hook_id_enum_uint8      en_hook_id,
@@ -726,26 +878,11 @@ oal_uint32 mac_fcs_notify_chain_register(mac_fcs_mgr_stru               *pst_fcs
 
     return  OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_fcs_notify
- 功能描述  : 触发FCS通知链
- 输入参数  : mac_fcs_mgr_stru                *pst_fcs_mgr
-             mac_fcs_notify_type_enum_uint8   uc_notify_type
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 mac_fcs_notify(mac_fcs_mgr_stru                *pst_fcs_mgr,
                           mac_fcs_notify_type_enum_uint8   uc_notify_type)
 {
-    /* notify特性暂不使用 */
+    /* notify???????????? */
 #if 0
     mac_fcs_notify_chain_stru  *pst_chain = pst_fcs_mgr->ast_notify_chain + uc_notify_type;
     mac_fcs_notify_node_stru   *pst_node;
@@ -772,23 +909,7 @@ oal_uint32 mac_fcs_notify(mac_fcs_mgr_stru                *pst_fcs_mgr,
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_fcs_notify_chain_unregister
- 功能描述  : 注销FCS通知链
- 输入参数  : mac_fcs_mgr_stru               *pst_fcs_mgr
-             mac_fcs_notify_type_enum_uint8  uc_notify_type
-             mac_fcs_hook_id_enum_uint8      en_hook_id
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 mac_fcs_notify_chain_unregister(mac_fcs_mgr_stru               *pst_fcs_mgr,
                                            mac_fcs_notify_type_enum_uint8  uc_notify_type,
                                            mac_fcs_hook_id_enum_uint8      en_hook_id)
@@ -806,21 +927,7 @@ oal_uint32 mac_fcs_notify_chain_unregister(mac_fcs_mgr_stru               *pst_f
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_fcs_notify_chain_destroy
- 功能描述  : 销毁FCS通知链
- 输入参数  : mac_fcs_mgr_stru *pst_fcs_mgr
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 mac_fcs_notify_chain_destroy(mac_fcs_mgr_stru *pst_fcs_mgr)
 {
     oal_uint8   uc_idx;
@@ -838,70 +945,53 @@ oal_uint32 mac_fcs_notify_chain_destroy(mac_fcs_mgr_stru *pst_fcs_mgr)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_get_prot_mode
- 功能描述  : 获取保护帧发送模式
- 输入参数  : mac_vap_stru *pst_src_vap
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月31日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_fcs_get_prot_mode(mac_vap_stru *pst_src_vap)
 {
     return 0;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_get_prot_datarate
- 功能描述  : 获取保护帧速率
- 输入参数  : mac_vap_stru *pst_src_vap
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月31日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_fcs_get_prot_datarate(mac_vap_stru *pst_src_vap)
 {
-    /* OFDM 6M: 0x004b0113 */
-    /* 11b 1M:  0x08000113 */
-    if ((!IS_LEGACY_VAP(pst_src_vap)) || (WLAN_BAND_5G == pst_src_vap->st_channel.en_band))
+#ifdef _PRE_WLAN_FEATURE_BTCOEX
+    hal_to_dmac_device_stru            *pst_h2d_device;
+    dmac_vap_stru                      *pst_dmac_vap;
+
+    pst_dmac_vap = (dmac_vap_stru *)pst_src_vap;
+    pst_h2d_device = pst_dmac_vap->pst_hal_device;
+    if (HAL_BTCOEX_SW_POWSAVE_WORK == GET_HAL_BTCOEX_SW_PREEMPT_TYPE(pst_h2d_device))
     {
-        return 0x004b0113;
+       if (WLAN_FAR_DISTANCE_RSSI < pst_dmac_vap->st_query_stats.ul_signal)
+       {
+           return WLAN_PROT_DATARATE_24M;
+       }
+       if ((!IS_LEGACY_VAP(pst_src_vap)) || (WLAN_BAND_5G == pst_src_vap->st_channel.en_band))
+       {
+           return WLAN_PROT_DATARATE_6M;
+       }
+       else
+       {
+           return WLAN_PROT_DATARATE_1M;
+       }
     }
     else
+#endif
     {
-        return 0x08000113;
+        /* OFDM 6M: 0x004b0113 */
+        /* 11b 1M:  0x08000113 */
+        if ((!IS_LEGACY_VAP(pst_src_vap)) || (WLAN_BAND_5G == pst_src_vap->st_channel.en_band))
+        {
+            return WLAN_PROT_DATARATE_6M;
+        }
+        else
+        {
+            return WLAN_PROT_DATARATE_1M;
+        }
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_prepare_one_packet_cfg
- 功能描述  : 准备one packet参数
- 输入参数  : us_protect_time: ms, 用于设置CTS的duration
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月21日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  mac_fcs_prepare_one_packet_cfg(
                 mac_vap_stru                *pst_mac_vap,
                 hal_one_packet_cfg_stru     *pst_one_packet_cfg,
@@ -920,7 +1010,6 @@ oal_void  mac_fcs_prepare_one_packet_cfg(
 
     if (HAL_FCS_PROTECT_TYPE_NULL_DATA == pst_one_packet_cfg->en_protect_type)
     {
-        /* DTS2015081100355 背景扫描发送的null data BSSID填错，改为0x1100表示ToAP */
         mac_null_data_encap(pst_one_packet_cfg->auc_protect_frame,
                     (WLAN_PROTOCOL_VERSION | WLAN_FC0_TYPE_DATA | WLAN_FC0_SUBTYPE_NODATA | 0x1100),
                     pst_mac_vap->auc_bssid,
@@ -950,21 +1039,7 @@ oal_module_symbol(mac_fcs_get_prot_datarate);
 
 OAL_STATIC mac_fcs_verify_stat_stru   g_st_fcs_verify_stat;
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_verify_init
- 功能描述  : 初始化统计
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月19日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void mac_fcs_verify_init(oal_void)
 {
     OAL_MEMZERO(&g_st_fcs_verify_stat, OAL_SIZEOF(g_st_fcs_verify_stat));
@@ -976,21 +1051,7 @@ oal_void mac_fcs_verify_init(oal_void)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_verify_start
- 功能描述  : 开始统计
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月19日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void mac_fcs_verify_start(oal_void)
 {
     OAL_MEMZERO(&g_st_fcs_verify_stat, OAL_SIZEOF(g_st_fcs_verify_stat));
@@ -1005,21 +1066,7 @@ oal_void mac_fcs_verify_start(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_verify_timestamp
- 功能描述  : 打时间戳
- 输入参数  : mac_fcs_stage_enum_uint8 en_stage
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月19日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void mac_fcs_verify_timestamp(mac_fcs_stage_enum_uint8 en_stage)
 {
     if(g_st_fcs_verify_stat.en_enable)
@@ -1046,21 +1093,7 @@ oal_void mac_fcs_verify_timestamp(mac_fcs_stage_enum_uint8 en_stage)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : mac_fcs_verify_stop
- 功能描述  : 停止统计
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月19日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void mac_fcs_verify_stop(oal_void)
 {
     oal_uint16  us_item_idx;
