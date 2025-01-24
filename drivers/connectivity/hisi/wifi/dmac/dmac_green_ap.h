@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_green_ap.h
-  版 本 号   : 初稿
-  作    者   : zourong
-  生成日期   : 2016年2月22日
-  最近修改   :
-  功能描述   : dmac_green_ap.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2016年2月22日
-    作    者   : zourong
-    修改内容   : 创建文件
-
-******************************************************************************/
 #ifndef    __DMAC_GREEN_AP_H__
 #define    __DMAC_GREEN_AP_H__
 
@@ -27,7 +10,7 @@ extern  "C" {
 
 #ifdef    _PRE_WLAN_FEATURE_GREEN_AP
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include    "oal_types.h"
 #include    "oal_hardware.h"
@@ -39,17 +22,17 @@ extern  "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_GREEN_AP_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 #define  DMAC_DEFAULT_GAP_WORK_TIME     10
 #define  DMAC_DEFAULT_GAP_PAUSE_TIME    10
 #define  DMAC_DEFAULT_GAP_SLOT_CNT      2*100/(DMAC_DEFAULT_GAP_WORK_TIME + DMAC_DEFAULT_GAP_PAUSE_TIME)
 #define  DMAC_DEFAULT_GAP_RESUME_OFFSET 1
 
-#define  DMAC_GAP_EN_THRPT_HIGH_TH        50                        /* 吞吐量低于此门限，green ap才开启 */
-#define  DMAC_GAP_PPS_TO_THRPT_MBPS(pps)  ((pps * 8 * 1460) >> 20)  /* pps转吞吐量(Mbps) */
+#define  DMAC_GAP_EN_THRPT_HIGH_TH        50                        /* ??????????????????green ap?????? */
+#define  DMAC_GAP_PPS_TO_THRPT_MBPS(pps)  ((pps * 8 * 1460) >> 20)  /* pps????????(Mbps) */
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
@@ -64,39 +47,39 @@ typedef oal_uint8 dmac_green_ap_state_enum_uint8;
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  5 消息头定义
-*****************************************************************************/
-
-
-/*****************************************************************************
-  6 消息定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
 *****************************************************************************/
 typedef struct tag_dmac_green_ap_mgr_stru
 {
-    oal_uint8                      uc_green_ap_enable;       /* green ap使能 */
-    oal_uint8                      uc_green_ap_suspend;      /* green ap是否suspend */
-    oal_bool_enum_uint8            en_green_ap_dyn_en;       /* green ap 动态使能开关(吞吐量判断) */
-    oal_bool_enum_uint8            en_green_ap_dyn_en_old;   /* 上个周期的green ap 动态使能结果 */
-    dmac_green_ap_state_enum_uint8 uc_state;                 /* green ap状态 */
+    oal_uint8                      uc_green_ap_enable;       /* green ap???? */
+    oal_uint8                      uc_green_ap_suspend;      /* green ap????suspend */
+    oal_bool_enum_uint8            en_green_ap_dyn_en;       /* green ap ????????????(??????????) */
+    oal_bool_enum_uint8            en_green_ap_dyn_en_old;   /* ??????????green ap ???????????? */
+    dmac_green_ap_state_enum_uint8 uc_state;                 /* green ap???? */
     oal_uint8                      resv1[3];
 
-    oal_uint8 uc_device_id;         /* 指向对应的device id */
+    oal_uint8 uc_device_id;         /* ??????????device id */
     oal_uint8 uc_hal_vap_id;
     oal_uint8 uc_vap_id;
-    oal_uint8 uc_work_time;         /* 工作时隙内时间ms*/
-    oal_uint8 uc_pause_time;        /* 暂停时隙内时间ms */
-    oal_uint8 uc_max_slot_cnt;      /* beacon周期分为多少个时隙 = 2*beacon period/(work+pause) */
-    oal_uint8 uc_cur_slot;          /* 当前时隙 */
-    oal_uint8 uc_resume_offset;     /* resume需要提前的时间量，在保护时间到前提前resume恢复RF */
+    oal_uint8 uc_work_time;         /* ??????????????ms*/
+    oal_uint8 uc_pause_time;        /* ??????????????ms */
+    oal_uint8 uc_max_slot_cnt;      /* beacon?????????????????? = 2*beacon period/(work+pause) */
+    oal_uint8 uc_cur_slot;          /* ???????? */
+    oal_uint8 uc_resume_offset;     /* resume????????????????????????????????????resume????RF */
 
 #if (!defined(_PRE_PRODUCT_ID_HI110X_DEV))
     struct hrtimer st_gap_timer;
@@ -112,16 +95,16 @@ typedef struct tag_dmac_green_ap_mgr_stru
 }dmac_green_ap_mgr_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  dmac_green_ap_init(mac_device_stru *pst_device);
 extern oal_uint32  dmac_green_ap_exit(mac_device_stru *pst_device);

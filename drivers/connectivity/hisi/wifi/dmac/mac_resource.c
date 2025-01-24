@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : mac_resource.c
-  版 本 号   : 初稿
-  作    者   : c00178899
-  生成日期   : 2013年5月8日
-  最近修改   :
-  功能描述   : MAC资源池主文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年5月8日
-    作    者   : c00178899
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_spec.h"
 #include "mac_resource.h"
@@ -45,9 +28,9 @@ extern "C" {
 
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
-/* 1个device支持的最大关联用户数 */
+/* 1??device???????????????????? */
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST))
 oal_uint16      g_us_max_asoc_user = 8;
 
@@ -59,31 +42,17 @@ mac_res_stru    g_st_mac_res;
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : mac_res_check_spec
- 功能描述  : 初始化MAC资源池内容
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : zhangyu
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_check_spec(oal_void)
 {
     oal_uint32  ul_ret = OAL_SUCC;
-    /* 检查MAC VAP大小 */
+    /* ????MAC VAP???? */
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /*如果有人添加了这个结构体，
-    又没有修改对应的大小，导致超过了SIZE，这个判断是有必要的，不是死代码*/
+    /*??????????????????????????
+    ????????????????????????????????SIZE????????????????????????????????*/
     if (OAL_SIZEOF(hmac_vap_stru) > MAC_RES_VAP_SIZE)
     {
         OAM_ERROR_LOG2(0, OAM_SF_ANY, "{mac_res_check_spec::hmac_vap_stru is over limit! hmac_vap_stru[%d], MAC_RES_VAP_SIZE[%d]}",
@@ -144,21 +113,7 @@ oal_uint32  mac_res_check_spec(oal_void)
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV))
 
-/*****************************************************************************
- 函 数 名  : mac_res_user_init
- 功能描述  : 用户资源池初始化
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_user_init(oal_void)
 {
     oal_uint16      us_max_asoc_user_per_board;
@@ -174,15 +129,15 @@ oal_uint32  mac_res_user_init(oal_void)
     oal_uint16      us_user_cnt_size;
 
     /***************************************************************************
-            初始化USER的资源管理内容
+            ??????USER??????????????
     ***************************************************************************/
     /*
-    最大关联用户 = 1个device支持的最大关联用户数 * board上面的device数目;
-    最大组播用户 = 1个device支持的最大业务vap数 * board上面的device数目;
-    最大用户数 = 最大关联用户 + 组播用户个数 */
+    ???????????? = 1??device???????????????????? * board??????device????;
+    ???????????? = 1??device??????????????vap?? * board??????device????;
+    ?????????? = ???????????? + ???????????? */
     us_max_asoc_user_per_board = (oal_uint16)(g_us_max_asoc_user * MAC_RES_MAX_DEV_NUM);
 
-    /* 检查申请的资源池大小是否合适 */
+    /* ???????????????????????????? */
     us_user_info_size = (oal_uint16)(OAL_SIZEOF(mac_res_mem_user_stru) * MAC_RES_MAX_USER_NUM);
     us_idx_size       = (oal_uint16)(OAL_SIZEOF(oal_uint)* MAC_RES_MAX_USER_NUM);
     us_user_cnt_size  = (oal_uint16)(OAL_SIZEOF(oal_uint8) * MAC_RES_MAX_USER_NUM);
@@ -193,7 +148,7 @@ oal_uint32  mac_res_user_init(oal_void)
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 动态申请用户资源池相关内存 */
+    /* ?????????????????????????? */
     p_user_info = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, WLAN_MEM_LOCAL_SIZE6, OAL_TRUE);
     p_idx       = (oal_uint8 *)p_user_info + us_user_info_size;
     p_user_cnt  = (oal_uint8 *)p_idx + us_idx_size;
@@ -208,7 +163,7 @@ oal_uint32  mac_res_user_init(oal_void)
     }
 
 
-    /* 内存初始清0 */
+    /* ??????????0 */
     OAL_MEMZERO(p_user_info, (OAL_SIZEOF(mac_res_mem_user_stru) * MAC_RES_MAX_USER_NUM));
     OAL_MEMZERO(p_idx,       (OAL_SIZEOF(oal_uint) * MAC_RES_MAX_USER_NUM));
     OAL_MEMZERO(p_user_cnt,  (OAL_SIZEOF(oal_uint8) * MAC_RES_MAX_USER_NUM));
@@ -222,18 +177,18 @@ oal_uint32  mac_res_user_init(oal_void)
     for (ul_loop = 0; ul_loop < MAC_RES_MAX_USER_NUM; ul_loop++)
     {
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_user_res.puc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化HASH桶的资源管理内容
+            ??????HASH????????????????
     ***************************************************************************/
     us_user_info_size = (oal_uint16)(OAL_SIZEOF(mac_res_user_hash_stru) * us_max_asoc_user_per_board);
     us_idx_size       = (oal_uint16)(OAL_SIZEOF(oal_uint) * us_max_asoc_user_per_board);
     us_user_cnt_size  = (oal_uint16)(OAL_SIZEOF(oal_uint8) * us_max_asoc_user_per_board);
 
-    /* 检查申请的资源池大小是否合适 */
+    /* ???????????????????????????? */
     if (WLAN_MEM_LOCAL_SIZE3 < (us_user_info_size + us_idx_size + us_user_cnt_size))
     {
         OAM_ERROR_LOG2(0, OAM_SF_UM, "{mac_res_user_init::ALLOC_SIZE(%d) too small!,arm(%d).}",WLAN_MEM_LOCAL_SIZE1,(us_user_info_size + us_idx_size + us_user_cnt_size));
@@ -244,7 +199,7 @@ oal_uint32  mac_res_user_init(oal_void)
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 动态申请用户资源池相关内存 */
+    /* ?????????????????????????? */
     p_hash_info = OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, WLAN_MEM_LOCAL_SIZE3, OAL_TRUE);
     p_hash_idx  = (oal_uint8 *)p_hash_info + us_user_info_size;
     p_hash_cnt  = (oal_uint8 *)p_hash_idx + us_idx_size;
@@ -254,7 +209,7 @@ oal_uint32  mac_res_user_init(oal_void)
         OAM_ERROR_LOG0(0, OAM_SF_UM, "{mac_res_user_init::param null.}");
         OAL_MEM_FREE(p_hash_info, OAL_TRUE);
 
-        /* 释放用户资源池申请的内存 */
+        /* ???????????????????????? */
         OAL_MEM_FREE((p_user_info), OAL_TRUE);
 
         g_st_mac_res.st_user_res.pst_user_info  = OAL_PTR_NULL;
@@ -264,7 +219,7 @@ oal_uint32  mac_res_user_init(oal_void)
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 内存初始清0 */
+    /* ??????????0 */
     OAL_MEMZERO(p_hash_info, (OAL_SIZEOF(mac_res_user_hash_stru) * us_max_asoc_user_per_board));
     OAL_MEMZERO(p_hash_idx,  (OAL_SIZEOF(oal_uint) * us_max_asoc_user_per_board));
     OAL_MEMZERO(p_hash_cnt,  (OAL_SIZEOF(oal_uint8) * us_max_asoc_user_per_board));
@@ -279,30 +234,16 @@ oal_uint32  mac_res_user_init(oal_void)
 
     for (ul_loop = 0; ul_loop < us_max_asoc_user_per_board; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_hash_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_hash_res.puc_user_cnt[ul_loop] = 0;
     }
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_res_exit
- 功能描述  : 资源池退出，释放动态申请的内存
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_exit(void)
 {
     OAL_MEM_FREE((g_st_mac_res.st_user_res.pst_user_info), OAL_TRUE);
@@ -319,21 +260,7 @@ oal_uint32  mac_res_exit(void)
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_res_init
- 功能描述  : 初始化MAC资源池内容
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_init(oal_void)
 {
     oal_uint        ul_loop;
@@ -341,7 +268,7 @@ oal_uint32  mac_res_init(oal_void)
 
     OAL_MEMZERO(&g_st_mac_res, OAL_SIZEOF(mac_res_stru));
     /***************************************************************************
-            初始化DEV的资源管理内容
+            ??????DEV??????????????
     ***************************************************************************/
     oal_queue_set(&(g_st_mac_res.st_dev_res.st_queue),
                   g_st_mac_res.st_dev_res.aul_idx,
@@ -356,31 +283,31 @@ oal_uint32  mac_res_init(oal_void)
 
     for (ul_loop = 0; ul_loop < MAC_RES_MAX_DEV_NUM; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_dev_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_dev_res.auc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化VAP的资源管理内容
+            ??????VAP??????????????
     ***************************************************************************/
 
     g_st_mac_res.st_vap_res.us_hmac_priv_size = 0;
 
     for (ul_loop = 0; ul_loop < WLAN_VAP_SUPPORT_MAX_NUM_LIMIT; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
 
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_vap_res.auc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化USER的资源管理内容
-            初始化HASH桶的资源管理内容
+            ??????USER??????????????
+            ??????HASH????????????????
     ***************************************************************************/
     ul_ret = mac_res_user_init();
     if (OAL_SUCC != ul_ret)
@@ -394,21 +321,7 @@ oal_uint32  mac_res_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_res_free_mac_user
- 功能描述  : 释放对应HMAC USER的内存
- 输入参数  : 对应HMAC USER内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月9日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_mac_user(oal_uint16 us_idx)
 {
     if (OAL_UNLIKELY(us_idx >= MAC_RES_MAX_USER_NUM))
@@ -433,21 +346,7 @@ oal_uint32  mac_res_free_mac_user(oal_uint16 us_idx)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_res_free_hmac_vap
- 功能描述  : 释放对应HMAC VAP的内存
- 输入参数  : 对应HMAC VAP内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月9日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_mac_vap(oal_uint32 ul_idx)
 {
     if (OAL_UNLIKELY(ul_idx >= WLAN_VAP_SUPPORT_MAX_NUM_LIMIT))
@@ -477,21 +376,7 @@ oal_uint32  mac_res_free_mac_vap(oal_uint32 ul_idx)
 mac_res_mem_user_stru g_ast_mac_user_res[MAC_RES_MAX_USER_NUM];
 #endif
 
-/*****************************************************************************
- 函 数 名  : mac_res_user_init
- 功能描述  : 用户资源池初始化
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_user_init(oal_void)
 {
     oal_uint16      us_max_asoc_user_per_board;
@@ -504,15 +389,15 @@ oal_uint32  mac_res_user_init(oal_void)
     oal_void       *p_hash_cnt  = OAL_PTR_NULL;
 
     /***************************************************************************
-            初始化USER的资源管理内容
+            ??????USER??????????????
     ***************************************************************************/
     /*
-    最大关联用户 = 1个device支持的最大关联用户数 * board上面的device数目;
-    最大组播用户 = 1个device支持的最大业务vap数 * board上面的device数目;
-    最大用户数 = 最大关联用户 + 组播用户个数 */
+    ???????????? = 1??device???????????????????? * board??????device????;
+    ???????????? = 1??device??????????????vap?? * board??????device????;
+    ?????????? = ???????????? + ???????????? */
     us_max_asoc_user_per_board = (oal_uint16)(g_us_max_asoc_user * MAC_RES_MAX_DEV_NUM);
 
-    /* 动态申请用户资源池相关内存 */
+    /* ?????????????????????????? */
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1102_HOST)
     p_user_info = (oal_void *)g_ast_mac_user_res;
 #else
@@ -544,7 +429,7 @@ oal_uint32  mac_res_user_init(oal_void)
     }
 
 
-    /* 内存初始清0 */
+    /* ??????????0 */
     OAL_MEMZERO(p_user_info, (OAL_SIZEOF(mac_res_mem_user_stru) * MAC_RES_MAX_USER_NUM));
     OAL_MEMZERO(p_idx,       (OAL_SIZEOF(oal_uint) * MAC_RES_MAX_USER_NUM));
     OAL_MEMZERO(p_user_cnt,  (OAL_SIZEOF(oal_uint8) * MAC_RES_MAX_USER_NUM));
@@ -560,15 +445,15 @@ oal_uint32  mac_res_user_init(oal_void)
 
     for (ul_loop = 0; ul_loop < MAC_RES_MAX_USER_NUM; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_user_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_user_res.puc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化HASH桶的资源管理内容
+            ??????HASH????????????????
     ***************************************************************************/
     p_hash_info = oal_memalloc(OAL_SIZEOF(mac_res_user_hash_stru) * us_max_asoc_user_per_board);
     p_hash_idx  = oal_memalloc(OAL_SIZEOF(oal_uint) * us_max_asoc_user_per_board);
@@ -592,7 +477,7 @@ oal_uint32  mac_res_user_init(oal_void)
             oal_free(p_hash_cnt);
         }
 
-        /* 释放用户资源池申请的内存 */
+        /* ???????????????????????? */
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1102_HOST)
 #else
         oal_free(p_user_info);
@@ -607,7 +492,7 @@ oal_uint32  mac_res_user_init(oal_void)
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
-    /* 内存初始清0 */
+    /* ??????????0 */
     OAL_MEMZERO(p_hash_info, (OAL_SIZEOF(mac_res_user_hash_stru) * us_max_asoc_user_per_board));
     OAL_MEMZERO(p_hash_idx,  (OAL_SIZEOF(oal_uint) * us_max_asoc_user_per_board));
     OAL_MEMZERO(p_hash_cnt,  (OAL_SIZEOF(oal_uint8) * us_max_asoc_user_per_board));
@@ -622,30 +507,16 @@ oal_uint32  mac_res_user_init(oal_void)
 
     for (ul_loop = 0; ul_loop < us_max_asoc_user_per_board; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_hash_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_hash_res.puc_user_cnt[ul_loop] = 0;
     }
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : mac_res_exit
- 功能描述  : 资源池退出，释放动态申请的内存
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_exit(void)
 {
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1102_HOST)
@@ -671,21 +542,7 @@ oal_uint32  mac_res_exit(void)
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_res_init
- 功能描述  : 初始化MAC资源池内容
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_init(oal_void)
 {
     oal_uint        ul_loop;
@@ -700,7 +557,7 @@ oal_uint32  mac_res_init(oal_void)
 
     OAL_MEMZERO(&g_st_mac_res, OAL_SIZEOF(mac_res_stru));
     /***************************************************************************
-            初始化DEV的资源管理内容
+            ??????DEV??????????????
     ***************************************************************************/
     oal_queue_set(&(g_st_mac_res.st_dev_res.st_queue),
                   g_st_mac_res.st_dev_res.aul_idx,
@@ -708,15 +565,15 @@ oal_uint32  mac_res_init(oal_void)
 
     for (ul_loop = 0; ul_loop < MAC_RES_MAX_DEV_NUM; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_dev_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_dev_res.auc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化VAP的资源管理内容
+            ??????VAP??????????????
     ***************************************************************************/
     oal_queue_set(&(g_st_mac_res.st_vap_res.st_queue),
                   g_st_mac_res.st_vap_res.aul_idx,
@@ -725,16 +582,16 @@ oal_uint32  mac_res_init(oal_void)
 
     for (ul_loop = 0; ul_loop < WLAN_VAP_SUPPORT_MAX_NUM_LIMIT; ul_loop++)
     {
-        /* 初始值保存的是对应数组下标值加1 */
+        /* ??????????????????????????????1 */
         oal_queue_enqueue(&(g_st_mac_res.st_vap_res.st_queue), (oal_void *)(ul_loop + 1));
 
-        /* 初始化对应的引用计数值为0 */
+        /* ????????????????????????0 */
         g_st_mac_res.st_vap_res.auc_user_cnt[ul_loop] = 0;
     }
 
     /***************************************************************************
-            初始化USER的资源管理内容
-            初始化HASH桶的资源管理内容
+            ??????USER??????????????
+            ??????HASH????????????????
     ***************************************************************************/
     ul_ret = mac_res_user_init();
     if (OAL_SUCC != ul_ret)
@@ -748,21 +605,7 @@ oal_uint32  mac_res_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_res_free_mac_user
- 功能描述  : 释放对应HMAC USER的内存
- 输入参数  : 对应HMAC USER内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月9日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_mac_user(oal_uint16 us_idx)
 {
     if (OAL_UNLIKELY(us_idx >= MAC_RES_MAX_USER_NUM))
@@ -784,27 +627,13 @@ oal_uint32  mac_res_free_mac_user(oal_uint16 us_idx)
         return OAL_SUCC;
     }
 
-    /* 入队索引值需要加1操作 */
+    /* ????????????????1???? */
     oal_queue_enqueue(&(g_st_mac_res.st_user_res.st_queue), (oal_void *)((oal_uint)us_idx + 1));
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_res_free_hmac_vap
- 功能描述  : 释放对应HMAC VAP的内存
- 输入参数  : 对应HMAC VAP内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月9日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_mac_vap(oal_uint32 ul_idx)
 {
     if (OAL_UNLIKELY(ul_idx >= WLAN_VAP_SUPPORT_MAX_NUM_LIMIT))
@@ -826,7 +655,7 @@ oal_uint32  mac_res_free_mac_vap(oal_uint32 ul_idx)
         return OAL_SUCC;
     }
 
-    /* 入队索引值需要加1操作 */
+    /* ????????????????1???? */
     oal_queue_enqueue(&(g_st_mac_res.st_vap_res.st_queue), (oal_void *)((oal_uint)ul_idx + 1));
 
     return OAL_SUCC;
@@ -835,21 +664,7 @@ oal_uint32  mac_res_free_mac_vap(oal_uint32 ul_idx)
 #endif
 
 
-/*****************************************************************************
- 函 数 名  : mac_res_free_hash
- 功能描述  : 释放对应HASH的内存
- 输入参数  : 对应HASH内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_hash(oal_uint32 ul_hash_idx)
 {
     if (OAL_UNLIKELY(ul_hash_idx >= (oal_uint32)(g_us_max_asoc_user * MAC_RES_MAX_DEV_NUM)))
@@ -871,7 +686,7 @@ oal_uint32  mac_res_free_hash(oal_uint32 ul_hash_idx)
         return OAL_SUCC;
     }
 
-    /* 入队索引值需要加1操作 */
+    /* ????????????????1???? */
     oal_queue_enqueue(&(g_st_mac_res.st_hash_res.st_queue), (oal_void *)((oal_uint)ul_hash_idx + 1));
 
     return OAL_SUCC;
@@ -879,45 +694,17 @@ oal_uint32  mac_res_free_hash(oal_uint32 ul_hash_idx)
 
 
 
-/*****************************************************************************
- 函 数 名  : mac_set_max_asoc_user
- 功能描述  : 设置最大关联用户数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_set_max_asoc_user(oal_uint16 us_num)
 {
     g_us_max_asoc_user = us_num;
 
-    /* 需要系统复位 */
+    /* ???????????? */
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_res_alloc_dmac_dev
- 功能描述  : 获取一个DEV资源
- 输入参数  : 无
- 输出参数  : DEV内存索引值
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
  oal_uint32  mac_res_alloc_dmac_dev(oal_uint8    *puc_dev_idx)
 {
     oal_uint  ul_dev_idx_temp;
@@ -932,7 +719,7 @@ oal_uint32  mac_res_set_max_asoc_user(oal_uint16 us_num)
 
     ul_dev_idx_temp = (oal_uint)oal_queue_dequeue(&(g_st_mac_res.st_dev_res.st_queue));
 
-    /* 0为无效值 */
+    /* 0???????? */
     if (0 == ul_dev_idx_temp)
     {
         OAL_IO_PRINT("mac_res_alloc_dmac_dev: 0 == ul_dev_idx_temp");
@@ -948,21 +735,7 @@ oal_uint32  mac_res_set_max_asoc_user(oal_uint16 us_num)
     return OAL_SUCC;
 }
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-/*****************************************************************************
- 函 数 名  : mac_res_alloc_hmac_dev
- 功能描述  : 获取一个DEV资源
- 输入参数  : 无
- 输出参数  : DEV内存索引值
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月25日
-    作    者   : liuzhengqi
-    修改内容   : 新生成函数
-
-*****************************************************************************/
  oal_uint32  mac_res_alloc_hmac_dev(oal_uint8    *puc_dev_idx)
 {
     oal_uint  ul_dev_idx_temp;
@@ -977,7 +750,7 @@ oal_uint32  mac_res_set_max_asoc_user(oal_uint16 us_num)
 
     ul_dev_idx_temp = (oal_uint)oal_queue_dequeue(&(g_st_mac_res.st_dev_res.st_queue));
 
-    /* 0为无效值 */
+    /* 0???????? */
     if (0 == ul_dev_idx_temp)
     {
         OAL_IO_PRINT("mac_res_alloc_hmac_dev: 0 == ul_dev_idx_temp");
@@ -993,21 +766,7 @@ oal_uint32  mac_res_set_max_asoc_user(oal_uint16 us_num)
     return OAL_SUCC;
 }
 #else
-/*****************************************************************************
- 函 数 名  : mac_res_alloc_hmac_dev
- 功能描述  : 获取一个DEV资源
- 输入参数  : 无
- 输出参数  : DEV内存索引值
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_alloc_hmac_dev(oal_uint32    ul_dev_idx)
 {
     if (OAL_UNLIKELY(ul_dev_idx >= MAC_RES_MAX_DEV_NUM))
@@ -1023,21 +782,7 @@ oal_uint32  mac_res_alloc_hmac_dev(oal_uint32    ul_dev_idx)
     return OAL_SUCC;
 }
 #endif
-/*****************************************************************************
- 函 数 名  : mac_res_free_dev
- 功能描述  : 释放对应DEV的内存
- 输入参数  : 对应DEV内存索引
- 输出参数  : 无
- 返 回 值  : OAL_SUCC/OAL_FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年5月8日
-    作    者   : chenwenfeng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  mac_res_free_dev(oal_uint32 ul_dev_idx)
 {
     if (OAL_UNLIKELY(ul_dev_idx >= MAC_RES_MAX_DEV_NUM))
@@ -1062,27 +807,13 @@ oal_uint32  mac_res_free_dev(oal_uint32 ul_dev_idx)
         return OAL_SUCC;
     }
 
-    /* 入队索引值需要加1操作 */
+    /* ????????????????1???? */
     oal_queue_enqueue(&(g_st_mac_res.st_dev_res.st_queue), (oal_void *)((oal_uint)ul_dev_idx + 1));
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_max_asoc_user
- 功能描述  : 读取最大关联用户数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 最大关联用户数
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月27日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 #if (!defined(_PRE_PRODUCT_ID_HI110X_DEV))
     OAL_INLINE oal_uint16  mac_res_get_max_asoc_user(oal_void)
 #else

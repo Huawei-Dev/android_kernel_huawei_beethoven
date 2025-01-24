@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : test_main.c
-  版 本 号   : 初稿
-  作    者   : mayuan
-  生成日期   : 2013年7月3日
-  最近修改   :
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年7月3日
-    作    者   : mayuan
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "hal_ext_if.h"
@@ -41,14 +24,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_TEST_MAIN_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 OAL_STATIC oal_proc_dir_entry_stru *g_pst_test_proc_entry;
 
 #define TEST_HIPRIV_CMD_MAX_LEN   80
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 oal_uint32  wal_test_hipriv_reg_write(oal_int8 *pc_param)
 {
@@ -62,14 +45,14 @@ oal_uint32  wal_test_hipriv_reg_write(oal_int8 *pc_param)
 
     pst_device = &gst_hal_board.ast_chip[0].ast_device[0];
 
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY(OAL_PTR_NULL == pc_param))
     {
         OAL_IO_PRINT("wal_test_hipriv_reg_write: pst_net_dev or pc_param null ptr error!\n");
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取寄存器地址 */
+    /* ?????????????? */
     pc_token = oal_strtok((oal_int8 *)pc_param, pc_sep, &pc_ctx);
     if (NULL == pc_token)
     {
@@ -79,7 +62,7 @@ oal_uint32  wal_test_hipriv_reg_write(oal_int8 *pc_param)
 
     ul_addr = (oal_uint32)oal_strtol(pc_token, &pc_end, 16);
 
-    /* 获取需要写入的值 */
+    /* ???????????????? */
     pc_token = oal_strtok(OAL_PTR_NULL, pc_sep, &pc_ctx);
     if (NULL == pc_token)
     {
@@ -108,14 +91,14 @@ oal_uint32  wal_test_hipriv_reg_read(oal_int8 *pc_param)
 
     pst_device = &gst_hal_board.ast_chip[0].ast_device[0];
 
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY(OAL_PTR_NULL == pc_param))
     {
         OAL_IO_PRINT("wal_test_hipriv_reg_read : pst_net_dev or pc_param null ptr error!\n");
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取寄存器地址 */
+    /* ?????????????? */
     pc_token = oal_strtok((oal_int8 *)pc_param, pc_sep, &pc_ctx);
     if (NULL == pc_token)
     {
@@ -134,21 +117,7 @@ oal_uint32  wal_test_hipriv_reg_read(oal_int8 *pc_param)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_test_fix_test
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月11日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wal_long_rf_test(oal_void)
 {
     hal_device_stru   *pst_device;
@@ -157,7 +126,7 @@ oal_void  wal_long_rf_test(oal_void)
 
     pst_device = &gst_hal_board.ast_chip[0].ast_device[0];
 
-    /* RF/ABB类memory口控制选择; 0:CBB控制, 1:SOC控制 */
+    /* RF/ABB??memory??????????; 0:CBB????, 1:SOC???? */
     WITP_REG_WRITE32(pst_device, WITP_RF_ABB_CTL_REGBANK_WL_RF_ABB_REG_SEL_REG, 0x1,
                     IDX_WITP_NOT_RECROD_INDEX,HAL_SOFT_REG_TBL_SOC,OAL_FALSE);
 
@@ -206,21 +175,7 @@ oal_void  wal_long_rf_test(oal_void)
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_long_mac_test
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月14日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wal_long_mac_test(oal_void)
 {
     hal_device_stru   *pst_device;
@@ -238,21 +193,7 @@ oal_void  wal_long_mac_test(oal_void)
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_hipriv_5115_reg_read
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月14日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_test_5115_reg_read(oal_int8 *pc_param)
 {
     oal_int8             *pc_token;
@@ -271,21 +212,21 @@ oal_uint32  wal_test_5115_reg_read(oal_int8 *pc_param)
         oal_uint32    ul_val;
     }st_reg_info = {0};
 
-     /* 入参检查 */
+     /* ???????? */
     if (OAL_UNLIKELY(OAL_PTR_NULL == pc_param))
     {
         OAL_IO_PRINT("wal_hipriv_5115_reg_read: pst_net_dev or pc_param null ptr error!");
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 获取要读取的寄存器类型 */
+    /* ?????????????????????? */
     pc_token = oal_strtok((oal_int8 *)pc_param, pc_sep, &pc_ctx);
     if (OAL_PTR_NULL == pc_token)
     {
         return OAL_FAIL;
     }
 
-    /* 参数检查 */
+    /* ???????? */
     /*lint -e960*/
     if ((0 != oal_strcmp(pc_token, "sys")) && (0 != oal_strcmp(pc_token, "pci0")))
     {
@@ -295,7 +236,7 @@ oal_uint32  wal_test_5115_reg_read(oal_int8 *pc_param)
 
     st_reg_info.pc_reg_type = pc_token;
 
-    /* 获取地址 */
+    /* ???????? */
     pc_token = oal_strtok(OAL_PTR_NULL, pc_sep, &pc_ctx);
     if (OAL_PTR_NULL == pc_token)
     {
@@ -311,15 +252,15 @@ oal_uint32  wal_test_5115_reg_read(oal_int8 *pc_param)
     }
     else   /* pcie0 */
     {
-        /* 配置工作模式，读5115侧 */
+        /* ????????????????5115?? */
         ul_val = oal_readl(g_pst_5115_sys_ctl + OAL_PERI_R_PCIE0);
         ul_val |= BIT21;
         oal_writel(ul_val, g_pst_5115_sys_ctl + OAL_PERI_R_PCIE0);
 
-        /* TBD，后续整改成pst_device->p_pci_dbi_base */
+        /* TBD????????????pst_device->p_pci_dbi_base */
         /* st_reg_info.ul_val = oal_readl(g_pst_5115_pci0 + (st_reg_info.ul_addr - OAL_DBI_BASE_ADDR_0)); */
 
-        /* 配置工作模式，恢复读wifi侧 */
+        /* ????????????????????wifi?? */
         ul_val = oal_readl(g_pst_5115_sys_ctl + OAL_PERI_R_PCIE0);
         ul_val &= (~BIT21);
         oal_writel(ul_val, g_pst_5115_sys_ctl + OAL_PERI_R_PCIE0);
@@ -332,21 +273,7 @@ oal_uint32  wal_test_5115_reg_read(oal_int8 *pc_param)
 }
 
 
-/*****************************************************************************
- 函 数 名  : test_hipriv_proc_write
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月3日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  test_hipriv_proc_write(oal_file_stru *pst_file, const oal_int8 *pc_buffer, oal_uint32 ul_len, oal_void *p_data)
 {
     oal_int8  *pc_cmd;
@@ -371,7 +298,7 @@ oal_int32  test_hipriv_proc_write(oal_file_stru *pst_file, const oal_int8 *pc_bu
 
     ul_ret = oal_copy_from_user(pc_cmd, pc_buffer, ul_len);
 
-    /* copy_from_user函数的目的是从用户空间拷贝数据到内核空间，失败返回没有被拷贝的字节数，成功返回0 */
+    /* copy_from_user??????????????????????????????????????????????????????????????????????????????0 */
     if (ul_ret > 0)
     {
         OAL_IO_PRINT("test_hipriv_proc_write: oal_copy_from_user return ul_ret:%d.\n", ul_ret);
@@ -412,27 +339,13 @@ oal_int32  test_hipriv_proc_write(oal_file_stru *pst_file, const oal_int8 *pc_bu
     return (oal_int32)ul_len;
 }
 
-/*****************************************************************************
- 函 数 名  : test_hipriv_create_proc
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月3日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  test_hipriv_create_proc(oal_void *p_proc_arg)
 {
     OAL_IO_PRINT("enter func:test_hipriv_create_proc!");
 
-    /* 420十进制对应八进制是0644 linux模式定义 S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH); */
-    /* S_IRUSR文件所有者具可读取权限, S_IWUSR文件所有者具可写入权限, S_IRGRP用户组具可读取权限, S_IROTH其他用户具可读取权限 */
+    /* 420??????????????????0644 linux???????? S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH); */
+    /* S_IRUSR??????????????????????, S_IWUSR??????????????????????, S_IRGRP??????????????????, S_IROTH???????????????????? */
     g_pst_test_proc_entry = oal_create_proc_entry(WITP_RW_TEST_HIPRIV_PROC_ENTRY_NAME, 420, NULL);
     if (OAL_PTR_NULL == g_pst_test_proc_entry)
     {
@@ -441,10 +354,10 @@ OAL_STATIC oal_uint32  test_hipriv_create_proc(oal_void *p_proc_arg)
     }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,44))
-    /* oal_create_proc_entry直接返回为NULL */
+    /* oal_create_proc_entry??????????NULL */
 #else
     g_pst_test_proc_entry->data       = p_proc_arg;
-    g_pst_test_proc_entry->nlink      = 1;                   /* linux创建proc默认值 */
+    g_pst_test_proc_entry->nlink      = 1;                   /* linux????proc?????? */
     g_pst_test_proc_entry->read_proc  = OAL_PTR_NULL;
 
     g_pst_test_proc_entry->write_proc = (write_proc_t *)test_hipriv_proc_write;
@@ -452,21 +365,7 @@ OAL_STATIC oal_uint32  test_hipriv_create_proc(oal_void *p_proc_arg)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : test_hipriv_destroy_proc
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年3月24日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  test_hipriv_destroy_proc(oal_void)
 {
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
@@ -476,21 +375,7 @@ OAL_STATIC oal_void  test_hipriv_destroy_proc(oal_void)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : test_main_init
- 功能描述  : 测试入口(初始化)函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月3日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 test_main_init(oal_void)
 {
     oal_uint32   ul_ret;
@@ -507,21 +392,7 @@ OAL_STATIC oal_int32 test_main_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : test_main_exit
- 功能描述  : 测试模块退出(清除)函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年7月3日
-    作    者   : mayuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void test_main_exit(oal_void)
 {
     test_hipriv_destroy_proc();

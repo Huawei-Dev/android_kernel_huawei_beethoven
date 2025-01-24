@@ -1,3 +1,5 @@
+
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
@@ -19,7 +21,12 @@ extern "C" {
 #include "mac_vap.h"
 #include "oal_sdio_comm.h"
 
+/* ?????????? */
+#ifdef CONFIG_ARCH_PLATFORM
+#include <linux/mtd/nve_ap_kernel_interface.h>
+#else
 #include <linux/mtd/hisi_nve_interface.h>
+#endif
 #include <linux/etherdevice.h>
 
 #undef  THIS_FILE_ID
@@ -28,12 +35,20 @@ extern "C" {
 /*
  * 2 Global Variable Definition
  */
-int g_al_host_init_params[WLAN_CFG_INIT_BUTT] = {0};
-int g_al_dts_params[WLAN_CFG_DTS_BUTT] = {0};
-unsigned char g_auc_nv_params[NUM_OF_NV_PARAMS] = {0};
-char g_ac_country_code[COUNTRY_CODE_LEN] = "00";
-unsigned char g_auc_wifimac[MAC_LEN] = {0x00,0x00,0x00,0x00,0x00,0x00};
+int32 g_al_host_init_params[WLAN_CFG_INIT_BUTT] = {0};      /* ini?????????????? */
+int32 g_al_dts_params[WLAN_CFG_DTS_BUTT] = {0};             /* dts?????????????? */
+uint8 g_auc_nv_params[NUM_OF_NV_PARAMS] = {0};              /* nv?????????????? */
+int8 g_ac_country_code[COUNTRY_CODE_LEN] = "00";
+uint8 g_auc_wifimac[MAC_LEN] = {0x00,0x00,0x00,0x00,0x00,0x00};
 
+/*
+ * ????????????
+ * default values as follows:
+ * ampdu_tx_max_num:            WLAN_AMPDU_TX_MAX_NUM               = 64
+ * switch:                      ON                                  = 1
+ * scan_band:                   ROAM_BAND_2G_BIT|ROAM_BAND_5G_BIT   = 3
+ * scan_orthogonal:             ROAM_SCAN_CHANNEL_ORG_BUTT          = 4
+ */
 wlan_customize_stru g_st_wlan_customize = {
             64,             /* addba_buffer_size */
             1,              /* roam switch */
@@ -59,143 +74,165 @@ wlan_customize_stru g_st_wlan_customize = {
 OAL_STATIC countryinfo_stru g_ast_country_info_table[] =
 {
     {REGDOMAIN_COMMON, {'0', '0'}}, // WORLD DOMAIN
-    {REGDOMAIN_FCC, {'A', 'D'}}, // ANDORRA
-    {REGDOMAIN_ETSI, {'A', 'E'}}, //UAE
-    {REGDOMAIN_ETSI, {'A', 'L'}}, //ALBANIA
-    {REGDOMAIN_ETSI, {'A', 'M'}}, //ARMENIA
-    {REGDOMAIN_ETSI, {'A', 'N'}}, //NETHERLANDS ANTILLES
-    {REGDOMAIN_FCC, {'A', 'R'}}, //ARGENTINA
-    {REGDOMAIN_FCC, {'A', 'S'}}, //AMERICAN SOMOA
-    {REGDOMAIN_ETSI, {'A', 'T'}}, //AUSTRIA
-    {REGDOMAIN_FCC, {'A', 'U'}}, //AUSTRALIA
-    {REGDOMAIN_ETSI , {'A', 'W'}}, //ARUBA
-    {REGDOMAIN_ETSI,  {'A', 'Z'}}, //AZERBAIJAN
-    {REGDOMAIN_ETSI, {'B', 'A'}}, //BOSNIA AND HERZEGOVINA
-    {REGDOMAIN_FCC, {'B', 'B'}}, //BARBADOS
-    {REGDOMAIN_ETSI, {'B', 'D'}}, //BANGLADESH
-    {REGDOMAIN_ETSI, { 'B', 'E'}}, //BELGIUM
-    {REGDOMAIN_ETSI, {'B', 'G'}}, //BULGARIA
-    {REGDOMAIN_ETSI, {'B', 'H'}}, //BAHRAIN
-    {REGDOMAIN_ETSI, {'B', 'L'}},
-    {REGDOMAIN_FCC, {'B', 'M'}}, //BERMUDA
-    {REGDOMAIN_ETSI, {'B', 'N'}}, //BRUNEI DARUSSALAM
-    {REGDOMAIN_ETSI, {'B', 'O'}}, //BOLIVIA
-    {REGDOMAIN_ETSI, {'B', 'R'}}, //BRAZIL
-    {REGDOMAIN_FCC, {'B', 'S'}}, //BAHAMAS
-    {REGDOMAIN_ETSI, {'B', 'Y'}}, //BELARUS
-    {REGDOMAIN_ETSI, {'B', 'Z'}}, //BELIZE
-    {REGDOMAIN_FCC, {'C', 'A'}}, //CANADA
-    {REGDOMAIN_ETSI, {'C', 'H'}}, //SWITZERLAND
-    {REGDOMAIN_ETSI, {'C', 'L'}}, //CHILE
+    {REGDOMAIN_FCC,    {'A', 'D'}}, // ANDORRA
+    {REGDOMAIN_ETSI,   {'A', 'E'}}, //UAE
+    {REGDOMAIN_ETSI,   {'A', 'F'}}, //AFGHANISTAN
+    {REGDOMAIN_ETSI,   {'A', 'G'}}, //ANTIGUA AND BARBUDA
+    {REGDOMAIN_ETSI,   {'A', 'I'}}, //ANGUILLA
+    {REGDOMAIN_ETSI,   {'A', 'L'}}, //ALBANIA
+    {REGDOMAIN_ETSI,   {'A', 'M'}}, //ARMENIA
+    {REGDOMAIN_ETSI,   {'A', 'N'}}, //NETHERLANDS ANTILLES
+    {REGDOMAIN_ETSI,   {'A', 'O'}}, //ANGOLA
+    {REGDOMAIN_FCC,    {'A', 'R'}}, //ARGENTINA
+    {REGDOMAIN_FCC,    {'A', 'S'}}, //AMERICAN SOMOA
+    {REGDOMAIN_ETSI,   {'A', 'T'}}, //AUSTRIA
+    {REGDOMAIN_ETSI,   {'A', 'U'}}, //AUSTRALIA
+    {REGDOMAIN_ETSI ,  {'A', 'W'}}, //ARUBA
+    {REGDOMAIN_ETSI,   {'A', 'Z'}}, //AZERBAIJAN
+    {REGDOMAIN_ETSI,   {'B', 'A'}}, //BOSNIA AND HERZEGOVINA
+    {REGDOMAIN_FCC,    {'B', 'B'}}, //BARBADOS
+    {REGDOMAIN_ETSI,   {'B', 'D'}}, //BANGLADESH
+    {REGDOMAIN_ETSI,   {'B', 'E'}}, //BELGIUM
+    {REGDOMAIN_ETSI,   {'B', 'G'}}, //BULGARIA
+    {REGDOMAIN_ETSI,   {'B', 'H'}}, //BAHRAIN
+    {REGDOMAIN_ETSI,   {'B', 'L'}}, //
+    {REGDOMAIN_FCC,    {'B', 'M'}}, //BERMUDA
+    {REGDOMAIN_ETSI,   {'B', 'N'}}, //BRUNEI DARUSSALAM
+    {REGDOMAIN_FCC,    {'B', 'O'}}, //BOLIVIA
+    {REGDOMAIN_FCC,    {'B', 'R'}}, //BRAZIL
+    {REGDOMAIN_FCC,    {'B', 'S'}}, //BAHAMAS
+    {REGDOMAIN_ETSI,   {'B', 'Y'}}, //BELARUS
+    {REGDOMAIN_ETSI,   {'B', 'Z'}}, //BELIZE
+    {REGDOMAIN_FCC,    {'C', 'A'}}, //CANADA
+    {REGDOMAIN_ETSI,   {'C', 'H'}}, //SWITZERLAND
+    {REGDOMAIN_FCC,    {'C', 'L'}}, //CHILE
     {REGDOMAIN_COMMON, {'C', 'N'}}, //CHINA
-    {REGDOMAIN_FCC, {'C', 'O'}}, //COLOMBIA
-    {REGDOMAIN_ETSI, {'C', 'R'}}, //COSTA RICA
-    {REGDOMAIN_ETSI, {'C', 'S'}},
-    {REGDOMAIN_ETSI, {'C', 'Y'}}, //CYPRUS
-    {REGDOMAIN_ETSI, {'C', 'Z'}}, //CZECH REPUBLIC
-    {REGDOMAIN_ETSI, {'D', 'E'}}, //GERMANY
-    {REGDOMAIN_ETSI, {'D', 'K'}}, //DENMARK
-    {REGDOMAIN_FCC, {'D', 'O'}}, //DOMINICAN REPUBLIC
-    {REGDOMAIN_ETSI, {'D', 'Z'}}, //ALGERIA
-    {REGDOMAIN_ETSI, {'E', 'C'}}, //ECUADOR
-    {REGDOMAIN_ETSI, {'E', 'E'}}, //ESTONIA
-    {REGDOMAIN_ETSI, {'E', 'G'}}, //EGYPT
-    {REGDOMAIN_ETSI, {'E', 'S'}}, //SPAIN
-    {REGDOMAIN_ETSI, {'F', 'I'}}, //FINLAND
-    {REGDOMAIN_ETSI, {'F', 'R'}}, //FRANCE
-    {REGDOMAIN_ETSI, {'G', 'B'}}, //UNITED KINGDOM
-    {REGDOMAIN_FCC, {'G', 'D'}},  //GRENADA
-    {REGDOMAIN_ETSI, {'G', 'E'}}, //GEORGIA
-    {REGDOMAIN_ETSI, {'G', 'F'}}, //FRENCH GUIANA
-    {REGDOMAIN_ETSI, {'G', 'L'}}, //GREENLAND
-    {REGDOMAIN_ETSI, {'G', 'P'}}, //GUADELOUPE
-    {REGDOMAIN_ETSI, {'G', 'R'}}, //GREECE
-    {REGDOMAIN_FCC, {'G', 'T'}},  //GUATEMALA
-    {REGDOMAIN_FCC, {'G', 'U'}},  //GUAM
-    {REGDOMAIN_ETSI, {'H', 'U'}}, //HUNGARY
-    {REGDOMAIN_FCC, {'I', 'D'}},  //INDONESIA
-    {REGDOMAIN_ETSI, {'I', 'E'}}, //IRELAND
-    {REGDOMAIN_ETSI, {'I', 'L'}}, //ISRAEL
-    {REGDOMAIN_ETSI, {'I', 'N'}}, //INDIA
-    {REGDOMAIN_ETSI, {'I', 'R'}}, //IRAN, ISLAMIC REPUBLIC OF
-    {REGDOMAIN_ETSI, {'I', 'S'}}, //ICELNAD
-    {REGDOMAIN_ETSI, {'I', 'T'}}, //ITALY
-    {REGDOMAIN_FCC, {'J', 'M'}},  //JAMAICA
-    {REGDOMAIN_JAPAN, {'J', 'P'}}, //JAPAN
-    {REGDOMAIN_ETSI, {'J', 'O'}}, //JORDAN
-    {REGDOMAIN_ETSI, {'K', 'E'}}, //KENYA
-    {REGDOMAIN_ETSI, {'K', 'H'}}, //CAMBODIA
-    {REGDOMAIN_ETSI, {'K', 'P'}}, //KOREA, DEMOCRATIC PEOPLE's REPUBLIC OF
-    {REGDOMAIN_ETSI, {'K', 'R'}}, //KOREA, REPUBLIC OF
-    {REGDOMAIN_ETSI, {'K', 'W'}}, //KUWAIT
-    {REGDOMAIN_ETSI, {'K', 'Z'}}, //KAZAKHSTAN
-    {REGDOMAIN_ETSI, {'L', 'B'}}, //LEBANON
-    {REGDOMAIN_ETSI, {'L', 'I'}}, //LIECHTENSTEIN
-    {REGDOMAIN_ETSI, {'L', 'K'}}, //SRI-LANKA
-    {REGDOMAIN_ETSI, {'L', 'T'}}, //LITHUANIA
-    {REGDOMAIN_ETSI, {'L', 'U'}}, //LUXEMBOURG
-    {REGDOMAIN_ETSI, {'L','V'}},  //LATVIA
-    {REGDOMAIN_ETSI, {'M', 'A'}}, //MOROCCO
-    {REGDOMAIN_ETSI, {'M', 'C'}}, //MONACO
-    {REGDOMAIN_ETSI, {'M', 'K'}}, //MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF
-    {REGDOMAIN_FCC, {'M','N'}}, //MONGOLIA
-    {REGDOMAIN_FCC, {'M', 'O'}}, //MACAO
-    {REGDOMAIN_FCC, {'M', 'P'}}, //NORTHERN MARIANA ISLANDS
-    {REGDOMAIN_ETSI, {'M', 'Q'}}, //MARTINIQUE
-    {REGDOMAIN_FCC, {'M', 'T'}}, //MALTA
-    {REGDOMAIN_ETSI, {'M', 'U'}}, //MAURITIUS
-    {REGDOMAIN_ETSI, {'M', 'W'}}, //MALAWI
-    {REGDOMAIN_FCC, {'M', 'X'}}, //MEXICO
-    {REGDOMAIN_ETSI, {'M', 'Y'}}, //MALAYSIA
-    {REGDOMAIN_ETSI, {'N', 'G'}}, //NIGERIA
-    {REGDOMAIN_FCC, {'N', 'I'}}, //NICARAGUA
-    {REGDOMAIN_ETSI, {'N', 'L'}}, //NETHERLANDS
-    {REGDOMAIN_ETSI, {'N', 'O'}}, //NORWAY
-    {REGDOMAIN_ETSI, {'N', 'P'}}, //NEPAL
-    {REGDOMAIN_FCC, {'N', 'Z'}}, //NEW-ZEALAND
-    {REGDOMAIN_FCC, {'O', 'M'}}, //OMAN
-    {REGDOMAIN_FCC, {'P', 'A'}}, //PANAMA
-    {REGDOMAIN_ETSI, {'P', 'E'}}, //PERU
-    {REGDOMAIN_ETSI, {'P', 'F'}}, //FRENCH POLYNESIA
-    {REGDOMAIN_ETSI, {'P', 'G'}}, //PAPUA NEW GUINEA
-    {REGDOMAIN_FCC, {'P', 'H'}}, //PHILIPPINES
-    {REGDOMAIN_ETSI, {'P', 'K'}}, //PAKISTAN
-    {REGDOMAIN_ETSI, {'P', 'L'}}, //POLAND
-    {REGDOMAIN_FCC, {'P', 'R'}}, //PUERTO RICO
-    {REGDOMAIN_FCC, {'P', 'S'}}, //PALESTINIAN TERRITORY, OCCUPIED
-    {REGDOMAIN_ETSI, {'P', 'T'}}, //PORTUGAL
-    {REGDOMAIN_FCC, {'P', 'Y'}}, //PARAGUAY
-    {REGDOMAIN_ETSI, {'Q', 'A'}}, //QATAR
-    {REGDOMAIN_ETSI, {'R', 'E'}}, //REUNION
-    {REGDOMAIN_ETSI, {'R', 'O'}}, //ROMAINIA
-    {REGDOMAIN_ETSI, {'R', 'S'}}, //SERBIA
-    {REGDOMAIN_ETSI, {'R', 'U'}}, //RUSSIA
-    {REGDOMAIN_FCC, {'R', 'W'}}, //RWANDA
-    {REGDOMAIN_ETSI, {'S', 'A'}}, //SAUDI ARABIA
-    {REGDOMAIN_ETSI, {'S', 'E'}}, //SWEDEN
-    {REGDOMAIN_ETSI, {'S', 'G'}}, //SINGAPORE
-    {REGDOMAIN_ETSI, {'S', 'I'}}, //SLOVENNIA
-    {REGDOMAIN_ETSI, {'S', 'K'}}, //SLOVAKIA
-    {REGDOMAIN_ETSI, {'S', 'V'}}, //EL SALVADOR
-    {REGDOMAIN_ETSI, {'S', 'Y'}}, //SYRIAN ARAB REPUBLIC
-    {REGDOMAIN_ETSI, {'T', 'H'}}, //THAILAND
-    {REGDOMAIN_ETSI, {'T', 'N'}}, //TUNISIA
-    {REGDOMAIN_ETSI, {'T', 'R'}}, //TURKEY
-    {REGDOMAIN_ETSI, {'T', 'T'}}, //TRINIDAD AND TOBAGO
-    {REGDOMAIN_FCC, {'T', 'W'}}, //TAIWAN, PRIVINCE OF CHINA
-    {REGDOMAIN_FCC, {'T', 'Z'}}, //TANZANIA, UNITED REPUBLIC OF
-    {REGDOMAIN_ETSI, {'U', 'A'}}, //UKRAINE
-    {REGDOMAIN_ETSI, {'U', 'G'}}, //UGANDA
-    {REGDOMAIN_FCC, {'U', 'S'}}, //USA
-    {REGDOMAIN_ETSI, {'U', 'Y'}}, //URUGUAY
-    {REGDOMAIN_FCC, {'U', 'Z'}}, //UZBEKISTAN
-    {REGDOMAIN_ETSI, {'V', 'E'}}, //VENEZUELA
-    {REGDOMAIN_FCC, {'V', 'I'}}, //VIRGIN ISLANDS, US
-    {REGDOMAIN_ETSI, {'V', 'N'}}, //VIETNAM
-    {REGDOMAIN_ETSI, {'Y', 'E'}}, //YEMEN
-    {REGDOMAIN_ETSI, {'Y', 'T'}}, //MAYOTTE
-    {REGDOMAIN_ETSI, {'Z', 'A'}}, //SOUTH AFRICA
-    {REGDOMAIN_ETSI, {'Z', 'W'}}, //ZIMBABWE
+    {REGDOMAIN_FCC,    {'C', 'O'}}, //COLOMBIA
+    {REGDOMAIN_FCC,    {'C', 'R'}}, //COSTA RICA
+    {REGDOMAIN_ETSI,   {'C', 'S'}}, //
+    {REGDOMAIN_ETSI,   {'C', 'U'}}, //CUBA
+    {REGDOMAIN_ETSI,   {'C', 'Y'}}, //CYPRUS
+    {REGDOMAIN_ETSI,   {'C', 'Z'}}, //CZECH REPUBLIC
+    {REGDOMAIN_ETSI,   {'D', 'E'}}, //GERMANY
+    {REGDOMAIN_ETSI,   {'D', 'K'}}, //DENMARK
+    {REGDOMAIN_FCC,    {'D', 'O'}}, //DOMINICAN REPUBLIC
+    {REGDOMAIN_ETSI,   {'D', 'Z'}}, //ALGERIA
+    {REGDOMAIN_FCC,    {'E', 'C'}}, //ECUADOR
+    {REGDOMAIN_ETSI,   {'E', 'E'}}, //ESTONIA
+    {REGDOMAIN_ETSI,   {'E', 'G'}}, //EGYPT
+    {REGDOMAIN_ETSI,   {'E', 'S'}}, //SPAIN
+    {REGDOMAIN_ETSI,   {'E', 'T'}}, //ETHIOPIA
+    {REGDOMAIN_ETSI,   {'F', 'I'}}, //FINLAND
+    {REGDOMAIN_ETSI,   {'F', 'R'}}, //FRANCE
+    {REGDOMAIN_ETSI,   {'G', 'B'}}, //UNITED KINGDOM
+    {REGDOMAIN_FCC,    {'G', 'D'}}, //GRENADA
+    {REGDOMAIN_ETSI,   {'G', 'E'}}, //GEORGIA
+    {REGDOMAIN_ETSI,   {'G', 'F'}}, //FRENCH GUIANA
+    {REGDOMAIN_ETSI,   {'G', 'L'}}, //GREENLAND
+    {REGDOMAIN_ETSI,   {'G', 'P'}}, //GUADELOUPE
+    {REGDOMAIN_ETSI,   {'G', 'R'}}, //GREECE
+    {REGDOMAIN_FCC,    {'G', 'T'}}, //GUATEMALA
+    {REGDOMAIN_FCC,    {'G', 'U'}}, //GUAM
+    {REGDOMAIN_ETSI,   {'H', 'K'}}, //HONGKONG
+    {REGDOMAIN_FCC,    {'H', 'N'}}, //HONDURAS
+    {REGDOMAIN_ETSI,   {'H', 'R'}}, //Croatia
+    {REGDOMAIN_ETSI,   {'H', 'U'}}, //HUNGARY
+    {REGDOMAIN_ETSI,   {'I', 'D'}}, //INDONESIA
+    {REGDOMAIN_ETSI,   {'I', 'E'}}, //IRELAND
+    {REGDOMAIN_ETSI,   {'I', 'L'}}, //ISRAEL
+    {REGDOMAIN_ETSI,   {'I', 'N'}}, //INDIA
+    {REGDOMAIN_ETSI,   {'I', 'Q'}}, //IRAQ
+    {REGDOMAIN_ETSI,   {'I', 'R'}}, //IRAN, ISLAMIC REPUBLIC OF
+    {REGDOMAIN_ETSI,   {'I', 'S'}}, //ICELNAD
+    {REGDOMAIN_ETSI,   {'I', 'T'}}, //ITALY
+    {REGDOMAIN_FCC,    {'J', 'M'}}, //JAMAICA
+    {REGDOMAIN_JAPAN,  {'J', 'P'}}, //JAPAN
+    {REGDOMAIN_ETSI,   {'J', 'O'}}, //JORDAN
+    {REGDOMAIN_ETSI,   {'K', 'E'}}, //KENYA
+    {REGDOMAIN_ETSI,   {'K', 'H'}}, //CAMBODIA
+    {REGDOMAIN_ETSI,   {'K', 'P'}}, //KOREA, DEMOCRATIC PEOPLE's REPUBLIC OF
+    {REGDOMAIN_ETSI,   {'K', 'R'}}, //KOREA, REPUBLIC OF
+    {REGDOMAIN_ETSI,   {'K', 'W'}}, //KUWAIT
+    {REGDOMAIN_ETSI,   {'K', 'Y'}}, //Cayman Is
+    {REGDOMAIN_ETSI,   {'K', 'Z'}}, //KAZAKHSTAN
+    {REGDOMAIN_ETSI,   {'L', 'B'}}, //LEBANON
+    {REGDOMAIN_ETSI,   {'L', 'I'}}, //LIECHTENSTEIN
+    {REGDOMAIN_ETSI,   {'L', 'K'}}, //SRI-LANKA
+    {REGDOMAIN_ETSI,   {'L', 'S'}}, //KINGDOM OF LESOTH
+    {REGDOMAIN_ETSI,   {'L', 'T'}}, //LITHUANIA
+    {REGDOMAIN_ETSI,   {'L', 'U'}}, //LUXEMBOURG
+    {REGDOMAIN_ETSI,   {'L', 'V'}}, //LATVIA
+    {REGDOMAIN_ETSI,   {'M', 'A'}}, //MOROCCO
+    {REGDOMAIN_ETSI,   {'M', 'C'}}, //MONACO
+    {REGDOMAIN_ETSI,   {'M', 'D'}}, //REPUBLIC OF MOLDOVA
+    {REGDOMAIN_ETSI,   {'M', 'E'}}, //Montenegro
+    {REGDOMAIN_FCC,    {'M', 'H'}}, //Marshall Is
+    {REGDOMAIN_ETSI,   {'M', 'K'}}, //MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF
+    {REGDOMAIN_ETSI,   {'M', 'M'}}, //MYANMAR
+    {REGDOMAIN_FCC,    {'M', 'N'}}, //MONGOLIA
+    {REGDOMAIN_ETSI,   {'M', 'O'}}, //MACAO
+    {REGDOMAIN_FCC,    {'M', 'P'}}, //NORTHERN MARIANA ISLANDS
+    {REGDOMAIN_ETSI,   {'M', 'Q'}}, //MARTINIQUE
+    {REGDOMAIN_ETSI,   {'M', 'R'}}, //Mauritania
+    {REGDOMAIN_ETSI,   {'M', 'T'}}, //MALTA
+    {REGDOMAIN_ETSI,   {'M', 'V'}}, //Maldives
+    {REGDOMAIN_ETSI,   {'M', 'U'}}, //MAURITIUS
+    {REGDOMAIN_ETSI,   {'M', 'W'}}, //MALAWI
+    {REGDOMAIN_ETSI,   {'M', 'X'}}, //MEXICO
+    {REGDOMAIN_ETSI,   {'M', 'Y'}}, //MALAYSIA
+    {REGDOMAIN_ETSI,   {'N', 'G'}}, //NIGERIA
+    {REGDOMAIN_FCC,    {'N', 'I'}}, //NICARAGUA
+    {REGDOMAIN_ETSI,   {'N', 'L'}}, //NETHERLANDS
+    {REGDOMAIN_ETSI,   {'N', 'O'}}, //NORWAY
+    {REGDOMAIN_ETSI,   {'N', 'P'}}, //NEPAL
+    {REGDOMAIN_ETSI,   {'N', 'Z'}}, //NEW-ZEALAND
+    {REGDOMAIN_ETSI,   {'O', 'M'}}, //OMAN
+    {REGDOMAIN_FCC,    {'P', 'A'}}, //PANAMA
+    {REGDOMAIN_FCC,    {'P', 'E'}}, //PERU
+    {REGDOMAIN_ETSI,   {'P', 'F'}}, //FRENCH POLYNESIA
+    {REGDOMAIN_ETSI,   {'P', 'G'}}, //PAPUA NEW GUINEA
+    {REGDOMAIN_ETSI,   {'P', 'H'}}, //PHILIPPINES
+    {REGDOMAIN_ETSI,   {'P', 'K'}}, //PAKISTAN
+    {REGDOMAIN_ETSI,   {'P', 'L'}}, //POLAND
+    {REGDOMAIN_FCC,    {'P', 'R'}}, //PUERTO RICO
+    {REGDOMAIN_FCC,    {'P', 'S'}}, //PALESTINIAN TERRITORY, OCCUPIED
+    {REGDOMAIN_ETSI,   {'P', 'T'}}, //PORTUGAL
+    {REGDOMAIN_FCC,    {'P', 'Y'}}, //PARAGUAY
+    {REGDOMAIN_ETSI,   {'Q', 'A'}}, //QATAR
+    {REGDOMAIN_ETSI,   {'R', 'E'}}, //REUNION
+    {REGDOMAIN_ETSI,   {'R', 'O'}}, //ROMAINIA
+    {REGDOMAIN_ETSI,   {'R', 'S'}}, //SERBIA
+    {REGDOMAIN_ETSI,   {'R', 'U'}}, //RUSSIA
+    {REGDOMAIN_FCC,    {'R', 'W'}}, //RWANDA
+    {REGDOMAIN_ETSI,   {'S', 'A'}}, //SAUDI ARABIA
+    {REGDOMAIN_ETSI,   {'S', 'D'}}, //SUDAN ,REPUBLIC OF THE
+    {REGDOMAIN_ETSI,   {'S', 'E'}}, //SWEDEN
+    {REGDOMAIN_ETSI,   {'S', 'G'}}, //SINGAPORE
+    {REGDOMAIN_ETSI,   {'S', 'I'}}, //SLOVENNIA
+    {REGDOMAIN_ETSI,   {'S', 'K'}}, //SLOVAKIA
+    {REGDOMAIN_ETSI,   {'S', 'N'}}, //Senegal
+    {REGDOMAIN_ETSI,   {'S', 'V'}}, //EL SALVADOR
+    {REGDOMAIN_ETSI,   {'S', 'Y'}}, //SYRIAN ARAB REPUBLIC
+    {REGDOMAIN_ETSI,   {'T', 'H'}}, //THAILAND
+    {REGDOMAIN_ETSI,   {'T', 'N'}}, //TUNISIA
+    {REGDOMAIN_ETSI,   {'T', 'R'}}, //TURKEY
+    {REGDOMAIN_ETSI,   {'T', 'T'}}, //TRINIDAD AND TOBAGO
+    {REGDOMAIN_FCC,    {'T', 'W'}}, //TAIWAN, PRIVINCE OF CHINA
+    {REGDOMAIN_FCC,    {'T', 'Z'}}, //TANZANIA, UNITED REPUBLIC OF
+    {REGDOMAIN_ETSI,   {'U', 'A'}}, //UKRAINE
+    {REGDOMAIN_ETSI,   {'U', 'G'}}, //UGANDA
+    {REGDOMAIN_FCC,    {'U', 'S'}}, //USA
+    {REGDOMAIN_FCC,    {'U', 'Y'}}, //URUGUAY
+    {REGDOMAIN_ETSI,   {'U', 'Z'}}, //UZBEKISTAN
+    {REGDOMAIN_FCC,    {'V', 'E'}}, //VENEZUELA
+    {REGDOMAIN_FCC,    {'V', 'I'}}, //VIRGIN ISLANDS, US
+    {REGDOMAIN_ETSI,   {'V', 'N'}}, //VIETNAM
+    {REGDOMAIN_ETSI,   {'Y', 'E'}}, //YEMEN
+    {REGDOMAIN_ETSI,   {'Y', 'T'}}, //MAYOTTE
+    {REGDOMAIN_ETSI,   {'Z', 'A'}}, //SOUTH AFRICA
+    {REGDOMAIN_ETSI,   {'Z', 'M'}}, //Zambia
+    {REGDOMAIN_ETSI,   {'Z', 'W'}}, //ZIMBABWE
+
 
     {REGDOMAIN_COUNT,{'9','9'}},
 };
@@ -207,8 +244,8 @@ OAL_STATIC countryinfo_stru g_ast_country_info_table[] =
 OAL_STATIC regdomain_plat_tag_map_stru g_ast_plat_tag_mapping_table[] =
 {
         {REGDOMAIN_FCC,     INI_MODU_POWER_FCC},        //FCC
-        {REGDOMAIN_ETSI,    INI_MODU_POWER_ETSI},       //ETSI
-        {REGDOMAIN_JAPAN,   INI_MODU_POWER_JP},         //JP
+        {REGDOMAIN_ETSI,    INI_MODU_WIFI},             //ETSI
+        {REGDOMAIN_JAPAN,   INI_MODU_WIFI},             //JP
         {REGDOMAIN_COMMON,  INI_MODU_WIFI},             //COMMON
 
         {REGDOMAIN_COUNT,   INI_MODU_INVALID}
@@ -216,7 +253,9 @@ OAL_STATIC regdomain_plat_tag_map_stru g_ast_plat_tag_mapping_table[] =
 
 OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_dts[] =
 {
+    /* 5g???? */
     {"band_5g_enable",                                       WLAN_CFG_DTS_BAND_5G_ENABLE},
+    /* ???? */
     {"cali_txpwr_pa_dc_ref_2g_val_chan1",                    WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN1},
     {"cali_txpwr_pa_dc_ref_2g_val_chan2",                    WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN2},
     {"cali_txpwr_pa_dc_ref_2g_val_chan3",                    WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN3},
@@ -238,6 +277,7 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_dts[] =
     {"cali_txpwr_pa_dc_ref_5g_val_band6",                    WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_5G_VAL_BAND6},
     {"cali_txpwr_pa_dc_ref_5g_val_band7",                    WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_5G_VAL_BAND7},
     {"cali_tone_amp_grade",                                  WLAN_CFG_DTS_CALI_TONE_AMP_GRADE},
+    /* FCC???? */
     {"band_edge_limit_2g_11g_txpwr",                         WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11G_TXPWR},
     {"band_edge_limit_2g_11n_ht20_txpwr",                    WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT20_TXPWR},
     {"band_edge_limit_2g_11n_ht40_txpwr",                    WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT40_TXPWR},
@@ -256,6 +296,7 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_dts[] =
     {"rf_reg124",                                           WLAN_CFG_DTS_RF_REG124},
     {"rf_reg125",                                           WLAN_CFG_DTS_RF_REG125},
     {"rf_reg126",                                           WLAN_CFG_DTS_RF_REG126},
+    /* bt ???? */
     {"cali_txpwr_pa_ref_band1",                              WLAN_CFG_DTS_BT_CALI_TXPWR_PA_REF_BAND1},
     {"cali_txpwr_pa_ref_band2",                              WLAN_CFG_DTS_BT_CALI_TXPWR_PA_REF_BAND2},
     {"cali_txpwr_pa_ref_band3",                              WLAN_CFG_DTS_BT_CALI_TXPWR_PA_REF_BAND3},
@@ -275,6 +316,11 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_dts[] =
     {"cali_txpwr_pa_fre8",                                   WLAN_CFG_DTS_BT_CALI_TXPWR_PA_FRE8},
     {"cali_bt_tone_amp_grade",                               WLAN_CFG_DTS_BT_CALI_TONE_AMP_GRADE},
 
+    /* ?????????????????????????? */
+    {"band_edge_limit_txpwr_fix",                            WLAN_CFG_DTS_BAND_EDGE_LIMIT_TXPWR_FIX},
+    /* 5G IQ ???????????????????? */
+    {"5g_iq_cali_agc_control",                               WLAN_CFG_DTS_5G_IQ_CALI_AGC_CONTROL},
+
     {OAL_PTR_NULL, 0}
 };
 
@@ -288,6 +334,7 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
     {"delta_b",                         WLAN_CFG_INIT_DELTA_B},
     {"delta_a",                         WLAN_CFG_INIT_DELTA_A},
 
+    /* ???? */
     {"ampdu_tx_max_num",                WLAN_CFG_INIT_AMPDU_TX_MAX_NUM},
     {"used_mem_for_start",              WLAN_CFG_INIT_USED_MEM_FOR_START},
     {"used_mem_for_stop",               WLAN_CFG_INIT_USED_MEM_FOR_STOP},
@@ -298,6 +345,7 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
     {"link_loss_threshold_wlan_near",   WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_WLAN_NEAR},
     {"link_loss_threshold_wlan_far",    WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_WLAN_FAR},
     {"link_loss_threshold_p2p",         WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_P2P},
+    /* ???????? */
     {"pss_threshold_level_0",           WLAN_CFG_INIT_PSS_THRESHOLD_LEVEL_0},
     {"cpu_freq_limit_level_0",          WLAN_CFG_INIT_CPU_FREQ_LIMIT_LEVEL_0},
     {"ddr_freq_limit_level_0",          WLAN_CFG_INIT_DDR_FREQ_LIMIT_LEVEL_0},
@@ -314,18 +362,24 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
     {"device_type_level_1",             WLAN_CFG_INIT_DEVICE_TYPE_LEVEL_1},
     {"device_type_level_2",             WLAN_CFG_INIT_DEVICE_TYPE_LEVEL_2},
     {"device_type_level_3",             WLAN_CFG_INIT_DEVICE_TYPE_LEVEL_3},
+    /* ?????? */
     {"powermgmt_switch",                WLAN_CFG_INIT_POWERMGMT_SWITCH},
+    /* ???????? */
     {"loglevel",                        WLAN_CFG_INIT_LOGLEVEL},
+    /* PHY???? */
     {"chn_est_ctrl",                    WLAN_CFG_INIT_CHN_EST_CTRL},
     {"power_ref_5g",                    WLAN_CFG_INIT_POWER_REF_5G},
+    /* ???????? */
     {"rts_clk_freq",                    WLAN_CFG_INIT_RTS_CLK_FREQ},
     {"clk_type",                        WLAN_CFG_INIT_CLK_TYPE},
+    /* 2G RF???? */
     {"rf_line_txrx_gain_db_2g_band1_mult4",     WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND1_MULT4},
     {"rf_line_txrx_gain_db_2g_band1_mult10",    WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND1_MULT10},
     {"rf_line_txrx_gain_db_2g_band2_mult4",     WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND2_MULT4},
     {"rf_line_txrx_gain_db_2g_band2_mult10",    WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND2_MULT10},
     {"rf_line_txrx_gain_db_2g_band3_mult4",     WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND3_MULT4},
     {"rf_line_txrx_gain_db_2g_band3_mult10",    WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND3_MULT10},
+    /* 5G RF???? */
     {"rf_line_txrx_gain_db_5g_band1_mult4",     WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND1_MULT4},
     {"rf_line_txrx_gain_db_5g_band1_mult10",    WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND1_MULT10},
     {"rf_line_txrx_gain_db_5g_band2_mult4",     WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND2_MULT4},
@@ -348,6 +402,7 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
     {"ext_lna_isexist_5g",              WLAN_CFG_INIT_EXT_LNA_ISEXIST_5G},
     {"lna_on2off_time_ns_5g",           WLAN_CFG_INIT_LNA_ON2OFF_TIME_NS_5G},
     {"lna_off2on_time_ns_5g",           WLAN_CFG_INIT_LNA_OFF2ON_TIME_NS_5G},
+    /* ?????????????????????????????????????? */
     {"tx_ratio_level_0",                WLAN_CFG_INIT_TX_RATIO_LEVEL_0},
     {"tx_pwr_comp_val_level_0",         WLAN_CFG_INIT_TX_PWR_COMP_VAL_LEVEL_0},
     {"tx_ratio_level_1",                WLAN_CFG_INIT_TX_RATIO_LEVEL_1},
@@ -360,9 +415,9 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
     /* 11AC2G */
     {"11ac2g_enable",                   WLAN_CFG_INIT_11AC2G_ENABLE},
     {"disable_capab_2ght40",            WLAN_CFG_INIT_DISABLE_CAPAB_2GHT40},
-    {"dual_antenna_enable",             WLAN_CFG_INIT_DUAL_ANTENNA_ENABLE},
+    {"dual_antenna_enable",             WLAN_CFG_INIT_DUAL_ANTENNA_ENABLE}, /* ?????????? */
     {"far_dist_pow_gain_switch",        WLAN_CFG_INIT_FAR_DIST_POW_GAIN_SWITCH},
-    {"lte_gpio_check_switch",           WLAN_CFG_LTE_GPIO_CHECK_SWITCH},
+    {"lte_gpio_check_switch",           WLAN_CFG_LTE_GPIO_CHECK_SWITCH},/* lte???????????? */
     {"lte_ism_priority",                WLAN_ATCMDSRV_LTE_ISM_PRIORITY},
     {"lte_rx_act",                      WLAN_ATCMDSRV_LTE_RX_ACT},
     {"lte_tx_act",                      WLAN_ATCMDSRV_LTE_TX_ACT},
@@ -374,6 +429,19 @@ OAL_STATIC wlan_cfg_cmd g_ast_wifi_config_cmds[] =
 #ifdef _PRE_WLAN_DOWNLOAD_PM
     {"download_rate_limit_pps",         WLAN_CFG_INIT_DOWNLOAD_RATE_LIMIT_PPS},
 #endif
+    /* TCP ACK ???? ?????????????? */
+    {"tcp_ack_opt_on_th",                           WLAN_CFG_INIT_TCP_ACK_OPT_ON_TH},
+    {"tcp_ack_opt_off_th",                          WLAN_CFG_INIT_TCP_ACK_OPT_OFF_TH},
+    {"btcoex_ps_switch",                  WLAN_CFG_INIT_BTCOEX_PS_SWITCH},
+
+    /* CE ??band(ch149~ch165) ???????????? */
+    {"ce_5g_high_band_txpwr",                       WLAN_CFG_INIT_CE_5G_HIGH_BAND_TXPWR},
+    {"ce_5g_high_band_11a_ht20_vht20_dbb_scaling",  WLAN_CFG_INIT_CE_5G_HIGH_BAND_11A_HT20_VHT20_DBB_SCALING},
+    {"ce_5g_high_band_ht40_vht40_dbb_scaling",      WLAN_CFG_INIT_CE_5G_HIGH_BAND_HT40_VHT40_DBB_SCALING},
+    {"ce_5g_high_band_vht80_dbb_scaling",           WLAN_CFG_INIT_CE_5G_HIGH_BAND_VHT80_DBB_SCALING},
+    {"ce_5g_high_band_ht40_vht40_mcs8_9_dbb_comp",  WLAN_CFG_INIT_CE_5G_HIGH_BAND_HT40_VHT40_MCS8_9_DBB_COMP},
+    {"ce_5g_high_band_vht80_mcs8_9_dbb_comp",       WLAN_CFG_INIT_CE_5G_HIGH_BAND_VHT80_MCS8_9_DBB_COMP},
+
     {OAL_PTR_NULL, 0}
 };
 
@@ -407,9 +475,11 @@ OAL_STATIC wlan_cfg_cmd g_ast_nvram_config_ini[NVRAM_PARAMS_INDEX_BUTT] =
     {"nvram_params25",                    NVRAM_PARAMS_INDEX_25},
 };
 
+
 OAL_STATIC oal_void original_value_for_dts_params(oal_void)
 {
     g_al_dts_params[WLAN_CFG_DTS_BAND_5G_ENABLE]                        = 0;
+    /* ???? */
     g_al_dts_params[WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN1]     = 6250;
     g_al_dts_params[WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN2]     = 5362;
     g_al_dts_params[WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_2G_VAL_CHAN3]     = 4720;
@@ -431,6 +501,8 @@ OAL_STATIC oal_void original_value_for_dts_params(oal_void)
     g_al_dts_params[WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_5G_VAL_BAND6]     = 3700;
     g_al_dts_params[WLAN_CFG_DTS_CALI_TXPWR_PA_DC_REF_5G_VAL_BAND7]     = 3800;
     g_al_dts_params[WLAN_CFG_DTS_CALI_TONE_AMP_GRADE]                   = 2;
+    /* FCC???? */
+    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_TXPWR_FIX]                         = 0;
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11G_TXPWR]                      = 150;
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT20_TXPWR]                 = 150;
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT40_TXPWR]                 = 150;
@@ -440,9 +512,9 @@ OAL_STATIC oal_void original_value_for_dts_params(oal_void)
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11G_DBB_SCALING]                = 0x68;
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT20_DBB_SCALING]           = 0x62;
     g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_2G_11N_HT40_DBB_SCALING]           = 0x62;
-    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_11A_HT20_VHT20_DBB_SCALING]     = 0x68;
-    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_HT40_VHT40_DBB_SCALING]         = 0x68;
-    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_VHT80_DBB_SCALING]              = 0x68;
+    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_11A_HT20_VHT20_DBB_SCALING]     = 0x68;/* ???? */
+    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_HT40_VHT40_DBB_SCALING]         = 0x68;/* ???? */
+    g_al_dts_params[WLAN_CFG_DTS_BAND_EDGE_LIMIT_5G_VHT80_DBB_SCALING]              = 0x68;/* ???? */
     /* rf register */
     g_al_dts_params[WLAN_CFG_DTS_RF_REG117]                                 = 0x0505;
     g_al_dts_params[WLAN_CFG_DTS_RF_REG123]                                 = 0x9d01;
@@ -468,6 +540,8 @@ OAL_STATIC oal_void original_value_for_dts_params(oal_void)
     g_al_dts_params[WLAN_CFG_DTS_BT_CALI_TXPWR_PA_FRE7]                 = 76;
     g_al_dts_params[WLAN_CFG_DTS_BT_CALI_TXPWR_PA_FRE8]                 = 78;
     g_al_dts_params[WLAN_CFG_DTS_BT_CALI_TONE_AMP_GRADE]                = 2;
+    /* 5G IQ ???????????????????? */
+    g_al_dts_params[WLAN_CFG_DTS_5G_IQ_CALI_AGC_CONTROL]                = 0;
 }
 
 OAL_STATIC oal_void host_params_init_first(oal_void)
@@ -480,6 +554,7 @@ OAL_STATIC oal_void host_params_init_first(oal_void)
     g_al_host_init_params[WLAN_CFG_INIT_DELTA_B]                           = 10;
     g_al_host_init_params[WLAN_CFG_INIT_DELTA_A]                           = 10;
 
+    /* ???? */
     g_al_host_init_params[WLAN_CFG_INIT_AMPDU_TX_MAX_NUM]                  = WLAN_AMPDU_TX_MAX_BUF_SIZE;
     g_al_host_init_params[WLAN_CFG_INIT_USED_MEM_FOR_START]                = 45;
     g_al_host_init_params[WLAN_CFG_INIT_USED_MEM_FOR_STOP]                 = 25;
@@ -490,6 +565,7 @@ OAL_STATIC oal_void host_params_init_first(oal_void)
     g_al_host_init_params[WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_WLAN_NEAR]     = 40;
     g_al_host_init_params[WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_WLAN_FAR]      = 100;
     g_al_host_init_params[WLAN_CFG_INIT_LINK_LOSS_THRESHOLD_P2P]           = 40;
+    /* ???????? */
     g_al_host_init_params[WLAN_CFG_INIT_PSS_THRESHOLD_LEVEL_0]             = PPS_VALUE_0;
     g_al_host_init_params[WLAN_CFG_INIT_CPU_FREQ_LIMIT_LEVEL_0]            = CPU_MIN_FREQ_VALUE_0;
     g_al_host_init_params[WLAN_CFG_INIT_DDR_FREQ_LIMIT_LEVEL_0]            = DDR_MIN_FREQ_VALUE_0;
@@ -506,24 +582,25 @@ OAL_STATIC oal_void host_params_init_first(oal_void)
     g_al_host_init_params[WLAN_CFG_INIT_CPU_FREQ_LIMIT_LEVEL_3]            = CPU_MIN_FREQ_VALUE_3;
     g_al_host_init_params[WLAN_CFG_INIT_DDR_FREQ_LIMIT_LEVEL_3]            = DDR_MIN_FREQ_VALUE_3;
     g_al_host_init_params[WLAN_CFG_INIT_DEVICE_TYPE_LEVEL_3]               = FREQ_HIGHEST;
-
+    /* ?????? */
     g_al_host_init_params[WLAN_CFG_INIT_POWERMGMT_SWITCH]                  = 1;
-
+    /* ???????? */
+    /* ???????? */
     g_al_host_init_params[WLAN_CFG_INIT_LOGLEVEL]                          = OAM_LOG_LEVEL_WARNING;
-
+    /* PHY???? */
     g_al_host_init_params[WLAN_CFG_INIT_CHN_EST_CTRL]                      = CHN_EST_CTRL_MATE7;
     g_al_host_init_params[WLAN_CFG_INIT_POWER_REF_5G]                      = PHY_POWER_REF_5G_MT7;
-
+    /* ???????? */
     g_al_host_init_params[WLAN_CFG_INIT_RTS_CLK_FREQ]                      = 32768;
     g_al_host_init_params[WLAN_CFG_INIT_CLK_TYPE]                          = 0;
-
+    /* 2G RF???? */
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND1_MULT4]    = -12;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND1_MULT10]   = -30;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND2_MULT4]    = -12;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND2_MULT10]   = -30;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND3_MULT4]    = -12;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_2G_BAND3_MULT10]   = -30;
-
+    /* 5G RF???? */
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND1_MULT4]    = -8;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND1_MULT10]   = -20;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND2_MULT4]    = -8;
@@ -538,14 +615,15 @@ OAL_STATIC oal_void host_params_init_first(oal_void)
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND6_MULT10]   = -20;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND7_MULT4]    = -8;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TXRX_GAIN_DB_5G_BAND7_MULT10]   = -20;
-    g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_RX_GAIN_DB_5G]             = -12;
-    g_al_host_init_params[WLAN_CFG_INIT_LNA_GAIN_DB_5G]                    = 20;
+    g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_RX_GAIN_DB_5G]             = -36;
+    g_al_host_init_params[WLAN_CFG_INIT_LNA_GAIN_DB_5G]                    = 48;
     g_al_host_init_params[WLAN_CFG_INIT_RF_LINE_TX_GAIN_DB_5G]             = -12;
     g_al_host_init_params[WLAN_CFG_INIT_EXT_SWITCH_ISEXIST_5G]             = 1;
     g_al_host_init_params[WLAN_CFG_INIT_EXT_PA_ISEXIST_5G]                 = 1;
     g_al_host_init_params[WLAN_CFG_INIT_EXT_LNA_ISEXIST_5G]                = 1;
     g_al_host_init_params[WLAN_CFG_INIT_LNA_ON2OFF_TIME_NS_5G]             = 630;
     g_al_host_init_params[WLAN_CFG_INIT_LNA_OFF2ON_TIME_NS_5G]             = 320;
+    /* ?????????????????????????????????????? */
     g_al_host_init_params[WLAN_CFG_INIT_TX_RATIO_LEVEL_0]                  = 900;
     g_al_host_init_params[WLAN_CFG_INIT_TX_PWR_COMP_VAL_LEVEL_0]           = 17;
     g_al_host_init_params[WLAN_CFG_INIT_TX_RATIO_LEVEL_1]                  = 650;
@@ -572,20 +650,36 @@ OAL_STATIC oal_void host_params_init_first(oal_void)
 #ifdef _PRE_WLAN_DOWNLOAD_PM
     g_al_host_init_params[WLAN_CFG_INIT_DOWNLOAD_RATE_LIMIT_PPS]           = 0;
 #endif
+    /* TCP ACK ?????????????? ?????????? */
+    g_al_host_init_params[WLAN_CFG_INIT_TCP_ACK_OPT_ON_TH]              = 0;
+    g_al_host_init_params[WLAN_CFG_INIT_TCP_ACK_OPT_OFF_TH]             = 0;
+    g_al_host_init_params[WLAN_CFG_INIT_BTCOEX_PS_SWITCH]                  = 1;
+
+    /* CE 5G ??band ?????????? */
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_TXPWR]                        = 0xFF;
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_11A_HT20_VHT20_DBB_SCALING]   = 0x4c;/* ???? */
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_HT40_VHT40_DBB_SCALING]       = 0x4c;/* ???? */
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_VHT80_DBB_SCALING]            = 0x4c;/* ???? */
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_HT40_VHT40_MCS8_9_DBB_COMP]   = 0;
+    g_al_host_init_params[WLAN_CFG_INIT_CE_5G_HIGH_BAND_VHT80_MCS8_9_DBB_COMP]        = 0;
+
 }
 
-OAL_STATIC regdomain_enum hwifi_get_regdomain_from_country_code(const countrycode_t country_code)
+
+regdomain_enum hwifi_get_regdomain_from_country_code_1102(const countrycode_t country_code)
 {
     regdomain_enum  en_regdomain = REGDOMAIN_COMMON;
-    int           table_idx = 0;
+    int32           table_idx = 0;
 
     while (g_ast_country_info_table[table_idx].en_regdomain != REGDOMAIN_COUNT)
     {
         if (0 == oal_memcmp(country_code, g_ast_country_info_table[table_idx].auc_country_code, COUNTRY_CODE_LEN))
         {
-            // en_regdomain = g_ast_country_info_table[table_idx].en_regdomain;
+            /* ????CE/FCC/NORMAL ???? */
+            en_regdomain = g_ast_country_info_table[table_idx].en_regdomain;
 
-            en_regdomain = (g_ast_country_info_table[table_idx].en_regdomain == REGDOMAIN_FCC) ? REGDOMAIN_FCC : REGDOMAIN_COMMON;
+            /* ??????????FCC????FCC */
+            //en_regdomain = (g_ast_country_info_table[table_idx].en_regdomain == REGDOMAIN_FCC) ? REGDOMAIN_FCC : REGDOMAIN_COMMON;
             break;
         }
         ++table_idx;
@@ -594,17 +688,19 @@ OAL_STATIC regdomain_enum hwifi_get_regdomain_from_country_code(const countrycod
     return en_regdomain;
 }
 
-int hwifi_is_regdomain_changed(const countrycode_t country_code_old, const countrycode_t country_code_new)
+
+int32 hwifi_is_regdomain_changed(const countrycode_t country_code_old, const countrycode_t country_code_new)
 {
-    return hwifi_get_regdomain_from_country_code(country_code_old) != hwifi_get_regdomain_from_country_code(country_code_new);
+    return hwifi_get_regdomain_from_country_code_1102(country_code_old) != hwifi_get_regdomain_from_country_code_1102(country_code_new);
 }
 
-OAL_STATIC int hwifi_get_plat_tag_from_country_code(const countrycode_t country_code)
+
+OAL_STATIC int32 hwifi_get_plat_tag_from_country_code(const countrycode_t country_code)
 {
     regdomain_enum  en_regdomain;
-    int           table_idx = 0;
+    int32           table_idx = 0;
 
-    en_regdomain = hwifi_get_regdomain_from_country_code(country_code);
+    en_regdomain = hwifi_get_regdomain_from_country_code_1102(country_code);
 
     while(g_ast_plat_tag_mapping_table[table_idx].en_regdomain != REGDOMAIN_COUNT
         && g_ast_plat_tag_mapping_table[table_idx].plat_tag != INI_MODU_INVALID)
@@ -622,11 +718,12 @@ OAL_STATIC int hwifi_get_plat_tag_from_country_code(const countrycode_t country_
     return INI_MODU_WIFI;
 }
 
-int hwifi_fetch_ori_caldata(unsigned char* auc_caldata, int l_nvm_len)
+
+int32 hwifi_fetch_ori_caldata(uint8* auc_caldata, int32 l_nvm_len)
 {
-    int l_ret = INI_FAILED;
-    int l_cfg_id;
-    int aul_nvram_params[NVRAM_PARAMS_INDEX_BUTT]={0};
+    int32 l_ret = INI_FAILED;
+    int32 l_cfg_id;
+    int32 aul_nvram_params[NVRAM_PARAMS_INDEX_BUTT]={0};
 
     if (l_nvm_len != HISI_CUST_NVRAM_LEN)
     {
@@ -653,24 +750,25 @@ int hwifi_fetch_ori_caldata(unsigned char* auc_caldata, int l_nvm_len)
     return INI_SUCC;
 }
 
-OAL_STATIC int hwifi_config_init_nvram(void)
+OAL_STATIC int32 hwifi_config_init_nvram(void)
 {
-    OAL_STATIC oal_bool_enum en_nvm_initialed = OAL_FALSE;
-    int l_ret = INI_FAILED;
-    int l_cfg_id;
-    int aul_nvram_params[NVRAM_PARAMS_INDEX_BUTT]={0};
-    int l_plat_tag;
+    OAL_STATIC oal_bool_enum en_nvm_initialed = OAL_FALSE;  /* ??????????????????????????????????????????????????????????nvm???????? */
+    int32 l_ret = INI_FAILED;
+    int32 l_cfg_id;
+    int32 aul_nvram_params[NVRAM_PARAMS_INDEX_BUTT]={0};
+    int32 l_plat_tag;
 
     oal_memset(g_auc_nv_params, 0x00, sizeof(g_auc_nv_params));
 
     if (OAL_FALSE == en_nvm_initialed)
     {
-        if (hwifi_get_regdomain_from_country_code(hwifi_get_country_code()) != REGDOMAIN_FCC)
+        if (hwifi_get_regdomain_from_country_code_1102(hwifi_get_country_code()) != REGDOMAIN_FCC)
         {
             l_ret = get_cust_conf_string(CUST_MODU_NVRAM, OAL_PTR_NULL, g_auc_nv_params, sizeof(g_auc_nv_params));
 
             if (INI_SUCC == l_ret && g_auc_nv_params[0] != 0)
             {
+                /* ????????????????????TRUE */
                 en_nvm_initialed = OAL_TRUE;
                 return INI_SUCC;
             }
@@ -686,7 +784,7 @@ OAL_STATIC int hwifi_config_init_nvram(void)
     /* read nvm failed or data not exist or country_code updated, read ini:cust_spec > cust_common > default */
     /* find plat tag */
     l_plat_tag = hwifi_get_plat_tag_from_country_code(hwifi_get_country_code());
-    OAM_WARNING_LOG1(0, OAM_SF_ANY, "hwifi_config_init_nvram plat_tag:0x%2x!", l_plat_tag);
+    OAM_WARNING_LOG1(0, OAM_SF_ANY, "hwifi_config_init_nvram plat_tag:0x%x!", l_plat_tag);
 
     for (l_cfg_id = NVRAM_PARAMS_INDEX_0; l_cfg_id < NVRAM_PARAMS_INDEX_BUTT; l_cfg_id++)
     {
@@ -695,6 +793,7 @@ OAL_STATIC int hwifi_config_init_nvram(void)
         if(INI_FAILED == l_ret)
         {
             OAM_ERROR_LOG1(0, OAM_SF_ANY, "hwifi_config_init_nvram read %d from ini failed!", l_cfg_id);
+            /* ????????????????????????????????device */
             oal_memset(g_auc_nv_params, 0x00, sizeof(g_auc_nv_params));
             return INI_FAILED;
         }
@@ -706,15 +805,15 @@ OAL_STATIC int hwifi_config_init_nvram(void)
     return INI_SUCC;
 }
 
-int hwifi_config_init(int cus_tag)
+int32 hwifi_config_init(int32 cus_tag)
 {
-    int               l_cfg_id;
-    int               l_ret = INI_FAILED;
-    int               l_ori_val;
+    int32               l_cfg_id;
+    int32               l_ret = INI_FAILED;
+    int32               l_ori_val;
     wlan_cfg_cmd*       pgast_wifi_config;
-    int*              pgal_params;
-    int               l_cfg_value = 0;
-    int               l_wlan_cfg_butt;
+    int32*              pgal_params;
+    int32               l_cfg_value = 0;
+    int32               l_wlan_cfg_butt;
 
     switch (cus_tag)
     {
@@ -739,6 +838,9 @@ int hwifi_config_init(int cus_tag)
 
     for(l_cfg_id=0; l_cfg_id<l_wlan_cfg_butt; ++l_cfg_id)
     {
+
+
+        /* ????ini???????? */
         l_ret = get_cust_conf_int32(INI_MODU_WIFI, pgast_wifi_config[l_cfg_id].name, &l_cfg_value);
         if (INI_FAILED == l_ret)
         {
@@ -748,7 +850,7 @@ int hwifi_config_init(int cus_tag)
 
         l_ori_val = pgal_params[l_cfg_id];
         pgal_params[l_cfg_id] = l_cfg_value;
-        OAM_WARNING_LOG3(0, OAM_SF_ANY, "hisi_customize_wifi [cfg_id:%d]value changed from [init:%d] to [config:%d]. \n", l_cfg_id, l_ori_val, pgal_params[l_cfg_id]);
+        OAM_INFO_LOG3(0, OAM_SF_ANY, "hisi_customize_wifi [cfg_id:%d]value changed from [init:%d] to [config:%d]. \n", l_cfg_id, l_ori_val, pgal_params[l_cfg_id]);
     }
 
     return INI_SUCC;
@@ -788,11 +890,15 @@ OAL_STATIC int char2byte( char* strori, char* outbuf )
     return sum;
 }
 
-int hwifi_get_mac_addr(unsigned char *puc_buf)
+int32 hwifi_get_mac_addr(uint8 *puc_buf)
 {
+#ifdef CONFIG_ARCH_PLATFORM
+    struct opt_nve_info_user st_info;
+#else
     struct hisi_nve_info_user st_info;
-    int l_ret = -1;
-    int l_sum = 0;
+#endif
+    int32 l_ret = -1;
+    int32 l_sum = 0;
 
     if (NULL == puc_buf)
     {
@@ -817,7 +923,11 @@ int hwifi_get_mac_addr(unsigned char *puc_buf)
         return INI_SUCC;
     }
 
+#ifdef CONFIG_ARCH_PLATFORM
+    l_ret = nve_direct_access_interface(&st_info);
+#else
     l_ret = hisi_nve_direct_access(&st_info);
+#endif
 
     if (!l_ret)
     {
@@ -840,10 +950,10 @@ int hwifi_get_mac_addr(unsigned char *puc_buf)
     return INI_SUCC;
 }
 
-int hwifi_get_init_value(int cus_tag, int cfg_id)
+int32 hwifi_get_init_value(int32 cus_tag, int32 cfg_id)
 {
-    int*              pgal_params = OAL_PTR_NULL;
-    int               l_wlan_cfg_butt;
+    int32*              pgal_params = OAL_PTR_NULL;
+    int32               l_wlan_cfg_butt;
 
     if (CUS_TAG_INI == cus_tag)
     {
@@ -869,15 +979,16 @@ int hwifi_get_init_value(int cus_tag, int cfg_id)
     return pgal_params[cfg_id];
 }
 
-char* hwifi_get_country_code(void)
+int8* hwifi_get_country_code(void)
 {
-    int l_ret;
+    int32 l_ret;
 
     if (g_ac_country_code[0] != '0' && g_ac_country_code[1] != '0')
     {
         return g_ac_country_code;
     }
 
+    /* ????cust?????? */
     l_ret = get_cust_conf_string(INI_MODU_WIFI, STR_COUNTRY_CODE, g_ac_country_code, sizeof(g_ac_country_code)-1);
 
     if(INI_FAILED == l_ret)
@@ -890,7 +1001,8 @@ char* hwifi_get_country_code(void)
     return g_ac_country_code;
 }
 
-void hwifi_set_country_code(char* country_code, const unsigned int len)
+
+void hwifi_set_country_code(int8* country_code, const uint32 len)
 {
     if (OAL_PTR_NULL == country_code || len != COUNTRY_CODE_LEN)
     {
@@ -904,14 +1016,15 @@ void hwifi_set_country_code(char* country_code, const unsigned int len)
     return;
 }
 
-unsigned char* hwifi_get_nvram_params(void)
+uint8* hwifi_get_nvram_params(void)
 {
     return g_auc_nv_params;
 }
 
-int hwifi_atcmd_update_host_nv_params(void)
+
+int32 hwifi_atcmd_update_host_nv_params(void)
 {
-    int l_ret = INI_FAILED;
+    int32 l_ret = INI_FAILED;
 
     oal_memset(g_auc_nv_params, 0x00, sizeof(g_auc_nv_params));
 
@@ -919,6 +1032,8 @@ int hwifi_atcmd_update_host_nv_params(void)
 
     if (INI_FAILED == l_ret || !g_auc_nv_params[0])
     {
+        /* ???????????????????????????????????????????????????????????????????????????? */
+        /* ????????????????????????????????????????NV????????????????????NV???????? */
         OAM_ERROR_LOG2(0, OAM_SF_ANY, "hwifi_atcmd_update_host_nv_params::read nvram params failed or nv is empty, ret=[%d], nv_param[%u]!!", l_ret, g_auc_nv_params[0]);
         oal_memset(g_auc_nv_params, 0x00, sizeof(g_auc_nv_params));
         return INI_FAILED;
@@ -928,6 +1043,8 @@ int hwifi_atcmd_update_host_nv_params(void)
     return INI_SUCC;
 }
 
+
+/* ???????? */
 EXPORT_SYMBOL_GPL(g_st_wlan_customize);
 EXPORT_SYMBOL_GPL(hwifi_config_init);
 EXPORT_SYMBOL_GPL(hwifi_get_mac_addr);
@@ -936,6 +1053,7 @@ EXPORT_SYMBOL_GPL(hwifi_get_country_code);
 EXPORT_SYMBOL_GPL(hwifi_get_nvram_params);
 EXPORT_SYMBOL_GPL(hwifi_fetch_ori_caldata);
 EXPORT_SYMBOL_GPL(hwifi_set_country_code);
+EXPORT_SYMBOL_GPL(hwifi_get_regdomain_from_country_code_1102);
 EXPORT_SYMBOL_GPL(hwifi_is_regdomain_changed);
 EXPORT_SYMBOL_GPL(hwifi_atcmd_update_host_nv_params);
 

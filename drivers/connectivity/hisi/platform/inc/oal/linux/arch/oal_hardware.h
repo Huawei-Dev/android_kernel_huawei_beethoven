@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_LINUX_HARDWARE_H__
 #define __OAL_LINUX_HARDWARE_H__
 
@@ -7,6 +9,11 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
+/*lint -e322*/
 #include <linux/slab.h>
 #include <linux/kernel.h>
 #include <linux/interrupt.h>
@@ -25,11 +32,16 @@ extern "C" {
 #include    "mdrv_timer.h"
 #endif
 #include <linux/gpio.h>
+/*lint +e322*/
 
 #include "oal_util.h"
 
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 typedef irq_handler_t oal_irq_handler_t;
 
+/*BEGIN:Added by zhouqingsong/2012/2/15 for SD5115V100*/
 #define OAL_HI_TIMER_REG_BASE               (0x10105000)
 
 #define OAL_HI_TIMER_NUM                    2
@@ -39,9 +51,9 @@ typedef irq_handler_t oal_irq_handler_t;
 #define OAL_HI_TIMER_INT_CLEAR              0
 #define OAL_HI_TIMER_DEFAULT_PERIOD         1
 
-#define OAL_HI_TIMER_IRQ_NO                 80
+#define OAL_HI_TIMER_IRQ_NO                 80            /*5113 : 5   5115:80*/
 
-#define OAL_HI_TIMER_FREE_MODE              0
+#define OAL_HI_TIMER_FREE_MODE              0         /* 1101???????? */
 #define OAL_HI_TIMER_CYCLE_MODE             1
 #define OAL_HI_TIMER_SIZE_32_BIT            1
 #define OAL_HI_TIMER_WRAPPING               0
@@ -52,8 +64,8 @@ typedef irq_handler_t oal_irq_handler_t;
 #define OAL_HI_SC_REG_BASE                  (0x10100000)
 #define OAL_HI_SC_CTRL                      (OAL_HI_SC_REG_BASE + 0x0000)
 
-#define OAL_IRQ_ENABLE                      1
-#define OAL_IRQ_FORBIDDEN                   0
+#define OAL_IRQ_ENABLE                      1  /* ???????? */
+#define OAL_IRQ_FORBIDDEN                   0  /* ???????? */
 
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
 
@@ -101,6 +113,9 @@ typedef irq_handler_t oal_irq_handler_t;
 
 typedef irqreturn_t                         oal_irqreturn_t;
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
 typedef enum
 {
     OAL_5115TIMER_ONE,
@@ -142,10 +157,23 @@ typedef enum
 }oal_5115irq_enum;
 typedef oal_uint8 oal_5115irq_enum_uint8;
 
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
 typedef struct cpumask     *oal_cpumask;
 typedef oal_uint32          oal_irq_num;
 
-#define OAL_SA_SHIRQ        IRQF_SHARED
+#define OAL_SA_SHIRQ        IRQF_SHARED       /* ???????? */
 
 typedef oal_uint32        (*oal_irq_intr_func)(void *);
 typedef oal_int32         (*oal_dbac_isr_func)(int);
@@ -161,23 +189,24 @@ typedef struct
     volatile oal_uint32 ul_timerx_bgload;
     volatile oal_uint32 ul_reserve;
 } oal_hi_timerx_reg_stru;
-
+/*timer??????????*/
 typedef union
 {
     volatile oal_uint32 ul_value;
     struct
     {
-        volatile oal_uint32 ul_oneshot: 1;
-        volatile oal_uint32 ul_timersize: 1;
-        volatile oal_uint32 ul_timerpre: 2;
-        volatile oal_uint32 ul_reserved0: 1;
-        volatile oal_uint32 ul_intenable: 1;
-        volatile oal_uint32 ul_timermode: 1;
-        volatile oal_uint32 ul_timeren: 1;
-        volatile oal_uint32 ul_reserved1: 24;
+        volatile oal_uint32 ul_oneshot: 1;                 /*???????????? 0?????????? 1????????????*/
+        volatile oal_uint32 ul_timersize: 1;               /*16bit|32bit???????????? 0??16bit 1??32bit*/
+        volatile oal_uint32 ul_timerpre: 2;                /*?????????? 00???????? 01??4?????? 10??8?????? 11????????????????????????????10*/
+        volatile oal_uint32 ul_reserved0: 1;               /*??????*/
+        volatile oal_uint32 ul_intenable: 1;               /*?????????? 0?????? 1????????*/
+        volatile oal_uint32 ul_timermode: 1;               /*???????? 0?????????? 1??????????*/
+        volatile oal_uint32 ul_timeren: 1;                 /*???????????? 0?????? 1??????*/
+        volatile oal_uint32 ul_reserved1: 24;              /*??????*/
     } bits_stru;
 } oal_hi_timer_control_union;
 
+/*timer2_3??????*/
 typedef struct
 {
     oal_hi_timerx_reg_stru ast_timer[2];
@@ -187,18 +216,20 @@ typedef struct
     oal_hi_timer_control_union  u_timerx_config;
 }oal_hi_timerx_config_stru;
 
+/* PCI???????????? */
 typedef struct pci_driver       oal_pci_driver_stru;
 typedef struct pci_device_id    oal_pci_device_id_stru;
 typedef struct pci_dev          oal_pci_dev_stru;
 typedef pm_message_t            oal_pm_message_t;
 
+/* ?????????????? */
 typedef struct
 {
-    oal_uint32              ul_irq;
-    oal_int32               l_irq_type;
-    oal_void               *p_drv_arg;
-    oal_int8               *pc_name;
-    oal_irq_intr_func       p_irq_intr_func;
+    oal_uint32              ul_irq;                  /* ?????? */
+    oal_int32               l_irq_type;             /* ???????????? */
+    oal_void               *p_drv_arg;              /* ???????????????? */
+    oal_int8               *pc_name;                /* ???????????? ???????????? */
+    oal_irq_intr_func       p_irq_intr_func;        /* ???????????????? */
 }oal_irq_dev_stru;
 
 typedef oal_uint8   oal_hi_timerx_index_enum_uint8;
@@ -212,23 +243,42 @@ typedef enum
     HI5115_TIMER_INDEX_BUTT
 }oal_hi_timerx_index_enum;
 
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
 extern oal_hi_timer_reg_stru *g_pst_reg_timer;
 extern oal_uint32 g_aul_irq_save_time[][255];
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 
 OAL_STATIC OAL_INLINE oal_void  oal_irq_free(oal_irq_dev_stru *st_osdev)
 {
     free_irq(st_osdev->ul_irq, st_osdev);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_irq_enable(oal_void)
 {
     local_irq_enable();
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_irq_disable(oal_void)
 {
     local_irq_disable();
 }
+
 
 OAL_STATIC OAL_INLINE irqreturn_t  oal_irq_interrupt(oal_int32 l_irq, oal_void *p_dev)
 {
@@ -238,6 +288,7 @@ OAL_STATIC OAL_INLINE irqreturn_t  oal_irq_interrupt(oal_int32 l_irq, oal_void *
 
     return IRQ_HANDLED;
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_irq_setup(oal_irq_dev_stru *st_osdev)
 {
@@ -249,6 +300,7 @@ OAL_STATIC OAL_INLINE oal_int32  oal_irq_setup(oal_irq_dev_stru *st_osdev)
     return l_err;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_irq_trigger(oal_uint8 uc_cpuid)
 {
 
@@ -259,6 +311,7 @@ OAL_STATIC OAL_INLINE oal_int32  oal_gpio_is_valid(oal_int32 i_number)
     return gpio_is_valid(i_number);
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_gpio_request(oal_uint32 ul_gpio, OAL_CONST oal_int8 *pc_label)
 {
     return gpio_request(ul_gpio, pc_label);
@@ -268,6 +321,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_gpio_free(oal_uint32 ul_gpio)
 {
     gpio_free(ul_gpio);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_gpio_direction_input(oal_uint32 ul_gpio)
 {
@@ -280,10 +334,12 @@ OAL_STATIC OAL_INLINE oal_int32  oal_gpio_direction_output(oal_uint32 ul_gpio, o
     return gpio_direction_output(ul_gpio, l_level);
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_gpio_to_irq(oal_uint32 ul_gpio)
 {
     return gpio_to_irq(ul_gpio);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_request_irq(oal_uint32             ul_irq,
                                                      oal_irq_handler_t      p_handler,
@@ -291,19 +347,25 @@ OAL_STATIC OAL_INLINE oal_int32  oal_request_irq(oal_uint32             ul_irq,
                                                      OAL_CONST oal_int8    *p_name,
                                                      oal_void              *p_dev)
 {
+    /* TBD: ????3?????? */
+
     return request_irq(ul_irq, p_handler, ul_flags, p_name, p_dev);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_gpio_get_value(oal_uint32 ul_gpio)
 {
     return gpio_get_value(ul_gpio);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_gpio_set_value(oal_uint32 ul_gpio,oal_int32 value)
 {
      gpio_set_value(ul_gpio,value);
 
 }
+
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_up(oal_int32 wifi_gpio_addr)
 {
@@ -312,6 +374,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_up(oal_int32 wifi_gpio_addr
         OAL_IO_PRINT("wifi_reg_on_pull_up:fail to get wifi gpio!\n");
         return;
     }
+    /*??????????????????????????*/
     if (1 == oal_gpio_get_value(wifi_gpio_addr))
     {
         OAL_IO_PRINT("wifi_reg_on_pull_up:WL_REG_ON has been pulled up in wifi_reg_on_pull_up!!!\n");
@@ -322,6 +385,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_up(oal_int32 wifi_gpio_addr
     oal_mdelay(500);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_down(oal_int32 wifi_gpio_addr)
 {
     if (!oal_gpio_is_valid(wifi_gpio_addr))
@@ -329,6 +393,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_down(oal_int32 wifi_gpio_ad
         OAL_IO_PRINT("wifi_reg_on_pull_down:fail to get wifi gpio!\n");
         return;
     }
+    /*??????????????????????????*/
     if (0 == oal_gpio_get_value(wifi_gpio_addr))
     {
         OAL_IO_PRINT("wifi_reg_on_pull_down:WL_REG_ON has been pulled down in wifi_reg_on_pull_down!!!\n");
@@ -339,17 +404,21 @@ OAL_STATIC OAL_INLINE oal_void  oal_wifi_reg_on_pull_down(oal_int32 wifi_gpio_ad
     oal_mdelay(500);
 }
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_5115timer_get_10ns(oal_void)
 {
+    /* 02 ?????????????? TBD */
     return 1;
 }
 
 #else
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_5115timer_get_10ns(oal_void)
 {
-#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT)
+#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT) //??????????????????????????????
     return g_pst_reg_timer->ast_timer[OAL_5115TIMER_ONE].ul_timerx_value;
 #elif(_PRE_TARGET_PRODUCT_TYPE_E5 == _PRE_CONFIG_TARGET_PRODUCT)
+    /* E5 ?????????????????????? */
     return 1;
 #else
     return g_pst_reg_timer->ast_timer[OAL_5115TIMER_SEC].ul_timerx_value;
@@ -368,6 +437,10 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_save(oal_uint *pui_flags, oal_uint32 ul_
     local_irq_save(*pui_flags);
 #ifdef _PRE_DEBUG_MODE
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
+
+    /* ????????????????????save???? */
+    /* ??????????????????????save????????????????????????????????save - restore??????*/
+    /* ????restore??????????????save??????????????????????save */
         if (g_aul_irq_save_time[ul_core_id][254] == 0)
         {
             g_aul_irq_save_time[ul_core_id][254] = oal_5115timer_get_10ns();
@@ -375,6 +448,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_save(oal_uint *pui_flags, oal_uint32 ul_
         }
         else
         {
+            /* ????save */
             OAL_IO_PRINT("\n core %d oal_irq_save[%d] failed, already saved by [%d] \n",ul_core_id, ul_type, g_aul_irq_save_time[ul_core_id][253]);
             oal_dump_stack();
         }
@@ -382,6 +456,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_save(oal_uint *pui_flags, oal_uint32 ul_
 
 #endif
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_irq_restore(oal_uint *pui_flags, oal_uint32 ul_type)
 {
@@ -392,9 +467,12 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_restore(oal_uint *pui_flags, oal_uint32 
 
     if (g_aul_irq_save_time[ul_core_id][254] != 0)
     {
+        /* restore????????????????save??type?????????????????????? */
         if ((ul_type < 253) && (g_aul_irq_save_time[ul_core_id][253] == ul_type))
         {
             ul_restore_time = g_aul_irq_save_time[ul_core_id][254] - oal_5115timer_get_10ns();
+
+            /* ??????????????save - restore ?????? */
             if (g_aul_irq_save_time[ul_core_id][ul_type] < ul_restore_time)
             {
                 g_aul_irq_save_time[ul_core_id][ul_type] = ul_restore_time;
@@ -402,6 +480,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_restore(oal_uint *pui_flags, oal_uint32 
         }
         else
         {
+            /* restore???? */
             OAL_IO_PRINT("\n core %d oal_irq_restore[%d] failed, should be [%d] \n",ul_core_id, ul_type, g_aul_irq_save_time[ul_core_id][253]);
             oal_dump_stack();
         }
@@ -410,6 +489,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_restore(oal_uint *pui_flags, oal_uint32 
     }
     else
     {
+        /* ????restore */
         printk("\n core %d oal_irq_restore[%d] failed, already restored \n",ul_core_id, ul_type);
         oal_dump_stack();
     }
@@ -417,6 +497,7 @@ OAL_STATIC OAL_INLINE oal_void  oal_irq_restore(oal_uint *pui_flags, oal_uint32 
 #endif
     local_irq_restore(*pui_flags);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_irq_set_affinity(oal_irq_num irq, oal_uint32 ul_cpu)
 {
@@ -437,6 +518,7 @@ OAL_STATIC OAL_INLINE oal_int32  oal_irq_set_affinity(oal_irq_num irq, oal_uint3
 }
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_5115timer_init(oal_void)
 {
 #if (_PRE_TARGET_PRODUCT_TYPE_E5 != _PRE_CONFIG_TARGET_PRODUCT)
@@ -444,24 +526,39 @@ OAL_STATIC OAL_INLINE oal_void  oal_5115timer_init(oal_void)
 
     g_pst_reg_timer = (oal_hi_timer_reg_stru *)ioremap(OAL_HI_TIMER_REG_BASE, sizeof(oal_hi_timer_reg_stru));
 
-#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT)
+    /*??timer??????*/
+#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT) //??????????????????????????????
     u_reg_control.ul_value = g_pst_reg_timer->ast_timer[OAL_5115TIMER_ONE].ul_timerx_control;
 #else
     u_reg_control.ul_value = g_pst_reg_timer->ast_timer[OAL_5115TIMER_SEC].ul_timerx_control;
 #endif
+    /* ?????????????????? */
     u_reg_control.bits_stru.ul_timermode = OAL_HI_TIMER_FREE_MODE;
+
+    /*??????*/
     u_reg_control.bits_stru.ul_timerpre = OAL_HI_TIMER_NO_DIV_FREQ;
+
+    /* ???????? */
     u_reg_control.bits_stru.ul_intenable = OAL_HI_TIMER_INT_CLEAR;
+
+    /*??????32bit????????????*/
     u_reg_control.bits_stru.ul_timersize = OAL_HI_TIMER_SIZE_32_BIT;
+
+    /*??????????????*/
     u_reg_control.bits_stru.ul_oneshot = OAL_HI_TIMER_WRAPPING;
-    u_reg_control.bits_stru.ul_timeren = OAL_TRUE;
-#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT)
+
+    /*??????????*/
+    u_reg_control.bits_stru.ul_timeren = OAL_TRUE;       /* HI_TRUE_E */
+
+    /*????timer??????*/
+#if(_PRE_TARGET_PRODUCT_TYPE_WS835DMB == _PRE_CONFIG_TARGET_PRODUCT) //??????????????????????????????
     g_pst_reg_timer->ast_timer[OAL_5115TIMER_ONE].ul_timerx_control = u_reg_control.ul_value;
 #else
     g_pst_reg_timer->ast_timer[OAL_5115TIMER_SEC].ul_timerx_control = u_reg_control.ul_value;
 #endif
 #endif
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_5115timer_exit(oal_void)
 {
@@ -470,14 +567,18 @@ OAL_STATIC OAL_INLINE oal_void  oal_5115timer_exit(oal_void)
 #endif
 }
 #else
+
+
 OAL_STATIC OAL_INLINE oal_void  oal_5115timer_init(oal_void)
 {
 
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_5115timer_exit(oal_void)
 {
 }
+
 #endif
 
 
@@ -493,6 +594,7 @@ OAL_STATIC OAL_INLINE oal_int32 oal_mdrv_timer_stop(oal_uint32 ul_id)
 }
 #endif
 
+/* ???????????????????????? */
 #define oal_request_mem_region(start, n, name)  request_mem_region(start, n, name)
 #define oal_release_mem_region(start, n)        release_mem_region(start, n)
 
@@ -557,7 +659,7 @@ OAL_STATIC  OAL_INLINE  oal_uint32    hi_timerx_read(oal_hi_timerx_reg_stru *pst
         return  pst_timer->ul_timerx_value;
     }
 
-    return  0xDEAD;
+    return  0xDEAD; // TODO
 }
 
 OAL_STATIC  OAL_INLINE  oal_void    hi_timerx_enable_intr(oal_hi_timerx_reg_stru *pst_timer)
@@ -580,7 +682,7 @@ OAL_STATIC  OAL_INLINE  oal_void    hi_timerx_clear_intr(oal_hi_timerx_reg_stru 
 {
     if(NULL != pst_timer)
     {
-        pst_timer->ul_timerx_intclr = 0x0001;
+        pst_timer->ul_timerx_intclr = 0x0001; // write any value will clear intr
     }
 }
 OAL_STATIC  OAL_INLINE  oal_bool_enum_uint8  hi_timerx_intr_hit(oal_hi_timerx_reg_stru *pst_timer)

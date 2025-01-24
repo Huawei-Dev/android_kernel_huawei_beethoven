@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_linux_ioctl.h
-  版 本 号   : 初稿
-  作    者   : zhangheng
-  生成日期   : 2012年12月10日
-  最近修改   :
-  功能描述   : wal_linux_ioctl.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年12月10日
-    作    者   : zhangheng
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __WAL_LINUX_IOCTL_H__
 #define __WAL_LINUX_IOCTL_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "wlan_types.h"
@@ -49,11 +32,11 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_WAL_LINUX_IOCTL_H
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define WAL_HIPRIV_CMD_MAX_LEN       (WLAN_MEM_LOCAL_SIZE2 - 4)     /* 私有配置命令字符串最大长度，对应本地内存池一级大小 */
+#define WAL_HIPRIV_CMD_MAX_LEN       (WLAN_MEM_LOCAL_SIZE2 - 4)     /* ?????????????????????????????????????????????????? */
 
-#define WAL_HIPRIV_CMD_NAME_MAX_LEN  80                             /* 字符串中每个单词的最大长度(原20) */
+#define WAL_HIPRIV_CMD_NAME_MAX_LEN  80                             /* ??????????????????????????(??20) */
 
 #define WAL_HIPRIV_PROC_ENTRY_NAME   "hipriv"
 
@@ -71,12 +54,12 @@ extern "C" {
 #define WAL_HIPRIV_BOOL_MAX             1
 #define WAL_HIPRIV_FREQ_SKEW_ARG_NUM    8
 
-#define WAL_HIPRIV_MS_TO_S                   1000   /* ms和s之间倍数差 */
-#define WAL_HIPRIV_KEEPALIVE_INTERVAL_MIN    5000   /* 受默认老化计数器出发时间所限制 */
-#define WAL_HIPRIV_KEEPALIVE_INTERVAL_MAX    0xffff /* timer间隔时间限制所致(oal_uin16) */
+#define WAL_HIPRIV_MS_TO_S                   1000   /* ms??s?????????? */
+#define WAL_HIPRIV_KEEPALIVE_INTERVAL_MIN    5000   /* ?????????????????????????????? */
+#define WAL_HIPRIV_KEEPALIVE_INTERVAL_MAX    0xffff /* timer????????????????(oal_uin16) */
 
 
-/* IOCTL私有配置命令宏定义 */
+/* IOCTL?????????????????? */
 #define WAL_IOCTL_PRIV_SETPARAM          (OAL_SIOCIWFIRSTPRIV + 0)
 #define WAL_IOCTL_PRIV_GETPARAM          (OAL_SIOCIWFIRSTPRIV + 1)
 #define WAL_IOCTL_PRIV_SET_WMM_PARAM     (OAL_SIOCIWFIRSTPRIV + 3)
@@ -84,12 +67,12 @@ extern "C" {
 #define WAL_IOCTL_PRIV_SET_COUNTRY       (OAL_SIOCIWFIRSTPRIV + 8)
 #define WAL_IOCTL_PRIV_GET_COUNTRY       (OAL_SIOCIWFIRSTPRIV + 9)
 
-#define WAL_IOCTL_PRIV_GET_MODE     (OAL_SIOCIWFIRSTPRIV + 17)      /* 读取模式 */
-#define WAL_IOCTL_PRIV_SET_MODE     (OAL_SIOCIWFIRSTPRIV + 18)      /* 设置模式 包括协议 频段 带宽 */
+#define WAL_IOCTL_PRIV_GET_MODE     (OAL_SIOCIWFIRSTPRIV + 17)      /* ???????? */
+#define WAL_IOCTL_PRIV_SET_MODE     (OAL_SIOCIWFIRSTPRIV + 18)      /* ???????? ???????? ???? ???? */
 
 #define WAL_IOCTL_PRIV_AP_GET_STA_LIST               (OAL_SIOCIWFIRSTPRIV + 21)
 #define WAL_IOCTL_PRIV_AP_MAC_FLTR	                 (OAL_SIOCIWFIRSTPRIV + 22)
-/* netd将此配置命令作为GET方式下发，get方式命令用奇数，set用偶数 */
+/* netd????????????????GET??????????get????????????????set?????? */
 #define WAL_IOCTL_PRIV_SET_AP_CFG                    (OAL_SIOCIWFIRSTPRIV + 23)
 #define WAL_IOCTL_PRIV_AP_STA_DISASSOC		         (OAL_SIOCIWFIRSTPRIV + 24)
 
@@ -101,13 +84,13 @@ extern "C" {
 typedef oal_uint32  (*wal_hipriv_cmd_func)(oal_net_device_stru *pst_net_dev, oal_int8 *pc_param);
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 typedef enum
 {
-    WAL_DSCR_PARAM_FREQ_BANDWIDTH_MODE = 0,      /* 频带模式 */
-    WAL_DSCR_PARAM_PA_GAIN_LEVEL,      /* pa增益等级 */
+    WAL_DSCR_PARAM_FREQ_BANDWIDTH_MODE = 0,      /* ???????? */
+    WAL_DSCR_PARAM_PA_GAIN_LEVEL,      /* pa???????? */
     WAL_DSCR_PARAM_MICRO_TX_POWER_GAIN_LEVEL,
     WAL_DSCR_PARAM_SMART_ANTENNA_ENABLE,
     WAL_DSCR_PARAM_TXRTS_ANTENNA,
@@ -136,16 +119,16 @@ typedef enum
 typedef oal_uint8 wal_dscr_param_enum_uint8;
 
 
-/* rx ip数据包过滤功能和上层协定(格式)结构体，TBD 上层接口尚未明确，需澄清后修改 */
+/* rx ip????????????????????????(????)????????TBD ?????????????????????????????? */
 #ifdef CONFIG_DOZE_FILTER
 typedef hw_wifi_filter_item wal_hw_wifi_filter_item;
 typedef struct hw_wlan_filter_ops wal_hw_wlan_filter_ops;
 
 #else
 typedef struct {
-    unsigned short protocol;  //协议类型
-    unsigned short port;      //目的端口号
-    unsigned int   filter_cnt;    //过滤报文数
+    unsigned short protocol;  //????????
+    unsigned short port;      //??????????
+    unsigned int   filter_cnt;    //??????????
 }wal_hw_wifi_filter_item;
 
 typedef struct {
@@ -157,7 +140,7 @@ typedef struct {
 #endif
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 extern oal_iw_handler_def_stru g_st_iw_handler_def;
 extern oal_net_device_ops_stru g_st_wal_net_dev_ops;
@@ -166,72 +149,72 @@ extern oal_ethtool_ops_stru g_st_wal_ethtool_ops;
 #endif
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* 私有命令入口结构定义 */
+/* ???????????????????? */
 typedef struct
 {
-    oal_int8           *pc_cmd_name;    /* 命令字符串 */
-    wal_hipriv_cmd_func p_func;         /* 命令对应处理函数 */
+    oal_int8           *pc_cmd_name;    /* ?????????? */
+    wal_hipriv_cmd_func p_func;         /* ???????????????? */
 }wal_hipriv_cmd_entry_stru;
 
 #ifdef _PRE_WLAN_FEATURE_VOWIFI
-/* VoWiFi命令的转换结构体 */
+/* VoWiFi???????????????? */
 typedef struct
 {
-    oal_int8                 *pc_vowifi_cmd_name;    /* 命令字符串 */
-    mac_vowifi_cmd_enum_uint8 en_vowifi_cmd;         /* 命令对应类型 */
+    oal_int8                 *pc_vowifi_cmd_name;    /* ?????????? */
+    mac_vowifi_cmd_enum_uint8 en_vowifi_cmd;         /* ???????????? */
     oal_uint8                 auc_resv[3];
 }wal_vowifi_cmd_stru;
 #endif /* _PRE_WLAN_FEATURE_VOWIFI */
 
-/* 协议模式与字符串映射 */
+/* ???????????????????? */
 typedef struct
 {
-    oal_int8                           *pc_name;        /* 模式名字符串 */
-    wlan_protocol_enum_uint8            en_mode;        /* 协议模式 */
-    wlan_channel_band_enum_uint8        en_band;        /* 频段 */
-    wlan_channel_bandwidth_enum_uint8   en_bandwidth;   /* 带宽 */
+    oal_int8                           *pc_name;        /* ???????????? */
+    wlan_protocol_enum_uint8            en_mode;        /* ???????? */
+    wlan_channel_band_enum_uint8        en_band;        /* ???? */
+    wlan_channel_bandwidth_enum_uint8   en_bandwidth;   /* ???? */
     oal_uint8                           auc_resv[1];
 }wal_ioctl_mode_map_stru;
 
-/* 算法参数配置结构体 */
+/* ?????????????????? */
 typedef struct
 {
-    oal_int8                           *pc_name;        /* 配置命令字符串 */
-    mac_alg_cfg_enum_uint8              en_alg_cfg;     /* 配置命令对应的枚举值 */
-    oal_uint8                           auc_resv[3];    /* 字节对齐 */
+    oal_int8                           *pc_name;        /* ?????????????? */
+    mac_alg_cfg_enum_uint8              en_alg_cfg;     /* ???????????????????? */
+    oal_uint8                           auc_resv[3];    /* ???????? */
 }wal_ioctl_alg_cfg_stru;
 
-/* 1102 使用wpa_supplicant 下发命令 */
-typedef struct wal_android_wifi_priv_cmd {
+/* 1102 ????wpa_supplicant ???????? */
+typedef struct wal_wifi_priv_cmd {
     oal_int32    l_total_len;
     oal_int32    l_used_len;
     oal_uint8   *puc_buf;
-}wal_android_wifi_priv_cmd_stru;
+}wal_wifi_priv_cmd_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  wal_hipriv_set_rate(oal_net_device_stru *pst_net_dev, oal_int8 *pc_param);
 #ifdef _PRE_WLAN_FEATURE_11D
@@ -293,7 +276,7 @@ extern oal_int32  wal_cfg_vap_h2d_event(oal_net_device_stru *pst_net_dev);
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
 extern oal_uint32 hwifi_config_init_dts_main(oal_net_device_stru *pst_cfg_net_dev);
 extern oal_int32 wal_set_custom_process_func(custom_cali_func p_fun);
-extern oal_int32 hwifi_config_init_nvram_main(oal_net_device_stru * pst_cfg_net_dev);
+extern oal_uint32 hwifi_config_init_nvram_main(oal_net_device_stru * pst_cfg_net_dev);
 
 extern oal_uint32 wal_custom_cali(oal_void);
 extern oal_void hwifi_config_init_force(oal_void);

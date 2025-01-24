@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : mac_data.c
-  版 本 号   : 初稿
-  作    者   : z00260280
-  生成日期   : 2015年1月19日
-  最近修改   :
-  功能描述   :用来对数据帧进行业务识别
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年1月19日
-    作    者   : z00260280
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_mem.h"
 #include "oal_net.h"
@@ -43,31 +26,17 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_MAC_DATA_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : mac_is_dhcp_port
- 功能描述  : 判断是否是dhcp帧:满足udp协议，且不是分片报文，以及端口号限制
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月27日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_INLINE oal_bool_enum_uint8 mac_is_dhcp_port(mac_ip_header_stru *pst_ip_hdr)
 {
     udp_hdr_stru *pst_udp_hdr;
-    /* DHCP判断标准: udp协议，ip头部fragment offset字段为0，目的端口号为67或68 */
+    /* DHCP????????: udp??????ip????fragment offset??????0??????????????67??68 */
     if (MAC_UDP_PROTOCAL == pst_ip_hdr->uc_protocol && (0 == (pst_ip_hdr->us_frag_off & 0xFF1F)))
     {
         pst_udp_hdr = (udp_hdr_stru *)(pst_ip_hdr + 1);
@@ -84,21 +53,7 @@ OAL_INLINE oal_bool_enum_uint8 mac_is_dhcp_port(mac_ip_header_stru *pst_ip_hdr)
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_nd
- 功能描述  : 判断是否是nd帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月7日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 mac_is_nd(oal_ipv6hdr_stru  *pst_ipv6hdr)
 {
     oal_icmp6hdr_stru      *pst_icmp6hdr;
@@ -120,21 +75,7 @@ oal_bool_enum_uint8 mac_is_nd(oal_ipv6hdr_stru  *pst_ipv6hdr)
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_dhcp6
- 功能描述  : 判断是否是DHCP6帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月7日
-    作    者   : l00280485
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 mac_is_dhcp6(oal_ipv6hdr_stru  *pst_ipv6hdr)
 {
     udp_hdr_stru           *pst_udp_hdr;
@@ -152,21 +93,7 @@ oal_bool_enum_uint8 mac_is_dhcp6(oal_ipv6hdr_stru  *pst_ipv6hdr)
 
     return OAL_FALSE;
 }
-/*****************************************************************************
- 函 数 名  : mac_get_arp_type
- 功能描述  : 获取arp帧的类型：request/responce(暂时不考虑rarp!)
- 输入参数  : arp ie头
- 输出参数  : 无
- 返 回 值  : 驱动私定义的关键帧类型
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月25日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC mac_data_type_enum_uint8 mac_get_arp_type_by_arphdr(oal_eth_arphdr_stru  *pst_rx_arp_hdr)
 {
     if (MAC_ARP_REQUEST == OAL_NET2HOST_SHORT(pst_rx_arp_hdr->us_ar_op))
@@ -182,22 +109,7 @@ OAL_STATIC mac_data_type_enum_uint8 mac_get_arp_type_by_arphdr(oal_eth_arphdr_st
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_data_type_from_8023
- 功能描述  : 根据数据帧(802.3)的类型，判断帧类型
- 输入参数  : puc_frame_hdr: 为去除80211头的数据帧，可为以太头或snap头
-             uc_hdr_type: 指针指向数据类型，用来计算获取data_type时刻的偏移
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
- 其    他  : 已经加了snap头的帧，使用此接口
- 修改历史      :
-  1.日    期   : 2015年1月20日
-    作    者   : z00260280
-    修改内容   : 新生成函数
 
-*****************************************************************************/
 oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payload_type uc_hdr_type)
 {
 
@@ -228,16 +140,16 @@ oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payl
 
     switch (us_ether_type)
     {
-        /*lint -e778*//* 屏蔽Info -- Constant expression evaluates to 0 in operation '&' */
+        /*lint -e778*//* ????Info -- Constant expression evaluates to 0 in operation '&' */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IP):
-            /* 从IP TOS字段寻找优先级 */
+            /* ??IP TOS?????????????? */
             /*----------------------------------------------------------------------
-                tos位定义
+                tos??????
              ----------------------------------------------------------------------
             | bit7~bit5 | bit4 |  bit3  |  bit2  |   bit1   | bit0 |
-            | 包优先级  | 时延 | 吞吐量 | 可靠性 | 传输成本 | 保留 |
+            | ????????  | ???? | ?????? | ?????? | ???????? | ???? |
              ----------------------------------------------------------------------*/
-            pst_ip = (mac_ip_header_stru *)puc_frame_body;      /* 偏移一个以太网头，取ip头 */
+            pst_ip = (mac_ip_header_stru *)puc_frame_body;      /* ????????????????????ip?? */
 
             if (OAL_TRUE == mac_is_dhcp_port(pst_ip))
             {
@@ -246,20 +158,20 @@ oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payl
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_IPV6):
-            /* 从IPv6 traffic class字段获取优先级 */
+            /* ??IPv6 traffic class?????????????? */
             /*----------------------------------------------------------------------
-                IPv6包头 前32为定义
+                IPv6???? ??32??????
              -----------------------------------------------------------------------
-            | 版本号 | traffic class   | 流量标识 |
-            | 4bit   | 8bit(同ipv4 tos)|  20bit   |
+            | ?????? | traffic class   | ???????? |
+            | 4bit   | 8bit(??ipv4 tos)|  20bit   |
             -----------------------------------------------------------------------*/
-            /* 如果是ND帧，则进入VO队列发送 */
+            /* ??????ND??????????VO???????? */
             if (OAL_TRUE == mac_is_nd((oal_ipv6hdr_stru *)puc_frame_body))
             {
                 uc_datatype = MAC_DATA_ND;
             }
 
-            /* 如果是DHCPV6帧 */
+            /* ??????DHCPV6?? */
             else if (OAL_TRUE == mac_is_dhcp6((oal_ipv6hdr_stru *)puc_frame_body))
             {
                 uc_datatype = MAC_DATA_DHCPV6;
@@ -268,16 +180,16 @@ oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payl
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PAE):
-            /* 如果是EAPOL帧，则进入VO队列发送 */
+            /* ??????EAPOL??????????VO???????? */
             uc_datatype = MAC_DATA_EAPOL; /* eapol */
             break;
 
-        /* TDLS帧处理，建链保护，入高优先级TID队列 */
+        /* TDLS????????????????????????????TID???? */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_TDLS):
             uc_datatype = MAC_DATA_TDLS;
             break;
 
-        /* PPPOE帧处理，建链保护(发现阶段, 会话阶段)，入高优先级TID队列 */
+        /* PPPOE????????????????(????????, ????????)????????????TID???? */
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PPP_DISC):
         case OAL_HOST2NET_SHORT(ETHER_TYPE_PPP_SES):
             uc_datatype = MAC_DATA_PPPOE;
@@ -293,7 +205,7 @@ oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payl
             break;
 
         case OAL_HOST2NET_SHORT(ETHER_TYPE_ARP):
-            /* 如果是ARP帧，则进入VO队列发送 */
+            /* ??????ARP??????????VO???????? */
             uc_datatype =  mac_get_arp_type_by_arphdr((oal_eth_arphdr_stru *)puc_frame_body);
             break;
 
@@ -306,20 +218,7 @@ oal_uint8 mac_get_data_type_from_8023(oal_uint8 *puc_frame_hdr, mac_netbuff_payl
     return uc_datatype;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_data_type_from_80211
- 功能描述  : 从带mac头的80211帧中获取以太类型
- 输入参数  : netbuff
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
- 其    他  :
- 修改历史      :
-  1.日    期   : 2015年7月6日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-*****************************************************************************/
+
 oal_uint8 mac_get_data_type_from_80211(oal_netbuf_stru *pst_netbuff, oal_uint16 us_mac_hdr_len)
 {
     oal_uint8               uc_datatype = MAC_DATA_BUTT;
@@ -338,21 +237,7 @@ oal_uint8 mac_get_data_type_from_80211(oal_netbuf_stru *pst_netbuff, oal_uint16 
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_data_type
- 功能描述  : 根据数据帧的类型，判断帧类型
- 输入参数  : netbuff
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
- 其    他  : 已经加了snap头的帧，使用此接口
- 修改历史      :
-  1.日    期   : 2015年1月20日
-    作    者   : z00260280
-    修改内容   : 新生成函数
 
-*****************************************************************************/
 oal_uint8 mac_get_data_type(oal_netbuf_stru *pst_netbuff)
 {
     oal_uint8               uc_datatype = MAC_DATA_BUTT;
@@ -375,21 +260,7 @@ oal_uint8 mac_get_data_type(oal_netbuf_stru *pst_netbuff)
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_eapol_keyinfo
- 功能描述  : 用来区分不同的eapol帧
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月31日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint16 mac_get_eapol_keyinfo(oal_netbuf_stru *pst_netbuff)
 {
     oal_uint8                      uc_datatype = MAC_DATA_BUTT;
@@ -413,21 +284,7 @@ oal_uint16 mac_get_eapol_keyinfo(oal_netbuf_stru *pst_netbuff)
 
 }
 
-/*****************************************************************************
- 函 数 名  : mac_get_eapol_keyinfo
- 功能描述  : 用来区分不同的eapol帧
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月31日
-    作    者   : z00260280
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 mac_get_eapol_type(oal_netbuf_stru *pst_netbuff)
 {
     oal_uint8                      uc_datatype = MAC_DATA_BUTT;
@@ -452,21 +309,7 @@ oal_uint8 mac_get_eapol_type(oal_netbuf_stru *pst_netbuff)
 }
 
 
-/*****************************************************************************
- 函 数 名  : mac_is_eapol_key_ptk
- 功能描述  : 判断该帧是否为4 次握手的EAPOL KEY 单播密钥协商帧
- 输入参数  : mac_eapol_header_stru  *pst_eapol_header
- 输出参数  : 无
- 返 回 值  : oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月13日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 mac_is_eapol_key_ptk(mac_eapol_header_stru  *pst_eapol_header)
 {
     mac_eapol_key_stru *pst_key;
@@ -486,21 +329,7 @@ oal_bool_enum_uint8 mac_is_eapol_key_ptk(mac_eapol_header_stru  *pst_eapol_heade
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : mac_is_eapol_key_ptk_4_4
- 功能描述  : 判断该帧是否为4 次握手的4/4 EAPOL KEY 单播密钥协商帧
- 输入参数  : oal_netbuf_stru *pst_netbuff
- 输出参数  : 无
- 返 回 值  : oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年9月6日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 mac_is_eapol_key_ptk_4_4(oal_netbuf_stru *pst_netbuff)
 {
     mac_eapol_header_stru   *pst_eapol_header;

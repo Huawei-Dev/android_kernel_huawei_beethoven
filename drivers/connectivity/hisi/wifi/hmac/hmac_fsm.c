@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_fsm.c
-  版 本 号   : 初稿
-  作    者   : zhangheng
-  生成日期   : 2013年6月18日
-  最近修改   :
-  功能描述   : 全局静态状态机二维函数表
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "hmac_fsm.h"
 #include "hmac_mgmt_bss_comm.h"
@@ -43,29 +26,14 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_FSM_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
-/* 全局状态机函数表 */
+/* ???????????????? */
 OAL_STATIC hmac_fsm_func   g_pa_hmac_ap_fsm_func[MAC_VAP_AP_STATE_BUTT][HMAC_FSM_AP_INPUT_TYPE_BUTT];
 OAL_STATIC hmac_fsm_func   g_pa_hmac_sta_fsm_func[MAC_VAP_STA_STATE_BUTT][HMAC_FSM_STA_INPUT_TYPE_BUTT];
 
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_set_state
- 功能描述  : 改变状态机状态
- 输入参数  : pst_hmac_vap: HMAC VAP
-             en_vap_state: 要切换到的状态
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月19日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hmac_fsm_change_state(hmac_vap_stru *pst_hmac_vap, mac_vap_state_enum_uint8 en_vap_state)
 {
     mac_cfg_mode_param_stru  st_cfg_mode;
@@ -75,10 +43,10 @@ oal_void  hmac_fsm_change_state(hmac_vap_stru *pst_hmac_vap, mac_vap_state_enum_
     en_old_state = pst_hmac_vap->st_vap_base_info.en_vap_state;
 #endif
 
-    /*将vap状态改变信息上报*/
+    /*??vap????????????????*/
     mac_vap_state_change(&pst_hmac_vap->st_vap_base_info, en_vap_state);
 
-    /* OFFLOAD模式下dmac vap状态同步*/
+    /* OFFLOAD??????dmac vap????????*/
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
     //en_old_state = pst_hmac_vap->st_vap_base_info.en_vap_state;
 
@@ -92,7 +60,7 @@ oal_void  hmac_fsm_change_state(hmac_vap_stru *pst_hmac_vap, mac_vap_state_enum_
 
 #ifdef _PRE_WLAN_FEATURE_STA_PM
 
-    /* STA 模式下只有UP状态才开启低功耗开关定时器 */
+    /* STA ??????????UP?????????????????????????? */
     if(MAC_VAP_STATE_UP == en_vap_state)
     {
         if (pst_hmac_vap->st_vap_base_info.en_vap_mode == WLAN_VAP_MODE_BSS_STA)
@@ -110,7 +78,7 @@ oal_void  hmac_fsm_change_state(hmac_vap_stru *pst_hmac_vap, mac_vap_state_enum_
 #endif
 
 #endif
-    /* 设置帧过滤寄存器 */
+    /* ???????????????? */
     hmac_set_rx_filter_value(&pst_hmac_vap->st_vap_base_info);
 
     if ((MAC_VAP_STATE_STA_FAKE_UP == en_vap_state)
@@ -127,45 +95,17 @@ oal_void  hmac_fsm_change_state(hmac_vap_stru *pst_hmac_vap, mac_vap_state_enum_
 }
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : hmac_fsm_null_fn
- 功能描述  : 空函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_fsm_null_fn(hmac_vap_stru *pst_hmac_vap, oal_void *p_param)
 {
-    /* 什么都不做 */
+    /* ?????????? */
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_init_ap
- 功能描述  : 初始化ap状态机函数表
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月19日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void hmac_fsm_init_ap(oal_void)
 {
     oal_uint32  ul_state;
@@ -179,7 +119,7 @@ OAL_STATIC oal_void hmac_fsm_init_ap(oal_void)
         }
     }
 
-    /* 接收管理帧输入
+    /* ??????????????
     +----------------------------------+---------------------
      | FSM State                        | FSM Function
      +----------------------------------+---------------------
@@ -195,26 +135,12 @@ OAL_STATIC oal_void hmac_fsm_init_ap(oal_void)
     g_pa_hmac_ap_fsm_func[MAC_VAP_STATE_UP][HMAC_FSM_INPUT_MISC]    = hmac_ap_up_misc;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_init_sta
- 功能描述  : 初始化sta状态机函数表
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月19日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
 {
     oal_uint32  ul_state;
 
-    /* 初始化扫描请求输入函数 HMAC_FSM_INPUT_SCAN_REQ
+    /* ?????????????????????? HMAC_FSM_INPUT_SCAN_REQ
      +----------------------------------+---------------------
      | FSM State                        | FSM Function
      +----------------------------------+---------------------
@@ -328,7 +254,7 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
         g_pa_hmac_sta_fsm_func[ul_state][HMAC_FSM_INPUT_RX_MGMT] = hmac_fsm_null_fn;
     }
 
-    /* 增加 HMAC_FSM_INPUT_RX_MGMT事件 处理函数 */
+    /* ???? HMAC_FSM_INPUT_RX_MGMT???? ???????? */
     /* g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_JOIN_COMP][HMAC_FSM_INPUT_RX_MGMT]      = hmac_sta_scan_comp_rx;*/
     //g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_WAIT_JOIN][HMAC_FSM_INPUT_RX_MGMT]      = hmac_sta_wait_join_rx;
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_WAIT_AUTH_SEQ2][HMAC_FSM_INPUT_RX_MGMT] = hmac_sta_wait_auth_seq2_rx;
@@ -340,7 +266,7 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_ROAMING][HMAC_FSM_INPUT_RX_MGMT]            = hmac_sta_roam_rx_mgmt;
 #endif //_PRE_WLAN_FEATURE_ROAM
 
-    /* 增加 HotSpot中状态机sta侧处理函数 */
+    /* ???? HotSpot????????sta?????????? */
 #if defined(_PRE_WLAN_FEATURE_HS20) || defined(_PRE_WLAN_FEATURE_P2P) || defined(_PRE_WLAN_FEATURE_HILINK)
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_SCAN_COMP][HMAC_FSM_INPUT_RX_MGMT]      = hmac_sta_not_up_rx_mgmt;
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_WAIT_SCAN][HMAC_FSM_INPUT_RX_MGMT]      = hmac_sta_not_up_rx_mgmt;
@@ -351,7 +277,7 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_LISTEN][HMAC_FSM_INPUT_RX_MGMT]         = hmac_sta_not_up_rx_mgmt;
 #endif
 
-    /* 初始化timer0超时请求输入函数 HMAC_FSM_INPUT_TIMER0_OUT
+    /* ??????timer0???????????????? HMAC_FSM_INPUT_TIMER0_OUT
      +----------------------------------+---------------------
      | FSM State                        | FSM Function
      +----------------------------------+---------------------
@@ -380,7 +306,7 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_WAIT_AUTH_SEQ4][HMAC_FSM_INPUT_TIMER0_OUT] = hmac_sta_auth_timeout;
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_WAIT_ASOC][HMAC_FSM_INPUT_TIMER0_OUT]      = hmac_sta_wait_asoc_timeout;
 
-    /* 初始化HMAC_FSM_INPUT_MISC事件请求的处理函数
+    /* ??????HMAC_FSM_INPUT_MISC??????????????????
        +----------------------------------+---------------------
        | FSM State                        | FSM Function
        +----------------------------------+---------------------
@@ -424,9 +350,8 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
 
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_FAKE_UP][HMAC_FSM_INPUT_LISTEN_REQ]   = hmac_p2p_remain_on_channel;
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_SCAN_COMP][HMAC_FSM_INPUT_LISTEN_REQ] = hmac_p2p_remain_on_channel;
-    /* DTS2015022500760 设置P2P 监听超时定时器,
-        P2P处于Listen状态下无法下发监听命令，导致Listen状态下不能重新出发监听，无法与商用设备关联 */
-    g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_LISTEN][HMAC_FSM_INPUT_LISTEN_REQ]    = hmac_p2p_remain_on_channel;//在监听状态接收到新的监听命令，则执行新的监听。
+    
+    g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_STA_LISTEN][HMAC_FSM_INPUT_LISTEN_REQ]    = hmac_p2p_remain_on_channel;//??????????????????????????????????????????????
     g_pa_hmac_sta_fsm_func[MAC_VAP_STATE_UP][HMAC_FSM_INPUT_LISTEN_REQ]            = hmac_p2p_remain_on_channel;
 
     /* Initialize the elements in the HMAC_FSM_INPUT_LISTEN_TIMEOUT          */
@@ -479,47 +404,17 @@ OAL_STATIC oal_void hmac_fsm_init_sta(oal_void)
 #endif //_PRE_WLAN_FEATURE_ROAM
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_init
- 功能描述  : 初始化状态机处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  hmac_fsm_init(oal_void)
 {
-    /* 初始化ap状态机函数表 */
+    /* ??????ap???????????? */
     hmac_fsm_init_ap();
 
-    /* 初始化sta状态机函数表 */
+    /* ??????sta???????????? */
     hmac_fsm_init_sta();
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_call_func_ap
- 功能描述  : 调用AP状态机函数表
- 输入参数  : pst_hmac_vap: hmac vap
-             en_input: 输入类型
-             p_param: 输入参数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_fsm_call_func_ap(hmac_vap_stru *pst_hmac_vap, hmac_fsm_input_type_enum_uint8 en_input, oal_void *p_param)
 {
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_hmac_vap))
@@ -529,7 +424,6 @@ oal_uint32  hmac_fsm_call_func_ap(hmac_vap_stru *pst_hmac_vap, hmac_fsm_input_ty
     }
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /* DTS2015082706382 1102 解决VAP已经删除的情况下，HMAC才处理DMAC抛上来的事件导致状态非法问题 */
     if (MAC_VAP_STATE_BUTT == pst_hmac_vap->st_vap_base_info.en_vap_state)
     {
         OAM_WARNING_LOG1(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_ANY,
@@ -553,23 +447,7 @@ oal_uint32  hmac_fsm_call_func_ap(hmac_vap_stru *pst_hmac_vap, hmac_fsm_input_ty
     return g_pa_hmac_ap_fsm_func[pst_hmac_vap->st_vap_base_info.en_vap_state][en_input](pst_hmac_vap, p_param);
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_fsm_call_func_sta
- 功能描述  : 调用STA状态机函数表
- 输入参数  : pst_hmac_vap: hmac vap
-             en_input: 输入类型
-             p_param: 输入参数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年6月18日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_fsm_call_func_sta(hmac_vap_stru *pst_hmac_vap, hmac_fsm_input_type_enum_uint8 en_input, oal_void *p_param)
 {
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_hmac_vap))
@@ -579,7 +457,6 @@ oal_uint32  hmac_fsm_call_func_sta(hmac_vap_stru *pst_hmac_vap, hmac_fsm_input_t
     }
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /* DTS2015082706382 解决VAP已经删除的情况下，HMAC才处理DMAC抛上来的事件导致状态非法问题 */
     if (MAC_VAP_STA_STATE_BUTT == pst_hmac_vap->st_vap_base_info.en_vap_state)
     {
         OAM_WARNING_LOG1(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_ANY,

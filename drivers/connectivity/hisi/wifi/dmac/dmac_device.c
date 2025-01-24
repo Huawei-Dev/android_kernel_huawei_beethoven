@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_device.c
-  版 本 号   : 初稿
-  作    者   : zhangwei 00326350
-  生成日期   : 2015年05月07日
-  最近修改   :
-  功能描述   : dmac device对应结构
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年05月07日
-    作    者   : zhangwei
-    修改内容   : 创建文件
-
-******************************************************************************/
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
@@ -23,7 +6,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -58,23 +41,11 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_DEVICE_C
 
+oal_bool_enum_uint8 g_rx_filter_frag = OAL_FALSE;
+
 #ifdef _PRE_WLAN_FEATURE_IP_FILTER
 
-/*****************************************************************************
- 函 数 名  : dmac_port_filter_exit
- 功能描述  :  device侧功能去初始化操作
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal._void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年4月17日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_ip_filter_exit(oal_void)
 {
     g_st_dmac_board.st_rx_ip_filter.en_state = MAC_RX_IP_FILTER_STOPED;
@@ -87,25 +58,11 @@ OAL_STATIC oal_void dmac_ip_filter_exit(oal_void)
 
     return;
 }
-/*****************************************************************************
- 函 数 名  : dmac_port_filter_init
- 功能描述  : device侧功能初始化操作
- 输入参数  : pst_dmac_device
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2017年4月17日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_ip_filter_init(oal_void)
 {
 
-    /* 初始化功能控制变量 */
+    /* ?????????????????? */
     g_st_dmac_board.st_rx_ip_filter.en_state = MAC_RX_IP_FILTER_STOPED;
     g_st_dmac_board.st_rx_ip_filter.uc_btable_size      = OAL_SIZEOF(g_auc_ip_filter_btable) / OAL_SIZEOF(mac_ip_filter_item_stru);
     g_st_dmac_board.st_rx_ip_filter.uc_btable_items_num = 0;
@@ -119,21 +76,7 @@ OAL_STATIC oal_void dmac_ip_filter_init(oal_void)
 }
 #endif //_PRE_WLAN_FEATURE_IP_FILTER
 
-/*****************************************************************************
- 函 数 名  : dmac_free_hd_tx_dscr_queue
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_free_hd_tx_dscr_queue(hal_to_dmac_device_stru *pst_hal_dev_stru)
 {
     oal_uint8                        uc_index;
@@ -160,21 +103,7 @@ OAL_STATIC oal_void  dmac_free_hd_tx_dscr_queue(hal_to_dmac_device_stru *pst_hal
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_device_exit
- 功能描述  : device结构以及对应特性退出
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月7日
-    作    者   : 张炜 64406
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip, dmac_device_stru *pst_dmac_device)
 {
     mac_device_stru   *pst_device;
@@ -193,14 +122,13 @@ oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip,
         return OAL_SUCC;
     }
 
-    /* 算法框架退出 */
+    /* ???????????? */
     dmac_alg_exit(pst_device);
 
-	/* DTS2015071603951 mac和phy没有异常情况,不要进行mac和phy复位, 不然会导致PCIE异常 */
-    /* 挂起硬件发送 */
+    /* ???????????? */
     //hal_set_machw_tx_suspend(pst_device->pst_device_stru);
 
-    /* 复位MAC and PHY */
+    /* ????MAC and PHY */
     //hal_reset_phy_machw(pst_device->pst_device_stru, HAL_RESET_HW_TYPE_ALL, HAL_RESET_MAC_ALL, 1, 1);
 
     pst_hal_dev_stru = pst_device->pst_device_stru;
@@ -212,8 +140,8 @@ oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip,
 #endif
     pst_device->pst_device_stru = OAL_PTR_NULL;
 
-    /*释放公共结构体*/
-    /*释放公共结构体 以及 对应衍生特性*/
+    /*??????????????*/
+    /*?????????????? ???? ????????????*/
 #if 0
     ul_ret = pst_board->p_device_destroy_fun(pst_device);
 #else
@@ -229,28 +157,28 @@ oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip,
 
 
 #ifdef _PRE_SUPPORT_ACS
-    /* 清除dmac acs */
+    /* ????dmac acs */
     dmac_acs_exit(pst_device);
 #endif
 
 #ifdef _PRE_WLAN_DFT_REG
-        /* 寄存器读取删除定时器 */
+        /* ???????????????????? */
     FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_device->st_reg_prd_timer));
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_DFR
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
 
-    /* 注销pcie错误检测定时器 */
+    /* ????pcie?????????????? */
     FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_dmac_device->st_pcie_err_timer));
 #endif
 
-	/* 注销无法送完成中断检测定时器 */
+	/* ???????????????????????????? */
     FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_hal_dev_stru->st_dfr_tx_prot.st_tx_prot_timer));
 #endif
 
 #ifdef _PRE_WLAN_FEATURE_GREEN_AP
-    /* green ap 注销函数 */
+    /* green ap ???????? */
     dmac_green_ap_exit(pst_device);
 #endif
 
@@ -258,7 +186,7 @@ oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip,
     FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_device->st_exception_report_timer));
 #endif
 
-    /* 取消keepalive定时器 */
+    /* ????keepalive?????? */
     if(OAL_TRUE == pst_device->st_keepalive_timer.en_is_registerd)
     {
         FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_device->st_keepalive_timer));
@@ -271,27 +199,13 @@ oal_uint32  dmac_device_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip,
     }
 #endif
 
-    /* 指向基础mac device的指针为空，待定时解耦后，本处理提前 */
+    /* ????????mac device???????????????????????????????????? */
     pst_dmac_device->pst_device_base_info = OAL_PTR_NULL;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_chip_exit
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月7日
-    作    者   : 张炜 64406
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_chip_exit(mac_board_stru *pst_board, mac_chip_stru *pst_chip)
 {
     dmac_device_stru  *pst_dmac_device;
@@ -308,7 +222,7 @@ OAL_STATIC oal_uint32  dmac_chip_exit(mac_board_stru *pst_board, mac_chip_stru *
     {
          pst_dmac_device = dmac_res_get_mac_dev(pst_chip->auc_device_id[uc_device]);
 
-         /* TBD 置换位置 释放资源 */
+         /* TBD ???????? ???????? */
          dmac_res_free_mac_dev(pst_chip->auc_device_id[uc_device]);
 
          ul_ret = dmac_device_exit(pst_board, pst_chip, pst_dmac_device);
@@ -319,7 +233,7 @@ OAL_STATIC oal_uint32  dmac_chip_exit(mac_board_stru *pst_board, mac_chip_stru *
          }
     }
 
-    /*释放基础结构*/
+    /*????????????*/
     ul_ret = mac_chip_exit(pst_board, pst_chip);
     if (OAL_SUCC != ul_ret)
     {
@@ -330,21 +244,7 @@ OAL_STATIC oal_uint32  dmac_chip_exit(mac_board_stru *pst_board, mac_chip_stru *
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_board_exit
- 功能描述  : 删除board
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月7日
-    作    者   : 张炜 64406
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_board_exit(mac_board_stru *pst_board)
 {
     oal_uint8        uc_chip_idx;
@@ -358,7 +258,7 @@ oal_uint32  dmac_board_exit(mac_board_stru *pst_board)
 
     while (0 != pst_board->uc_chip_id_bitmap)
     {
-        /* 获取最右边一位为1的位数，此值即为chip的数组下标 */
+        /* ????????????????1????????????????chip?????????? */
         uc_chip_idx = oal_bit_find_first_bit_one_byte(pst_board->uc_chip_id_bitmap);
         if (OAL_UNLIKELY(uc_chip_idx >= WLAN_CHIP_MAX_NUM_PER_BOARD))
         {
@@ -374,14 +274,14 @@ oal_uint32  dmac_board_exit(mac_board_stru *pst_board)
             return ul_ret;
         }
 
-        /* 清除对应的bitmap位 */
+        /* ??????????bitmap?? */
         oal_bit_clear_bit_one_byte(&pst_board->uc_chip_id_bitmap, uc_chip_idx);
     }
 
-    /*公共部分的初始化*/
+    /*????????????????*/
     mac_board_exit(pst_board);
 #ifdef _PRE_WLAN_FEATURE_IP_FILTER
-    /* rx ip数据包过滤功能的去初始化 */
+    /* rx ip???????????????????????? */
     dmac_ip_filter_exit();
 #endif //_PRE_WLAN_FEATURE_IP_FILTER
 
@@ -392,43 +292,26 @@ oal_uint32  dmac_board_exit(mac_board_stru *pst_board)
 
 
 #ifdef _PRE_DEBUG_MODE
-/*****************************************************************************
- 函 数 名  : dmac_device_exception_report_timeout_fn
- 功能描述  : 异常维测信息上报，定期读取寄存器，出现错误直接上报
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年8月4日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月4日
-    作    者   : daihu
-    修改内容   : 增加双芯片时，pcie0和pcie1的读写
-
-*****************************************************************************/
 oal_uint32  dmac_device_exception_report_timeout_fn(oal_void *p_arg)
 {
 #if ((_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) && (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE))
     oal_uint8                   uc_pci_device_id = 0;
     oal_uint32                  ul_reg_pci_rpt_val  = 0;
-    oal_uint32                  ul_pci_warn_clear_cfg_val = 0xFFFFFFFF;             /* 写1清 */
-    oal_uint32                  ul_reg_pci_rpt_addr_offset = 0x110;                 /* PCIE 0x110寄存器 */
+    oal_uint32                  ul_pci_warn_clear_cfg_val = 0xFFFFFFFF;             /* ??1?? */
+    oal_uint32                  ul_reg_pci_rpt_addr_offset = 0x110;                 /* PCIE 0x110?????? */
     oal_bus_chip_stru           *pst_bus_chip = OAL_PTR_NULL;
     hal_to_dmac_device_stru     *pst_hal_device = OAL_PTR_NULL;
     mac_device_stru             *pst_mac_device = OAL_PTR_NULL;
 
     pst_hal_device = (hal_to_dmac_device_stru *)p_arg;
 
-    /* 获取chip id值 */
+    /* ????chip id?? */
     uc_pci_device_id = pst_hal_device->uc_chip_id;
 
     oal_bus_get_chip_instance(&pst_bus_chip, uc_pci_device_id);
 
-    /* 然后读取1151侧的 PCIE */
+    /* ????????1151???? PCIE */
     ul_reg_pci_rpt_val   = 0;
     oal_pci_read_config_dword(pst_bus_chip->pst_pci_device, ul_reg_pci_rpt_addr_offset, &ul_reg_pci_rpt_val);
 
@@ -441,7 +324,7 @@ oal_uint32  dmac_device_exception_report_timeout_fn(oal_void *p_arg)
 
     pst_mac_device->ul_pcie_read_counter++;
 
-    /* Bit[12]: Timer Timeout Status， 判断是否发生 timeout异常 */
+    /* Bit[12]: Timer Timeout Status?? ???????????? timeout???? */
     if(0 != (ul_reg_pci_rpt_val & 0x1000))
     {
         pst_mac_device->ul_pcie_reg110_timeout_counter++;
@@ -452,7 +335,7 @@ oal_uint32  dmac_device_exception_report_timeout_fn(oal_void *p_arg)
 
         oal_pci_write_config_dword(pst_bus_chip->pst_pci_device, ul_reg_pci_rpt_addr_offset, ul_pci_warn_clear_cfg_val);
     }
-    /* 为防止出现 timeout异常后，长时间再未出现异常，每隔 10 * 64秒打印一次 timeout异常统计 */
+    /* ?????????? timeout???????????????????????????????? 10 * 64?????????? timeout???????? */
     else if(0 == (pst_mac_device->ul_pcie_read_counter & 0x3F))
     {
         OAM_WARNING_LOG3(0, OAM_SF_ANY,
@@ -466,21 +349,7 @@ oal_uint32  dmac_device_exception_report_timeout_fn(oal_void *p_arg)
 #endif
 
 #ifdef _PRE_WLAN_DFT_REG
-/*****************************************************************************
- 函 数 名  : dmac_reg_timeout
- 功能描述  : 周期定时器超时处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-   1.日    期   : 2014年5月25日
-     作    者   : z00260280
-     修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_reg_timeout(void *p_arg)
 {
     hal_to_dmac_device_stru    *pst_device;
@@ -505,25 +374,11 @@ OAL_STATIC oal_uint32  dmac_reg_timeout(void *p_arg)
 
 #endif
 
-/*****************************************************************************
- 函 数 名  : dmac_cfg_vap_init
- 功能描述  : dmac_cfg_vap_init_event需要移植到此处.dmac初始化完成后，需要增量和hmac的握手
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月12日
-    作    者   : 张炜 64406
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 OAL_STATIC oal_uint32 dmac_cfg_vap_init(mac_device_stru *pst_device)
 {
-    /*VAP未创建，等待HMAC配置事件 创建VAP*/
+    /*VAP????????????HMAC???????? ????VAP*/
     return OAL_SUCC;
 }
 
@@ -547,21 +402,7 @@ OAL_STATIC oal_void dmac_alg_stat_init(dmac_device_stru *pst_dmac_device)
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_device_init
- 功能描述  : device的初始化函数
- 输入参数  : 指向要进行初始化的device指针
- 输出参数  : 无
- 返 回 值  : 成功或者失败原因
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_chip_id, oal_uint8 uc_device_id, oal_uint32 ul_chip_ver)
 {
     oal_uint32                 ul_ret;
@@ -581,7 +422,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
                                                     OAM_STATS_PHY_NODE_OFDM_HDR_ERR_CNT}};
 #endif
 
-    /*申请公共mac device结构体，修改下 名称*/
+    /*????????mac device?????????????? ????*/
     ul_ret = mac_res_alloc_dmac_dev(&uc_dev_id);
     if(OAL_UNLIKELY(ul_ret != OAL_SUCC))
     {
@@ -604,7 +445,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     pst_device->uc_device_id = uc_dev_id;
 #endif
 
-    /* 申请dmac device资源 */
+    /* ????dmac device???? */
     if(OAL_UNLIKELY(dmac_res_alloc_mac_dev(uc_dev_id) != OAL_SUCC))
     {
         OAM_ERROR_LOG0(0, OAM_SF_ANY, "{dmac_device_init::dmac_res_alloc_mac_dev failed.}");
@@ -612,7 +453,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     }
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /* 初始化device级别的一些参数 */
+    /* ??????device?????????????? */
     ul_ret = mac_device_init(pst_device, ul_chip_ver, uc_chip_id, uc_dev_id);
     if (OAL_SUCC != ul_ret)
     {
@@ -623,7 +464,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     }
 #endif
 
-    /* 获取hmac device，并进行相关参数赋值 */
+    /* ????hmac device???????????????????? */
     pst_dmac_device = dmac_res_get_mac_dev(uc_dev_id);
     if (OAL_PTR_NULL == pst_dmac_device)
     {
@@ -632,7 +473,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
        return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 结构体初始化 */
+    /* ???????????? */
     OAL_MEMZERO(pst_dmac_device, OAL_SIZEOF(*pst_dmac_device));
     pst_dmac_device->pst_device_base_info = pst_device;
 
@@ -644,8 +485,8 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     pst_dmac_device->en_usr_bw_mode = WLAN_BAND_ASSEMBLE_20M;
 #endif
 
-    /* 硬mac结构指针只存在于DMAC中，需要针对device对象中私有部分
-       的内容进行初始化，用于逻辑和物理device的对应 */
+    /* ??mac????????????????DMAC????????????device??????????????
+       ????????????????????????????????device?????? */
     ul_ret = hal_chip_get_device(uc_chip_id, uc_device_id, &pst_device->pst_device_stru);
 
     pst_device->ul_core_id = pst_device->pst_device_stru->ul_core_id;
@@ -659,7 +500,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
         return ul_ret;
     }
 
-    /* 保存mac层的device id */
+    /* ????mac????device id */
     pst_device->pst_device_stru->uc_mac_device_id = uc_dev_id;
 
     if(OAL_SUCC != mac_fcs_init(&pst_device->st_fcs_mgr, pst_device->uc_chip_id, pst_device->uc_device_id))
@@ -670,7 +511,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
         return OAL_FAIL;
     }
 
-    /* 算法框架初始化 */
+    /* ?????????????? */
     ul_ret = dmac_alg_init(pst_device);
     if (OAL_SUCC != ul_ret)
     {
@@ -680,14 +521,14 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
         return ul_ret;
     }
 
-    /* 算法距离、干扰等状态初始化 */
+    /* ?????????????????????????? */
     dmac_alg_stat_init(pst_dmac_device);
 
     pst_device->us_total_mpdu_num = 0;
-    /* 错误计数初始化 */
+    /* ?????????????? */
     OAL_MEMZERO(pst_device->aul_mac_err_cnt, OAL_SIZEOF(pst_device->aul_mac_err_cnt));
 
-    /*初始化记录性能统计第一次时间戳*/
+    /*??????????????????????????????*/
     pst_device->ul_first_timestamp = 0;
 
     pst_device->ul_rx_buf_too_small_show_counter = 0;
@@ -699,7 +540,6 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     pst_device->ul_pcie_reg110_timeout_counter = 0;
     pst_device->ul_pcie_read_counter = 0;
 
-    /* DTS2015100700205,特殊网卡兼容性问题规避方案: 会发生DataFlow Break时候会影响性能 */
     pst_device->st_dataflow_brk_bypass.en_brk_limit_aggr_enable = OAL_FALSE;
     pst_device->st_dataflow_brk_bypass.ul_tx_dataflow_brk_cnt = 0;
     pst_device->st_dataflow_brk_bypass.ul_last_tx_complete_isr_cnt = 0;
@@ -720,7 +560,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     }
 
 #ifdef _PRE_WLAN_DFT_STAT
-    /* 初始化维测参数，空口环境类参数 */
+    /* ?????????????????????????????? */
     OAL_MEMZERO(&(pst_device->st_dbb_env_param_ctx), OAL_SIZEOF(mac_device_dbb_env_param_ctx_stru));
 #endif
 
@@ -734,14 +574,14 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     mac_pm_arbiter_init(pst_device);
 #endif
 
-    /* 初始化TXOP特性相关值 */
+    /* ??????TXOP?????????? */
     pst_device->en_txop_enable       = OAL_FALSE;
     pst_device->uc_tx_ba_num = 0;
 
-    /* 从eeprom或flash获得MAC地址 */
+    /* ??eeprom??flash????MAC???? */
     hal_get_hw_addr(pst_device->pst_device_stru, pst_device->auc_hw_addr);
 
-    /* 初始化DEVICE下的速率集 */
+    /* ??????DEVICE?????????? */
     hal_get_rate_80211g_table(pst_device->pst_device_stru, (oal_void *)&pst_data_rate);
     hal_get_rate_80211g_num(pst_device->pst_device_stru, &ul_rate_num);
 
@@ -750,7 +590,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
         oal_memcopy(&(pst_device->st_mac_rates_11g[ul_idx]),&pst_data_rate[ul_idx],OAL_SIZEOF(mac_data_rate_stru));
     }
 
-    /* 初始化2.4G和5G的RTS速率, RTS[0~2]设为24Mbps,  RTS[3]在2.4G设为1Mbps、5G设为24Mbps*/
+    /* ??????2.4G??5G??RTS????, RTS[0~2]????24Mbps,  RTS[3]??2.4G????1Mbps??5G????24Mbps*/
     st_hal_rts_tx_param.auc_protocol_mode[0]    = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
     st_hal_rts_tx_param.auc_rate[0]             = WLAN_LEGACY_OFDM_24M_BPS;
     st_hal_rts_tx_param.auc_protocol_mode[1]    = WLAN_LEGACY_OFDM_PHY_PROTOCOL_MODE;
@@ -774,16 +614,16 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     pst_device->us_dfs_timeout = 0;
 #endif
 
-    /* 初始化DMAC SCANNER */
+    /* ??????DMAC SCANNER */
     dmac_scan_init(pst_device);
 
 #ifdef _PRE_SUPPORT_ACS
-    /* 初始化ACS结构体 */
+    /* ??????ACS?????? */
     dmac_acs_init(pst_device);
 #endif
 
 #ifdef _PRE_WLAN_DFT_REG
-    /* 初始化寄存器读取定时器 */
+    /* ?????????????????????? */
     FRW_TIMER_CREATE_TIMER(&pst_device->st_reg_prd_timer,
                                dmac_reg_timeout,
                                OAM_REGSTER_REFRESH_TIME_MS,
@@ -797,11 +637,11 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
     dmac_dfr_init((oal_void *)pst_dmac_device);
 #endif
 #ifdef _PRE_WLAN_FEATURE_GREEN_AP
-    /* Green AP特性结构体初始化 */
+    /* Green AP???????????????? */
     dmac_green_ap_init(pst_device);
 #endif
 
-    /* 出参赋值，CHIP中需要保存该device id */
+    /* ??????????CHIP????????????device id */
     *puc_device_id = uc_dev_id;
 
 #ifdef _PRE_WLAN_FEATURE_AMPDU
@@ -826,7 +666,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
 #endif
 
 #ifdef _PRE_WLAN_DFT_STAT
-        /* 初始化phy统计节点 */
+        /* ??????phy???????? */
         dmac_dft_set_phy_stat_node(pst_device, &st_phy_node_idx);
 #endif
 
@@ -841,21 +681,7 @@ OAL_STATIC oal_uint32  dmac_device_init(oal_uint8 *puc_device_id, oal_uint8 uc_c
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_chip_init
- 功能描述  : chip对象初始化函数
- 输入参数  : chip对象指针、chip id
- 输出参数  : 无
- 返 回 值  : 成功或失败原因
- 调用函数  : mac_device_init
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_chip_init(mac_chip_stru *pst_chip, oal_uint8 uc_chip_id)
 {
     oal_uint8  uc_device;
@@ -869,12 +695,12 @@ OAL_STATIC oal_uint32  dmac_chip_init(mac_chip_stru *pst_chip, oal_uint8 uc_chip
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /*公共部分初始化*/
+    /*??????????????*/
     mac_chip_init(pst_chip, uc_chip_id);
 
     pst_chip->uc_chip_id = uc_chip_id;
 
-    /*根据芯片id，获取hal_to_dmac_chip_stru结构体*/
+    /*????????id??????hal_to_dmac_chip_stru??????*/
     ul_ret = hal_chip_get_chip(uc_chip_id, &pst_chip->pst_chip_stru);
     if (OAL_SUCC != ul_ret)
     {
@@ -883,11 +709,11 @@ OAL_STATIC oal_uint32  dmac_chip_init(mac_chip_stru *pst_chip, oal_uint8 uc_chip
     }
 
 
-    /* CHIP调用接口 hal_get_chip_version*/
+    /* CHIP???????? hal_get_chip_version*/
     hal_get_chip_version(pst_chip->pst_chip_stru, &pst_chip->ul_chip_ver);
 
 
-    /* HAL接口获取支持device个数 */
+    /* HAL????????????device???? */
     ul_ret = hal_chip_get_device_num(uc_chip_id, &uc_device_max);
     if (OAL_SUCC != ul_ret)
     {
@@ -907,30 +733,16 @@ OAL_STATIC oal_uint32  dmac_chip_init(mac_chip_stru *pst_chip, oal_uint8 uc_chip
         }
     }
 
-    /* 保存device数量 */
+    /* ????device???? */
     pst_chip->uc_device_nums        = uc_device_max;
 
-    /* 初始化最后再将state置为TRUE */
+    /* ??????????????state????TRUE */
     pst_chip->en_chip_state         = OAL_TRUE;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_board_init
- 功能描述  : 在hmac和dmac中调用时，分别直接对全局变量赋值
- 输入参数  : board对象指针
- 输出参数  : 无
- 返 回 值  : 成功或失败
- 调用函数  : mac_chip_init、oal_bit_set_bit_one_byte、mac_board_register_table_instance
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月19日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_board_init(mac_board_stru *pst_board)
 {
     oal_uint8  uc_chip;
@@ -943,15 +755,15 @@ oal_uint32  dmac_board_init(mac_board_stru *pst_board)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /*公共部分初始化*/
+    /*??????????????*/
     mac_board_init(pst_board);
 
 #ifdef _PRE_WLAN_FEATURE_IP_FILTER
-    /* rx ip数据包过滤功能的初始化 */
+    /* rx ip?????????????????????? */
     dmac_ip_filter_init();
 #endif //_PRE_WLAN_FEATURE_IP_FILTER
 
-    /* chip支持的最大数由PCIe总线处理提供; */
+    /* chip??????????????PCIe????????????; */
     for (uc_chip = 0; uc_chip < oal_bus_get_chip_num(); uc_chip++)
     {
         ul_ret = dmac_chip_init(&pst_board->ast_chip[uc_chip], uc_chip);
@@ -971,21 +783,7 @@ oal_uint32  dmac_board_init(mac_board_stru *pst_board)
 
 
 
-/*****************************************************************************
- 函 数 名  : dmac_mac_error_overload
- 功能描述  : mac错误是否过载
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月4日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_mac_error_overload(mac_device_stru *pst_mac_device, hal_mac_error_type_enum_uint8 en_error_id)
 {
     if (pst_mac_device->aul_mac_err_cnt[en_error_id] > MAX_MAC_ERR_IN_TBTT)
@@ -997,41 +795,13 @@ oal_uint32  dmac_mac_error_overload(mac_device_stru *pst_mac_device, hal_mac_err
 
 
 
-/*****************************************************************************
- 函 数 名  : dmac_mac_error_cnt_clr
- 功能描述  : mac错误计数器全部清0
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月4日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_mac_error_cnt_clr(mac_device_stru *pst_mac_device)
 {
     oal_memset(pst_mac_device->aul_mac_err_cnt, 0, sizeof(pst_mac_device->aul_mac_err_cnt));
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_mac_error_cnt_inc
- 功能描述  : mac错误计数器加1
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月4日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_mac_error_cnt_inc(mac_device_stru *pst_mac_device, oal_uint8 uc_mac_int_bit)
 {
     pst_mac_device->aul_mac_err_cnt[uc_mac_int_bit] += 1;

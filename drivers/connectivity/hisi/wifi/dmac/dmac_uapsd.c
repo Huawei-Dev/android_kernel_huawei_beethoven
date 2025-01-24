@@ -1,23 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_uapsd.c
-  版 本 号   : 初稿
-  作    者   : huxiaotong
-  生成日期   : 2012年12月17日
-  最近修改   :
-  功能描述   : uapsd特性操作的源文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年12月17日
-    作    者   : huxiaotong
-    修改内容   : 创建文件
-  2.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 重新设计实现
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -29,7 +10,7 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_UAPSD
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_net.h"
 #include "wlan_spec.h"
@@ -54,32 +35,18 @@ extern "C" {
 OAL_STATIC oal_void  dmac_uapsd_print_info(dmac_user_stru *pst_dmac_user);
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_usr_init
- 功能描述  : USR初始化时u-apsd的初始化
- 输入参数  : pst_dmac_usr
- 输出参数  : 无
- 返 回 值  : 成功或者失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_uapsd_user_init(dmac_user_stru * pst_dmac_usr)
 {
     dmac_user_uapsd_stru       *pst_uapsd_stru;
-    /*调用者保证入参指针非空*/
+    /*??????????????????????*/
     pst_uapsd_stru = &(pst_dmac_usr->st_uapsd_stru);
 #ifdef _PRE_WLAN_DFT_STAT
     if (OAL_PTR_NULL != pst_uapsd_stru->pst_uapsd_statis)
@@ -105,28 +72,14 @@ oal_uint32  dmac_uapsd_user_init(dmac_user_stru * pst_dmac_usr)
     pst_uapsd_stru->us_uapsd_trigseq[WLAN_WME_AC_VI] = DMAC_UAPSD_INVALID_TRIGGER_SEQ;
     pst_uapsd_stru->us_uapsd_trigseq[WLAN_WME_AC_VO] = DMAC_UAPSD_INVALID_TRIGGER_SEQ;
 
-    /*还要初始化mac_usr结构中参数*/
+    /*??????????mac_usr??????????*/
     OAL_MEMZERO(&(pst_dmac_usr->st_uapsd_status),OAL_SIZEOF(mac_user_uapsd_status_stru));
     pst_dmac_usr->uc_uapsd_flag = 0;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_usr_destroy
- 功能描述  : USR删除时u-apsd资源的销毁
- 输入参数  : pst_dmac_usr
- 输出参数  : 无
- 返 回 值  : 成功或者失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_void  dmac_uapsd_user_destroy(dmac_user_stru *pst_dmac_usr)
 {
@@ -134,11 +87,11 @@ oal_void  dmac_uapsd_user_destroy(dmac_user_stru *pst_dmac_usr)
 
     oal_netbuf_stru             *pst_net_buf;
 
-    /*调用者保证入参指针非空*/
+    /*??????????????????????*/
     pst_uapsd_stru = &(pst_dmac_usr->st_uapsd_stru);
 
 #ifdef _PRE_WLAN_DFT_STAT
-    /* 首先，释放统计计数器占用的内存 */
+    /* ?????????????????????????????? */
     if(OAL_PTR_NULL != pst_uapsd_stru->pst_uapsd_statis)
     {
         OAL_MEM_FREE(pst_uapsd_stru->pst_uapsd_statis, OAL_TRUE);
@@ -146,7 +99,7 @@ oal_void  dmac_uapsd_user_destroy(dmac_user_stru *pst_dmac_usr)
     }
 #endif
 
-    /* 释放节能队列中的mpdu */
+    /* ????????????????mpdu */
     oal_spin_lock(&pst_uapsd_stru->st_lock_uapsd);
     while (0 != oal_atomic_read(&pst_uapsd_stru->uc_mpdu_num))
     {
@@ -166,23 +119,7 @@ oal_void  dmac_uapsd_user_destroy(dmac_user_stru *pst_dmac_usr)
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_tx_enqueue
- 功能描述  : 发送时报文入UAPSD队列
- 输入参数  : pst_dmac_vap:
-             pst_dmac_usr:
-             pst_net_buf: 待入队列的netbuf链,可能是多个MPDU
- 输出参数  : 无
- 返 回 值  : 成功或者失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_uapsd_tx_enqueue(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst_dmac_user,oal_netbuf_stru *pst_net_buf)
 {
 	oal_netbuf_stru        *pst_first_net_buf;
@@ -206,14 +143,14 @@ oal_uint32 dmac_uapsd_tx_enqueue(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst
 
     DMAC_UAPSD_STATS_INCR(pst_uapsd_statis->ul_uapsd_tx_enqueue_count);
 
-    /* 获取U-APSD队列的最大允许长度和当前队列长度 */
+    /* ????U-APSD???????????????????????????????? */
     uc_max_qdepth = pst_dmac_vap->uc_uapsd_max_depth;
 
-    /* 判断是否需要更新bitmap */
+    /* ????????????????bitmap */
     if ((0 == oal_atomic_read(&pst_dmac_user->st_uapsd_stru.uc_mpdu_num))
         && MAC_USR_UAPSD_USE_TIM(pst_dmac_user))
     {
-        /* 调用PSM的TIM设置接口 */
+        /* ????PSM??TIM???????? */
         //OAM_INFO_LOG1(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_TX,
         //              "dmac_uapsd_rx_trigger_check:set PVB to 1,usr id = %d",
         //              pst_dmac_user->st_user_base_info.us_assoc_id);
@@ -226,24 +163,24 @@ oal_uint32 dmac_uapsd_tx_enqueue(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst
     //               oal_atomic_read(&pst_dmac_user->st_uapsd_stru.uc_mpdu_num));
 
 
-    /* 对UAPSD节能队列进行操作，加锁保护 */
+    /* ??UAPSD?????????????????????????? */
     oal_spin_lock(&pst_dmac_user->st_uapsd_stru.st_lock_uapsd);
 
     pst_first_net_buf = pst_net_buf;
     while ((oal_atomic_read(&pst_dmac_user->st_uapsd_stru.uc_mpdu_num) < uc_max_qdepth)
             && (OAL_PTR_NULL != pst_first_net_buf))
     {
-        /* 从每一个mpdu中第一个net_buf的CB字段获取该mpdu一共包含几个net_buff */
+        /* ????????mpdu????????net_buf??CB??????????mpdu????????????net_buff */
         pst_tx_ctrl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_first_net_buf);
 
-        /*入队时设置more data bit，减少出队时的操作*/
+        /*??????????more data bit??????????????????*/
         pst_frame_hdr = mac_get_cb_frame_hdr(pst_tx_ctrl);
         pst_frame_hdr->st_frame_control.bit_more_data = 0x01;
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
         uc_netbuf_num_in_mpdu = MAC_GET_CB_NETBUF_NUM(pst_tx_ctrl);
 #endif
 
-        /* 将该mpdu的每一个net_buff加入到节能队列中 */
+        /* ????mpdu????????net_buff???????????????? */
         pst_netbuf = pst_first_net_buf;
         while (
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
@@ -261,7 +198,7 @@ oal_uint32 dmac_uapsd_tx_enqueue(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst
             uc_netbuf_num_in_mpdu--;
 #endif
         }
-        /* 更新节能队列中mpdu的个数 */
+        /* ??????????????mpdu?????? */
         oal_atomic_inc(&pst_dmac_user->st_uapsd_stru.uc_mpdu_num);
 
     }
@@ -269,8 +206,8 @@ oal_uint32 dmac_uapsd_tx_enqueue(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst
     oal_spin_unlock(&pst_dmac_user->st_uapsd_stru.st_lock_uapsd);
 
     /*
-       判断是mpdu全都入队了还是队列满了，如果是因为队列满了并且还有mpdu没有入队，
-       则将剩下的mpdu释放
+       ??????mpdu??????????????????????????????????????????????????mpdu??????????
+       ??????????mpdu????
     */
     if ((uc_max_qdepth == oal_atomic_read(&pst_dmac_user->st_uapsd_stru.uc_mpdu_num))
         && (OAL_PTR_NULL != pst_first_net_buf))
@@ -313,20 +250,20 @@ OAL_STATIC oal_uint32 dmac_uapsd_state_trans(dmac_vap_stru *pst_dmac_vap,dmac_us
        pst_dmac_user->uc_uapsd_flag &= ~MAC_USR_UAPSD_SP;
        if(pst_mac_header->st_frame_control.bit_power_mgmt)
        {
-          /*从非节能态迁移到节能态*/
+          /*??????????????????????*/
           oal_memset(&pst_uapsd_stru->us_uapsd_trigseq[0], 0xff, OAL_SIZEOF(pst_uapsd_stru->us_uapsd_trigseq));
           pst_dmac_user->uc_uapsd_flag |= MAC_USR_UAPSD_TRIG;
        }
        else
        {
-         /*flush 节能队列*/
+         /*flush ????????*/
          ul_uapsd_qdepth = dmac_uapsd_flush_queue(pst_dmac_vap,pst_dmac_user);
          if((0 == ul_uapsd_qdepth)&& MAC_USR_UAPSD_USE_TIM(pst_dmac_user))
          {
-            /* 调用PSM的TIM设置接口 */
+            /* ????PSM??TIM???????? */
             dmac_psm_set_local_bitmap(pst_dmac_vap, pst_dmac_user, 0);
          }
-        /*从节能态迁移到非节能态*/
+        /*??????????????????????*/
          pst_dmac_user->uc_uapsd_flag &= ~MAC_USR_UAPSD_TRIG;
        }
        return OAL_TRUE;
@@ -334,23 +271,7 @@ OAL_STATIC oal_uint32 dmac_uapsd_state_trans(dmac_vap_stru *pst_dmac_vap,dmac_us
 
     return OAL_FALSE;
 }
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_trigger_check
- 功能描述  : 接收报文流程中检查是否trigger帧
- 输入参数  : pst_dmac_vap:
-             pst_dmac_usr:
-             pst_net_buf: 待入队列的netbuf链,可能是多个MPDU
- 输出参数  : 无
- 返 回 值  : 成功或者失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_uapsd_rx_trigger_check (dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst_dmac_user,oal_netbuf_stru *pst_net_buf)
 {
     mac_ieee80211_qos_frame_stru    *pst_mac_header;
@@ -372,7 +293,7 @@ oal_void dmac_uapsd_rx_trigger_check (dmac_vap_stru *pst_dmac_vap,dmac_user_stru
 
     uc_uapsd_flag = pst_dmac_user->uc_uapsd_flag;
 
-    /*如果当前Usr不是uapsd使能的或者是处于一个Service Period中，返回*/
+    /*????????Usr????uapsd????????????????????Service Period????????*/
     if(!(uc_uapsd_flag & MAC_USR_UAPSD_EN)||
         (uc_uapsd_flag & MAC_USR_UAPSD_SP))
     {
@@ -387,7 +308,7 @@ oal_void dmac_uapsd_rx_trigger_check (dmac_vap_stru *pst_dmac_vap,dmac_user_stru
         return;
     }
 
-    /* 检查是否是一个trigger帧:QOS DATA or Qos NULL DATA，非trigger帧也要继续处理是否需要状态切换 */
+    /* ??????????????trigger??:QOS DATA or Qos NULL DATA????trigger?????????????????????????????? */
     if((WLAN_DATA_BASICTYPE == pst_mac_header->st_frame_control.bit_type)&&
         ((WLAN_QOS_DATA == pst_mac_header->st_frame_control.bit_sub_type)||
         (WLAN_QOS_NULL_FRAME == pst_mac_header->st_frame_control.bit_sub_type)))
@@ -405,23 +326,7 @@ oal_void dmac_uapsd_rx_trigger_check (dmac_vap_stru *pst_dmac_vap,dmac_user_stru
     return ;
 
 }
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_process_trigger
- 功能描述  : trigger帧的处理
- 输入参数  : pst_dmac_vap:
-             pst_dmac_usr:
-             pst_net_buf: 待入队列的netbuf链,可能是多个MPDU
- 输出参数  : 无
- 返 回 值  : 成功或者失败
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst_dmac_user,oal_uint8 uc_ac,oal_netbuf_stru *pst_net_buf)
 {
 
@@ -442,7 +347,7 @@ oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru 
     pst_mac_header = (mac_ieee80211_qos_frame_stru*)(mac_get_rx_cb_mac_hdr(pst_rx_ctrl));
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
-    /*TBD ALG未合入，下面的临时测试使用 zengjun add start*/
+    /*TBD ALG?????????????????????????? zengjun add start*/
     pst_mac_device = (mac_device_stru *)mac_res_get_dev(pst_dmac_vap->st_vap_base_info.uc_device_id);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_mac_device))
     {
@@ -455,7 +360,7 @@ oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru 
         dmac_tid_resume(pst_mac_device->pst_device_stru, &pst_dmac_user->ast_tx_tid_queue[uc_ac], DMAC_TID_PAUSE_RESUME_TYPE_PS);
     }
     //dmac_psm_disable_user_to_psm_back(pst_mac_device, pst_dmac_user);
-    /*TBD ALG未合入，下面的临时测试使用 zengjun add end*/
+    /*TBD ALG?????????????????????????? zengjun add end*/
 #endif
     if((OAL_TRUE == pst_mac_header->st_frame_control.bit_retry)&&
         (pst_mac_header->bit_seq_num == pst_dmac_user->st_uapsd_stru.us_uapsd_trigseq[uc_ac]))
@@ -468,7 +373,7 @@ oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru 
     pst_dmac_user->st_uapsd_stru.us_uapsd_trigseq[uc_ac] = pst_mac_header->bit_seq_num;
 
     al_uapsd_qdepth = dmac_uapsd_process_queue(pst_dmac_vap,pst_dmac_user,uc_ac);
-    /*在设置DMAC_USR_UAPSD_SP前，需判断是否有发送报文，-1表示没有报文发送，不应该置上DMAC_USR_UAPSD_SP*/
+    /*??????DMAC_USR_UAPSD_SP??????????????????????????-1????????????????????????????DMAC_USR_UAPSD_SP*/
     if( DMAC_UAPSD_NOT_SEND_FRAME == al_uapsd_qdepth)
     {
         OAM_ERROR_LOG0(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR, "{dmac_uapsd_process_trigger::DMAC_UAPSD_NOT_SEND_FRAME == al_uapsd_qdepth.}");
@@ -479,7 +384,7 @@ oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru 
 
     if((0 == al_uapsd_qdepth)&& MAC_USR_UAPSD_USE_TIM(pst_dmac_user))
      {
-        /* 调用PSM的TIM设置接口 */
+        /* ????PSM??TIM???????? */
         OAM_INFO_LOG1(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR,
               "dmac_uapsd_process_trigger:set PVB to 0,usr id = %d",pst_dmac_user->st_user_base_info.us_assoc_id);
 
@@ -488,24 +393,7 @@ oal_void dmac_uapsd_process_trigger (dmac_vap_stru *pst_dmac_vap,dmac_user_stru 
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_process_queue
- 功能描述  : U-APSD节能队列发包
- 输入参数  : pst_dmac_vap
-             pst_dmac_usr:
-             uc_ac: trigger帧的AC
-             uc_flush:是否是flush队列操作
- 输出参数  : 无
- 返 回 值  : -1:没有发送报文。其它:当前队列长度
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 OAL_STATIC oal_int32 dmac_uapsd_tx_pkt (oal_netbuf_stru *pst_net_buf, dmac_vap_stru* pst_dmac_vap, dmac_user_stru *pst_dmac_user,
                                                 oal_uint8 uc_ac,oal_uint8 uc_sp_last,oal_uint8* pst_extra_qosnull)
@@ -530,23 +418,23 @@ OAL_STATIC oal_int32 dmac_uapsd_tx_pkt (oal_netbuf_stru *pst_net_buf, dmac_vap_s
     pst_tx_ctrl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_net_buf);
     MAC_GET_CB_IS_FROM_PS_QUEUE(pst_tx_ctrl) = OAL_TRUE;
 
-    /*非flush操作，tid设置为uapsd专用tid，ac设置为trigger的AC*/
+    /*??flush??????tid??????uapsd????tid??ac??????trigger??AC*/
     mac_set_cb_tid(pst_tx_ctrl, WLAN_TIDNO_UAPSD);
     mac_set_cb_ac(pst_tx_ctrl, uc_ac);
 
     pst_mac_header =(mac_ieee80211_qos_frame_stru*)mac_get_cb_frame_hdr(pst_tx_ctrl);
 
-    /*管理帧没有EOSP位，因此额外发送一个qos null结束USP*/
+    /*??????????EOSP????????????????????qos null????USP*/
     if (WLAN_MANAGEMENT == pst_mac_header->st_frame_control.bit_type) {
         pst_frame_hdr = mac_get_cb_frame_hdr(pst_tx_ctrl);
         pst_frame_hdr->st_frame_control.bit_more_data = 0;
         *pst_extra_qosnull = OAL_TRUE;
     } else {
     /*
-            每次发送时如果后面还有帧，则将EOSP置0，More Data置1。
-            如果到max sp length，后面还有缓存帧，则将EOSP置1，More Data置1。
-            如果后面没有帧发送，则将EOSP置1，More Data置0。
-            当delivery-enable的AC队列中没有缓存帧，发送一个QoSNull帧，More Data置0。
+            ??????????????????????????????EOSP??0??More Data??1??
+            ??????max sp length??????????????????????EOSP??1??More Data??1??
+            ????????????????????????EOSP??1??More Data??0??
+            ??delivery-enable??AC??????????????????????????QoSNull????More Data??0??
     */
         if (OAL_FALSE == uc_sp_last) {
             pst_mac_header->st_frame_control.bit_more_data = 1;
@@ -565,7 +453,7 @@ OAL_STATIC oal_int32 dmac_uapsd_tx_pkt (oal_netbuf_stru *pst_net_buf, dmac_vap_s
 
     if(WLAN_DATA_BASICTYPE == pst_mac_header->st_frame_control.bit_type)
     {
-        /*发送不成功，则终止本次USP*/
+        /*??????????????????????USP*/
         if(OAL_SUCC != dmac_tx_process_data(pst_dmac_vap->pst_hal_device, pst_dmac_vap, pst_net_buf))
         {
             OAM_ERROR_LOG0(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR, "{dmac_uapsd_tx_pkt::dmac_tx_process_data failed.}");
@@ -579,7 +467,7 @@ OAL_STATIC oal_int32 dmac_uapsd_tx_pkt (oal_netbuf_stru *pst_net_buf, dmac_vap_s
     }
     else
     {
-        /*发送不成功，则终止本次USP*/
+        /*??????????????????????USP*/
         if(OAL_SUCC != dmac_tx_mgmt(pst_dmac_vap, pst_net_buf, MAC_GET_CB_MPDU_LEN(pst_tx_ctrl) + MAC_GET_CB_FRAME_HEADER_LENGTH(pst_tx_ctrl)))
         {
             oal_netbuf_free(pst_net_buf);
@@ -595,24 +483,7 @@ OAL_STATIC oal_int32 dmac_uapsd_tx_pkt (oal_netbuf_stru *pst_net_buf, dmac_vap_s
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_process_queue
- 功能描述  : U-APSD节能队列发包
- 输入参数  : pst_dmac_vap
-             pst_dmac_usr:
-             uc_ac: trigger帧的AC
-             uc_flush:是否是flush队列操作
- 输出参数  : 无
- 返 回 值  : -1:没有发送报文。其它:当前队列长度
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int32 dmac_uapsd_process_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *pst_dmac_user,oal_uint8 uc_ac)
 {
@@ -639,7 +510,7 @@ oal_int32 dmac_uapsd_process_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru 
     {
          DMAC_UAPSD_STATS_INCR(pst_uapsd_statis->ul_uapsd_send_qosnull);
          //OAM_INFO_LOG0(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR,
-         //         "dmac_uapsd_process_queue:queue is empty，send a qosnull");
+         //         "dmac_uapsd_process_queue:queue is empty??send a qosnull");
 
          if(OAL_SUCC != dmac_uapsd_send_qosnull(pst_dmac_vap,pst_dmac_user,uc_ac))
          {
@@ -701,23 +572,7 @@ oal_int32 dmac_uapsd_process_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru 
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_flush_queue
- 功能描述  : U-APSD节能队列flush
- 输入参数  : pst_dmac_vap
-             pst_dmac_usr:
 
- 输出参数  : 无
- 返 回 值  : -1:没有发送报文。其它:当前队列长度
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int32 dmac_uapsd_flush_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *pst_dmac_user)
 {
@@ -761,7 +616,7 @@ oal_int32 dmac_uapsd_flush_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *p
         pst_tx_ctrl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_net_buf);
         MAC_GET_CB_IS_FROM_PS_QUEUE(pst_tx_ctrl) = OAL_TRUE;
 
-        /*flush流程，视为正常流程的继续，清掉more data bit*/
+        /*flush??????????????????????????????more data bit*/
         if (1 == oal_atomic_read(&pst_dmac_uapsd->uc_mpdu_num))
         {
             pst_frame_hdr = mac_get_cb_frame_hdr(pst_tx_ctrl);
@@ -774,7 +629,7 @@ oal_int32 dmac_uapsd_flush_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *p
 
         if(WLAN_DATA_BASICTYPE == pst_frame_hdr->st_frame_control.bit_type)
         {
-            /*发送不成功，则终止本次USP*/
+            /*??????????????????????USP*/
             if(OAL_SUCC != dmac_tx_process_data(pst_dmac_vap->pst_hal_device, pst_dmac_vap, pst_net_buf))
             {
                 OAM_ERROR_LOG0(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR,
@@ -788,7 +643,7 @@ oal_int32 dmac_uapsd_flush_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *p
         }
         else
         {
-            /*发送不成功，则终止本次USP*/
+            /*??????????????????????USP*/
             if(OAL_SUCC != dmac_tx_mgmt(pst_dmac_vap, pst_net_buf, MAC_GET_CB_MPDU_LEN(pst_tx_ctrl) + MAC_GET_CB_FRAME_HEADER_LENGTH(pst_tx_ctrl)))
             {
                 OAM_ERROR_LOG0(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_PWR,
@@ -808,23 +663,7 @@ oal_int32 dmac_uapsd_flush_queue (dmac_vap_stru* pst_dmac_vap, dmac_user_stru *p
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_send_qosnull
- 功能描述  : U-APSD qos null data发送
- 输入参数  : pst_dmac_vap
-             pst_dmac_usr:
-             uc_ac: trigger帧的AC
- 输出参数  : 无
- 返 回 值  : OAL_SUCESS或者其它错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *pst_dmac_user,oal_uint8 uc_ac)
 {
     oal_netbuf_stru                 *pst_net_buf;
@@ -832,7 +671,7 @@ oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *p
     oal_uint32                       ul_ret;
     mac_ieee80211_qos_frame_stru    *pst_mac_header;
 
-    /* 申请net_buff */
+    /* ????net_buff */
     pst_net_buf = OAL_MEM_NETBUF_ALLOC(OAL_NORMAL_NETBUF, WLAN_SHORT_NETBUF_SIZE, OAL_NETBUF_PRIORITY_HIGH);
     if (OAL_PTR_NULL == pst_net_buf)
     {
@@ -846,7 +685,7 @@ oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *p
     oal_set_netbuf_prev(pst_net_buf, OAL_PTR_NULL);
     oal_set_netbuf_next(pst_net_buf, OAL_PTR_NULL);
 
-    /* 填写帧头,其中from ds为1，to ds为0，因此frame control的第二个字节为02 */
+    /* ????????,????from ds??1??to ds??0??????frame control??????????????02 */
     OAL_MEMZERO(oal_netbuf_header(pst_net_buf), OAL_SIZEOF(mac_ieee80211_qos_frame_stru));
     mac_null_data_encap(oal_netbuf_header(pst_net_buf),
                         (oal_uint16)(WLAN_PROTOCOL_VERSION | WLAN_FC0_TYPE_DATA | WLAN_FC0_SUBTYPE_QOS_NULL) | 0x0200,
@@ -856,14 +695,14 @@ oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *p
     pst_mac_header = (mac_ieee80211_qos_frame_stru*)oal_netbuf_header(pst_net_buf);
     pst_mac_header->bit_qc_tid = WLAN_WME_AC_TO_TID(uc_ac);
     pst_mac_header->bit_qc_eosp = 1;
-    /*协议规定单播的QOS NULL DATA只允许normal ack*/
+    /*??????????????QOS NULL DATA??????normal ack*/
     pst_mac_header->bit_qc_ack_polocy = WLAN_TX_NORMAL_ACK;
 
-    /* 填写cb字段 */
+    /* ????cb???? */
     pst_tx_ctrl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_net_buf);
     OAL_MEMZERO(pst_tx_ctrl, OAL_SIZEOF(mac_tx_ctl_stru));
 
-    /* 填写tx部分 */
+    /* ????tx???? */
     mac_set_cb_ack_policy(pst_tx_ctrl, WLAN_TX_NORMAL_ACK);
     MAC_GET_CB_EVENT_TYPE(pst_tx_ctrl)       = FRW_EVENT_TYPE_WLAN_DTX;
     //MAC_GET_CB_EN_IS_BAR(pst_tx_ctrl)           = OAL_FALSE;
@@ -878,7 +717,7 @@ oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *p
     MAC_GET_CB_TX_USER_IDX(pst_tx_ctrl)         = pst_dmac_user->st_user_base_info.us_assoc_id;
     //MAC_GET_CB_EN_IS_QOSDATA(pst_tx_ctrl)       = OAL_TRUE;
     mac_set_cb_is_qosdata(pst_tx_ctrl, OAL_TRUE);
-    /* 填写tx rx公共部分 */
+    /* ????tx rx???????? */
     //MAC_GET_CB_FRAME_TYPE(pst_tx_ctrl)          = WLAN_DATA_NULL;
     MAC_GET_CB_IS_MCAST(pst_tx_ctrl)            = OAL_FALSE;
     mac_set_cb_is_amsdu(pst_tx_ctrl, OAL_FALSE);
@@ -914,22 +753,7 @@ oal_uint32 dmac_uapsd_send_qosnull(dmac_vap_stru *pst_dmac_vap,dmac_user_stru *p
 
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_uapsd_tx_complete
- 功能描述  : U-APSD 发送完成检查
- 输入参数  : pst_dmac_vap
-             pst_dmac_usr:
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月14日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void dmac_uapsd_tx_complete(dmac_user_stru *pst_dmac_user,mac_tx_ctl_stru *pst_cb)
 {
     mac_ieee80211_qos_frame_stru    *pst_mac_header;
@@ -954,23 +778,7 @@ oal_void dmac_uapsd_tx_complete(dmac_user_stru *pst_dmac_user,mac_tx_ctl_stru *p
         }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_config_set_uapsden
- 功能描述  : 设置VAP U-APSD使能
- 输入参数  : pst_mac_vap: 指向VAP的指针
-             uc_len     : 参数长度
-             puc_param  : 参数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月18日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_config_set_uapsden(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param)
 {
     oal_uint8               uc_value;
@@ -982,11 +790,11 @@ oal_uint32  dmac_config_set_uapsden(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
 
     uc_value = *puc_param;
 
-    /* 设置mib值 */
+    /* ????mib?? */
     mac_vap_set_uapsd_en(pst_mac_vap, uc_value);
     g_uc_uapsd_cap = *puc_param;
 
-    /*如果是非使能，清除每个User*/
+    /*??????????????????????User*/
     if(0 == uc_value)
     {
         if(WLAN_VAP_MODE_BSS_AP == pst_mac_vap->en_vap_mode)
@@ -1006,7 +814,7 @@ oal_uint32  dmac_config_set_uapsden(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
                 al_uapsd_qdepth = dmac_uapsd_flush_queue(pst_dmac_vap, pst_dmac_user);
                 if((0 == al_uapsd_qdepth)&& MAC_USR_UAPSD_USE_TIM(pst_dmac_user))
                 {
-                    /* 调用PSM的TIM设置接口 */
+                    /* ????PSM??TIM???????? */
                     dmac_psm_set_local_bitmap(pst_dmac_vap, pst_dmac_user, 0);
                 }
                 else
@@ -1023,23 +831,7 @@ oal_uint32  dmac_config_set_uapsden(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_config_set_uapsd_update
- 功能描述  : VAP U-APSD UPDATE
- 输入参数  : pst_mac_vap: 指向VAP的指针
-             uc_len     : 参数长度
-             puc_param  : 参数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月26日
-    作    者   : g00306640
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_uint32 dmac_config_set_uapsd_update(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param) {
     oal_uint16                      us_user_id;
@@ -1067,25 +859,10 @@ oal_uint32 dmac_config_set_uapsd_update(mac_vap_stru *pst_mac_vap, oal_uint8 uc_
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_config_uapsd_debug
- 功能描述  : 调测命令
- 输入参数  : pst_mac_vap: 指向VAP的指针
-             puc_param  : 参数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月18日
-    作    者   : zourong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_config_uapsd_debug(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param)
 {
-    /* uapsd维测信息，sh hipriv "vap0 uapsd_debug 0|1|2(单用户|all user|清空统计计数器) xx:xx:xx:xx:xx:xx(mac地址)" */
+    /* uapsd??????????sh hipriv "vap0 uapsd_debug 0|1|2(??????|all user|??????????????) xx:xx:xx:xx:xx:xx(mac????)" */
     mac_device_stru         *pst_device;
     oal_uint32               ul_off_set = 0;
     oal_int8                 ac_name[DMAC_HIPRIV_CMD_NAME_MAX_LEN];
@@ -1097,7 +874,7 @@ oal_uint32  dmac_config_uapsd_debug(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
 
     pst_device = mac_res_get_dev(pst_mac_vap->uc_device_id);
 
-    /* 设置配置命令参数 */
+    /* ???????????????? */
     if(OAL_PTR_NULL == pst_device)
     {
         return OAL_FAIL;
@@ -1105,15 +882,15 @@ oal_uint32  dmac_config_uapsd_debug(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
 
     OAL_MEMZERO(ac_name, DMAC_HIPRIV_CMD_NAME_MAX_LEN);
 
-    /* 所有用户还是单用户? */
+    /* ??????????????????? */
     dmac_get_cmd_one_arg((oal_int8*)puc_param, ac_name, &ul_off_set);
     uc_debug_all = (oal_uint8)oal_atoi(ac_name);
-    /* 偏移，取下一个参数 */
+    /* ?????????????????? */
     puc_param = puc_param + ul_off_set;
 
     if(0 == uc_debug_all)
     {
-        /* 获取用户地址 */
+        /* ???????????? */
         dmac_get_cmd_one_arg((oal_int8*)puc_param, ac_name, &ul_off_set);
         oal_strtoaddr(ac_name, auc_user_addr);
 
@@ -1128,7 +905,7 @@ oal_uint32  dmac_config_uapsd_debug(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len,
         return OAL_SUCC;
     }
 
-    /* 遍历vap下所有用户 ,输出信息*/
+    /* ????vap?????????? ,????????*/
     OAL_DLIST_SEARCH_FOR_EACH(pst_entry, &(pst_mac_vap->st_mac_user_list_head))
     {
         pst_user_tmp = OAL_DLIST_GET_ENTRY(pst_entry, mac_user_stru, st_user_dlist);
@@ -1163,7 +940,7 @@ OAL_STATIC oal_void  dmac_uapsd_print_info(dmac_user_stru *pst_dmac_user)
    pst_uapsd_stru   = &(pst_dmac_user->st_uapsd_stru);
    pst_uapsd_statis =  pst_uapsd_stru->pst_uapsd_statis;
 
-   /*基本信息*/
+   /*????????*/
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
    OAM_WARNING_LOG_ALTER(pst_dmac_user->st_user_base_info.uc_vap_id, OAM_SF_ANY,
                           "{dmac_uapsd_print_info:User assoc id = %d,macaddr = %02X:XX:XX:%02X:%02X:%02X\n}",
@@ -1202,7 +979,7 @@ OAL_STATIC oal_void  dmac_uapsd_print_info(dmac_user_stru *pst_dmac_user)
       OAL_IO_PRINT("total mpdu in queue = %d\n",oal_atomic_read(&pst_uapsd_stru->uc_mpdu_num));
 
       OAL_IO_PRINT("following is statistic................\n");
-   /*统计计数器*/
+   /*??????????*/
    OAL_REFERENCE(pst_uapsd_statis);
    OAL_REFERENCE(pst_mac_user);
    OAL_REFERENCE(pst_uapsd_status);
@@ -1216,15 +993,15 @@ OAL_STATIC oal_void  dmac_uapsd_print_info(dmac_user_stru *pst_dmac_user)
                              pst_uapsd_statis->ul_uapsd_send_qosnull, pst_uapsd_statis->ul_uapsd_send_extra_qosnull,
                              pst_uapsd_statis->ul_uapsd_process_queue_error, pst_uapsd_statis->ul_uapsd_flush_queue_error);
 #endif
-   OAL_IO_PRINT("tx_enqueue_count = %d\n",pst_uapsd_statis->ul_uapsd_tx_enqueue_count);             /*dmac_uapsd_tx_enqueue调用次数*/
-   OAL_IO_PRINT("tx_enqueue_free_count = %d\n",pst_uapsd_statis->ul_uapsd_tx_enqueue_free_count);   /*入队过程中MPDU被释放的次数，一次可能释放多个MPDU*/
-   OAL_IO_PRINT("rx_trigger_in_sp = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_in_sp);             /*trigger检查发现处于SP中的次数*/
-   OAL_IO_PRINT("rx_trigger_state_trans = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_state_trans); /*trigger帧是重复帧的个数*/
-   OAL_IO_PRINT("rx_trigger_dup_seq = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_dup_seq);         /*dmac_uapsd_tx_enqueue调用次数*/
-   OAL_IO_PRINT("send_qosnull = %d\n",pst_uapsd_statis->ul_uapsd_send_qosnull);                     /*队列为空，发送qos null data的个数*/
-   OAL_IO_PRINT("send_extra_qosnull = %d\n",pst_uapsd_statis->ul_uapsd_send_extra_qosnull);         /*最后一个为管理帧，发送额外qosnull的个数*/
-   OAL_IO_PRINT("process_queue_error = %d\n",pst_uapsd_statis->ul_uapsd_process_queue_error);       /*队列处理过程中出错的次数*/
-   OAL_IO_PRINT("flush_queue_error = %d\n",pst_uapsd_statis->ul_uapsd_flush_queue_error);           /*flush队列处理过程中出错的次数*/
+   OAL_IO_PRINT("tx_enqueue_count = %d\n",pst_uapsd_statis->ul_uapsd_tx_enqueue_count);             /*dmac_uapsd_tx_enqueue????????*/
+   OAL_IO_PRINT("tx_enqueue_free_count = %d\n",pst_uapsd_statis->ul_uapsd_tx_enqueue_free_count);   /*??????????MPDU??????????????????????????????MPDU*/
+   OAL_IO_PRINT("rx_trigger_in_sp = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_in_sp);             /*trigger????????????SP????????*/
+   OAL_IO_PRINT("rx_trigger_state_trans = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_state_trans); /*trigger????????????????*/
+   OAL_IO_PRINT("rx_trigger_dup_seq = %d\n",pst_uapsd_statis->ul_uapsd_rx_trigger_dup_seq);         /*dmac_uapsd_tx_enqueue????????*/
+   OAL_IO_PRINT("send_qosnull = %d\n",pst_uapsd_statis->ul_uapsd_send_qosnull);                     /*??????????????qos null data??????*/
+   OAL_IO_PRINT("send_extra_qosnull = %d\n",pst_uapsd_statis->ul_uapsd_send_extra_qosnull);         /*??????????????????????????qosnull??????*/
+   OAL_IO_PRINT("process_queue_error = %d\n",pst_uapsd_statis->ul_uapsd_process_queue_error);       /*????????????????????????*/
+   OAL_IO_PRINT("flush_queue_error = %d\n",pst_uapsd_statis->ul_uapsd_flush_queue_error);           /*flush????????????????????????*/
 }
 #endif /* _PRE_WLAN_FEATURE_UAPSD */
 

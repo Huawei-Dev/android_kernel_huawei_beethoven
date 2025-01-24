@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_stat.c
-  版 本 号   : 初稿
-  作    者   : x00189397
-  生成日期   : 2014年1月10日
-  最近修改   :
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +10,7 @@ extern "C" {
 #ifdef _PRE_WLAN_PERFORM_STAT
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "dmac_stat.h"
 #include "mac_resource.h"
@@ -37,13 +20,13 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_STAT_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 OAL_STATIC dmac_stat_stru      g_ast_pfm_stat[MAC_STAT_TYPE_BUTT];
 OAL_STATIC oal_uint32          g_ul_stat_node_limit[MAC_STAT_TYPE_BUTT];
 
 /*****************************************************************************
-  3 静态函数声明
+  3 ????????????
 *****************************************************************************/
 
 OAL_STATIC dmac_stat_node_stru* dmac_stat_search_node(oal_dlist_head_stru        *pst_node_dlist_head,
@@ -68,35 +51,21 @@ OAL_STATIC oal_uint32  dmac_stat_update_thrpt(mac_vap_stru *pst_vap,
                                   dmac_stat_direct_enum_uint8 en_stat_direct);
 
 /*****************************************************************************
-  4 函数实现
+  4 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_stat_int
- 功能描述  : dmac模块性能统计模块初始化。
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 0:代表正常，其他代表异常
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_stat_init(oal_void)
 {
     oal_uint8   uc_loop = 0;
 
-    /* 初始化所有性能统计节点链表 */
+    /* ?????????????????????????? */
     for (uc_loop = 0; uc_loop < MAC_STAT_TYPE_BUTT; uc_loop++)
     {
         g_ast_pfm_stat[uc_loop].ul_node_num = 0;
         oal_dlist_init_head(&(g_ast_pfm_stat[uc_loop].st_stat_node_dlist));
     }
 
-    /* 初始化各统计类型的统计节点数量限制 */
+    /* ?????????????????????????????????? */
     g_ul_stat_node_limit[MAC_STAT_TYPE_TID_DELAY]   = DMAC_STAT_TID_DELAY_NODE_LIMIT;
     g_ul_stat_node_limit[MAC_STAT_TYPE_TID_PER]     = DMAC_STAT_TID_PER_NODE_LIMIT;
     g_ul_stat_node_limit[MAC_STAT_TYPE_TID_THRPT]   = DMAC_STAT_TID_THRPT_NODE_LIMIT;
@@ -106,21 +75,7 @@ oal_uint32  dmac_stat_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_exit
- 功能描述  : dmac模块性能统计模块卸载
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_stat_exit(oal_void)
 {
     mac_stat_type_enum_uint8     uc_stat_type       = 0;
@@ -134,12 +89,12 @@ oal_uint32  dmac_stat_exit(oal_void)
     {
         pst_stat = &(g_ast_pfm_stat[uc_stat_type]);
 
-        /* 遍列该统计类型的所有统计节点 */
+        /* ???????????????????????????? */
         OAL_DLIST_SEARCH_FOR_EACH_SAFE(pst_dlist_pos, pst_dlist_tmp, &(pst_stat->st_stat_node_dlist))
         {
             pst_stat_node = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_stat_node_stru, st_entry);
 
-            /* 注销统计节点  */
+            /* ????????????  */
             ul_ret = dmac_stat_unregister_node(pst_stat_node);
             if (OAL_SUCC != ul_ret)
             {
@@ -151,24 +106,7 @@ oal_uint32  dmac_stat_exit(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_register
- 功能描述  : 注册统计节点
- 输入参数  : en_module_id:模块名称
-             en_stat_type:统计类型;
-             p_void: dmac_stat_param_stru结构体指针:用于存储每个周期的统计值；
-             p_func:统计周期到期处理函数指针，函数指针类型:dmac_stat_timeout_func)(dmac_stat_param_stru *);
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
                                 mac_stat_type_enum_uint8        en_stat_type,
                                 oal_void                       *p_void,
@@ -189,13 +127,13 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 判断统计节点是否超过限制 */
+    /* ???????????????????????? */
     if (pst_stat->ul_node_num >= g_ul_stat_node_limit[en_stat_type])
     {
         return OAL_SUCC;
     }
 
-    /* 检查统计节点是否已存在 */
+    /* ?????????????????????? */
     pst_stat_node = dmac_stat_search_node(&(pst_stat->st_stat_node_dlist), en_module_id, p_void);
     if (OAL_PTR_NULL != pst_stat_node)
     {
@@ -203,7 +141,7 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
         return OAL_FAIL;
     }
 
-    /* 申请统计节点空间 */
+    /* ???????????????? */
     pst_stat_node = (dmac_stat_node_stru *)OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, OAL_SIZEOF(dmac_stat_node_stru), OAL_TRUE);
     if (OAL_PTR_NULL == pst_stat_node)
     {
@@ -213,7 +151,7 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
     }
     OAL_MEMZERO(pst_stat_node, sizeof(dmac_stat_node_stru));
 
-    /* 初始化stat_node的参数 */
+    /* ??????stat_node?????? */
     pst_stat_node->p_inner_func                     = p_func;
     pst_stat_node->uc_stat_flag                     = OAL_FALSE;
     pst_stat_node->us_total_item                    = DMAC_STAT_ITEM_LIMIT;
@@ -225,13 +163,13 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
         pst_stat_node->aul_stat_sum[uc_index]   = 0;
     }
 
-    /* 为OAM_MODULE_ID_PERFORM_STAT模块申请存储空间 */
+    /* ??OAM_MODULE_ID_PERFORM_STAT???????????????? */
     if ( OAM_MODULE_ID_PERFORM_STAT == en_module_id)
     {
         pst_stat_node->pst_stat_param = (dmac_stat_param_stru *)OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, OAL_SIZEOF(dmac_stat_param_stru), OAL_TRUE);
         if (OAL_PTR_NULL == pst_stat_node->pst_stat_param)
         {
-            /* 释放空间 */
+            /* ???????? */
             OAL_MEM_FREE(pst_stat_node, OAL_TRUE);
             pst_stat_node = OAL_PTR_NULL;
 
@@ -253,7 +191,7 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
 
         if (OAL_PTR_NULL == pst_stat_node->pul_stat_avg)
         {
-            /* 释放空间 */
+            /* ???????? */
             OAL_MEM_FREE(pst_stat_node->pst_stat_param, OAL_TRUE);
             pst_stat_node->pst_stat_param = OAL_PTR_NULL;
             OAL_MEM_FREE(pst_stat_node, OAL_TRUE);
@@ -271,11 +209,11 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
     pst_stat_node->pst_stat_param->en_stat_type       = en_stat_type;
     pst_stat_node->pst_stat_param->p_void             = p_void;
 
-    /* 定时器参数赋值, 统计周期默认值设为100ms */
+    /* ??????????????, ??????????????????100ms */
     pst_stat_node->st_timer.ul_timeout      = DMAC_STAT_TIMER_CYCLE_MS;
     pst_stat_node->st_timer.en_module_id    = en_module_id;
 
-    /* 注册定时器 */
+    /* ?????????? */
     FRW_TIMER_CREATE_TIMER(&(pst_stat_node->st_timer),
                             dmac_stat_timer_handler,
                             pst_stat_node->st_timer.ul_timeout,
@@ -283,28 +221,14 @@ oal_uint32	dmac_stat_register(oam_module_id_enum_uint16        en_module_id,
                             OAL_TRUE,
                             en_module_id,
                             ul_core_id);
-    /* 将统计节点插入相应的链表 */
+    /* ???????????????????????? */
     oal_dlist_add_tail(&(pst_stat_node->st_entry), &(pst_stat->st_stat_node_dlist));
     pst_stat->ul_node_num++;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_unregister
- 功能描述  : 注销统计节点
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32	dmac_stat_unregister(oam_module_id_enum_uint16      en_module_id,
                                  mac_stat_type_enum_uint8       en_stat_type,
                                  oal_void                      *p_void)
@@ -320,7 +244,7 @@ oal_uint32	dmac_stat_unregister(oam_module_id_enum_uint16      en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 查找统计节点 */
+    /* ???????????? */
     pst_stat_node = dmac_stat_search_node(&(pst_stat->st_stat_node_dlist), en_module_id, p_void);
     if (OAL_PTR_NULL == pst_stat_node)
     {
@@ -329,7 +253,7 @@ oal_uint32	dmac_stat_unregister(oam_module_id_enum_uint16      en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 注销节点，包括注销定时器 */
+    /* ???????????????????????? */
     ul_ret = dmac_stat_unregister_node(pst_stat_node);
     if (OAL_SUCC != ul_ret)
     {
@@ -338,32 +262,14 @@ oal_uint32	dmac_stat_unregister(oam_module_id_enum_uint16      en_module_id,
         return ul_ret;
     }
 
-    /*更新统计节点数量 */
+    /*???????????????? */
     pst_stat->ul_node_num--;
 
     return OAL_SUCC;
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_start
- 功能描述  : 停止stat_stat定时器
- 输入参数  : en_module_id: 模块名称，如果没有，请添加；
-             en_stat_type: 见结构体说明；
-             us_stat_period: 统计周期;
-             us_stat_num: 统计周期数量;
-             p_void: 统计对象指针:dmac_tid_stru *, mac_user_stru *, mac_vap_stru *;
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32	dmac_stat_start( oam_module_id_enum_uint16      en_module_id,
                              mac_stat_type_enum_uint8       en_stat_type,
                              oal_uint16                     us_stat_period,
@@ -381,7 +287,7 @@ oal_uint32	dmac_stat_start( oam_module_id_enum_uint16      en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 查找相应的统计节点 */
+    /* ?????????????????? */
     pst_stat_node = dmac_stat_search_node(&(pst_stat->st_stat_node_dlist), en_module_id, p_void);
     if (OAL_PTR_NULL == pst_stat_node)
     {
@@ -390,7 +296,7 @@ oal_uint32	dmac_stat_start( oam_module_id_enum_uint16      en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 初始化相关统计量 */
+    /* ???????????????? */
     pst_stat_node->uc_stat_flag                 = OAL_TRUE;
     pst_stat_node->us_total_item                = OAL_MIN(us_stat_num, DMAC_STAT_ITEM_LIMIT);
     pst_stat_node->us_curr_item                 = 0;
@@ -401,7 +307,7 @@ oal_uint32	dmac_stat_start( oam_module_id_enum_uint16      en_module_id,
         pst_stat_node->aul_stat_sum[uc_cnt]   = 0;
     }
 
-    /* 给OAM_MODULE_ID_PERFORM_STAT模块初始化内存，以便重新统计 */
+    /* ??OAM_MODULE_ID_PERFORM_STAT???????????????????????????? */
     if ( OAM_MODULE_ID_PERFORM_STAT == en_module_id)
     {
         if ((MAC_STAT_TYPE_TID_THRPT == en_stat_type)
@@ -425,23 +331,7 @@ oal_uint32	dmac_stat_start( oam_module_id_enum_uint16      en_module_id,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_stop
- 功能描述  : 启动stat定时器，开始统计
- 输入参数  : en_module_id:模块名称
-             en_stat_type: 统计类型；
-             p_void: 统计对象指针:dmac_tid_stru *, mac_user_stru *, mac_vap_stru *;
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32	dmac_stat_stop(oam_module_id_enum_uint16      en_module_id,
                              mac_stat_type_enum_uint8     en_stat_type,
                              oal_void                    *p_void)
@@ -466,27 +356,13 @@ oal_uint32	dmac_stat_stop(oam_module_id_enum_uint16      en_module_id,
 
     frw_timer_stop_timer(&(pst_stat_node->st_timer));
 
-    /* 该节点停止统计 */
+    /* ?????????????? */
     pst_stat_node->uc_stat_flag = OAL_FALSE;
 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_tid_delay
- 功能描述  : 根据每次调度结果统计时延
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_stat_tid_delay(dmac_tid_stru *pst_dmac_tid)
 {
     dmac_stat_stru          *pst_stat           = &(g_ast_pfm_stat[MAC_STAT_TYPE_TID_DELAY]);
@@ -537,14 +413,14 @@ oal_uint32  dmac_stat_tid_delay(dmac_tid_stru *pst_dmac_tid)
 
     pst_tx_ctl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_netbuf);
 
-    /* 获取系统时间 */
+    /* ???????????? */
     oal_time_get_stamp_us(&st_time);
 
-    /* 计算报文的等待时延 */
+    /* ?????????????????? */
     ul_diff_time_us = (oal_uint32)DMAC_STAT_TIME_USEC_DIFF(&(MAC_GET_CB_TIMESTAMP(pst_tx_ctl)), &st_time);
     us_delay_ms = (oal_uint16) (ul_diff_time_us >> 10);
 
-    /* 遍列该统计类型的所有统计节点 */
+    /* ???????????????????????????? */
     OAL_DLIST_SEARCH_FOR_EACH(pst_dlist_pos, &(pst_stat->st_stat_node_dlist))
     {
         pst_stat_node = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_stat_node_stru, st_entry);
@@ -562,21 +438,7 @@ oal_uint32  dmac_stat_tid_delay(dmac_tid_stru *pst_dmac_tid)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_tid_per
- 功能描述  : 根据每次发送完成中断结果，统计per
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_stat_tid_per(mac_user_stru *pst_user,
                              oal_uint8 uc_tidno,
                              oal_uint16 us_mpdu_num,
@@ -597,7 +459,7 @@ oal_uint32 dmac_stat_tid_per(mac_user_stru *pst_user,
 
     dmac_user_get_tid_by_num(pst_user, uc_tidno, &pst_tid);
 
-    /* video报文丢弃，增加日志打印 */
+    /* video?????????????????????? */
     if ((WLAN_TIDNO_VIDEO == pst_tid->uc_tid)
             && (en_per_reason != DMAC_STAT_PER_MAC_TOTAL)
             && (0 != us_err_mpdu_num))
@@ -636,7 +498,7 @@ oal_uint32 dmac_stat_tid_per(mac_user_stru *pst_user,
         }
     }
 
-    /* 遍列该统计类型的所有统计节点 */
+    /* ???????????????????????????? */
     OAL_DLIST_SEARCH_FOR_EACH(pst_dlist_pos, &(pst_stat->st_stat_node_dlist))
     {
         pst_stat_node = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_stat_node_stru, st_entry);
@@ -674,21 +536,7 @@ oal_uint32 dmac_stat_tid_per(mac_user_stru *pst_user,
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_tx_thrpt
- 功能描述  : 根据每次发送完成中断结果统计吞吐量
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_stat_tx_thrpt(dmac_user_stru *pst_dmac_user, oal_uint8 uc_tidno, hal_tx_dscr_ctrl_one_param st_tx_dscr_param)
 {
     dmac_tid_stru               *pst_tid            = OAL_PTR_NULL;
@@ -713,7 +561,7 @@ oal_uint32 dmac_stat_tx_thrpt(dmac_user_stru *pst_dmac_user, oal_uint8 uc_tidno,
     ul_stat_bytes = st_tx_dscr_param.us_mpdu_len
                         * (st_tx_dscr_param.uc_mpdu_num - st_tx_dscr_param.uc_error_mpdu_num);
 
-    /* 更新统计量 */
+    /* ?????????? */
     ul_ret = dmac_stat_update_thrpt(pst_vap, pst_user, pst_tid,
                                             ul_stat_bytes, DMAC_STAT_TX);
 
@@ -729,21 +577,7 @@ oal_uint32 dmac_stat_tx_thrpt(dmac_user_stru *pst_dmac_user, oal_uint8 uc_tidno,
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_rx_thrpt
- 功能描述  : 根据每次接收完成中断统计吞吐量
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_stat_rx_thrpt(frw_event_hdr_stru *pst_event_hdr, mac_vap_stru *pst_vap, dmac_rx_ctl_stru *pst_rx_ctl)
 {
     dmac_user_stru             *pst_dmac_user   = OAL_PTR_NULL;
@@ -759,13 +593,13 @@ oal_uint32 dmac_stat_rx_thrpt(frw_event_hdr_stru *pst_event_hdr, mac_vap_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 管理帧不需要统计 */
+    /* ???????????????? */
     if (FRW_EVENT_TYPE_WLAN_DRX != pst_event_hdr->en_type)
     {
         return OAL_SUCC;
     }
 
-    /* 获取用户、帧信息 */
+    /* ???????????????? */
     pst_dmac_user = (dmac_user_stru *)mac_res_get_dmac_user(MAC_GET_RX_CB_TA_USER_IDX(&pst_rx_ctl->st_rx_info));
     if (OAL_PTR_NULL == pst_dmac_user)
     {
@@ -773,14 +607,14 @@ oal_uint32 dmac_stat_rx_thrpt(frw_event_hdr_stru *pst_event_hdr, mac_vap_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-	/* 广播用户不需要统计 */
+	/* ?????????????????? */
 	pst_mac_user  = (mac_user_stru *)(&(pst_dmac_user->st_user_base_info));
 	if (OAL_TRUE == pst_mac_user->en_is_multi_user)
 	{
 		return OAL_SUCC;
 	}
 
-    /* 获取接收报文的tidno */
+    /* ??????????????tidno */
 	ul_ret = dmac_stat_get_rx_tid(pst_vap, pst_rx_ctl, &uc_tidno);
 	if (OAL_SUCC != ul_ret)
 	{
@@ -791,7 +625,7 @@ oal_uint32 dmac_stat_rx_thrpt(frw_event_hdr_stru *pst_event_hdr, mac_vap_stru *p
 
     pst_tid = &(pst_dmac_user->ast_tx_tid_queue[uc_tidno]);
 
-    /* 更新统计量 */
+    /* ?????????? */
     ul_ret = dmac_stat_update_thrpt(pst_vap, pst_mac_user, pst_tid,
                                 (oal_uint32)pst_rx_ctl->st_rx_info.us_frame_len, DMAC_STAT_RX);
 
@@ -805,21 +639,7 @@ oal_uint32 dmac_stat_rx_thrpt(frw_event_hdr_stru *pst_event_hdr, mac_vap_stru *p
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_update_thrpt
- 功能描述  : 更新发送或者接收吞吐量
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 dmac_stat_update_thrpt(mac_vap_stru *pst_vap,
                                               mac_user_stru *pst_user,
                                               dmac_tid_stru *pst_tid,
@@ -834,7 +654,7 @@ OAL_STATIC oal_uint32 dmac_stat_update_thrpt(mac_vap_stru *pst_vap,
 
     for (uc_stat_type = MAC_STAT_TYPE_TID_THRPT; uc_stat_type <= MAC_STAT_TYPE_VAP_THRPT; uc_stat_type++)
     {
-        /* 根据统计类型的不同，对p_void进行赋值 */
+        /* ??????????????????????p_void???????? */
         if (MAC_STAT_TYPE_TID_THRPT == uc_stat_type)
         {
             p_void = (oal_void *)pst_tid;
@@ -850,7 +670,7 @@ OAL_STATIC oal_uint32 dmac_stat_update_thrpt(mac_vap_stru *pst_vap,
 
         pst_stat = &(g_ast_pfm_stat[uc_stat_type]);
 
-        /* 遍列该统计类型的所有统计节点 */
+        /* ???????????????????????????? */
         OAL_DLIST_SEARCH_FOR_EACH(pst_dlist_pos, &(pst_stat->st_stat_node_dlist))
         {
             pst_stat_node = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_stat_node_stru, st_entry);
@@ -872,21 +692,7 @@ OAL_STATIC oal_uint32 dmac_stat_update_thrpt(mac_vap_stru *pst_vap,
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_get_rx_tid
- 功能描述  : 停止stat_stat定时器
- 输入参数  :
- 输出参数  :
- 返 回 值  : 如果找到，则返回OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_stat_get_rx_tid(mac_vap_stru *pst_vap, dmac_rx_ctl_stru *pst_rx_ctl, oal_uint8 *puc_tidno)
 {
     mac_ieee80211_frame_stru   *pst_frame_hdr   = OAL_PTR_NULL;
@@ -910,8 +716,8 @@ oal_uint32  dmac_stat_get_rx_tid(mac_vap_stru *pst_vap, dmac_rx_ctl_stru *pst_rx
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 如果 该vap不是ht，或者该帧不是qos帧， 或者该帧是组播，则tid直接标记为be
-       否则，则根据qos获取tid号 */
+    /* ???? ??vap????ht??????????????qos???? ??????????????????tid??????????be
+       ????????????qos????tid?? */
     if ((OAL_FALSE == pst_vap->pst_mib_info->st_wlan_mib_sta_config.en_dot11HighThroughputOptionImplemented)
         ||((WLAN_FC0_SUBTYPE_QOS | WLAN_FC0_TYPE_DATA) != ((oal_uint8 *)pst_frame_hdr)[0])
         ||(mac_is_grp_addr((oal_uint8 *)pst_frame_hdr)))
@@ -920,7 +726,7 @@ oal_uint32  dmac_stat_get_rx_tid(mac_vap_stru *pst_vap, dmac_rx_ctl_stru *pst_rx
     }
     else
     {
-        /* 考虑四地址情况获取报文的tid */
+        /* ????????????????????????tid */
         uc_is_tods    = mac_hdr_get_to_ds((oal_uint8 *)pst_frame_hdr);
         uc_is_from_ds = mac_hdr_get_from_ds((oal_uint8 *)pst_frame_hdr);
         en_is_4addr   = uc_is_tods && uc_is_from_ds;
@@ -931,22 +737,7 @@ oal_uint32  dmac_stat_get_rx_tid(mac_vap_stru *pst_vap, dmac_rx_ctl_stru *pst_rx
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_search_node
- 功能描述  : 停止stat_stat定时器
- 输入参数  : pst_node_dlist_head:统计节点指针
-             p_void:统计节点的tid,user或者vap的指针；
- 输出参数  : pst_stat_node:找到的统计节点，如果为空，表示没有找到
- 返 回 值  : 如果找到，则返回OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_stat_node_stru* dmac_stat_search_node(oal_dlist_head_stru        *pst_node_dlist_head,
                                                       oam_module_id_enum_uint16   en_module_id,
                                                       oal_void                   *p_void)
@@ -966,7 +757,7 @@ OAL_STATIC dmac_stat_node_stru* dmac_stat_search_node(oal_dlist_head_stru       
         return OAL_PTR_NULL;
     }
 
-    /* 查找对应的统计节点 */
+    /* ?????????????????? */
     OAL_DLIST_SEARCH_FOR_EACH(pst_dlist_pos, pst_node_dlist_head)
     {
         pst_stat_node = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_stat_node_stru, st_entry);
@@ -977,25 +768,11 @@ OAL_STATIC dmac_stat_node_stru* dmac_stat_search_node(oal_dlist_head_stru       
         }
     }
 
-    /* 没有找到，则返回空指针 */
+    /* ?????????????????????? */
     return OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_display
- 功能描述  : 显示统计结果
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32	dmac_stat_display(oam_module_id_enum_uint16         en_module_id,
                                  mac_stat_type_enum_uint8       en_stat_type,
                                  oal_void                      *p_void)
@@ -1005,7 +782,7 @@ oal_uint32	dmac_stat_display(oam_module_id_enum_uint16         en_module_id,
     oal_uint32                   ul_ret             = OAL_SUCC;
     oam_output_type_enum_uint8   en_output_type     = OAM_OUTPUT_TYPE_BUTT;
 
-    /* 查找统计节点 */
+    /* ???????????? */
     pst_stat_node = dmac_stat_search_node(&(pst_stat->st_stat_node_dlist), en_module_id, p_void);
     if (OAL_PTR_NULL == pst_stat_node)
     {
@@ -1014,10 +791,10 @@ oal_uint32	dmac_stat_display(oam_module_id_enum_uint16         en_module_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 停止定时器 */
+    /* ?????????? */
     frw_timer_stop_timer(&(pst_stat_node->st_timer));
 
-    /* 从oam模块获取输出方式 */
+    /* ??oam???????????????? */
     ul_ret = oam_get_output_type(&en_output_type);
     if (OAL_SUCC != ul_ret)
     {
@@ -1029,21 +806,7 @@ oal_uint32	dmac_stat_display(oam_module_id_enum_uint16         en_module_id,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_unregister_node
- 功能描述  : 注销某个节点
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32	dmac_stat_unregister_node(dmac_stat_node_stru   *pst_stat_node)
 {
     if (OAL_PTR_NULL == pst_stat_node)
@@ -1053,13 +816,13 @@ OAL_STATIC oal_uint32	dmac_stat_unregister_node(dmac_stat_node_stru   *pst_stat_
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 注销定时器 */
+    /* ?????????? */
     FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&(pst_stat_node->st_timer));
 
-    /* 从链表中删除该节点 */
+    /* ?????????????????? */
     oal_dlist_delete_entry(&(pst_stat_node->st_entry));
 
-    /* 释放存储统计值的内存空间 */
+    /* ???????????????????????? */
     if (OAM_MODULE_ID_PERFORM_STAT == pst_stat_node->pst_stat_param->en_module_id)
     {
         OAL_MEM_FREE(pst_stat_node->pul_stat_avg, OAL_TRUE);
@@ -1067,28 +830,14 @@ OAL_STATIC oal_uint32	dmac_stat_unregister_node(dmac_stat_node_stru   *pst_stat_
         OAL_MEM_FREE(pst_stat_node->pst_stat_param, OAL_TRUE);
     }
 
-    /* 注销统计节点 */
+    /* ???????????? */
     OAL_MEM_FREE(pst_stat_node, OAL_TRUE);
 
     return OAL_SUCC;
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_timer_handler
- 功能描述  : 定时器到期处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化成功或返回其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月10日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
 {
     dmac_stat_param_stru    *pst_stat_param     = OAL_PTR_NULL;
@@ -1107,13 +856,13 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
     pst_stat_param = (dmac_stat_param_stru *)(p_void);
     pst_stat       = &(g_ast_pfm_stat[pst_stat_param->en_stat_type]);
 
-    /* 查找统计节点 */
+    /* ???????????? */
     pst_stat_node = dmac_stat_search_node(&(pst_stat->st_stat_node_dlist), pst_stat_param->en_module_id, pst_stat_param->p_void);
 
-    /* 更新统计量 */
+    /* ?????????? */
     pst_stat_node->us_curr_item++;
 
-    /* 根据统计类型更新统计量 */
+    /* ?????????????????????? */
     switch (pst_stat_param->en_stat_type)
     {
         case MAC_STAT_TYPE_TID_DELAY:
@@ -1123,11 +872,11 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
 
         case MAC_STAT_TYPE_TID_PER:
 
-            /* 统计mac层per */
+            /* ????mac??per */
             pst_stat_param->aul_stat_avg[DMAC_STAT_PER_MAC_TOTAL] = pst_stat_node->aul_stat_cnt[DMAC_STAT_PER_MAC_TOTAL] ?
                 (10000 * pst_stat_node->aul_stat_sum[DMAC_STAT_PER_MAC_TOTAL] / pst_stat_node->aul_stat_cnt[DMAC_STAT_PER_MAC_TOTAL]) : 0;
 
-            /* 分类统计各种原因导致的per */
+            /* ??????????????????????per */
             for (uc_cnt = DMAC_STAT_PER_BUFF_OVERFLOW; uc_cnt < DMAC_STAT_PER_RTS_FAIL; uc_cnt++)
             {
                 if (0 == pst_stat_node->aul_stat_cnt[DMAC_STAT_PER_BUFF_OVERFLOW])
@@ -1140,7 +889,7 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
                 }
             }
 
-            /* 统计硬件RTS发送失败情况，统计硬件重传和软件重传对应的数据帧失败情况 */
+            /* ????????RTS???????????????????????????????????????????????????????? */
             for (uc_cnt = DMAC_STAT_PER_RTS_FAIL; uc_cnt < DMAC_STAT_PER_BUTT; uc_cnt++)
             {
                 pst_stat_param->aul_stat_avg[uc_cnt] = pst_stat_node->aul_stat_cnt[uc_cnt] ?
@@ -1194,7 +943,7 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
             return OAL_FAIL;
     }
 
-    /* 如果为命令配置模块，则更新至内部存储空间 */
+    /* ???????????????????????????????????????? */
     if (OAM_MODULE_ID_PERFORM_STAT == pst_stat_param->en_module_id)
     {
         ul_index = pst_stat_node->us_curr_item - 1;
@@ -1220,19 +969,19 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
             *(pst_stat_node->pul_stat_avg + ul_index) = pst_stat_param->aul_stat_avg[0];
         }
     }
-    else    /* 调用相应的处理函数 */
+    else    /* ?????????????????? */
     {
         pst_stat_node->p_inner_func(pst_stat_param);
     }
 
-    /* 该周期内的统计参数清零 */
+    /* ?????????????????????? */
     for (uc_cnt = 0; uc_cnt < DMAC_STAT_PER_BUTT; uc_cnt++)
     {
         pst_stat_node->aul_stat_cnt[uc_cnt]   = 0;
         pst_stat_node->aul_stat_sum[uc_cnt]   = 0;
     }
 
-    /* 统计结束 */
+    /* ???????? */
     if (pst_stat_node->us_curr_item >= pst_stat_node->us_total_item)
     {
         frw_timer_stop_timer(&(pst_stat_node->st_timer));
@@ -1243,21 +992,7 @@ OAL_STATIC oal_uint32	dmac_stat_timer_handler(oal_void * p_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_format_title_string
- 功能描述  : 将数据信息格式化
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 函数返回成功或其他错误
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_stat_format_title_string(oal_int8                  *pac_output_data,
                                                       oal_uint16                 ul_data_len,
                                                       dmac_stat_node_stru       *pst_stat_node)
@@ -1266,7 +1001,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_title_string(oal_int8                  *
     {
         case MAC_STAT_TYPE_TID_PER:
 
-            /* 格式化输出tid per统计信息 */
+            /* ??????????tid per???????? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "stat_num=%u,stat_period(ms)=%u,start_time =%u\r\n%15s%15s%15s%15s%15s%15s%15s%15s%15s%15s%15s\r\n",
@@ -1288,7 +1023,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_title_string(oal_int8                  *
 
         case MAC_STAT_TYPE_TID_DELAY:
 
-            /* 格式化输出tid delay统计信息 */
+            /* ??????????tid delay???????? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "stat_num=%u,stat_period(ms)=%u,start_time=%u\r\n%15s%15s\r\n",
@@ -1304,7 +1039,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_title_string(oal_int8                  *
         case MAC_STAT_TYPE_USER_THRPT:
         case MAC_STAT_TYPE_VAP_THRPT:
 
-            /* 格式化输出吞吐量统计信息 */
+            /* ???????????????????????? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "stat_num=%u,stat_period=%u,start_time=%15u\r\n%15s%15s%15s%15s\r\n",
@@ -1328,21 +1063,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_title_string(oal_int8                  *
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_format_data_string
- 功能描述  : 将打印信息格式化
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 函数返回成功或其他错误
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_stat_format_data_string(oal_int8                  *pac_output_data,
                                                      oal_uint16                 ul_data_len,
                                                      mac_stat_type_enum_uint8   en_stat_type,
@@ -1354,7 +1075,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_data_string(oal_int8                  *p
         case MAC_STAT_TYPE_TID_THRPT:
         case MAC_STAT_TYPE_USER_THRPT:
         case MAC_STAT_TYPE_VAP_THRPT:
-            /* 格式化输出吞吐量信息 */
+            /* ???????????????????? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "%15u%15u%15u%15u\r\n",
@@ -1364,7 +1085,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_data_string(oal_int8                  *p
                         *(pul_data + 2 * DMAC_STAT_ITEM_LIMIT));
             break;
         case MAC_STAT_TYPE_TID_DELAY:
-            /* 格式化输tid delay,per信息 */
+            /* ????????tid delay,per???? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "%15u%15u\r\n",
@@ -1372,7 +1093,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_data_string(oal_int8                  *p
                         *(pul_data));
             break;
         case MAC_STAT_TYPE_TID_PER:
-            /* 格式化输出吞吐量信息 */
+            /* ???????????????????? */
             OAL_SPRINTF(pac_output_data,
                         ul_data_len,
                         "%15u%15u%15u%15u%15u%15u%15u%15u%15u%15u%15u\r\n",
@@ -1397,21 +1118,7 @@ OAL_STATIC oal_uint32  dmac_stat_format_data_string(oal_int8                  *p
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_stat_print
- 功能描述  : 将性能统计信息用不同的方式进行输出
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : 函数返回成功或其他错误
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : x00189397
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  dmac_stat_print(dmac_stat_node_stru     *pst_stat_node,
                                        oam_output_type_enum_uint8 en_output_type)
 {
@@ -1426,7 +1133,7 @@ OAL_STATIC oal_uint32  dmac_stat_print(dmac_stat_node_stru     *pst_stat_node,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 格式化抬头信息 */
+    /* ?????????????? */
     ul_ret = dmac_stat_format_title_string(ac_output_data,
                                            OAM_PRINT_FORMAT_LENGTH,
                                            pst_stat_node);
@@ -1435,28 +1142,28 @@ OAL_STATIC oal_uint32  dmac_stat_print(dmac_stat_node_stru     *pst_stat_node,
         return ul_ret;
     }
 
-    /* 根据输出方式进行输出 */
+    /* ???????????????????? */
     switch (en_output_type)
     {
-        /* 输出至控制台 */
+        /* ???????????? */
         case OAM_OUTPUT_TYPE_CONSOLE:
             OAL_IO_PRINT("%s\r\n", ac_output_data);
             break;
 
-        /* 输出至PC侧调测工具平台 */
+        /* ??????PC?????????????? */
         case OAM_OUTPUT_TYPE_SDT:
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
             oam_print(ac_output_data);
 #endif
             break;
 
-        /* 无效配置 */
+        /* ???????? */
         default:
             ul_ret = OAL_ERR_CODE_INVALID_CONFIG;
 			return ul_ret;
     }
 
-    /* 打印所有的统计数据 */
+    /* ?????????????????? */
     for (us_index = 0; us_index < pst_stat_node->us_total_item; us_index++)
     {
         ul_ret = dmac_stat_format_data_string(ac_output_data,
@@ -1469,15 +1176,15 @@ OAL_STATIC oal_uint32  dmac_stat_print(dmac_stat_node_stru     *pst_stat_node,
             return ul_ret;
         }
 
-        /* 根据输出方式进行输出 */
+        /* ???????????????????? */
         switch (en_output_type)
         {
-            /* 输出至控制台 */
+            /* ???????????? */
             case OAM_OUTPUT_TYPE_CONSOLE:
                 OAL_IO_PRINT("%s\r\n", ac_output_data);
                 break;
 
-            /* 输出至PC侧调测工具平台 */
+            /* ??????PC?????????????? */
             case OAM_OUTPUT_TYPE_SDT:
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
                 oam_print(ac_output_data);

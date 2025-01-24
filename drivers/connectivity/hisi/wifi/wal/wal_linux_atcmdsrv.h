@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_linux_atcmdsrv.h
-  版 本 号   : 初稿
-  作    者   : zhangheng
-  生成日期   : 2012年12月10日
-  最近修改   :
-  功能描述   : wal_linux_atcmdsrv.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __WAL_LINUX_ATCMDSRV_H__
 #define __WAL_LINUX_ATCMDSRV_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "wlan_types.h"
@@ -42,7 +25,7 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_WAL_LINUX_ATCMDSRV_H
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 #define WAL_ATCMDSRB_DBB_NUM_TIME                (5 * OAL_TIME_HZ)
 #define WAL_ATCMDSRB_GET_RX_PCKT                 (5 * OAL_TIME_HZ)
@@ -61,7 +44,7 @@ enum WAL_ATCMDSRV_IOCTL_CMD
 #endif
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST))
-/*atcmdsrv私有命令宏定义*/
+/*atcmdsrv??????????????*/
 #define WAL_ATCMDSRV_IOCTL_DBB_LEN               12
 #define WAL_ATCMDSRV_IOCTL_MAC_LEN               6
 #define WAL_ATCMDSRV_IOCTL_COUNTRY_LEN           3
@@ -69,13 +52,13 @@ enum WAL_ATCMDSRV_IOCTL_CMD
 #define WAL_ATCMDSRV_IOCTL_MODE_NUM              13
 #define WAL_ATCMDSRV_IOCTL_DATARATE_NUM          14
 #define WAL_ATCMDSRB_IOCTL_AL_TX_LEN             2000
-#define WAL_ATCMDSRV_NV_WINVRAM_LENGTH           104                    /* WINVRAM内存空间 */
+#define WAL_ATCMDSRV_NV_WINVRAM_LENGTH           104                    /* WINVRAM???????? */
 #define WAL_ATCMDSRV_DIE_ID_LENGTH               16
 #define WAL_ATCMDSRB_CHECK_FEM_PA                (5 * OAL_TIME_HZ)
 #define WAL_ATCMDSRV_GET_HEX_CHAR(tmp) (((tmp) > 9)? ((tmp-10) + 'A') : ((tmp) + '0'))
 #define WLAN_HT_ONLY_MODE_2G                     WLAN_HT_ONLY_MODE + 3
 #define WLAN_VHT_ONLY_MODE_2G                    WLAN_VHT_ONLY_MODE +3
-/*lte共存对应的管脚号*/
+/*lte????????????????*/
 #define WAL_ATCMDSRV_LTE_ISM_PRIORITY_NAME       "lte_ism_priority"
 #define WAL_ATCMDSRV_LTE_RX_ACT_NAME             "lte_rx_act"
 #define WAL_ATCMDSRV_LTE_TX_ACT_NAME             "lte_tx_act"
@@ -84,12 +67,17 @@ enum WAL_ATCMDSRV_IOCTL_CMD
 #define WAL_ATCMDSRV_EFUSE_BUFF_LEN               16
 #define WAL_ATCMDSRV_EFUSE_REG_WIDTH              0x10
 #define WAL_ATCMDSRV_CHANNEL_NUM                  6
+#define WAL_ATCMSRV_MIN_BSS_EXPIRATION_AGE 25           /* ????:  ?? */
+#define WAL_ATCMSRV_MAX_BSS_EXPIRATION_AGE 500          /*????:  ??*/
+
+#define WAL_ATCMDSRV_WIFI_MIN_TXPOWER             5     /*????:dBm */
+#define WAL_ATCMDSRV_WIFI_MAX_TXPOWER             14    /*????:dBm */
 
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
-/*atcmdsrv枚举类型*/
+/*atcmdsrv????????*/
 enum WAL_ATCMDSRV_IOCTL_CMD
 {
     WAL_ATCMDSRV_IOCTL_CMD_WI_FREQ_SET=0,              /*  */
@@ -117,10 +105,19 @@ enum WAL_ATCMDSRV_IOCTL_CMD
     WAL_ATCMDSRV_IOCTL_CMD_DIEID_INFORM,
     WAL_ATCMDSRV_IOCTL_CMD_SET_COUNTRY,
     WAL_ATCMDSRV_IOCTL_CMD_GET_UPCCODE,
+    WAL_ATCMDSRV_IOCTL_CMD_SET_CONN_POWER,          /* ???????????????? */
+    WAL_ATCMDSRV_IOCTL_CMD_SET_BSS_EXPIRE_AGE,      /* ????????????????????*/ 
+    WAL_ATCMDSRV_IOCTL_CMD_GET_CONN_INFO,           /* ???????????? */
     WAL_ATCMDSRV_IOCTL_CMD_TEST_BUTT
 
 
 };
+typedef enum
+{
+    ATCMDSRV_WIFI_DISCONNECT,           /*  */
+    ATCMDSRV_WIFI_CONNECTED,            /*  */
+}atcmdsrv_wifi_conn_info_enum;
+typedef oal_uint8 atcmdsrv_wifi_conn_info_enum_uint8;
 
 #ifdef _PRE_WLAN_FEATURE_SMARTANT
 typedef struct
@@ -135,31 +132,47 @@ typedef struct
 }wal_atcmdsrv_ant_info_stru;
 #endif
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_SMARTANT
 extern wal_atcmdsrv_ant_info_stru g_st_atcmdsrv_ant_info;
 #endif
 
+extern oal_uint32  g_pd_bss_expire_time;
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* 1102 使用atcmdsrv 下发命令 */
+struct wal_atcmdsrv_wifi_connect_info
+{
+	atcmdsrv_wifi_conn_info_enum_uint8 en_status;
+	oal_uint8 auc_ssid[WLAN_SSID_MAX_LEN];
+	oal_uint8 auc_bssid[WLAN_MAC_ADDR_LEN];
+	oal_int8  c_rssi;
+};
+
+struct wal_atcmdsrv_wifi_tx_power_range
+{
+	oal_uint8  uc_min;
+	oal_uint8  uc_max;
+};
+
+
+/* 1102 ????atcmdsrv ???????? */
 typedef struct wal_atcmdsrv_wifi_priv_cmd {
-    /* 校验位,取值1102,与其他平台区别开来 */
+    /* ??????,????1102,?????????????????? */
     oal_int32 l_verify;
-    oal_int32   ul_cmd;                                          /* 命令号 */
+    oal_int32   ul_cmd;                                          /* ?????? */
     union
     {
     oal_int32 l_freq;
@@ -185,13 +198,16 @@ typedef struct wal_atcmdsrv_wifi_priv_cmd {
     oal_uint8 auc_caldata[WAL_ATCMDSRV_NV_WINVRAM_LENGTH];      /* 104 */
     oal_uint16 die_id[WAL_ATCMDSRV_DIE_ID_LENGTH];      /*  16 */
     oal_int8  auc_country_code[WAL_ATCMDSRV_IOCTL_COUNTRY_LEN]; /* 3 */
+    oal_uint32 ul_bss_expire_age;                               /* ???????????????????? */
+    struct wal_atcmdsrv_wifi_connect_info st_connect_info;      /* WiFi ???????? */
+    struct wal_atcmdsrv_wifi_tx_power_range st_power_range;     /* WiFi ???????????? */
     }pri_data;
 
 }wal_atcmdsrv_wifi_priv_cmd_stru;
 /********************************************************************************************
-*****************************EFUSE异常检查位域说明*******************************************
+*****************************EFUSE????????????????*******************************************
 
-         位域名称               位域起始位  位域与以下位段映射关系
+         ????????               ??????????  ??????????????????????
     (1): DIE_ID                 [154:  0]   die_id_0,die_id1,die_id2,die_id3,die_id4
     (2): Reserve0               [159:155]   reserve0
     (3): CHIP ID                [167:160]   chip_id
@@ -229,17 +245,17 @@ typedef struct efuse_bits
 }wal_efuse_bits;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 
 extern oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_net_device_stru *pst_net_dev, oal_ifreq_stru *pst_ifr, oal_int32 ul_cmd);

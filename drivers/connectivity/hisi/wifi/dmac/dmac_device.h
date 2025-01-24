@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_device.h
-  版 本 号   : 初稿
-  作    者   : 张炜 64406
-  生成日期   : 2015年5月7日
-  最近修改   :
-  功能描述   : dmac_main.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年5月7日
-    作    者   : 张炜 64406
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_DEVICE_H__
 #define __DMAC_DEVICE_H__
@@ -28,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "mac_device.h"
 #include "dmac_alg_if.h"
@@ -37,12 +20,12 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_DEVICE_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-#define MAX_MAC_ERR_IN_TBTT 5   /*每一个tbtt间隙允许出现的最大错误数*/
+#define MAX_MAC_ERR_IN_TBTT 5   /*??????tbtt????????????????????????*/
 
 #define DMAC_COMPATIBILITY_RATE_LIMIT_TABLE \
-  { /* 带宽       11A  11B  11G  MIXED_ONE_11G  MIXED_TWO_11G  HT       VHT      HT_ONLY   VHT_ONLY   HT_11G  (Kbp/s)*/  \
+  { /* ????       11A  11B  11G  MIXED_ONE_11G  MIXED_TWO_11G  HT       VHT      HT_ONLY   VHT_ONLY   HT_11G  (Kbp/s)*/  \
     /* 20M  */ {   0,   0,   0,   0,             0,            60000,   70000,   60000,    70000,     60000}, \
     /* 40M  */ {   0,   0,   0,   0,             0,            80000,   100000,  80000,    100000,    80000}, \
     /* 80M  */ {   0,   0,   0,   0,             0,            0,       0,       0,        0,         0}, \
@@ -51,30 +34,30 @@ extern "C" {
 
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
-/* Dmac device结构体，记录只保存在Dmac的device公共信息 */
-/* 设备距离状态 */
+/* Dmac device????????????????????Dmac??device???????? */
+/* ???????????? */
 typedef struct
 {
     dmac_alg_tpc_user_distance_enum_uint8           en_dmac_device_distance_enum;
@@ -93,16 +76,16 @@ typedef struct
 } dmac_compatibility_stat_stru;
 
 
-/* dmac device结构体，记录只保存在dmac的device公共信息 */
+/* dmac device????????????????????dmac??device???????? */
 typedef struct
 {
-    mac_device_stru                    *pst_device_base_info;                   /* 指向公共部分mac device */
+    mac_device_stru                    *pst_device_base_info;                   /* ????????????mac device */
 #ifdef _PRE_WLAN_FEATURE_DFR
-    oal_bool_enum_uint8                 en_dfr_hw_reset_enable;                 //device侧hw reset的使能开关
+    oal_bool_enum_uint8                 en_dfr_hw_reset_enable;                 //device??hw reset??????????
     oal_uint8                           auc_rev[3];
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
-    frw_timeout_stru                    st_pcie_err_timer;                      /* 检测pcie err_nonfatal 定时器 */
-    oal_uint32                          ul_pcie_err_cnt;                        /* pcie err计数 */
+    frw_timeout_stru                    st_pcie_err_timer;                      /* ????pcie err_nonfatal ?????? */
+    oal_uint32                          ul_pcie_err_cnt;                        /* pcie err???? */
 #endif
 #endif //_PRE_WLAN_DFT_STAT
 #ifdef _PRE_WLAN_SW_CTRL_RSP
@@ -116,30 +99,16 @@ typedef struct
 }dmac_device_stru;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
 
-/*****************************************************************************
- 函 数 名  : dmac_fcs_get_mgr_stru
- 功能描述  : 获取指定device的fcs mgr
- 输入参数  : mac_device_stru *pst_device
- 输出参数  : 无
- 返 回 值  : OAL_STATIC OAL_INLINE mac_fcs_mgr_stru *
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE mac_fcs_mgr_stru* dmac_fcs_get_mgr_stru(mac_device_stru *pst_device)
 {
 #if IS_DEVICE
@@ -149,21 +118,22 @@ OAL_STATIC OAL_INLINE mac_fcs_mgr_stru* dmac_fcs_get_mgr_stru(mac_device_stru *p
 #endif
 }
 
+extern oal_bool_enum_uint8 g_rx_filter_frag;
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern  oal_uint32 dmac_device_exception_report_timeout_fn(oal_void *p_arg);
 
 /*****************************************************************************
-  10.1 公共结构体初始化、删除
+  10.1 ??????????????????????
 *****************************************************************************/
 
 extern oal_uint32  dmac_board_exit(mac_board_stru *pst_board);
 extern oal_uint32  dmac_board_init(mac_board_stru *pst_board);
 
 /*****************************************************************************
-  10.2 公共成员访问部分
+  10.2 ????????????????
 *****************************************************************************/
 extern oal_uint32  dmac_mac_error_overload(mac_device_stru *pst_mac_device, hal_mac_error_type_enum_uint8 en_error_id);
 extern oal_void  dmac_mac_error_cnt_clr(mac_device_stru *pst_mac_device);

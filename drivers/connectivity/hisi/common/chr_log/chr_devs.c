@@ -1,8 +1,14 @@
+
+
 #ifdef __cplusplus
     #if __cplusplus
         extern "C" {
     #endif
 #endif
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -27,14 +33,19 @@
 #include "board.h"
 #include "oal_schedule.h"
 
-static int chr_misc_open(struct inode *fd, struct file *fp);
-static ssize_t chr_misc_read(struct file *fp, char __user *buff, size_t count, loff_t *loff);
-static long chr_misc_ioctl(struct file* fp, unsigned int cmd, unsigned long arg);
-static int chr_misc_release(struct inode *fd, struct file* fp);
-
+/*****************************************************************************
+  2 ????????
+*****************************************************************************/
+static int32 chr_misc_open(struct inode *fd, struct file *fp);
+static ssize_t chr_misc_read(struct file *fp, int8 __user *buff, size_t count, loff_t *loff);
+static int64 chr_misc_ioctl(struct file* fp, uint32 cmd, uint64 arg);
+static int32 chr_misc_release(struct inode *fd, struct file* fp);
+/*****************************************************************************
+  3 ????????????
+*****************************************************************************/
 static CHR_EVENT g_chr_event;
-
-static int     g_log_enable = CHR_LOG_DISABLE;
+/* ??????debug???????????? */
+static int32     g_log_enable = CHR_LOG_DISABLE;
 
 static const struct file_operations chr_misc_fops = {
     .owner   = THIS_MODULE,
@@ -50,7 +61,16 @@ static struct miscdevice chr_misc_dev = {
     .fops  = &chr_misc_fops,
 };
 
-static int chr_misc_open(struct inode *fd, struct file *fp)
+
+/*****************************************************************************
+  4 ??????
+*****************************************************************************/
+
+/*****************************************************************************
+  5 ????????
+*****************************************************************************/
+
+static int32 chr_misc_open(struct inode *fd, struct file *fp)
 {
     if (CHR_LOG_ENABLE != g_log_enable)
     {
@@ -61,10 +81,11 @@ static int chr_misc_open(struct inode *fd, struct file *fp)
     return CHR_SUCC;
 }
 
-static ssize_t chr_misc_read(struct file *fp, char __user *buff, size_t count, loff_t *loff)
+
+static ssize_t chr_misc_read(struct file *fp, int8 __user *buff, size_t count, loff_t *loff)
 {
-    int ret;
-    unsigned int __user   *puser = (unsigned int __user *)buff;
+    int32 ret;
+    uint32 __user   *puser = (uint32 __user *)buff;
     struct sk_buff  *skb   =NULL;
 
     if (CHR_LOG_ENABLE != g_log_enable)
@@ -73,7 +94,7 @@ static ssize_t chr_misc_read(struct file *fp, char __user *buff, size_t count, l
         return -EBUSY;
     }
 
-    if (count < sizeof(unsigned int))
+    if (count < sizeof(uint32))
     {
         CHR_ERR("The user space buff is too small\n");
         return -CHR_EFAIL;
@@ -107,19 +128,19 @@ static ssize_t chr_misc_read(struct file *fp, char __user *buff, size_t count, l
             }
         }
     }
-    ret = copy_to_user(puser, skb->data, sizeof(unsigned int));
+    ret = copy_to_user(puser, skb->data, sizeof(uint32));
     if (ret)
     {
-        CHR_WARNING("copy_to_user err!restore it, len=%d\n", (int)sizeof(unsigned int));
+        CHR_WARNING("copy_to_user err!restore it, len=%d\n", (int32)sizeof(uint32));
         skb_queue_head(&g_chr_event.errno_queue, skb);
         return -EFAULT;
     }
     kfree_skb(skb);
 
-    return sizeof(unsigned int);
+    return sizeof(uint32);
 }
 
-static int chr_write_errno_to_queue(unsigned int ul_errno)
+static int32 chr_write_errno_to_queue(uint32 ul_errno)
 {
     struct sk_buff  *skb   =NULL;
 
@@ -130,24 +151,24 @@ static int chr_write_errno_to_queue(unsigned int ul_errno)
     }
 
     /* for code run in interrupt context */
-    skb = alloc_skb(sizeof(unsigned int), oal_in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
+    skb = alloc_skb(sizeof(uint32), oal_in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
     if( NULL == skb)
     {
-        CHR_ERR("chr errno alloc skbuff failed! len=%d, errno=%x\n", (int)sizeof(unsigned int), ul_errno);
+        CHR_ERR("chr errno alloc skbuff failed! len=%d, errno=%x\n", (int32)sizeof(uint32), ul_errno);
         return -ENOMEM;
     }
 
-    skb_put(skb, sizeof(unsigned int));
-    *(unsigned int*)skb->data = ul_errno;
+    skb_put(skb, sizeof(uint32));
+    *(uint32*)skb->data = ul_errno;
     skb_queue_tail(&g_chr_event.errno_queue, skb);
     wake_up_interruptible(&g_chr_event.errno_wait);
     return CHR_SUCC;
 }
 
-static long chr_misc_ioctl(struct file* fp, unsigned int cmd, unsigned long arg)
+static int64 chr_misc_ioctl(struct file* fp, uint32 cmd, uint64 arg)
 {
-    unsigned int __user   *puser = (unsigned int __user *)arg;
-    unsigned int ret, value = 0;
+    uint32 __user   *puser = (uint32 __user *)arg;
+    uint32 ret, value = 0;
 
     if (CHR_LOG_ENABLE != g_log_enable)
     {
@@ -187,7 +208,7 @@ static long chr_misc_ioctl(struct file* fp, unsigned int cmd, unsigned long arg)
     return CHR_SUCC;
 }
 
-static int chr_misc_release(struct inode *fd, struct file* fp)
+static int32 chr_misc_release(struct inode *fd, struct file* fp)
 {
     if (CHR_LOG_ENABLE != g_log_enable)
     {
@@ -198,13 +219,13 @@ static int chr_misc_release(struct inode *fd, struct file* fp)
     return CHR_SUCC;
 }
 
-int __chr_printLog(CHR_LOGPRIORITY prio, CHR_DEV_INDEX dev_index, const char *fmt,...)
+int32 __chr_printLog(CHR_LOGPRIORITY prio, CHR_DEV_INDEX dev_index, const int8 *fmt,...)
 {
     return CHR_SUCC;
 }
 EXPORT_SYMBOL(__chr_printLog);
 
-int  __chr_exception(unsigned int errno)
+int32  __chr_exception(uint32 errno)
 {
     if (CHR_LOG_ENABLE != g_log_enable)
     {
@@ -217,7 +238,7 @@ int  __chr_exception(unsigned int errno)
 }
 EXPORT_SYMBOL(__chr_exception);
 
-void chr_dev_exception_callback(void *buff, unsigned short len)
+void chr_dev_exception_callback(void *buff, uint16 len)
 {
     CHR_DEV_EXCEPTION_STRU* chr_dev_exception = NULL;
 
@@ -229,7 +250,7 @@ void chr_dev_exception_callback(void *buff, unsigned short len)
 
     if (len != sizeof(CHR_DEV_EXCEPTION_STRU))
     {
-        CHR_WARNING("chr recv device errno fail, len %d is unavailable\n", (int)len);
+        CHR_WARNING("chr recv device errno fail, len %d is unavailable\n", (int32)len);
         return;
     }
 
@@ -245,9 +266,9 @@ void chr_dev_exception_callback(void *buff, unsigned short len)
 }
 EXPORT_SYMBOL(chr_dev_exception_callback);
 
-int chr_miscdevs_init(void)
+int32 chr_miscdevs_init(void)
 {
-    int ret = 0;
+    int32 ret = 0;
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     if (!is_my_chip()) {
         CHR_INFO("cfg chr log chip type is not match, skip driver init");

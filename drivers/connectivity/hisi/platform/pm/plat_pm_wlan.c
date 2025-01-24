@@ -10,7 +10,6 @@
 #include <linux/platform_device.h>
 #include <linux/kobject.h>
 #include <linux/irq.h>
-#include <linux/wakelock.h>
 #include <linux/mmc/sdio.h>
 #include <linux/mmc/host.h>
 #include <linux/mmc/card.h>
@@ -19,8 +18,8 @@
 #include <linux/mmc/sdio_func.h>
 #include <linux/mmc/host.h>
 #include <linux/gpio.h>
-#ifdef CONFIG_HISI_IDLE_SLEEP
-#include <linux/hisi/hisi_idle_sleep.h>
+#ifdef CONFIG_LPCPU_IDLE_SLEEP
+#include <linux/hisi/lpcpu_idle_sleep.h>
 #endif
 #include "oal_sdio.h"
 #include "oal_sdio_comm.h"
@@ -60,45 +59,84 @@ EXPORT_SYMBOL_GPL(g_wlan_pm_switch);
 oal_uint32 auto_freq_enable = 1;
 module_param(auto_freq_enable, uint, S_IRUGO | S_IWUSR);
 
-extern  int wlan_power_on(void);
-extern  int wlan_power_off(void);
+extern  int32 wlan_power_on(void);
+extern  int32 wlan_power_off(void);
 void wlan_pm_wakeup_work(oal_work_stru *pst_worker);
 void wlan_pm_sleep_work(oal_work_stru *pst_worker);
 void wlan_pm_freq_adjust_work(oal_work_stru *pst_worker);
 
-void wlan_pm_wdg_timeout(struct wlan_pm_s *pm_data);
+void wlan_pm_wdg_timeout(unsigned long data);
 
-int wlan_pm_wakeup_done_callback(void *data);
-int wlan_pm_close_done_callback(void *data);
-int wlan_pm_open_bcpu_done_callback(void *data);
-int wlan_pm_close_bcpu_done_callback(void *data);
-int wlan_pm_halt_bcpu_done_callback(void *data);
+int32 wlan_pm_wakeup_done_callback(void *data);
+int32 wlan_pm_close_done_callback(void *data);
+int32 wlan_pm_open_bcpu_done_callback(void *data);
+int32 wlan_pm_close_bcpu_done_callback(void *data);
+int32 wlan_pm_halt_bcpu_done_callback(void *data);
 
 #ifdef _PRE_WLAN_DOWNLOAD_PM
 oal_uint16 g_us_download_rate_limit_pps = 0;
 EXPORT_SYMBOL_GPL(g_us_download_rate_limit_pps);
 #endif
 
-int wlan_pm_stop_wdg(struct wlan_pm_s *pst_wlan_pm_info);
+int32 wlan_pm_stop_wdg(struct wlan_pm_s *pst_wlan_pm_info);
 oal_int wlan_pm_work_submit(struct wlan_pm_s    *pst_wlan_pm, oal_work_stru* pst_worker);
 void wlan_pm_info_clean(void);
+void wlan_pm_deepsleep_delay_timeout_02(unsigned long data);
+int32 wlan_pm_stop_deepsleep_delay_timer_02(struct wlan_pm_s *pm_data);
 
 extern oal_atomic g_wakeup_dev_wait_ack;
-/*****************************************************************************
- 函 数 名  : wlan_pm_get_drv
- 功能描述  : 获取全局wlan结构
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
+#ifdef CONFIG_HUAWEI_DSM
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
+static struct dsm_dev dsm_wifi = {
+    .name = "dsm_wifi",
+    .device_name = NULL,
+    .ic_name = NULL,
+    .module_name = NULL,
+    .fops = NULL,
+    .buff_size = DSM_DEV_BUFF_SIZE,
+};
 
-*****************************************************************************/
+struct dsm_client *hw_1102_dsm_client = NULL;
+
+void hw_1102_register_wifi_dsm_client(void)
+{
+    if (hw_1102_dsm_client == NULL) {
+        hw_1102_dsm_client = dsm_register_client(&dsm_wifi);
+    }
+}
+void hw_1102_unregister_wifi_dsm_client(void)
+{
+    if (hw_1102_dsm_client != NULL) {
+        dsm_unregister_client(hw_1102_dsm_client, &dsm_wifi);
+        hw_1102_dsm_client = NULL;
+    }
+}
+#define LOG_BUF_SIZE 512
+void hw_1102_dsm_client_notify(int dsm_id, const char *fmt, ...)
+{
+    char buf[LOG_BUF_SIZE] = {0};
+    va_list ap;
+
+    DECLARE_DFT_TRACE_KEY_INFO("hw_1102_dsm_client_notify", OAL_DFT_TRACE_FAIL);
+    va_start(ap, fmt);
+    if (hw_1102_dsm_client && !dsm_client_ocuppy(hw_1102_dsm_client)) {
+        if (fmt) {
+            vsnprintf(buf, LOG_BUF_SIZE, fmt, ap);
+            dsm_client_record(hw_1102_dsm_client, buf);
+        }
+        dsm_client_notify(hw_1102_dsm_client, dsm_id);
+        OAM_WARNING_LOG0(0, OAM_SF_PWR, "wifi dsm_client_notify success");
+        OAL_IO_PRINT("[I]wifi dsm_client_notify success,dsm_id=%d[%s]\n", dsm_id, buf);
+    } else {
+        OAM_WARNING_LOG0(0, OAM_SF_PWR, "wifi dsm_client_notify failed");
+        OAL_IO_PRINT("[E]wifi dsm_client_notify failed,dsm_id=%d\n", dsm_id);
+    }
+    va_end(ap);
+}
+EXPORT_SYMBOL(hw_1102_dsm_client_notify);
+#endif
+
+
 struct wlan_pm_s*  wlan_pm_get_drv(oal_void)
 {
     return gpst_wlan_pm_info;
@@ -106,21 +144,7 @@ struct wlan_pm_s*  wlan_pm_get_drv(oal_void)
 
 EXPORT_SYMBOL_GPL(wlan_pm_get_drv);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_set_device_ready
- 功能描述  : 接受到deviceready的信号，设置host侧 device ready状态
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月31日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wlan_pm_set_device_ready(oal_void* data)
 {
     struct wlan_pm_s    *pst_wlan_pm = (struct wlan_pm_s*)data;
@@ -128,82 +152,26 @@ oal_int32  wlan_pm_set_device_ready(oal_void* data)
     OAL_COMPLETE(&pst_wlan_pm->st_device_ready);
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wlan_pm_init_device_ready
- 功能描述  : 初始化host侧 device ready状态
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月31日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void wlan_pm_init_device_ready(struct wlan_pm_s    *pst_wlan_pm)
 {
     OAL_INIT_COMPLETION(&pst_wlan_pm->st_device_ready);
 }
-/*****************************************************************************
- 函 数 名  : wlan_pm_wait_device_ready
- 功能描述  : 等待host侧 device ready状态
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月31日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wlan_pm_wait_device_ready(struct wlan_pm_s    *pst_wlan_pm)
 {
-    /* 等待host下半部初始化完成 */
+    /* ????host???????????????? */
     return oal_wait_for_completion_timeout(&pst_wlan_pm->st_device_ready, (oal_uint32)OAL_MSECS_TO_JIFFIES(HOST_WAIT_BOTTOM_INIT_TIMEOUT));
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_sleep_request
- 功能描述  : 发送sleep 请求给device
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : SUCC/FAIL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年10月31日
-    作    者   : z00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wlan_pm_sleep_request(struct wlan_pm_s    *pst_wlan_pm)
 {
     return oal_sdio_send_msg(pst_wlan_pm->pst_sdio,H2D_MSG_SLEEP_REQ);
 
 
 }
-/*****************************************************************************
- 函 数 名  : wlan_pm_allow_sleep_callback
- 功能描述  : device应答allow_sleep消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int32 wlan_pm_allow_sleep_callback(void *data)
 {
@@ -217,21 +185,7 @@ oal_int32 wlan_pm_allow_sleep_callback(void *data)
     return SUCCESS;
 
 }
-/*****************************************************************************
- 函 数 名  : wlan_pm_disallow_sleep_callback
- 功能描述  : device应答allow_sleep消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int32 wlan_pm_disallow_sleep_callback(void *data)
 {
@@ -249,27 +203,13 @@ oal_int32 wlan_pm_disallow_sleep_callback(void *data)
 }
 
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_init
- 功能描述  : WLAN PM初始化接口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 struct wlan_pm_s*  wlan_pm_init(oal_void)
 {
     struct wlan_pm_s*   pst_wlan_pm;
     BOARD_INFO *        pst_board = get_hi110x_board_info();
 
-    if (OAL_PTR_NULL == pst_board)
+    if(OAL_PTR_NULL == pst_board)
     {
         return OAL_PTR_NULL;
     }
@@ -287,9 +227,9 @@ struct wlan_pm_s*  wlan_pm_init(oal_void)
     pst_wlan_pm->pst_sdio->pst_pm_callback = &gst_wlan_pm_callback;
 
     pst_wlan_pm->ul_wlan_pm_enable          = OAL_FALSE;
-    pst_wlan_pm->ul_apmode_allow_pm_flag    = OAL_TRUE;  /* 默认允许下电 */
+    pst_wlan_pm->ul_apmode_allow_pm_flag    = OAL_TRUE;  /* ???????????? */
 
-    /*work queue初始化*/
+    /*work queue??????*/
     pst_wlan_pm->pst_pm_wq = oal_create_singlethread_workqueue("wlan_pm_wq");
     if (!pst_wlan_pm->pst_pm_wq)
     {
@@ -302,10 +242,10 @@ struct wlan_pm_s*  wlan_pm_init(oal_void)
     OAL_INIT_WORK(&pst_wlan_pm->st_sleep_work,  wlan_pm_sleep_work);
     OAL_INIT_WORK(&pst_wlan_pm->st_freq_adjust_work,  wlan_pm_freq_adjust_work);
 
-    /*初始化芯片自检work*/
+    /*??????????????work*/
     OAL_INIT_WORK(&pst_wlan_pm->st_ram_reg_test_work,  wlan_device_mem_check_work);
 
-    /*sleep timer初始化*/
+    /*sleep timer??????*/
     init_timer(&pst_wlan_pm->st_watchdog_timer);
     pst_wlan_pm->st_watchdog_timer.data        = (unsigned long)pst_wlan_pm;
     pst_wlan_pm->st_watchdog_timer.function    = (void *)wlan_pm_wdg_timeout;
@@ -313,11 +253,21 @@ struct wlan_pm_s*  wlan_pm_init(oal_void)
     pst_wlan_pm->ul_wdg_timeout_curr_cnt       = 0;
     pst_wlan_pm->ul_packet_cnt                 = 0;
 
+
+    /*sleep timer??????*/
+    init_timer(&pst_wlan_pm->st_deepsleep_delay_timer);
+    pst_wlan_pm->st_deepsleep_delay_timer.data        = (unsigned long)pst_wlan_pm;
+    pst_wlan_pm->st_deepsleep_delay_timer.function    = (void *)wlan_pm_deepsleep_delay_timeout_02;
+
+    oal_wake_lock_init(&pst_wlan_pm->st_deepsleep_wakelock, "wifi_deeepsleep_delay_wakelock");
     pst_wlan_pm->ul_wlan_power_state           = POWER_STATE_SHUTDOWN;
     pst_wlan_pm->ul_wlan_dev_state             = HOST_ALLOW_TO_SLEEP;
     pst_wlan_pm->ul_sleep_stage                = SLEEP_STAGE_INIT;
 
     pst_wlan_pm->st_wifi_srv_handler.p_wifi_srv_get_pm_pause_func = OAL_PTR_NULL;
+#ifdef _PRE_WLAN_WAKEUP_SRC_PARSE
+    pst_wlan_pm->st_wifi_srv_handler.p_data_wkup_print_en_func = OAL_PTR_NULL;
+#endif
 
     gpst_wlan_pm_info = pst_wlan_pm;
 
@@ -342,40 +292,24 @@ struct wlan_pm_s*  wlan_pm_init(oal_void)
     pst_wlan_pm->pst_sdio->data_int_count = 0;
     pst_wlan_pm->pst_sdio->wakeup_int_count = 0;
 
-#ifndef CONFIG_WAKELOCK
-#error "CONFIG_WAKELOCK is not defined!!!\n"
-#endif
 
     OAL_IO_PRINT("[plat_pm]wlan_pm_init ok!");
     return  pst_wlan_pm;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_exit
- 功能描述  : WLAN pm退出接口
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint  wlan_pm_exit(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return OAL_SUCC;
     }
 
     wlan_pm_stop_wdg(pst_wlan_pm);
 
+    wlan_pm_stop_deepsleep_delay_timer_02(pst_wlan_pm);
     oal_sdio_message_unregister(pst_wlan_pm->pst_sdio,D2H_MSG_WAKEUP_SUCC);
     oal_sdio_message_unregister(pst_wlan_pm->pst_sdio,D2H_MSG_WLAN_READY);
     oal_sdio_message_unregister(pst_wlan_pm->pst_sdio,D2H_MSG_ALLOW_SLEEP);
@@ -396,34 +330,20 @@ oal_uint  wlan_pm_exit(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_is_poweron
- 功能描述  : wifi是否上电
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wlan_pm_is_poweron(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
     //struct pm_drv_data  *pm_data = pm_get_drvdata();
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return OAL_FALSE;
     }
     //mutex_lock(&pm_data->host_mutex);
 
-    if (POWER_STATE_OPEN == pst_wlan_pm->ul_wlan_power_state)
+    if(POWER_STATE_OPEN == pst_wlan_pm->ul_wlan_power_state)
     {
         //mutex_unlock(&pm_data->host_mutex);
         return OAL_TRUE;
@@ -436,26 +356,12 @@ oal_uint32 wlan_pm_is_poweron(oal_void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_is_poweron);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_get_wifi_srv_handler
- 功能描述  : 获取回调handler指针
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 struct wifi_srv_callback_handler* wlan_pm_get_wifi_srv_handler(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return NULL;
     }
@@ -464,21 +370,7 @@ struct wifi_srv_callback_handler* wlan_pm_get_wifi_srv_handler(oal_void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_get_wifi_srv_handler);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_open
- 功能描述  : open wifi,如果bfgx没有开启,上电,否则，下命令开WCPU
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wlan_pm_open(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -495,17 +387,17 @@ oal_int32 wlan_pm_open(oal_void)
 
     mutex_lock(&pm_data->host_mutex);
 
-    if (POWER_STATE_OPEN == pst_wlan_pm->ul_wlan_power_state)
+    if(POWER_STATE_OPEN == pst_wlan_pm->ul_wlan_power_state)
     {
         mutex_unlock(&pm_data->host_mutex);
         OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_open::aleady opened");
         return OAL_ERR_CODE_ALREADY_OPEN;
     }
-#ifdef CONFIG_HISI_IDLE_SLEEP
-    hisi_idle_sleep_vote(ID_WIFI,1);
-    OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_open::hisi_idle_sleep_vote value 1!");
+#ifdef CONFIG_LPCPU_IDLE_SLEEP
+    lpcpu_idle_sleep_vote(ID_WIFI, 1);
+    OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_open::lpcpu_idle_sleep_vote value 1!");
 #endif
-    if (!pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count)
+    if(!pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count)
     {
         /*make sure open only lock once*/
         oal_sdio_wake_lock(pst_wlan_pm->pst_sdio);
@@ -515,16 +407,16 @@ oal_int32 wlan_pm_open(oal_void)
 
     pst_wlan_pm->ul_open_cnt++;
 
-    if (OAL_SUCC != wlan_power_on())
+    if(OAL_SUCC != wlan_power_on())
     {
         OAM_ERROR_LOG0(0, OAM_SF_PWR, "wlan_pm_open::wlan_power_on fail!");
         pst_wlan_pm->ul_wlan_power_state = POWER_STATE_SHUTDOWN;
 		oal_sdio_wake_unlock(pst_wlan_pm->pst_sdio);
 		mutex_unlock(&pm_data->host_mutex);
 		DECLARE_DFT_TRACE_KEY_INFO("wlan_power_on_fail",OAL_DFT_TRACE_FAIL);
-       #ifdef CONFIG_HISI_IDLE_SLEEP
-        hisi_idle_sleep_vote(ID_WIFI,0);
-       #endif
+        #ifdef CONFIG_LPCPU_IDLE_SLEEP
+        lpcpu_idle_sleep_vote(ID_WIFI, 0);
+        #endif
         return OAL_FAIL;
     }
 
@@ -532,32 +424,32 @@ oal_int32 wlan_pm_open(oal_void)
 
         wlan_pm_init_device_ready(pm_data->pst_wlan_pm_info);
 
-        if (OAL_PTR_NULL == g_pst_custom_process_func.p_custom_cali_func)
+        if(OAL_PTR_NULL == g_pst_custom_process_func.p_custom_cali_func)
         {
             OAM_ERROR_LOG0(0,OAM_SF_PWR, "wlan_pm_open::NO g_pst_custom_process_func registered");
             mutex_unlock(&pm_data->host_mutex);
-            #ifdef CONFIG_HISI_IDLE_SLEEP
-            hisi_idle_sleep_vote(ID_WIFI,0);
+            #ifdef CONFIG_LPCPU_IDLE_SLEEP
+            lpcpu_idle_sleep_vote(ID_WIFI, 0);
             #endif
             return OAL_FAIL;
         }
 
-        /* 如果校准下发成功则等待device ready；否则继续打开wifi */
+        /* ??????????????????????device ready??????????????wifi */
         if (OAL_SUCC == g_pst_custom_process_func.p_custom_cali_func())
         {
-            if (0 == wlan_pm_wait_device_ready(pm_data->pst_wlan_pm_info))
+            if(0 == wlan_pm_wait_device_ready(pm_data->pst_wlan_pm_info))
             {
                 DECLARE_DFT_TRACE_KEY_INFO("wlan_wait_custom_cali_fail", OAL_DFT_TRACE_FAIL);
 
                 OAM_ERROR_LOG1(0,OAM_SF_PWR, "wlan_pm_open::wlan_pm_wait_custom_cali timeout %d !!!!!!", HOST_WAIT_BOTTOM_INIT_TIMEOUT);
 
                 mutex_unlock(&pm_data->host_mutex);
-                if (OAL_TRUE == oal_trigger_sdio_exception(oal_get_sdio_default_handler(), OAL_TRUE))
+                if(OAL_TRUE == oal_trigger_sdio_exception(oal_get_sdio_default_handler(), OAL_TRUE))
                 {
                     OAL_IO_PRINT("dump device mem when cali custom failed!\n");
                 }
-                #ifdef CONFIG_HISI_IDLE_SLEEP
-                hisi_idle_sleep_vote(ID_WIFI,0);
+                #ifdef CONFIG_LPCPU_IDLE_SLEEP
+                lpcpu_idle_sleep_vote(ID_WIFI, 0);
                 #endif
                 return OAL_FAIL;
             }
@@ -571,7 +463,7 @@ oal_int32 wlan_pm_open(oal_void)
 
     frw_timer_sys_start();
 
-    /*将timeout值恢复为默认值，并启动定时器*/
+    /*??timeout????????????????????????????*/
     wlan_pm_set_timeout(WLAN_SLEEP_DEFAULT_CHECK_CNT);
 
     mutex_unlock(&pm_data->host_mutex);
@@ -592,7 +484,7 @@ oal_int32 wlan_device_mem_check(void)
     ram_reg_test_time = 0;
     oal_sdio_wake_lock(pst_wlan_pm->pst_sdio);
 
-    if (0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_ram_reg_test_work))
+    if(0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_ram_reg_test_work))
     {
         oal_sdio_wake_unlock(pst_wlan_pm->pst_sdio);
         OAM_WARNING_LOG0(0, OAM_SF_PWR,"st_ram_reg_test_work submit work fail !\n");
@@ -627,21 +519,7 @@ EXPORT_SYMBOL_GPL(wlan_device_mem_check_result);
 
 EXPORT_SYMBOL_GPL(wlan_pm_open);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_close
- 功能描述  : close wifi,如果bfgx没有开,下电，否则下命令关WCPU
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 extern int isAsic(void);
 oal_uint32 wlan_pm_close(oal_void)
 {
@@ -657,12 +535,12 @@ oal_uint32 wlan_pm_close(oal_void)
         return OAL_FAIL;
     }
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return OAL_FAIL;
     }
 
-    if (!pst_wlan_pm->ul_apmode_allow_pm_flag)
+    if(!pst_wlan_pm->ul_apmode_allow_pm_flag)
     {
         OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_close,AP mode,do not shutdown power.");
         return OAL_SUCC;
@@ -681,7 +559,7 @@ oal_uint32 wlan_pm_close(oal_void)
 
     pst_wlan_pm->ul_close_cnt++;
 
-    if (POWER_STATE_SHUTDOWN == pst_wlan_pm->ul_wlan_power_state)
+    if(POWER_STATE_SHUTDOWN == pst_wlan_pm->ul_wlan_power_state)
     {
         mutex_unlock(&pm_data->host_mutex);
         return OAL_ERR_CODE_ALREADY_CLOSE;
@@ -693,12 +571,14 @@ oal_uint32 wlan_pm_close(oal_void)
 
     wlan_pm_stop_wdg(pst_wlan_pm);
 
+    wlan_pm_stop_deepsleep_delay_timer_02(pst_wlan_pm);
+
     wlan_pm_info_clean();
 
     /*mask rx sdio data interrupt*/
     oal_sdio_func1_int_mask(pst_wlan_pm->pst_sdio, HISDIO_FUNC1_INT_DREADY);
 
-    if (OAL_SUCC!=wlan_power_off())
+    if(OAL_SUCC!=wlan_power_off())
     {
         OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_power_off FAIL!\n");
         mutex_unlock(&pm_data->host_mutex);
@@ -722,9 +602,9 @@ oal_uint32 wlan_pm_close(oal_void)
     mutex_unlock(&pm_data->host_mutex);
 
     hcc_dev_flowctrl_on(hcc_get_default_handler(), 0);
-#ifdef CONFIG_HISI_IDLE_SLEEP
-    hisi_idle_sleep_vote(ID_WIFI,0);
-    OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_close::hisi_idle_sleep_vote 0!");
+#ifdef CONFIG_LPCPU_IDLE_SLEEP
+    lpcpu_idle_sleep_vote(ID_WIFI, 0);
+    OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan_pm_close::lpcpu_idle_sleep_vote 0!");
 #endif
     OAM_WARNING_LOG0(0,OAM_SF_PWR,"wlan_pm_close succ!\n");
     DECLARE_DFT_TRACE_KEY_INFO("wlan_close_succ",OAL_DFT_TRACE_SUCC);
@@ -733,45 +613,39 @@ oal_uint32 wlan_pm_close(oal_void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_close);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_enable
- 功能描述  : 使能wlan平台低功耗
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wlan_pm_enable(oal_void)
 {
 
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (!g_wlan_pm_switch)
+    if(!g_wlan_pm_switch)
     {
         return OAL_SUCC;
     }
 
     hcc_tx_transfer_lock(hcc_get_default_handler());
 
-    if (OAL_TRUE == pst_wlan_pm->ul_wlan_pm_enable)
+    if(OAL_TRUE == pst_wlan_pm->ul_wlan_pm_enable)
     {
         OAM_WARNING_LOG0(0, OAM_SF_PWR,"wlan_pm_enable already enabled!");
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return OAL_SUCC;
     }
 
+    if ((pst_wlan_pm->ul_wlan_dev_state == HOST_DISALLOW_TO_SLEEP) &&
+        (pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count == 0))
+    {
+        oal_sdio_wake_lock(pst_wlan_pm->pst_sdio);
+        OAM_WARNING_LOG0(0, OAM_SF_PWR, "wlan pm status error, and set status back!");
+    }
+
     pst_wlan_pm->ul_wlan_pm_enable = OAL_TRUE;
 
+    wlan_pm_feed_wdg();
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
-     if (OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_set_lock_mod_func)
+     if(OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_set_lock_mod_func)
      {
            g_pst_alg_process_func.p_auto_freq_set_lock_mod_func(OAL_TRUE);
      }
@@ -789,35 +663,21 @@ oal_uint32 wlan_pm_enable(oal_void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_enable);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_disable
- 功能描述  : 去使能wlan平台低功耗
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wlan_pm_disable_check_wakeup(oal_int32 flag)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
     hcc_tx_transfer_lock(hcc_get_default_handler());
 
-    if (OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
+    if(OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
     {
         OAM_WARNING_LOG0(0, OAM_SF_PWR,"wlan_pm_disable already disabled!");
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return OAL_SUCC;
     }
 
-    if (OAL_TRUE == flag)
+    if(OAL_TRUE == flag)
     {
          if (OAL_SUCC != wlan_pm_wakeup_dev())
          {
@@ -829,7 +689,7 @@ oal_uint32 wlan_pm_disable_check_wakeup(oal_int32 flag)
 
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
-     if (OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_set_lock_mod_func)
+     if(OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_set_lock_mod_func)
      {
            g_pst_alg_process_func.p_auto_freq_set_lock_mod_func(OAL_FALSE);
      }
@@ -858,21 +718,7 @@ oal_uint32 wlan_pm_disable(oal_void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_disable);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_init_dev
- 功能描述  : 初始化device的状态
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint wlan_pm_init_dev(void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -911,21 +757,7 @@ oal_uint wlan_pm_init_dev(void)
 
 
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_wakeup_dev
- 功能描述  : 唤醒device
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint wlan_pm_wakeup_dev(oal_void)
 {
     oal_uint32           ul_ret;
@@ -941,15 +773,18 @@ oal_uint wlan_pm_wakeup_dev(oal_void)
         return OAL_FAIL;
     }
 
-    if (OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
+    if(OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
     {
         return OAL_SUCC;
     }
 
-    if (HOST_DISALLOW_TO_SLEEP == pst_wlan_pm->ul_wlan_dev_state)
+    if(HOST_DISALLOW_TO_SLEEP == pst_wlan_pm->ul_wlan_dev_state)
     {
       return OAL_SUCC;
     }
+
+
+    wlan_pm_stop_deepsleep_delay_timer_02(pst_wlan_pm);
 
 wakeup_again:
 
@@ -975,14 +810,14 @@ wakeup_again:
     ret = oal_sdio_wakeup_dev(pst_wlan_pm->pst_sdio);
     OAL_IO_PRINT("wifi wakeup cmd send,wakelock cnt %lu\n",pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count);
 
-    if (OAL_SUCC != ret)
+    if(OAL_SUCC != ret)
     {
         DECLARE_DFT_TRACE_KEY_INFO("wifi wakeup cmd send fail",OAL_DFT_TRACE_FAIL);
-        for (uc_retry = 0;uc_retry<WLAN_SDIO_MSG_RETRY_NUM;uc_retry++)
+        for(uc_retry = 0;uc_retry<WLAN_SDIO_MSG_RETRY_NUM;uc_retry++)
         {
             msleep(10);
             ret = oal_sdio_wakeup_dev(pst_wlan_pm->pst_sdio);
-            if (OAL_SUCC == ret)
+            if(OAL_SUCC == ret)
             {
                 break;
             }
@@ -991,7 +826,7 @@ wakeup_again:
         }
 
         /*after max retry still fail,log error*/
-        if (OAL_SUCC != ret)
+        if(OAL_SUCC != ret)
         {
             pst_wlan_pm->ul_wakeup_fail_set_reg++;
             OAM_ERROR_LOG1(0, OAM_SF_PWR,"oal_sdio_wakeup_dev Fail ret = %d",ret);
@@ -1011,17 +846,17 @@ wakeup_again:
     up(&pst_wlan_pm->pst_sdio->gpio_rx_sema);
 
     ul_ret =  oal_wait_for_completion_timeout(&pst_wlan_pm->st_wakeup_done, (oal_uint32)OAL_MSECS_TO_JIFFIES(WLAN_WAKUP_MSG_WAIT_TIMEOUT));
-    if (0 == ul_ret)
+    if(0 == ul_ret)
     {
 
-        if (DISALLOW_TO_SLEEP_VALUE == oal_sdio_get_sleep_state(pst_wlan_pm->pst_sdio))
+        if(DISALLOW_TO_SLEEP_VALUE == oal_sdio_get_sleep_state(pst_wlan_pm->pst_sdio))
         {
             pst_wlan_pm->ul_wakeup_fail_timeout++;
             OAM_WARNING_LOG0(0, OAM_SF_PWR,"oal_sdio_wakeup_dev SUCC to set 0xf0 = 0");
             oal_sdio_sleep_dev(pst_wlan_pm->pst_sdio);
             pst_wlan_pm->ul_wlan_dev_state = HOST_ALLOW_TO_SLEEP;
             oal_sdio_wake_unlock(pst_wlan_pm->pst_sdio);
-            if (0==uc_wakeup_retry)
+            if(0==uc_wakeup_retry)
             {
                 OAM_WARNING_LOG1(0, OAM_SF_PWR,"wlan_pm_wakeup_dev wait device complete fail,wait time %d ms!,try again",WLAN_WAKUP_MSG_WAIT_TIMEOUT);
                 uc_wakeup_retry++;
@@ -1060,7 +895,7 @@ wakeup_fail:
     DECLARE_DFT_TRACE_KEY_INFO("wlan_wakeup_fail",OAL_DFT_TRACE_FAIL);
     uc_wakeup_err_count++;
 
-    /* pm唤醒失败超出门限，启动dfr流程 */
+    /* pm??????????????????????dfr???? */
     if (WLAN_WAKEUP_FAIL_MAX_TIMES < uc_wakeup_err_count)
     {
         OAM_ERROR_LOG1(0, OAM_SF_PWR,"Now ready to enter DFR process after [%d]times wlan_wakeup_fail!", uc_wakeup_err_count);
@@ -1078,7 +913,7 @@ oal_void wlan_pm_wakeup_dev_ack(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm;
 
-    if (oal_atomic_read(&g_wakeup_dev_wait_ack))
+    if(oal_atomic_read(&g_wakeup_dev_wait_ack))
     {
         pst_wlan_pm = wlan_pm_get_drv();
 
@@ -1099,21 +934,7 @@ oal_void wlan_pm_wakeup_dev_ack(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_open_bcpu
- 功能描述  : 唤醒BCPU
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint  wlan_pm_open_bcpu(oal_void)
 {
 #define RETRY_TIMES (3)
@@ -1122,12 +943,12 @@ oal_uint  wlan_pm_open_bcpu(oal_void)
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
     oal_uint32           ul_ret;
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return OAL_FAIL;
     }
 
-     /*通过sdio配置命令，解复位BCPU*/
+     /*????sdio????????????????BCPU*/
     OAM_WARNING_LOG0(0, OAM_SF_PWR,"sdio open BCPU");
 
     hcc_tx_transfer_lock(hcc_get_default_handler());
@@ -1141,7 +962,7 @@ oal_uint  wlan_pm_open_bcpu(oal_void)
         }
     }
 
-    if (OAL_SUCC != ret)
+    if(OAL_SUCC != ret)
     {
         OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_wakeup_dev fail!");
         hcc_tx_transfer_unlock(hcc_get_default_handler());
@@ -1153,12 +974,12 @@ oal_uint  wlan_pm_open_bcpu(oal_void)
     OAL_INIT_COMPLETION(&pst_wlan_pm->st_open_bcpu_done);
 
     ul_ret = oal_sdio_send_msg(pst_wlan_pm->pst_sdio, H2D_MSG_RESET_BCPU);
-    if (OAL_SUCC == ul_ret)
+    if(OAL_SUCC == ul_ret)
     {
-        /*等待device执行命令*/
+        /*????device????????*/
         up(&pst_wlan_pm->pst_sdio->gpio_rx_sema);
         ul_ret =  oal_wait_for_completion_timeout(&pst_wlan_pm->st_open_bcpu_done, (oal_uint32)OAL_MSECS_TO_JIFFIES(WLAN_OPEN_BCPU_WAIT_TIMEOUT));
-        if (0 == ul_ret)
+        if(0 == ul_ret)
         {
             OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_open_bcpu wait device ACK timeout !");
             hcc_tx_transfer_unlock(hcc_get_default_handler());
@@ -1176,21 +997,7 @@ oal_uint  wlan_pm_open_bcpu(oal_void)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_wakeup_host
- 功能描述  : device唤醒host
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint wlan_pm_wakeup_host(void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -1200,7 +1007,7 @@ oal_uint wlan_pm_wakeup_host(void)
     oal_sdio_wake_lock(pst_wlan_pm->pst_sdio);
     OAM_INFO_LOG1(0, OAM_SF_PWR,"wlan_pm_wakeup_host get wakelock %lu!\n",pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count);
 
-    if (0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_wakeup_work))
+    if(0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_wakeup_work))
     {
         pst_wlan_pm->ul_wakeup_fail_submit_work++;
         oal_sdio_wake_unlock(pst_wlan_pm->pst_sdio);
@@ -1215,27 +1022,13 @@ oal_uint wlan_pm_wakeup_host(void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_work_submit
- 功能描述  : 提交一个kernel work
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int wlan_pm_work_submit(struct wlan_pm_s    *pst_wlan_pm, oal_work_stru* pst_worker)
 {
     oal_int  i_ret    = 0;
 
-    if (work_busy(pst_worker))
+    if(work_busy(pst_worker))
     {
         /*If comm worker is processing,
           we need't submit again*/
@@ -1245,7 +1038,7 @@ oal_int wlan_pm_work_submit(struct wlan_pm_s    *pst_wlan_pm, oal_work_stru* pst
     else
     {
         OAM_INFO_LOG1(0, OAM_SF_PWR,"WiFi %pF Worker Submit\n",(void*)pst_worker->func);
-        if (false==queue_work(pst_wlan_pm->pst_pm_wq, pst_worker))
+        if(false==queue_work(pst_wlan_pm->pst_pm_wq, pst_worker))
         {
            i_ret = -OAL_EFAIL;
         }
@@ -1254,21 +1047,7 @@ done:
     return i_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_wakeup_work
- 功能描述  : device唤醒host work
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void wlan_pm_wakeup_work(oal_work_stru *pst_worker)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -1279,7 +1058,7 @@ void wlan_pm_wakeup_work(oal_work_stru *pst_worker)
     hcc_tx_transfer_lock(hcc_get_default_handler());
 
     l_ret = wlan_pm_wakeup_dev();
-    if (OAL_UNLIKELY(OAL_SUCC!=l_ret))
+    if(OAL_UNLIKELY(OAL_SUCC!=l_ret))
     {
         DECLARE_DFT_TRACE_KEY_INFO("wlan_wakeup_fail",OAL_DFT_TRACE_FAIL);
     }
@@ -1295,23 +1074,9 @@ void wlan_pm_wakeup_work(oal_work_stru *pst_worker)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_wakeup_done_callback
- 功能描述  : device应答wakeup succ消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_wakeup_done_callback(void *data)
+int32 wlan_pm_wakeup_done_callback(void *data)
 {
     struct wlan_pm_s *pst_wlan_pm = (struct wlan_pm_s *)data;
 
@@ -1325,29 +1090,15 @@ int wlan_pm_wakeup_done_callback(void *data)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_close_done_callback
- 功能描述  : device应答poweroff ack消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_close_done_callback(void *data)
+int32 wlan_pm_close_done_callback(void *data)
 {
     struct wlan_pm_s *pst_wlan_pm = (struct wlan_pm_s *)data;
 
     OAM_WARNING_LOG0(0, OAM_SF_PWR,"wlan_pm_close_done_callback !");
 
-    /*关闭RX通道，防止SDIO RX thread继续访问SDIO*/
+    /*????RX??????????SDIO RX thread????????SDIO*/
     oal_disable_sdio_state(oal_get_sdio_default_handler(), OAL_SDIO_RX);
 
     pst_wlan_pm->ul_close_done_callback++;
@@ -1359,23 +1110,9 @@ int wlan_pm_close_done_callback(void *data)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_open_bcpu_done_callback
- 功能描述  : device应答open bcpu ack消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_open_bcpu_done_callback(void *data)
+int32 wlan_pm_open_bcpu_done_callback(void *data)
 {
     struct wlan_pm_s *pst_wlan_pm = (struct wlan_pm_s *)data;
 
@@ -1389,23 +1126,9 @@ int wlan_pm_open_bcpu_done_callback(void *data)
     return SUCCESS;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_close_bcpu_done_callback
- 功能描述  : device应答open bcpu ack消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_close_bcpu_done_callback(void *data)
+int32 wlan_pm_close_bcpu_done_callback(void *data)
 {
     struct wlan_pm_s *pst_wlan_pm = (struct wlan_pm_s *)data;
 
@@ -1419,23 +1142,9 @@ int wlan_pm_close_bcpu_done_callback(void *data)
     return SUCCESS;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_halt_bcpu_done_callback
- 功能描述  : device应答open bcpu ack消息处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_halt_bcpu_done_callback(void *data)
+int32 wlan_pm_halt_bcpu_done_callback(void *data)
 {
     struct wlan_pm_s *pst_wlan_pm = (struct wlan_pm_s *)data;
 
@@ -1448,21 +1157,7 @@ int wlan_pm_halt_bcpu_done_callback(void *data)
     return SUCCESS;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_sleep_work
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void wlan_pm_sleep_work(oal_work_stru *pst_worker)
 {
    struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -1476,27 +1171,27 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
 
    hcc_tx_transfer_lock(hcc_get_default_handler());
 
-   if (OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
+   if(OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
    {
         wlan_pm_feed_wdg();
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return ;
    }
 
-   /*协议栈回调获取是否pause低功耗*/
-   if (pst_wlan_pm->st_wifi_srv_handler.p_wifi_srv_get_pm_pause_func)
+   /*??????????????????pause??????*/
+   if(pst_wlan_pm->st_wifi_srv_handler.p_wifi_srv_get_pm_pause_func)
    {
        ul_wifi_pause_pm = pst_wlan_pm->st_wifi_srv_handler.p_wifi_srv_get_pm_pause_func();
    }
 
-   if (OAL_TRUE == ul_wifi_pause_pm)
+   if(OAL_TRUE == ul_wifi_pause_pm)
    {
         wlan_pm_feed_wdg();
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return ;
    }
 
-   if (HOST_ALLOW_TO_SLEEP == pst_wlan_pm->ul_wlan_dev_state)
+   if(HOST_ALLOW_TO_SLEEP == pst_wlan_pm->ul_wlan_dev_state)
    {
      //PS_PRINT_INFO("wakeuped,need not do again!\n");
      wlan_pm_feed_wdg();
@@ -1509,7 +1204,7 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
    OAL_INIT_COMPLETION(&pst_wlan_pm->st_sleep_request_ack);
 
    l_ret = wlan_pm_sleep_request(pst_wlan_pm);
-   if (OAL_SUCC != l_ret)
+   if(OAL_SUCC != l_ret)
    {
       pst_wlan_pm->ul_sleep_fail_request++;
       OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_sleep_request fail !\n");
@@ -1520,14 +1215,14 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
    up(&pst_wlan_pm->pst_sdio->gpio_rx_sema);
 
    ul_ret =  oal_wait_for_completion_timeout(&pst_wlan_pm->st_sleep_request_ack, (oal_uint32)OAL_MSECS_TO_JIFFIES(WLAN_SLEEP_MSG_WAIT_TIMEOUT));
-   if (0 == ul_ret)
+   if(0 == ul_ret)
    {
        pst_wlan_pm->ul_sleep_fail_wait_timeout++;
        OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_sleep_work wait completion fail !\n");
        goto fail_sleep;
    }
 
-   if (SLEEP_ALLOW_RCV == pst_wlan_pm->ul_sleep_stage)
+   if(SLEEP_ALLOW_RCV == pst_wlan_pm->ul_sleep_stage)
    {
 
        oal_wlan_gpio_intr_enable(pst_wlan_pm->pst_sdio,OAL_FALSE);
@@ -1536,13 +1231,13 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
 
        l_ret = oal_sdio_sleep_dev(pst_wlan_pm->pst_sdio);
        OAL_IO_PRINT("wifi sleep cmd send ,wakelock cnt %lu\n",pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count);
-       if (OAL_SUCC!=l_ret)
+       if(OAL_SUCC!=l_ret)
        {
-            for (uc_retry = 0;uc_retry<WLAN_SDIO_MSG_RETRY_NUM;uc_retry++)
+            for(uc_retry = 0;uc_retry<WLAN_SDIO_MSG_RETRY_NUM;uc_retry++)
             {
                 msleep(10);
                 l_ret = oal_sdio_sleep_dev(pst_wlan_pm->pst_sdio);
-                if (OAL_SUCC == l_ret)
+                if(OAL_SUCC == l_ret)
                 {
                     break;
                 }
@@ -1550,7 +1245,7 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
             }
 
             /*after max retry still fail,log error*/
-           if (OAL_SUCC!=l_ret)
+           if(OAL_SUCC!=l_ret)
            {
                 pst_wlan_pm->ul_sleep_fail_set_reg++;
                 DECLARE_DFT_TRACE_KEY_INFO("wlan_sleep_cmd_fail",OAL_DFT_TRACE_FAIL);
@@ -1575,12 +1270,16 @@ void wlan_pm_sleep_work(oal_work_stru *pst_worker)
 
    pst_wlan_pm->ul_sleep_stage = SLEEP_CMD_SND;
 
-   hcc_tx_transfer_unlock(hcc_get_default_handler());
+   /*????????500ms, ????????????????????PM*/
+   oal_wake_lock(&pst_wlan_pm->st_deepsleep_wakelock);
+   mod_timer(&pst_wlan_pm->st_deepsleep_delay_timer, jiffies + msecs_to_jiffies(WLAN_WAKELOCK_HOLD_TIME));
+
    oal_sdio_wake_unlock(pst_wlan_pm->pst_sdio);
+   hcc_tx_transfer_unlock(hcc_get_default_handler());
 
    DECLARE_DFT_TRACE_KEY_INFO("wlan_sleep_ok",OAL_DFT_TRACE_SUCC);
    pst_wlan_pm->ul_sleep_succ++;
-   if (0!=pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count)
+   if(0!=pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count)
    {
       OAM_WARNING_LOG1(0, OAM_SF_PWR,"wlan_pm_sleep_work release wakelock %lu!\n",pst_wlan_pm->pst_sdio->st_sdio_wakelock.lock_count);
    }
@@ -1595,7 +1294,7 @@ fail_sleep:
     wlan_pm_feed_wdg();
     hcc_tx_transfer_unlock(hcc_get_default_handler());
 
-    /* pm唤醒失败超出门限，启动dfr流程 */
+    /* pm??????????????????????dfr???? */
     if (WLAN_WAKEUP_FAIL_MAX_TIMES < uc_fail_sleep_count)
     {
         OAM_ERROR_LOG1(0, OAM_SF_PWR,"Now ready to enter DFR process after [%d]times wlan_sleep_fail!", uc_fail_sleep_count);
@@ -1624,14 +1323,14 @@ void wlan_pm_freq_adjust_work(oal_work_stru *pst_worker)
 
     hcc_tx_transfer_lock(hcc_get_default_handler());
 
-    if (OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
+    if(OAL_FALSE == pst_wlan_pm->ul_wlan_pm_enable)
     {
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return ;
     }
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
-    if (OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_adjust_to_level_func)
+    if(OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_adjust_to_level_func)
     {
        g_pst_alg_process_func.p_auto_freq_adjust_to_level_func();
     }
@@ -1645,21 +1344,7 @@ void wlan_pm_freq_adjust_work(oal_work_stru *pst_worker)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_state_get
- 功能描述  : 获取pm的sleep状态
- 输入参数  :
- 输出参数  :
- 返 回 值  : 1:allow to sleep; 0:disallow to sleep
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_uint wlan_pm_state_get(void)
 {
@@ -1668,21 +1353,7 @@ oal_uint wlan_pm_state_get(void)
     return pst_wlan_pm->ul_wlan_dev_state;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_state_set
- 功能描述  : 获取pm的sleep状态
- 输入参数  :
- 输出参数  :
- 返 回 值  : 1:allow to sleep; 0:disallow to sleep
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_void wlan_pm_state_set(struct wlan_pm_s  *pst_wlan_pm,oal_uint ul_state)
 {
@@ -1690,26 +1361,12 @@ oal_void wlan_pm_state_set(struct wlan_pm_s  *pst_wlan_pm,oal_uint ul_state)
     pst_wlan_pm->ul_wlan_dev_state = ul_state;
 
 }
-/*****************************************************************************
- 函 数 名  : wlan_pm_set_timeout
- 功能描述  : 睡眠定时器超时时间设置
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wlan_pm_set_timeout(oal_uint32 ul_timeout)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (OAL_PTR_NULL == pst_wlan_pm)
+    if(OAL_PTR_NULL == pst_wlan_pm)
     {
         return ;
     }
@@ -1726,21 +1383,7 @@ oal_void  wlan_pm_set_timeout(oal_uint32 ul_timeout)
 
 }
 EXPORT_SYMBOL_GPL(wlan_pm_set_timeout);
-/*****************************************************************************
- 函 数 名  : wlan_pm_feed_wdg
- 功能描述  : 启动50ms睡眠定时器
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wlan_pm_feed_wdg(oal_void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
@@ -1761,30 +1404,16 @@ oal_void  wlan_pm_feed_wdg(oal_void)
 }
 
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_stop_wdg
- 功能描述  : 停止50ms睡眠定时器
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-int wlan_pm_stop_wdg(struct wlan_pm_s *pst_wlan_pm_info)
+int32 wlan_pm_stop_wdg(struct wlan_pm_s *pst_wlan_pm_info)
 {
     OAL_IO_PRINT("wlan_pm_stop_wdg \r\n");
 
     pst_wlan_pm_info->ul_wdg_timeout_curr_cnt = 0;
     pst_wlan_pm_info->ul_packet_cnt = 0;
 
-    if (in_interrupt())
+    if(in_interrupt())
     {
         return del_timer(&pst_wlan_pm_info->st_watchdog_timer);
     }
@@ -1796,35 +1425,18 @@ int wlan_pm_stop_wdg(struct wlan_pm_s *pst_wlan_pm_info)
 }
 
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_wdg_timeout
- 功能描述  : 50ms睡眠定时器超时处理，提交一个sleep work
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
 
-*****************************************************************************/
-
-void wlan_pm_wdg_timeout(struct wlan_pm_s *pm_data)
+void wlan_pm_wdg_timeout(unsigned long data)
 {
-
-
-    //OAL_IO_PRINT("wlan_pm_wdg_timeout.... \r\n");
-
-    if (NULL == pm_data)
+    struct wlan_pm_s *pm_data = (struct wlan_pm_s *)data;
+    if(NULL == pm_data)
     {
         return;
     }
 
 #ifdef _PRE_WLAN_FEATURE_AUTO_FREQ
-    if (OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_process_func)
+    if(OAL_PTR_NULL != g_pst_alg_process_func.p_auto_freq_process_func)
     {
         pm_data->ul_packet_cnt += g_pst_alg_process_func.p_auto_freq_process_func();
     }
@@ -1835,21 +1447,21 @@ void wlan_pm_wdg_timeout(struct wlan_pm_s *pm_data)
     }
 #endif
 
-    /*和调频共用一个timer，低功耗关闭时timer不会停*/
-    if (pm_data->ul_wlan_pm_enable)
+    /*??????????????timer??????????????timer??????*/
+    if(pm_data->ul_wlan_pm_enable)
     {
-		if (0 == pm_data->ul_packet_cnt)
+		if(0 == pm_data->ul_packet_cnt)
 		{
 			pm_data->ul_wdg_timeout_curr_cnt++;
-			if (pm_data->ul_wdg_timeout_curr_cnt == pm_data->ul_wdg_timeout_cnt)
+			if(pm_data->ul_wdg_timeout_curr_cnt == pm_data->ul_wdg_timeout_cnt)
 			{
-                if (0 != wlan_pm_work_submit(pm_data, &pm_data->st_sleep_work))
+                if(0 != wlan_pm_work_submit(pm_data, &pm_data->st_sleep_work))
                 {
                     OAM_WARNING_LOG0(0, OAM_SF_PWR,"wlan_pm_sleep_work submit fail,work is running !\n");
                 }
                 else
                 {
-                    /*提交了sleep work后，定时器不重启，避免重复提交sleep work*/
+                    /*??????sleep work??????????????????????????????sleep work*/
                     pm_data->ul_sleep_work_submit++;
                     return;
                 }
@@ -1878,32 +1490,52 @@ restart_timer:
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_adjust_feq
- 功能描述  : 提交一个work，调整host和device的CPU和DDR频率
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
+void wlan_pm_deepsleep_delay_timeout_02(unsigned long data)
+{
+    struct wlan_pm_s *pm_data = (struct wlan_pm_s *)(uintptr_t)data;
+    if(NULL == pm_data)
+    {
+        return;
+    }
 
-*****************************************************************************/
+    oal_wake_unlock(&pm_data->st_deepsleep_wakelock);
+
+    OAL_IO_PRINT("wlan_pm_deepsleep_delay_timeout release wakelock....%lu", pm_data->st_deepsleep_wakelock.lock_count);
+}
+
+
+int32 wlan_pm_stop_deepsleep_delay_timer_02(struct wlan_pm_s *pm_data)
+{
+    oal_wake_unlock(&pm_data->st_deepsleep_wakelock);
+
+    if(0!=pm_data->st_deepsleep_wakelock.lock_count)
+    {
+       OAM_WARNING_LOG1(0, OAM_SF_PWR,"wlan_pm_stop_deepsleep_delay_timer release wakelock %lu!\n",pm_data->st_deepsleep_wakelock.lock_count);
+    }
+
+    if(in_interrupt())
+    {
+        return del_timer(&pm_data->st_deepsleep_delay_timer);
+    }
+    else
+    {
+        return del_timer_sync(&pm_data->st_deepsleep_delay_timer);
+    }
+}
+
+
 
 oal_uint wlan_pm_adjust_feq(void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (!auto_freq_enable)
+    if(!auto_freq_enable)
         return OAL_SUCC;
 
     OAL_BUG_ON(!pst_wlan_pm);
 
-    if (0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_freq_adjust_work))
+    if(0!=wlan_pm_work_submit(pst_wlan_pm,&pst_wlan_pm->st_freq_adjust_work))
     {
         OAM_WARNING_LOG0(0, OAM_SF_PWR,"wlan_pm_adjust_feq submit work fail !\n");
     }
@@ -1913,21 +1545,7 @@ oal_uint wlan_pm_adjust_feq(void)
 }
 EXPORT_SYMBOL_GPL(wlan_pm_adjust_feq);
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_poweroff_cmd
- 功能描述  : 发消息到device，wifi device关闭wifi系统资源，等待bcpu给它下电
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wlan_pm_poweroff_cmd(oal_void)
 {
     oal_int32            ret;
@@ -1938,7 +1556,7 @@ oal_int32 wlan_pm_poweroff_cmd(oal_void)
 
     hcc_tx_transfer_lock(hcc_get_default_handler());
 
-    if (OAL_SUCC != wlan_pm_wakeup_dev())
+    if(OAL_SUCC != wlan_pm_wakeup_dev())
     {
         hcc_tx_transfer_unlock(hcc_get_default_handler());
         return OAL_FAIL;
@@ -1946,11 +1564,11 @@ oal_int32 wlan_pm_poweroff_cmd(oal_void)
 
 
     ret =  oal_sdio_send_msg(pst_wlan_pm->pst_sdio,H2D_MSG_PM_WLAN_OFF);
-    if (OAL_SUCC == ret)
+    if(OAL_SUCC == ret)
     {
-        /*等待device执行命令*/
+        /*????device????????*/
         msleep(20);
-        if (0==board_get_wlan_wkup_gpio_val())
+        if(0==board_get_wlan_wkup_gpio_val())
         {
             OAM_ERROR_LOG1(0, OAM_SF_PWR,"wlan_pm_poweroff_cmd  wait device ACK timeout && GPIO_LEVEL[%d] !",board_get_wlan_wkup_gpio_val());
 
@@ -1977,21 +1595,7 @@ oal_int32 wlan_pm_poweroff_cmd(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_shutdown_bcpu_cmd
- 功能描述  : 发消息到device，wifi device关闭BCPU
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 wlan_pm_shutdown_bcpu_cmd(oal_void)
 {
 #define RETRY_TIMES (3)
@@ -2013,7 +1617,7 @@ oal_int32 wlan_pm_shutdown_bcpu_cmd(oal_void)
         }
     }
 
-    if (OAL_SUCC != ret)
+    if(OAL_SUCC != ret)
     {
         OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_wakeup_dev fail!");
         hcc_tx_transfer_unlock(hcc_get_default_handler());
@@ -2025,11 +1629,11 @@ oal_int32 wlan_pm_shutdown_bcpu_cmd(oal_void)
     OAL_INIT_COMPLETION(&pst_wlan_pm->st_close_bcpu_done);
 
     ret =  oal_sdio_send_msg(pst_wlan_pm->pst_sdio,H2D_MSG_PM_BCPU_OFF);
-    if (OAL_SUCC == ret)
+    if(OAL_SUCC == ret)
     {
-        /*等待device执行命令*/
+        /*????device????????*/
         ul_ret = oal_wait_for_completion_timeout(&pst_wlan_pm->st_close_bcpu_done, (oal_uint32)OAL_MSECS_TO_JIFFIES(WLAN_POWEROFF_ACK_WAIT_TIMEOUT));
-        if (0 == ul_ret)
+        if(0 == ul_ret)
         {
             OAM_ERROR_LOG0(0, OAM_SF_PWR,"wlan_pm_shutdown_bcpu_cmd wait device ACK timeout !");
             hcc_tx_transfer_unlock(hcc_get_default_handler());
@@ -2048,27 +1652,13 @@ oal_int32 wlan_pm_shutdown_bcpu_cmd(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_dump_info
- 功能描述  : debug, 发消息到device，串口输出维测信息
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 void wlan_pm_dump_host_info(void)
 {
     struct wlan_pm_s    *pst_wlan_pm = wlan_pm_get_drv();
 
-    if (NULL == pst_wlan_pm)
+    if(NULL == pst_wlan_pm)
     {
         return;
     }
@@ -2107,21 +1697,7 @@ void wlan_pm_dump_host_info(void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wlan_pm_host_info_print
- 功能描述  : cat维测节点输出host低功耗统计
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2015年5月20日
-    作    者   : zourong 00274374
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 oal_int32 wlan_pm_host_info_print(struct wlan_pm_s *pst_wlan_pm,char* buf,oal_int32 buf_len)
 {

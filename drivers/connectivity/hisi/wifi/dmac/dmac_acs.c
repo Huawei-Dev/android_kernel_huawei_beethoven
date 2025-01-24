@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_acs.c
-  版 本 号   : 初稿
-  作    者   : wangshanbo
-  生成日期   : 2013年12月10日
-  最近修改   :
-  功能描述   :
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2013年12月10日
-    作    者   : wangshanbo
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +10,7 @@ extern "C" {
 #ifdef _PRE_SUPPORT_ACS
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_types.h"
 #include "oal_ext_if.h"
@@ -55,10 +38,10 @@ extern "C" {
 //#define _PRE_SUPPORT_DYNA_ACS
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 /***********************************************************
-    device级acs结构体
+    device??acs??????
 ***********************************************************/
 OAL_STATIC dmac_acs_stru g_ast_acs[MAC_RES_MAX_DEV_NUM];
 
@@ -204,23 +187,9 @@ static dmac_acs_rate_table_stru g_ast_11ac_table[64] = {
 };
 #endif
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : dmac_acs_skip_notify
- 功能描述  : 判断是否跳过给定的VAP上的信道/带宽改变事件
- 输入参数  : mac_vap_stru *pst_mac_vap
- 输出参数  : 无
- 返 回 值  : oal_bool_enum_uint8
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月29日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 dmac_acs_skip_notify(mac_vap_stru *pst_mac_vap, dmac_alg_channel_bw_chg_type_uint8 en_type)
 {
 #if 0
@@ -234,8 +203,8 @@ oal_bool_enum_uint8 dmac_acs_skip_notify(mac_vap_stru *pst_mac_vap, dmac_alg_cha
 
     OAL_IO_PRINT("in scan=%d vap state=%d en=%d\n", pst_mac_dev->en_curr_scan_state,
             pst_mac_vap->en_vap_state, en_in_scan);
-    /* 不启动hostapd时，VAP在WAIT START状态下扫描 */
-    /* 启动hostapd时，VAP在UP状态下扫描 */
+    /* ??????hostapd????VAP??WAIT START?????????? */
+    /* ????hostapd????VAP??UP?????????? */
     if ( (en_in_scan && pst_mac_vap->en_vap_state == MAC_VAP_STATE_AP_WAIT_START)
       || (!en_in_scan && pst_mac_vap->en_vap_state == MAC_VAP_STATE_UP))
     {
@@ -250,22 +219,7 @@ oal_bool_enum_uint8 dmac_acs_skip_notify(mac_vap_stru *pst_mac_vap, dmac_alg_cha
 
     return OAL_FALSE;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_setup_vap_info
- 功能描述  : 设置VAP信息
- 输入参数  : dmac_acs_vap_info_stru *pst_info
-             mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月23日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_acs_setup_vap_info(dmac_acs_vap_info_stru *pst_info, mac_vap_stru *pst_vap)
 {
     oal_memcopy(pst_info->auc_bssid, pst_vap->auc_bssid, WLAN_MAC_ADDR_LEN);
@@ -274,26 +228,10 @@ OAL_STATIC oal_void dmac_acs_setup_vap_info(dmac_acs_vap_info_stru *pst_info, ma
     pst_info->en_protocol       = pst_vap->en_protocol;
     pst_info->en_bandwidth      = pst_vap->st_channel.en_bandwidth;
     pst_info->uc_channel        = pst_vap->st_channel.uc_chan_number;
-    pst_info->en_bandwidth_cap  = pst_vap->st_channel.en_bandwidth; // VAP带宽不会改变，初始带宽即为最大带宽
+    pst_info->en_bandwidth_cap  = pst_vap->st_channel.en_bandwidth; // VAP??????????????????????????????????
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_setup_user_info
- 功能描述  : 设置USER信息
- 输入参数  : dmac_acs_user_info_stru *pst_info
-             mac_vap_stru *pst_vap
-             mac_user_stru *pst_user
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月23日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_acs_setup_user_info(dmac_acs_user_info_stru *pst_info, mac_vap_stru *pst_vap, mac_user_stru *pst_user)
 {
     dmac_user_stru  *pst_dmac_user = (dmac_user_stru *)mac_res_get_dmac_user(pst_user->us_assoc_id);;
@@ -314,21 +252,7 @@ OAL_STATIC oal_void dmac_acs_setup_user_info(dmac_acs_user_info_stru *pst_info, 
     pst_info->c_rx_rssi            = pst_dmac_user->c_rx_rssi;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_reply_ex
- 功能描述  : 回复APP层的请求,有额外数据
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月16日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_reply_ex(oal_uint8 uc_chip_id, oal_uint8 uc_device_id,
                             dmac_acs_cmd_enum_uint8 en_cmd, oal_uint32 ul_cmd_id,
                             oal_uint8 *puc_buffer, oal_uint32 ul_len)
@@ -352,8 +276,8 @@ oal_uint32 dmac_acs_reply_ex(oal_uint8 uc_chip_id, oal_uint8 uc_device_id,
     }
 
 
-    /* 抛扫描请求事件到HMAC/WAL, 申请事件内存 */
-    /* 该内存在HMAC和WAL复用，只在本函数最后释放一次 */
+    /* ????????????????HMAC/WAL, ???????????? */
+    /* ????????HMAC??WAL???????????????????????????? */
     pst_event_mem = FRW_EVENT_ALLOC((oal_uint16)ul_size);
     if (OAL_PTR_NULL == pst_event_mem)
     {
@@ -362,7 +286,7 @@ oal_uint32 dmac_acs_reply_ex(oal_uint8 uc_chip_id, oal_uint8 uc_device_id,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 填写事件 */
+    /* ???????? */
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
     FRW_EVENT_HDR_INIT(&(pst_event->st_event_hdr),
@@ -386,27 +310,13 @@ oal_uint32 dmac_acs_reply_ex(oal_uint8 uc_chip_id, oal_uint8 uc_device_id,
 
     OAL_IO_PRINT("<<< rsp %d:%s\n", en_cmd, g_acs_cmd_type[en_cmd]);
 
-    /* 分发事件 */
+    /* ???????? */
     frw_event_dispatch_event(pst_event_mem);
     FRW_EVENT_FREE(pst_event_mem);
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_clear_stats
- 功能描述  : 为信道统计做初始化准备
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月9日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_acs_clear_stats(dmac_acs_stru *pst_acs)
 {
     oal_dlist_head_stru         *pst_dlist_pos1, *pst_dlist_pos2;
@@ -433,21 +343,7 @@ oal_void  dmac_acs_clear_stats(dmac_acs_stru *pst_acs)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_vap_perf
- 功能描述  : 搜集指定VAP的信息
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月23日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
     mac_vap_stru                     *pst_mac_vap;
@@ -472,7 +368,7 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
     acs_vap_perf_user_stat_stru      *pst_stat;
 
     /***********************************************************************************/
-    /********************************VAP PERF 报文格式**********************************/
+    /********************************VAP PERF ????????**********************************/
     /*---------------------------------------------------------------------------------*/
     /*|VAP perf stru|ACS duration|User1 addr|User1 assoc_id|User1 duration|...|User N| */
     /*---------------------------------------------------------------------------------*/
@@ -508,7 +404,7 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
         return;
     }
 
-    /* 开始统计MPDU个数，TID时延，CSA STA个数 */
+    /* ????????MPDU??????TID??????CSA STA???? */
     ul_mpdu_num    = 0;
     uc_csa_sta_num = 0;
 
@@ -528,16 +424,16 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
             pst_user_internal->c_rx_rssi = pst_dmac_user->c_rx_rssi;
         }
 
-        /* 忽略组播用户 */
+        /* ???????????? */
         if (OAL_TRUE == pst_mac_user->en_is_multi_user)
         {
             continue;
         }
 
-        /* 记录CSA USER个数 */
+        /* ????CSA USER???? */
         uc_csa_sta_num += pst_mac_user->st_cap_info.bit_spectrum_mgmt;
 
-        /* 遍历该USER的所有TID，计算TID最大时延 */
+        /* ??????USER??????TID??????TID???????? */
         for (uc_index = 0; uc_index < WLAN_TID_MAX_NUM; uc_index++)
         {
             pst_tid_queue = &pst_dmac_user->ast_tx_tid_queue[uc_index];
@@ -545,7 +441,7 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
         #ifdef _PRE_WLAN_FEATURE_TX_DSCR_OPT
             if (OAL_TRUE != oal_dlist_is_empty(&pst_tid_queue->st_retry_q))
             {
-                 /* 获得TID中第一个NETBUF */
+                 /* ????TID????????NETBUF */
                 pst_dlist_pos = pst_tid_queue->st_retry_q.pst_next;
                 pst_dscr      = OAL_DLIST_GET_ENTRY(pst_dlist_pos, hal_tx_dscr_stru, st_entry);
                 pst_net_buf   = pst_dscr->pst_skb_start_addr;
@@ -564,18 +460,18 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
                 continue;
             }
 
-             /* 获得TID中第一个NETBUF */
+             /* ????TID????????NETBUF */
             pst_dlist_pos = pst_tid_queue->st_hdr.pst_next;
             pst_dscr      = OAL_DLIST_GET_ENTRY(pst_dlist_pos, hal_tx_dscr_stru, st_entry);
             pst_net_buf   = pst_dscr->pst_skb_start_addr;
         #endif /* _PRE_WLAN_FEATURE_TX_DSCR_OPT */
             ul_mpdu_num += pst_tid_queue->us_mpdu_num;
 
-            /* 获取netbuf对应的CB字段 */
+            /* ????netbuf??????CB???? */
             pst_tx_ctrl = (mac_tx_ctl_stru *)OAL_NETBUF_CB(pst_net_buf);
             oal_time_get_stamp_us(&st_time);
 
-            /* 计算延迟 */
+            /* ???????? */
             ul_time_delta_us = (oal_uint32)((((oal_int64)st_time.i_sec * 1000000) + st_time.i_usec) - (((oal_int64)pst_tx_ctrl->st_timestamp_us.i_sec * 1000000) + pst_tx_ctrl->st_timestamp_us.i_usec));
 
             if ((ul_time_delta_us >> 10) > pst_acs_vap_info->aus_max_delay[uc_index])
@@ -590,18 +486,18 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
     pst_acs_vap_info->ul_mpdu_num    = ul_mpdu_num;
     pst_acs_vap_info->us_sta_nums    = pst_mac_vap->us_user_nums;
 
-    /* TBD赋值全局的TX/RX DURATION记录 */ // TODO
+    /* TBD??????????TX/RX DURATION???? */ // TODO
     pst_acs_vap_info->uc_mac_free_time_rate = 0; // pst_acs->ul_mac_free_time_us;
     pst_acs_vap_info->us_mac_stats_time_ms  = 0;// pst_acs->ul_mac_stats_time_us;
     pst_acs_vap_info->c_phy_free_power      = 0; // pst_acs->ul_phy_free_power;
 
     pst_stat = (acs_vap_perf_user_stat_stru *)(pst_acs_vap_info + 1);
 
-    /* 加入VAP下所有USER的TX/RX DURATION */
+    /* ????VAP??????USER??TX/RX DURATION */
     OAL_DLIST_SEARCH_FOR_EACH(pst_dlist_pos, &pst_vap_internal->st_user_dlist_head)
     {
         pst_user_internal = OAL_DLIST_GET_ENTRY(pst_dlist_pos, dmac_acs_user_internal_stru, st_dlist_head);
-        /* 复制STA 的MAC地址以及ASSOC ID 8-bytes */
+        /* ????STA ??MAC????????ASSOC ID 8-bytes */
         oal_memcopy(pst_stat->auc_user_addr, pst_user_internal->auc_user_addr, WLAN_MAC_ADDR_LEN);
         pst_stat->us_assoc_id = pst_user_internal->us_assoc_id;
         pst_stat->c_rx_rssi   = pst_user_internal->c_rx_rssi;
@@ -622,21 +518,7 @@ OAL_STATIC oal_void dmac_acs_do_vap_perf(mac_device_stru *pst_mac_dev, oal_void 
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_csa
- 功能描述  : 通过指定VAP发送CSA帧或指定USER发送带宽改变帧
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月14日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_csa(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_acs_cmd)
 {
     dmac_vap_stru               *pst_dmac_vap;
@@ -646,7 +528,7 @@ OAL_STATIC oal_void  dmac_acs_do_csa(mac_device_stru *pst_mac_dev, oal_void *p_a
     dmac_acs_stru               *pst_acs;
     oal_uint32                   ul_ret;
 
-    /* ARG0 保存需要进行信道切换的VAP ID */
+    /* ARG0 ??????????????????????VAP ID */
     pst_acs     = (dmac_acs_stru *)p_acs;
     pst_mac_vap = mac_res_get_mac_vap(pst_acs_cmd->auc_arg[0]);
     pst_vap_int = dmac_acs_find_internal_vap(pst_acs, pst_acs_cmd->auc_arg[0]);
@@ -655,10 +537,10 @@ OAL_STATIC oal_void  dmac_acs_do_csa(mac_device_stru *pst_mac_dev, oal_void *p_a
         return;
     }
 
-    /* 从pst_acs_cmd中解析命令 */
+    /* ??pst_acs_cmd?????????? */
     pst_csa_info = (dmac_acs_csa_stru *)pst_acs_cmd->auc_data;
 
-    /* 发送信道迁移CSA ACTION帧 */
+    /* ????????????CSA ACTION?? */
     pst_dmac_vap = (dmac_vap_stru *)mac_res_get_dmac_vap(pst_mac_vap->uc_vap_id);
     if (OAL_PTR_NULL == pst_dmac_vap)
     {
@@ -678,21 +560,7 @@ OAL_STATIC oal_void  dmac_acs_do_csa(mac_device_stru *pst_mac_dev, oal_void *p_a
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_avl_channel
- 功能描述  : 回复可用信道列表
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月16日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_avl_channel(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
     oal_uint8   auc_buf[OAL_SIZEOF(dmac_acs_avail_channel_reply_stru) + WLAN_MAX_CHANNEL_NUM * OAL_SIZEOF(dmac_acs_channel_stru)];
@@ -744,21 +612,7 @@ OAL_STATIC oal_void  dmac_acs_do_avl_channel(mac_device_stru *pst_mac_dev, oal_v
     dmac_acs_reply_ex(pst_mac_dev->uc_chip_id, pst_mac_dev->uc_device_id, DMAC_ACS_CMD_GET_AVAIL_CHANNEL, pst_cmd->ul_cmd_cnt, auc_buf, uc_tot * OAL_SIZEOF(dmac_acs_channel_stru) + OAL_SIZEOF(dmac_acs_avail_channel_reply_stru));
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_scan
- 功能描述  : 接收并处理APP的扫描请求，并将扫描请求提交给DMAC SCAN模块
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_scan(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
 #if 0
@@ -809,21 +663,7 @@ OAL_STATIC oal_void  dmac_acs_do_scan(mac_device_stru *pst_mac_dev, oal_void *p_
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_set_best_channel
- 功能描述  : 设置最佳信道
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_set_best_channel(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
     dmac_acs_csa_stru           *pst_best_channel;
@@ -850,21 +690,7 @@ OAL_STATIC oal_void  dmac_acs_do_set_best_channel(mac_device_stru *pst_mac_dev, 
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_duration_stats
- 功能描述  : 开始统计TX/RX DURATION
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月21日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_duration_stats(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
     dmac_acs_stru *pst_acs;
@@ -873,23 +699,7 @@ OAL_STATIC oal_void  dmac_acs_do_duration_stats(mac_device_stru *pst_mac_dev, oa
     dmac_acs_clear_stats(pst_acs);
     pst_acs->en_in_stats = OAL_TRUE;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_do_get_net_info
- 功能描述  : 获得当前的BSS分布信息
- 输入参数  : mac_device_stru *pst_mac_dev
-             oal_void *p_acs
-             mac_acs_cmd_stru *pst_cmd
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月23日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_do_get_net_info(mac_device_stru *pst_mac_dev, oal_void *p_acs, mac_acs_cmd_stru *pst_cmd)
 {
     dmac_acs_stru *pst_acs = (dmac_acs_stru *)p_acs;
@@ -951,23 +761,7 @@ OAL_STATIC oal_void  dmac_acs_do_get_net_info(mac_device_stru *pst_mac_dev, oal_
         + (oal_uint32)pst_info->uc_vap_cnt  * OAL_SIZEOF(dmac_acs_vap_info_stru)
         + (oal_uint32)pst_info->us_user_cnt * OAL_SIZEOF(dmac_acs_user_info_stru));
 }
-/*****************************************************************************
- 函 数 名  : dmac_config_acs
- 功能描述  : ACS相关参数配置接口
- 输入参数  : mac_vap_stru *pst_mac_vap
-             oal_uint8 us_len
-             oal_uint8 *puc_param
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月23日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_config_acs(mac_vap_stru *pst_mac_vap, oal_uint8 us_len, oal_uint8 *puc_param)
 {
     mac_device_stru       *pst_mac_device;
@@ -982,7 +776,7 @@ oal_uint32  dmac_config_acs(mac_vap_stru *pst_mac_vap, oal_uint8 us_len, oal_uin
     {
         return OAL_ERR_CODE_PTR_NULL;
     }
-    /* 获取命令类型 */
+    /* ???????????? */
     pc_token = oal_strtok((oal_int8 *)puc_param, pc_sep, &pc_ctx);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pc_token))
     {
@@ -1009,21 +803,7 @@ oal_uint32  dmac_config_acs(mac_vap_stru *pst_mac_vap, oal_uint8 us_len, oal_uin
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_recv_msg
- 功能描述  : dmac acs接收来自应用层的命令
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_recv_msg(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_uint8 *puc_param)
 {
     mac_acs_cmd_stru        *pst_acs_cmd;
@@ -1073,23 +853,7 @@ oal_uint32  dmac_acs_recv_msg(mac_vap_stru *pst_mac_vap, oal_uint8 uc_len, oal_u
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_add_vap
- 功能描述  : 增加ACS内部VAP维护记录
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
-            成功:VAP指针
-            失败:OAL_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_acs_vap_internal_stru*  dmac_acs_add_vap(mac_vap_stru *pst_vap)
 {
     dmac_acs_stru               *pst_acs;
@@ -1108,7 +872,7 @@ OAL_STATIC dmac_acs_vap_internal_stru*  dmac_acs_add_vap(mac_vap_stru *pst_vap)
         return OAL_PTR_NULL;
     }
 
-    /* 没有找到，是新加入的VAP */
+    /* ????????????????????VAP */
     pst_vap_internal = dmac_acs_find_internal_vap(pst_acs, pst_vap->uc_vap_id);
     if (OAL_PTR_NULL == pst_vap_internal)
     {
@@ -1125,21 +889,7 @@ OAL_STATIC dmac_acs_vap_internal_stru*  dmac_acs_add_vap(mac_vap_stru *pst_vap)
 
     return pst_vap_internal;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_del_vap
- 功能描述  : 删除ACS内部VAP维护记录
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_del_vap(mac_vap_stru *pst_vap)
 {
     dmac_acs_stru               *pst_acs;
@@ -1175,23 +925,7 @@ OAL_STATIC oal_void  dmac_acs_del_vap(mac_vap_stru *pst_vap)
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_add_user
- 功能描述  : 增加ACS内部USER维护记录
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
-            成功:指针
-            失败:OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_acs_user_internal_stru*  dmac_acs_add_user(mac_vap_stru *pst_vap, mac_user_stru *pst_user)
 {
     dmac_acs_stru               *pst_acs;
@@ -1216,7 +950,7 @@ OAL_STATIC dmac_acs_user_internal_stru*  dmac_acs_add_user(mac_vap_stru *pst_vap
     if (OAL_PTR_NULL != pst_vap_internal)
     {
         pst_user_internal = dmac_acs_find_internal_user(pst_acs, pst_vap->uc_vap_id, pst_user->us_assoc_id);
-        /* 没到找到，表示这是一个新用户 */
+        /* ???????????????????????????? */
         if (OAL_PTR_NULL == pst_user_internal)
         {
             pst_user_internal = (dmac_acs_user_internal_stru *)OAL_MEM_ALLOC(OAL_MEM_POOL_ID_ALG_LOCAL, OAL_SIZEOF(dmac_acs_user_internal_stru), OAL_TRUE);
@@ -1238,21 +972,7 @@ OAL_STATIC dmac_acs_user_internal_stru*  dmac_acs_add_user(mac_vap_stru *pst_vap
     return pst_user_internal;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_del_user
- 功能描述  : 删除ACS内部USER维护记录s
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  dmac_acs_del_user(mac_vap_stru *pst_vap, mac_user_stru *pst_user)
 {
     dmac_acs_stru               *pst_acs;
@@ -1286,21 +1006,7 @@ OAL_STATIC oal_void  dmac_acs_del_user(mac_vap_stru *pst_vap, mac_user_stru *pst
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_find_internal_vap
- 功能描述  : 根据全局唯一的VAP_ID查找ACS内部维护的VAP结构
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_acs_vap_internal_stru * dmac_acs_find_internal_vap(dmac_acs_stru *pst_acs, oal_uint8  uc_vap_id)
 {
     dmac_acs_vap_internal_stru *pst_vap_internal;
@@ -1319,22 +1025,7 @@ OAL_STATIC dmac_acs_vap_internal_stru * dmac_acs_find_internal_vap(dmac_acs_stru
     return OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_find_internal_user
- 功能描述  : 根据全局唯一的VAP_ID，以及USER的关联ID，
-            查找ACS内部维护的USER结构
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC dmac_acs_user_internal_stru * dmac_acs_find_internal_user(dmac_acs_stru *pst_acs, oal_uint8  uc_vap_id, oal_uint16 us_assoc_id)
 {
     oal_dlist_head_stru         *pst_dlist_pos;
@@ -1358,21 +1049,7 @@ OAL_STATIC dmac_acs_user_internal_stru * dmac_acs_find_internal_user(dmac_acs_st
     return OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_create_vap_handler
- 功能描述  : dmac acs负责处理创建VAP事件的函数
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_create_vap_handler(mac_vap_stru *pst_vap)
 {
     dmac_acs_vap_info_stru  st_acs_vap_info;
@@ -1395,21 +1072,7 @@ oal_uint32 dmac_acs_create_vap_handler(mac_vap_stru *pst_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_delete_vap_handler
- 功能描述  : dmac acs负责处理删除VAP事件的函数
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_delete_vap_handler(mac_vap_stru *pst_vap)
 {
     dmac_acs_vap_info_stru      st_acs_vap_info;
@@ -1428,21 +1091,7 @@ oal_uint32 dmac_acs_delete_vap_handler(mac_vap_stru *pst_vap)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_cfg_channel_handler
- 功能描述  : dmac acs负责处理配置VAP工作信道事件的函数
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_cfg_channel_handler(mac_vap_stru *pst_vap, dmac_alg_channel_bw_chg_type_uint8 en_type)
 {
     dmac_acs_vap_channel_info_stru  st_acs_channel;
@@ -1465,21 +1114,7 @@ oal_uint32 dmac_acs_cfg_channel_handler(mac_vap_stru *pst_vap, dmac_alg_channel_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_cfg_bandwidth_handler
- 功能描述  : dmac acs负责处理配置VAP工作带宽事件的函数
- 输入参数  : mac_vap_stru *pst_vap
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_cfg_bandwidth_handler(mac_vap_stru *pst_vap, dmac_alg_channel_bw_chg_type_uint8 en_type)
 {
     dmac_acs_vap_channel_info_stru  st_acs_channel;
@@ -1501,22 +1136,7 @@ oal_uint32 dmac_acs_cfg_bandwidth_handler(mac_vap_stru *pst_vap, dmac_alg_channe
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_add_assoc_user_handler
- 功能描述  : dmac acs负责处理新用户关联到某个VAP的事件处理函数
- 输入参数  : mac_vap_stru *pst_vap
-             mac_user_stru *pst_user
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_add_assoc_user_handler(mac_vap_stru *pst_vap, mac_user_stru *pst_user)
 {
     dmac_acs_user_info_stru st_acs_user_info;
@@ -1532,13 +1152,13 @@ oal_uint32 dmac_acs_add_assoc_user_handler(mac_vap_stru *pst_vap, mac_user_stru 
                    pst_user->auc_user_mac_addr[4]&0xff,
                    pst_user->auc_user_mac_addr[5]&0xff);
 
-    /* 组播用户不会进行ACS管理 */
+    /* ????????????????ACS???? */
     if (OAL_TRUE == pst_user->en_is_multi_user)
     {
         return OAL_SUCC;
     }
 
-    /* 通知ACS记录该USER */
+    /* ????ACS??????USER */
     dmac_acs_add_user(pst_vap, pst_user);
     dmac_acs_setup_user_info(&st_acs_user_info, pst_vap, pst_user);
 
@@ -1547,22 +1167,7 @@ oal_uint32 dmac_acs_add_assoc_user_handler(mac_vap_stru *pst_vap, mac_user_stru 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_del_assoc_user_handler
- 功能描述  : dmac acs负责处理某个已关联用户从某个VAP去关联的事件处理函数
- 输入参数  : mac_vap_stru *pst_vap
-             mac_user_stru *pst_user
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_del_assoc_user_handler(mac_vap_stru *pst_vap, mac_user_stru *pst_user)
 {
     dmac_acs_user_info_stru st_acs_user_info;
@@ -1581,22 +1186,7 @@ oal_uint32 dmac_acs_del_assoc_user_handler(mac_vap_stru *pst_vap, mac_user_stru 
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_req_rescan
- 功能描述  : 发起信道重新选择请求
- 输入参数  : mac_devcie_stru *pst_mac_dev
-             dmac_acs_req_rescan_type_enum_uint8 en_req_type
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月26日
-    作    者   : gaolin 00196511
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_req_rescan(mac_device_stru *pst_mac_dev, dmac_acs_req_rescan_type_enum_uint8 en_req_type)
 {
     frw_event_mem_stru             *pst_event_mem;
@@ -1614,7 +1204,7 @@ oal_uint32  dmac_acs_req_rescan(mac_device_stru *pst_mac_dev, dmac_acs_req_resca
         return OAL_SUCC;
     }
 
-    /* 申请事件内存 */
+    /* ???????????? */
     pst_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_acs_req_rescan_param_stru));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_event_mem))
     {
@@ -1624,7 +1214,7 @@ oal_uint32  dmac_acs_req_rescan(mac_device_stru *pst_mac_dev, dmac_acs_req_resca
 
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
-    /* 填写事件头 */
+    /* ?????????? */
     FRW_EVENT_HDR_INIT(&(pst_event->st_event_hdr),
                             FRW_EVENT_TYPE_DMAC_MISC,
                             DMAC_MISC_SUB_TYPE_RESCAN,
@@ -1639,35 +1229,21 @@ oal_uint32  dmac_acs_req_rescan(mac_device_stru *pst_mac_dev, dmac_acs_req_resca
 
     oal_memcopy(pst_event->auc_event_data, &st_req, OAL_SIZEOF(dmac_acs_req_rescan_param_stru));
 
-    /* 分发事件 */
+    /* ???????? */
     ul_ret = frw_event_dispatch_event(pst_event_mem);
     if (OAL_SUCC != ul_ret)
     {
         OAM_WARNING_LOG1(0, OAM_SF_ACS, "{dmac_acs_req_rescan::frw_event_dispatch_event failed[%d].}", ul_ret);
     }
 
-    /* 释放事件 */
+    /* ???????? */
     FRW_EVENT_FREE(pst_event_mem);
 
     return ul_ret;
 }
 
 #if 0
-/*****************************************************************************
- 函 数 名  : dmac_acs_beacon_tbtt_trace
- 功能描述  : 处理AP在CSA过程中的TBTT计数过程
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月22日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_acs_beacon_tbtt_trace(dmac_vap_stru *pst_dmac_vap)
 {
     mac_device_stru            *pst_mac_dev;
@@ -1677,7 +1253,7 @@ oal_void  dmac_acs_beacon_tbtt_trace(dmac_vap_stru *pst_dmac_vap)
     oal_uint8                   uc_band;
     dmac_acs_vap_internal_stru *pst_vap_int;
 
-    /* 跟踪信道切换时的TBTT计数 */
+    /* ????????????????TBTT???? */
     pst_mac_dev = mac_res_get_dev(pst_dmac_vap->st_vap_base_info.uc_device_id);
     if (OAL_PTR_NULL == pst_mac_dev)
     {
@@ -1707,7 +1283,7 @@ oal_void  dmac_acs_beacon_tbtt_trace(dmac_vap_stru *pst_dmac_vap)
         }
         else
         {
-            /* TBD fcs 信道切换 */
+            /* TBD fcs ???????? */
 
 
             pst_vap_int->en_in_csa_phase = OAL_FALSE;
@@ -1715,22 +1291,7 @@ oal_void  dmac_acs_beacon_tbtt_trace(dmac_vap_stru *pst_dmac_vap)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_radar_detected_handler
- 功能描述  : ACS负责处理雷达检测的函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC:表示该雷达事件由ACS负责处理并进行信道切换
-             OAL_FAIL:表示该雷达事件无法由ACS处理，交由DFS完成信道切换
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月25日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 dmac_acs_radar_detected_handler(mac_device_stru *pst_mac_device, hal_radar_det_event_stru *pst_radar_det_info)
 {
     dmac_acs_radar_info_stru  st_dmac_acs_radar_info;
@@ -1742,13 +1303,13 @@ oal_uint32 dmac_acs_radar_detected_handler(mac_device_stru *pst_mac_device, hal_
     }
     pst_acs = (dmac_acs_stru *)pst_mac_device->pst_acs;
 
-    /* 如果当前正在扫描，丢弃该雷达检测事件 */
+    /* ???????????????????????????????????? */
     if (OAL_TRUE == pst_acs->en_in_scan)
     {
         return OAL_SUCC;
     }
 
-    /* NETLINK方式通知APP */
+    /* NETLINK????????APP */
     OAL_MEMZERO(&st_dmac_acs_radar_info, OAL_SIZEOF(dmac_acs_radar_info_stru));
     st_dmac_acs_radar_info.uc_channel_number = pst_radar_det_info->uc_channel_num;
     st_dmac_acs_radar_info.en_bandwidth_mode = pst_radar_det_info->uc_working_bw;
@@ -1756,27 +1317,13 @@ oal_uint32 dmac_acs_radar_detected_handler(mac_device_stru *pst_mac_device, hal_
     st_dmac_acs_radar_info.uc_freq_offset    = pst_radar_det_info->uc_radar_freq_offset;
     dmac_acs_reply_ex(pst_mac_device->uc_chip_id, pst_mac_device->uc_device_id, DMAC_ACS_NOTIFY_RADAR_DETECTED, 0, (oal_uint8 *)&st_dmac_acs_radar_info, OAL_SIZEOF(dmac_acs_radar_info_stru));
 
-    /* TBD 由ACS完成信道切换 */
+    /* TBD ??ACS???????????? */
 
 
     return OAL_SUCC;
 }
 #endif
-/*****************************************************************************
- 函 数 名  : dmac_acs_report_support_chan
- 功能描述  : 上报可用信道列表
- 输入参数  : mac_vap_stru *pst_mac_vap
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年5月29日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_acs_report_support_chan(mac_vap_stru *pst_mac_vap)
 {
     mac_acs_cmd_stru   st_acs_cmd;
@@ -1792,21 +1339,7 @@ oal_void  dmac_acs_report_support_chan(mac_vap_stru *pst_mac_vap)
 }
 
 #ifdef _PRE_SUPPORT_DYNA_ACS
-/*****************************************************************************
- 函 数 名  : dmac_acs_get_rate_num
- 功能描述  : 获取速率的数量
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8  dmac_acs_get_rate_num(mac_device_stru *pst_device,
                 hal_tx_txop_per_rate_params_union  un_rate_info,
                 oal_uint32                        *pul_num)
@@ -1840,21 +1373,7 @@ oal_bool_enum_uint8  dmac_acs_get_rate_num(mac_device_stru *pst_device,
     return OAL_TRUE;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_judge_rate_condition
- 功能描述  : 根据协议，判断速率索引的速率是否正确
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8  dmac_acs_judge_rate_condition(mac_device_stru *pst_device,
                                     oal_uint8                           uc_rate_idx,
                                     hal_tx_txop_per_rate_params_union   un_rate_info,
@@ -1912,21 +1431,7 @@ OAL_STATIC oal_bool_enum_uint8  dmac_acs_judge_rate_condition(mac_device_stru *p
 }
 
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_get_rate_kbps
- 功能描述  : 获取具体的速率，单位Kbps
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月25日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8  dmac_acs_get_rate_kbps(mac_device_stru           *pst_device,
                                                         hal_tx_txop_per_rate_params_union  un_rate_info,
                                                         hal_channel_assemble_enum_uint8    en_bandwidth,
@@ -1954,21 +1459,7 @@ OAL_STATIC oal_bool_enum_uint8  dmac_acs_get_rate_kbps(mac_device_stru          
     return en_found;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_in_chan_stats
- 功能描述  : 判断是否需要进行DURATION统计
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_TRUE 需要 OAL_FALSE 不需要
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年11月20日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 dmac_acs_in_chan_stats(oal_uint8 uc_device_id, mac_device_stru **ppst_mac_dev, dmac_acs_stru **ppst_acs_ref)
 {
     dmac_acs_stru   *pst_acs;
@@ -2001,21 +1492,7 @@ oal_bool_enum_uint8 dmac_acs_in_chan_stats(oal_uint8 uc_device_id, mac_device_st
     return (OAL_TRUE == pst_acs->en_in_stats) || (pst_acs->uc_csa_vap_cnt > 0);
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_tx_notify
- 功能描述  : 发送完成中断，用于跟踪CSA是否完成发送，以便进行TBTT计数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年1月15日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  dmac_acs_tx_notify(dmac_acs_stru *pst_acs, oal_uint8 uc_vap_id, oal_netbuf_stru *pst_buf)
 {
     oal_uint8                           *puc_frame_body;
@@ -2032,7 +1509,7 @@ oal_void  dmac_acs_tx_notify(dmac_acs_stru *pst_acs, oal_uint8 uc_vap_id, oal_ne
         if ((WLAN_MANAGEMENT == mac_frame_get_type_value(oal_netbuf_header(pst_buf)))
             && (OAL_TRUE == mac_ieeee80211_is_action(oal_netbuf_header(pst_buf))))
         {
-            /* 判断是否是CHANNEL SWITCH ANNOUNCEMENT帧 */
+            /* ??????????CHANNEL SWITCH ANNOUNCEMENT?? */
             puc_frame_body  = (oal_uint8 *)OAL_NETBUF_HEADER(pst_buf);
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
             puc_frame_body  = (oal_uint8 *)OAL_NETBUF_DATA(pst_buf);
@@ -2050,21 +1527,7 @@ oal_void  dmac_acs_tx_notify(dmac_acs_stru *pst_acs, oal_uint8 uc_vap_id, oal_ne
     }
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_tx_update
- 功能描述  : 统计发送帧的时长
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年11月20日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_tx_update(mac_user_stru *pst_mac_user, oal_netbuf_stru *pst_buf, hal_tx_dscr_ctrl_one_param *pst_tx_dscr_one)
 {
     wlan_protocol_enum_uint8             en_protocol;
@@ -2086,19 +1549,19 @@ oal_uint32  dmac_acs_tx_update(mac_user_stru *pst_mac_user, oal_netbuf_stru *pst
         return OAL_SUCC;
     }
 
-    /* 仅仅在动态调整开启时才统计*/
+    /* ??????????????????????????*/
     if (mac_get_acs_switch(pst_mac_device) < MAC_ACS_SW_DYNA)
     {
         return OAL_SUCC;
     }
 
-    /* 跟踪CSA是否成功发送 */
+    /* ????CSA???????????? */
     dmac_acs_tx_notify(pst_acs, pst_mac_user->uc_vap_id, pst_buf);
 
-    /* 找到最后一个速率等级 */
+    /* ???????????????????? */
     uc_last_rank = pst_tx_dscr_one->uc_last_rate_rank;
 
-    /* 累计计算发送时长 */
+    /* ???????????????? */
     ul_bytes       = 0;
     uc_total_tries = 0;
     for (uc_rate_rank = 0; uc_rate_rank <= uc_last_rank; uc_rate_rank++)
@@ -2110,7 +1573,7 @@ oal_uint32  dmac_acs_tx_update(mac_user_stru *pst_mac_user, oal_netbuf_stru *pst
             continue;
         }
 
-        /* 计算以该速率传输该报文的近似时间(含IFS和ACK时间) */
+        /* ????????????????????????????????(??IFS??ACK????) */
         us_ack_time = g_auc_ack_time[en_protocol % WLAN_PROTOCOL_BUTT];
         /* Duration = DIFS +  Payload + SIFS + ACK */
         ul_one_duration =  28
@@ -2124,7 +1587,7 @@ oal_uint32  dmac_acs_tx_update(mac_user_stru *pst_mac_user, oal_netbuf_stru *pst
         ul_bytes       += (pst_tx_dscr_one->us_mpdu_len * pst_tx_dscr_one->uc_mpdu_num) * uc_max_tries;
     }
 
-    /* 更新ACS TX DURATION USER DURATION 统计记录 */
+    /* ????ACS TX DURATION USER DURATION ???????? */
     pst_user_internal = dmac_acs_find_internal_user(pst_acs, pst_mac_user->uc_vap_id, pst_mac_user->us_assoc_id);
     if (OAL_PTR_NULL != pst_user_internal)
     {
@@ -2136,21 +1599,7 @@ oal_uint32  dmac_acs_tx_update(mac_user_stru *pst_mac_user, oal_netbuf_stru *pst
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_rx_update
- 功能描述  : 统计接收帧的发送时长
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年11月20日
-    作    者   : w00196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_rx_update(mac_vap_stru *pst_mac_vap,
                 mac_user_stru                       *pst_mac_user,
                 oal_netbuf_stru                     *pst_buf,
@@ -2181,7 +1630,7 @@ oal_uint32  dmac_acs_rx_update(mac_vap_stru *pst_mac_vap,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 仅仅在动态调整开启时才统计*/
+    /* ??????????????????????????*/
     if (mac_get_acs_switch(pst_mac_device) < MAC_ACS_SW_DYNA)
     {
         return OAL_SUCC;
@@ -2212,7 +1661,7 @@ oal_uint32  dmac_acs_rx_update(mac_vap_stru *pst_mac_vap,
                         + 10
                         + us_ack_time;
 
-        /* 更新该帧对应的USER的 RX 空口占用时间 */
+        /* ??????????????USER?? RX ???????????? */
         pst_user_internal = dmac_acs_find_internal_user(pst_acs, pst_mac_vap->uc_vap_id, pst_mac_user->us_assoc_id);
         if (OAL_PTR_NULL != pst_user_internal)
         {
@@ -2225,40 +1674,12 @@ oal_uint32  dmac_acs_rx_update(mac_vap_stru *pst_mac_vap,
     return OAL_SUCC;
 }
 #endif
-/*****************************************************************************
- 函 数 名  : dmac_acs_request_switch_channel
- 功能描述  : ACS导出给其他模块的接口函数，用于请求选择更好的信道。
- 输入参数  : dmac_acs_rsn_enum_uint8 en_reason
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年4月16日
-    作    者   : gaolin
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_request_switch_channel(mac_acs_rsn_enum_uint8 en_reason)
 {
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : dmac_acs_init
- 功能描述  : dmac acs初始化函数
- 输入参数  : pst_device:指向mac_device_stru结构的指针
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_init(mac_device_stru *pst_device)
 {
     dmac_acs_stru *pst_acs;
@@ -2294,10 +1715,10 @@ oal_uint32  dmac_acs_init(mac_device_stru *pst_device)
     pst_acs->apfn_cmd_handler[DMAC_ACS_CMD_DO_DURATION_STATS] = dmac_acs_do_duration_stats;
     pst_acs->apfn_cmd_handler[DMAC_ACS_CMD_GET_NET_INFO]      = dmac_acs_do_get_net_info;
 
-    /* 注册ACS运行需要的钩子: */
-    /* (1)VAP 创建/删除       */
-    /* (2)USER 关联/去关联    */
-    /* (3)设置VAP信道/带宽    */
+    /* ????ACS??????????????: */
+    /* (1)VAP ????/????       */
+    /* (2)USER ????/??????    */
+    /* (3)????VAP????/????    */
     dmac_alg_register_add_vap_notify_func(DMAC_ALG_ADD_VAP_NOTIFY_ACS, dmac_acs_create_vap_handler);
     dmac_alg_register_del_vap_notify_func(DMAC_ALG_DEL_VAP_NOTIFY_ACS, dmac_acs_delete_vap_handler);
     dmac_alg_register_add_user_notify_func(DMAC_ALG_ADD_USER_NOTIFY_ACS, dmac_acs_add_assoc_user_handler);
@@ -2316,21 +1737,7 @@ oal_uint32  dmac_acs_init(mac_device_stru *pst_device)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : dmac_acs_exit
- 功能描述  : dmac acs卸载函数
- 输入参数  : pst_device:指向mac_device_stru结构的指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月10日
-    作    者   : 王山博196298
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  dmac_acs_exit(mac_device_stru *pst_device)
 {
     dmac_acs_stru               *pst_acs;
@@ -2348,7 +1755,7 @@ oal_uint32  dmac_acs_exit(mac_device_stru *pst_device)
     {
         pst_acs = (dmac_acs_stru *)pst_device->pst_acs;
 
-        /* 删除所有内部的VAP/USER */
+        /* ??????????????VAP/USER */
         while(OAL_FALSE == oal_dlist_is_empty(&pst_acs->st_vap_dlist_head))
         {
             pst_dlist_pos1   = oal_dlist_delete_head(&pst_acs->st_vap_dlist_head);
@@ -2364,7 +1771,7 @@ oal_uint32  dmac_acs_exit(mac_device_stru *pst_device)
             OAL_MEM_FREE(pst_vap_internal, OAL_TRUE);
         }
 
-        /* 取消注册钩子 */
+        /* ???????????? */
         dmac_alg_unregister_add_vap_notify_func(DMAC_ALG_ADD_VAP_NOTIFY_ACS);
         dmac_alg_unregister_del_vap_notify_func(DMAC_ALG_DEL_VAP_NOTIFY_ACS);
         dmac_alg_unregister_add_user_notify_func(DMAC_ALG_ADD_USER_NOTIFY_ACS);

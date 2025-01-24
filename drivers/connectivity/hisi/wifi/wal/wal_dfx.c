@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_dfx.c
-  版 本 号   : 初稿
-  作    者   : z00273164
-  生成日期   : 2015年10月16日
-  最近修改   :
-  功能描述   : wal层dfx相关功能文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年10月16日
-    作    者   : z00273164
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "wlan_types.h"
 #include "wal_dfx.h"
@@ -58,11 +41,11 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_WAL_DFX_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #ifdef _PRE_WLAN_FEATURE_DFR
 
-#define DFR_WAIT_PLAT_FINISH_TIME   (25000) /* 等待平台完成dfr工作的等待时间 */
+#define DFR_WAIT_PLAT_FINISH_TIME   (25000) /* ????????????dfr?????????????? */
 
 oal_int8 *g_auc_dfr_error_type[] = {   \
             "AP",    \
@@ -72,7 +55,7 @@ oal_int8 *g_auc_dfr_error_type[] = {   \
             "CLIENT",  \
             "DFR UNKOWN ERR TYPE!!"};
 
-/* 此枚举为g_auc_dfr_error_type字符串的indx集合 */
+/* ????????g_auc_dfr_error_type????????indx???? */
 typedef enum
 {
     DFR_ERR_TYPE_AP = 0,
@@ -90,7 +73,7 @@ extern struct st_exception_info *g_pst_exception_info;
 #else
 struct st_exception_info
 {
-    /* wifi异常触发 */
+    /* wifi???????? */
     oal_work_stru               wifi_excp_worker;
     oal_workqueue_stru         *wifi_exception_workqueue;
 	oal_work_stru               wifi_excp_recovery_worker;
@@ -113,25 +96,11 @@ extern hmac_dfr_info_stru g_st_dfr_info;
 
 #endif //_PRE_WLAN_FEATURE_DFR
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
 #ifdef _PRE_WLAN_FEATURE_DFR
-/*****************************************************************************
- 函 数 名  : hmac_dfr_kick_all_user
- 功能描述  : 剔除vap下面的所有用户（配置vap除外）
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_dfr_kick_all_user(hmac_vap_stru *pst_hmac_vap)
 {
     wal_msg_write_stru              st_write_msg;
@@ -142,11 +111,11 @@ OAL_STATIC oal_int32  wal_dfr_kick_all_user(hmac_vap_stru *pst_hmac_vap)
 
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_KICK_USER, OAL_SIZEOF(mac_cfg_kick_user_param_stru));
 
-    /* 设置配置命令参数 */
+    /* ???????????????? */
     pst_kick_user_param = (mac_cfg_kick_user_param_stru *)(st_write_msg.auc_value);
     oal_set_mac_addr(pst_kick_user_param->auc_mac_addr, BROADCAST_MACADDR);
 
-    /* 填写去关联reason code */
+    /* ??????????reason code */
     pst_kick_user_param->us_reason_code = MAC_UNSPEC_REASON;
     if (OAL_PTR_NULL == pst_hmac_vap->pst_net_device)
     {
@@ -168,7 +137,7 @@ OAL_STATIC oal_int32  wal_dfr_kick_all_user(hmac_vap_stru *pst_hmac_vap)
     }
 
 
-    /* 处理返回消息 */
+    /* ???????????? */
     ul_err_code = wal_check_and_release_msg_resp(pst_rsp_msg);
     if(OAL_SUCC != ul_err_code)
     {
@@ -180,21 +149,7 @@ OAL_STATIC oal_int32  wal_dfr_kick_all_user(hmac_vap_stru *pst_hmac_vap)
 
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_process_p2p_excp
- 功能描述  : p2p模式下异常处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_process_p2p_excp(hmac_vap_stru *pst_hmac_vap)
 {
     mac_vap_stru     *pst_mac_vap;
@@ -208,13 +163,13 @@ oal_uint32  wal_process_p2p_excp(hmac_vap_stru *pst_hmac_vap)
                      IS_P2P_CL(pst_mac_vap),
                      IS_P2P_GO(pst_mac_vap));
 
-    /* 删除用户 */
+    /* ???????? */
     wal_dfr_kick_all_user(pst_hmac_vap);
 
-    /* AP模式还是STA模式 */
+    /* AP????????STA???? */
     if (IS_AP(pst_mac_vap))
     {
-        /* vap信息初始化 */
+        /* vap?????????? */
         //hmac_dfr_reinit_ap(pst_hmac_vap);
     }
     else if (IS_STA(pst_mac_vap))
@@ -228,7 +183,7 @@ oal_uint32  wal_process_p2p_excp(hmac_vap_stru *pst_hmac_vap)
 
             return OAL_ERR_CODE_MAC_DEVICE_NULL;
         }
-        /* 删除扫描信息列表，停止扫描 */
+        /* ?????????????????????????? */
         if (pst_hmac_dev->st_scan_mgmt.st_scan_record_mgmt.uc_vap_id == pst_mac_vap->uc_vap_id)
         {
             pst_hmac_dev->st_scan_mgmt.st_scan_record_mgmt.p_fn_cb = OAL_PTR_NULL;
@@ -238,21 +193,7 @@ oal_uint32  wal_process_p2p_excp(hmac_vap_stru *pst_hmac_vap)
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : hmac_process_ap_excp
- 功能描述  : ap模式下的异常处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_process_ap_excp(hmac_vap_stru *pst_hmac_vap)
 {
     mac_vap_stru     *pst_mac_vap;
@@ -262,25 +203,11 @@ oal_uint32  wal_process_ap_excp(hmac_vap_stru *pst_hmac_vap)
                      "{hmac_process_sta_excp::Now begin AP exception recovery program, when AP have [%d] USERs.}",
                      pst_mac_vap->us_user_nums);
 
-    /* 删除用户 */
+    /* ???????? */
     wal_dfr_kick_all_user(pst_hmac_vap);
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : hmac_process_sta_excp
- 功能描述  : sta模式下的异常处理
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_process_sta_excp(hmac_vap_stru *pst_hmac_vap)
 {
     mac_vap_stru     *pst_mac_vap;
@@ -301,10 +228,10 @@ oal_uint32  wal_process_sta_excp(hmac_vap_stru *pst_hmac_vap)
                      "{hmac_process_sta_excp::Now begin sta exception recovery program, when sta have [%d] users.}",
                      pst_mac_vap->us_user_nums);
 
-    /* 关联状态下上报关联失败，删除用户 */
+    /* ???????????????????????????????? */
     wal_dfr_kick_all_user(pst_hmac_vap);
 
-    /* 删除扫描信息列表，停止扫描 */
+    /* ?????????????????????????? */
     if (pst_hmac_dev->st_scan_mgmt.st_scan_record_mgmt.uc_vap_id == pst_mac_vap->uc_vap_id)
     {
         pst_hmac_dev->st_scan_mgmt.st_scan_record_mgmt.p_fn_cb = OAL_PTR_NULL;
@@ -313,21 +240,7 @@ oal_uint32  wal_process_sta_excp(hmac_vap_stru *pst_hmac_vap)
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_dfr_destroy_vap
- 功能描述  : dfr流程中删除vap
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月16日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_dfr_destroy_vap(oal_net_device_stru *pst_netdev)
 {
     wal_msg_write_stru           st_write_msg;
@@ -354,7 +267,7 @@ OAL_STATIC oal_int32  wal_dfr_destroy_vap(oal_net_device_stru *pst_netdev)
         return l_ret;
     }
 
-    /* 读取返回的错误码 */
+    /* ???????????????? */
     ul_err_code = wal_check_and_release_msg_resp(pst_rsp_msg);
     if(OAL_SUCC != ul_err_code)
     {
@@ -367,21 +280,7 @@ OAL_STATIC oal_int32  wal_dfr_destroy_vap(oal_net_device_stru *pst_netdev)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_recovery_env
- 功能描述  : 异常恢复部分 恢复所有vap，并上报异常信息
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月15日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
 {
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
@@ -409,7 +308,7 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
 
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_dfr_recovery_env: get plat_process_comp signal after[%u]ms!", (oal_uint32)(DFR_WAIT_PLAT_FINISH_TIME - ul_timeleft));
 
-    /* 恢复vap, 上报异常给上层 */
+    /* ????vap, ?????????????? */
     for (; g_st_dfr_info.ul_netdev_num > 0; g_st_dfr_info.ul_netdev_num--)
     {
         ul_ret = OAL_SUCC;
@@ -430,7 +329,7 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
                 return OAL_FAIL;
             }
 
-            /* host device_stru初始化*/
+            /* host device_stru??????*/
             l_ret = wal_host_dev_init(pst_netdev);
             if(OAL_SUCC != l_ret)
             {
@@ -438,7 +337,6 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
             }
 
             ul_ret = wal_setup_ap(pst_netdev);
-            /*DTS2017042000492:修改NL80211_IFTYPE_STATION和NL80211_IFTYPE_P2P_DEVICE模式下，触发dfr的同时关闭wifi出现vap清除了，OAL_NETDEVICE_FLAGS(pst_netdev)还是up的问题*/
             oal_net_device_open(pst_netdev);
             en_err_type = DFR_ERR_TYPE_AP;
 
@@ -454,7 +352,7 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
         {
             pst_wireless_dev = OAL_NETDEVICE_WDEV(pst_netdev);
 
-            /* 去注册netdev */
+            /* ??????netdev */
             oal_net_unregister_netdev(pst_netdev);
             OAL_MEM_FREE(pst_wireless_dev, OAL_TRUE);
 
@@ -471,7 +369,7 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
         }
 
 
-        /* 上报异常 */
+        /* ???????? */
         oal_cfg80211_rx_exception(pst_netdev,
                                 (oal_uint8 *)g_auc_dfr_error_type[en_err_type],
                                 OAL_STRLEN(g_auc_dfr_error_type[en_err_type]));
@@ -491,22 +389,7 @@ OAL_STATIC oal_uint32  wal_dfr_recovery_env(void)
 }
 
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_excp_process
- 功能描述  : device异常，wal侧的处理流程，操作包括删除vap，对device进行重启
-             恢复，并重新创建host&device的vap
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月11日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 extern oal_int32 plat_exception_handler(oal_uint32 subsys_type, oal_uint32 thread_type, oal_uint32 exception_type);
 oal_uint32  wal_dfr_excp_process(mac_device_stru *pst_mac_device, oal_uint32 ul_exception_type)
 {
@@ -532,7 +415,7 @@ oal_uint32  wal_dfr_excp_process(mac_device_stru *pst_mac_device, oal_uint32 ul_
 
     for (uc_vap_idx = pst_mac_device->uc_vap_num, g_st_dfr_info.ul_netdev_num = 0; uc_vap_idx > 0; uc_vap_idx--)
     {
-        /* 获取最右边一位为1的位数，此值即为vap的数组下标 */
+        /* ????????????????1????????????????vap?????????? */
         pst_hmac_vap    = (hmac_vap_stru *)mac_res_get_hmac_vap(pst_mac_device->auc_vap_id[uc_vap_idx-1]);
         if (OAL_PTR_NULL == pst_hmac_vap)
         {
@@ -577,7 +460,6 @@ oal_uint32  wal_dfr_excp_process(mac_device_stru *pst_mac_device, oal_uint32 ul_
                     uc_vap_idx,
                     g_st_dfr_info.ul_netdev_num);
 
-        /* DTS2016091805471 drf异常处理需要上报结束普通扫描和PNO扫描 */
         wal_force_scan_complete(pst_netdev, OAL_TRUE);
         wal_stop_sched_scan(pst_netdev);
 
@@ -608,49 +490,21 @@ oal_uint32  wal_dfr_excp_process(mac_device_stru *pst_mac_device, oal_uint32 ul_
     plat_exception_handler(0, 0, ul_exception_type);
 #endif
 
-    //开始dfr恢复动作: wal_dfr_recovery_env();
+    //????dfr????????: wal_dfr_recovery_env();
     g_st_dfr_info.bit_ready_to_recovery_flag = OAL_TRUE;
     oal_queue_work(g_pst_exception_info->wifi_exception_workqueue, &g_pst_exception_info->wifi_excp_recovery_worker);
 
     return OAL_SUCC;
 
 }
-/*****************************************************************************
- 函 数 名  : wal_dfr_signal_complete
- 功能描述  : dfr device异常恢复 平台处理完成回调接口(device；拉管脚，下载patch)
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月22日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void wal_dfr_signal_complete(oal_void)
 {
     OAL_COMPLETE(&g_st_dfr_info.st_plat_process_comp);
 }
 
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_excp_rx
- 功能描述  : device异常接收总入口，目前用于device挂死，SDIO读写失败等异常
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月23日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wal_dfr_excp_rx(oal_uint8 uc_device_id, oal_uint32 ul_exception_type)
 {
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC == _PRE_MULTI_CORE_MODE)
@@ -666,23 +520,23 @@ oal_uint32 wal_dfr_excp_rx(oal_uint8 uc_device_id, oal_uint32 ul_exception_type)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /*  异常复位开关是否开启 */
+    /*  ???????????????????? */
     if ((!g_st_dfr_info.bit_device_reset_enable) || g_st_dfr_info.bit_device_reset_process_flag)
     {
         return OAL_SUCC;
     }
 
-    /* log现在进入异常处理流程 */
+    /* log???????????????????? */
     OAM_WARNING_LOG1(0, OAM_SF_DFR, "{wal_dfr_excp_rx:: Enter the exception processing, type[%d].}", ul_exception_type);
 
     g_st_dfr_info.bit_device_reset_process_flag = OAL_TRUE;
     g_st_dfr_info.bit_user_disconnect_flag      = OAL_TRUE;
 
-    /* 按照每个vap模式进行异常处理 */
+    /* ????????vap???????????????? */
     for (uc_vap_idx = 0; uc_vap_idx < pst_mac_dev->uc_vap_num; uc_vap_idx++)
     {
 
-        /* 获取最右边一位为1的位数，此值即为vap的数组下标 */
+        /* ????????????????1????????????????vap?????????? */
         pst_hmac_vap = (hmac_vap_stru *)mac_res_get_hmac_vap(pst_mac_dev->auc_vap_id[uc_vap_idx]);
         if (OAL_PTR_NULL == pst_hmac_vap)
         {
@@ -714,41 +568,13 @@ oal_uint32 wal_dfr_excp_rx(oal_uint8 uc_device_id, oal_uint32 ul_exception_type)
     return OAL_SUCC;
 #endif
 }
-/*****************************************************************************
- 函 数 名  : wal_dfr_get_excp_type
- 功能描述  : 获得excp的错误类型
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月22日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 wal_dfr_get_excp_type(oal_void)
 {
     return g_pst_exception_info->wifi_excp_type;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_excp_work
- 功能描述  : excep_worker处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void  wal_dfr_excp_work(oal_work_stru *work)
 {
     oal_uint32 ul_exception_type;
@@ -756,7 +582,7 @@ void  wal_dfr_excp_work(oal_work_stru *work)
 
     ul_exception_type = wal_dfr_get_excp_type();
 
-    /* 暂不支持多chip，多device */
+    /* ??????????chip????device */
     if ((1 != WLAN_CHIP_DBSC_DEVICE_NUM) || (1 != WLAN_CHIP_MAX_NUM_PER_BOARD))
     {
         OAM_ERROR_LOG2(0, OAM_SF_DFR, "DFR Can not support muti_chip[%d] or muti_device[%d].\n",
@@ -776,21 +602,7 @@ void  wal_dfr_recovery_work(oal_work_stru *work)
 {
     wal_dfr_recovery_env();
 }
-/*****************************************************************************
- 函 数 名  : wal_init_dfr_param
- 功能描述  : 初始化dfr的相关参数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月4日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void wal_dfr_init_param(oal_void)
 {
     OAL_MEMZERO((oal_uint8 *)&g_st_dfr_info, OAL_SIZEOF(hmac_dfr_info_stru));
@@ -805,21 +617,7 @@ oal_void wal_dfr_init_param(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_excp_init_handler
- 功能描述  : 初始化device异常的各种设置
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月24日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 wal_dfr_excp_init_handler(oal_void)
 {
     hmac_device_stru     *pst_hmac_dev;
@@ -832,10 +630,10 @@ OAL_STATIC oal_uint32 wal_dfr_excp_init_handler(oal_void)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 初始化dfr开关 */
+    /* ??????dfr???? */
     wal_dfr_init_param();
 
-    /* 挂接调用钩子 */
+    /* ???????????? */
     if (OAL_PTR_NULL != g_pst_exception_info)
     {
         OAL_INIT_WORK(&g_pst_exception_info->wifi_excp_worker, wal_dfr_excp_work);
@@ -872,21 +670,7 @@ OAL_STATIC oal_uint32 wal_dfr_excp_init_handler(oal_void)
 
 }
 
-/*****************************************************************************
- 函 数 名  : wal_dfr_excp_exit_handler
- 功能描述  :  退出dfr netlink
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年9月29日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void wal_dfr_excp_exit_handler(oal_void)
 {
     hmac_device_stru     *pst_hmac_dev;

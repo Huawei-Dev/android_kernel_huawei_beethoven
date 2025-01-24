@@ -1,3 +1,5 @@
+
+
 /*****************************************************************************
   Include Head file
 *****************************************************************************/
@@ -16,9 +18,9 @@
 #include "plat_pm.h"
 #include "oal_ext_if.h"
 /* function pointer for rx data */
-int (*tty_recv)(void *, const unsigned char *, int);
+int32 (*tty_recv)(void *, const uint8 *, int32);
 
-unsigned int g_bfgx_rx_max_frame[BFGX_BUTT] =
+uint32 g_bfgx_rx_max_frame[BFGX_BUTT] =
 {
     BT_RX_MAX_FRAME,
     FM_RX_MAX_FRAME,
@@ -27,7 +29,7 @@ unsigned int g_bfgx_rx_max_frame[BFGX_BUTT] =
     NFC_RX_MAX_FRAME,
 };
 
-unsigned int g_bfgx_rx_queue[BFGX_BUTT] =
+uint32 g_bfgx_rx_queue[BFGX_BUTT] =
 {
     RX_BT_QUEUE,
     RX_FM_QUEUE,
@@ -36,7 +38,7 @@ unsigned int g_bfgx_rx_queue[BFGX_BUTT] =
     RX_NFC_QUEUE,
 };
 
-unsigned int g_bfgx_rx_queue_max_num[BFGX_BUTT] =
+uint32 g_bfgx_rx_queue_max_num[BFGX_BUTT] =
 {
     RX_BT_QUE_MAX_NUM,
     RX_FM_QUE_MAX_NUM,
@@ -85,7 +87,7 @@ void print_uart_decode_param(void)
  *     Modification : Created function
  *
  */
-int ps_write_tty(struct ps_core_s *ps_core_d,const unsigned char *data, int count)
+int32 ps_write_tty(struct ps_core_s *ps_core_d,const uint8 *data, int32 count)
 {
     struct tty_struct *tty;
 
@@ -120,12 +122,12 @@ int ps_write_tty(struct ps_core_s *ps_core_d,const unsigned char *data, int coun
  *     Modification : Created function
  *
  */
-int ps_exe_sys_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
+int32 ps_exe_sys_func(struct ps_core_s *ps_core_d, uint8 *buf_ptr)
 {
     struct pm_drv_data *pm_data = NULL;
     struct st_exception_info *pst_exception_data = NULL;
-    unsigned char syschar;
-    unsigned long flags;
+    uint8 syschar;
+    uint64 flags;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -256,6 +258,9 @@ int ps_exe_sys_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
 
         break;
     case SYS_INF_MEM_DUMP_COMPLETE:
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+        bfgx_memdump_finish();
+#endif
         get_exception_info_reference(&pst_exception_data);
         if (NULL != pst_exception_data)
         {
@@ -284,6 +289,7 @@ int ps_exe_sys_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
         break;
 
     default:
+        /*????????*/
         if (syschar >= SYS_INF_HEARTBEAT_CMD_BASE)
         {
             PS_PRINT_INFO("%ds,bt=%x,r=%x,ut=%x,r=%x\n", \
@@ -317,7 +323,7 @@ int ps_exe_sys_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
  *     Modification : Created function
  *
  */
-int ps_push_skb_queue(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned short pkt_len, unsigned char type)
+int32 ps_push_skb_queue(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint16 pkt_len, uint8 type)
 {
     struct sk_buff *skb = NULL;
 
@@ -347,11 +353,11 @@ int ps_push_skb_queue(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsig
     return 0;
 }
 
-int delete_gnss_head_skb_msg(void)
+int32 delete_gnss_head_skb_msg(void)
 {
     struct ps_core_s *ps_core_d = NULL;
     struct sk_buff *skb = NULL;
-    unsigned char  seperate_tag = 0;
+    uint8  seperate_tag = 0;
 
     ps_get_core_reference(&ps_core_d);
     if (unlikely(NULL == ps_core_d))
@@ -388,13 +394,13 @@ int delete_gnss_head_skb_msg(void)
     return 0;
 }
 
-int ps_push_skb_queue_gnss(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned short pkt_len, unsigned char type)
+int32 ps_push_skb_queue_gnss(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint16 pkt_len, uint8 type)
 {
     struct sk_buff *skb = NULL;
 
-    unsigned char seperate_tag = 0;
-    unsigned short seperate_len = 0;
-    int   copy_cnt = 0;
+    uint8 seperate_tag = 0;
+    uint16 seperate_len = 0;
+    int32   copy_cnt = 0;
     if (NULL == ps_core_d)
     {
         PS_PRINT_ERR("ps_core_d is NULL\n");
@@ -450,6 +456,7 @@ int ps_push_skb_queue_gnss(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
         copy_cnt += (seperate_len -1);
     }while(copy_cnt < pkt_len);
 
+    /*????gnss??????skb??????(RX_GNSS_QUE_MAX_NUM >> 1)??????????????????????????????????*/
     while (ps_core_d->bfgx_info[BFGX_GNSS].rx_queue.qlen > (RX_GNSS_QUE_MAX_NUM >> 1))
     {
         delete_gnss_head_skb_msg();
@@ -459,11 +466,11 @@ int ps_push_skb_queue_gnss(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
     return 0;
 }
 
-int ps_push_skb_debug_queue(struct ps_core_s *ps_core_d, const unsigned char *buf_ptr,
-                                unsigned short pkt_len, unsigned char type)
+int32 ps_push_skb_debug_queue(struct ps_core_s *ps_core_d, const uint8 *buf_ptr,
+                                uint16 pkt_len, uint8 type)
 {
     struct sk_buff *skb = NULL;
-    unsigned short count = 0;
+    uint16 count = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -509,9 +516,12 @@ int ps_push_skb_debug_queue(struct ps_core_s *ps_core_d, const unsigned char *bu
     return 0;
 }
 
-int ps_recv_mem_dump_size_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
+int32 ps_recv_mem_dump_size_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr)
 {
-    unsigned short dump_mem_size = 0;
+    uint16 dump_mem_size = 0;
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+    uint16 rx_pkt_total_len = 0;
+#endif
 
     if (NULL == ps_core_d)
     {
@@ -527,16 +537,20 @@ int ps_recv_mem_dump_size_data(struct ps_core_s *ps_core_d, unsigned char *buf_p
 
     dump_mem_size = buf_ptr[1]*0x100;
     dump_mem_size = dump_mem_size + buf_ptr[0];
-
     PS_PRINT_INFO("prepare to recv bfgx mem size [%d]!\n", dump_mem_size);
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+    rx_pkt_total_len = ps_core_d->rx_pkt_total_len - sizeof(struct ps_packet_head) - sizeof(struct ps_packet_end);
+    bfgx_notice_hal_memdump();
+    bfgx_memdump_enquenue(buf_ptr, rx_pkt_total_len);
+#else
     prepare_to_recv_bfgx_stack(dump_mem_size);
-
+#endif
     return 0;
 }
 
-int ps_recv_mem_dump_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned int system)
+int32 ps_recv_mem_dump_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint32 system)
 {
-    unsigned short rx_pkt_total_len = 0;
+    uint16 rx_pkt_total_len = 0;
 
     if (NULL == ps_core_d)
     {
@@ -557,7 +571,11 @@ int ps_recv_mem_dump_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, u
         if (rx_pkt_total_len <= MEM_DUMP_RX_MAX_FRAME)
         {
             PS_PRINT_INFO("recv bfgx stack size [%d]!\n", rx_pkt_total_len);
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+            bfgx_memdump_enquenue(buf_ptr, rx_pkt_total_len);
+#else
             bfgx_recv_dev_mem(buf_ptr, rx_pkt_total_len);
+#endif
         }
     }
     else if (SUBSYS_WIFI == system)
@@ -576,10 +594,10 @@ int ps_recv_mem_dump_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, u
     return 0;
 }
 
-int ps_recv_uart_loop_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
+int32 ps_recv_uart_loop_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr)
 {
-    int  ret;
-    unsigned short rx_pkt_total_len = 0;
+    int32  ret;
+    uint16 rx_pkt_total_len = 0;
 
     if (NULL == ps_core_d)
     {
@@ -629,13 +647,13 @@ int ps_recv_uart_loop_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
  *     Modification : Created function
  *
  */
-int ps_recv_debug_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
+int32 ps_recv_debug_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr)
 {
     struct sk_buff *skb = NULL;
-    int  ret;
-    unsigned short rx_pkt_total_len = 0;
-    unsigned short dbg_pkt_lenth = 0;
-    unsigned char ptr_index = 0;
+    int32  ret;
+    uint16 rx_pkt_total_len = 0;
+    uint16 dbg_pkt_lenth = 0;
+    uint8 ptr_index = 0;
 
     if (NULL == ps_core_d)
     {
@@ -655,14 +673,14 @@ int ps_recv_debug_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
         &&(PACKET_RX_FUNC_LAST_WORDS == buf_ptr[PACKET_RX_FUNC_INDEX_LAST_WORDS]))
     {
         /*get FrameLen 2 bytes*/
-        dbg_pkt_lenth = *(unsigned char*)&buf_ptr[PACKET_FRAMELEN_INDEX];
+        dbg_pkt_lenth = *(uint16*)&buf_ptr[PACKET_FRAMELEN_INDEX];
         if ((dbg_pkt_lenth == rx_pkt_total_len)
             && (LAST_WORD_LEN == dbg_pkt_lenth)
             && (PACKET_RX_RPT_IND_LAST_WORDS == buf_ptr[RPT_IND_INDEX_LAST_WORDS]))
         {
             PS_PRINT_ERR("recv device last words!Faulttype=0x%x,FaultReason=0x%x,PC=0x%x,LR=0x%x\n",
-                          *(unsigned int*)&buf_ptr[FAULT_TYPE_INDEX_LAST_WORDS], *(unsigned int*)&buf_ptr[FAULT_REASON_INDEX_LAST_WORDS],
-                          *(unsigned int*)&buf_ptr[PC_INDEX_LAST_WORDS], *(unsigned int*)&buf_ptr[LR_INDEX_LAST_WORDS]);
+                          *(uint32*)&buf_ptr[FAULT_TYPE_INDEX_LAST_WORDS], *(uint32*)&buf_ptr[FAULT_REASON_INDEX_LAST_WORDS],
+                          *(uint32*)&buf_ptr[PC_INDEX_LAST_WORDS], *(uint32*)&buf_ptr[LR_INDEX_LAST_WORDS]);
             plat_exception_handler(SUBSYS_BFGX, BFGX_THREAD_BOTTOM, LAST_WORD);
         }
         else
@@ -670,7 +688,7 @@ int ps_recv_debug_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
             /*buf maybe less than log header len*/
             if (rx_pkt_total_len > PACKET_HEADER_LEN)
             {
-                PS_PRINT_WARNING("recv wrong last words,[%x %x]\n", *(unsigned int*)&buf_ptr[0], *(unsigned int*)&buf_ptr[4]);
+                PS_PRINT_WARNING("recv wrong last words,[%x %x]\n", *(uint32*)&buf_ptr[0], *(uint32*)&buf_ptr[4]);
             }
             else
             {
@@ -700,6 +718,7 @@ int ps_recv_debug_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
             if (ps_core_d->rx_dbg_seq.qlen > RX_DBG_QUE_MAX_NUM)
             {
                 PS_PRINT_INFO("rx dbg queue too large!");
+                /* if sdt data is large??remove the head skb data */
                 skb = ps_skb_dequeue(ps_core_d, RX_DBG_QUEUE);
                 kfree_skb(skb);
             }
@@ -725,9 +744,9 @@ int ps_recv_debug_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
  *     Modification : Created function
  *
  */
-int ps_store_rx_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned char subsys)
+int32 ps_store_rx_sepreated_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint8 subsys)
 {
-    unsigned short rx_current_pkt_len;
+    uint16 rx_current_pkt_len;
     struct bfgx_sepreted_rx_st *pst_sepreted_data = NULL;
 
     if (NULL == ps_core_d)
@@ -795,13 +814,13 @@ int ps_store_rx_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_p
  *     Modification : Created function
  *
  */
-int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned char subsys, unsigned char sepreted_type)
+int32 ps_recv_sepreated_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint8 subsys, uint8 sepreted_type)
 {
-    int  ret;
+    int32  ret;
     struct pm_drv_data  *pm_data = NULL;
     struct st_bfgx_data *pst_bfgx_data = NULL;
     struct bfgx_sepreted_rx_st *pst_sepreted_data = NULL;
-    int  seq_correct = SEPRETED_RX_PKT_SEQ_ERROR;
+    int32  seq_correct = SEPRETED_RX_PKT_SEQ_ERROR;
 
     if (NULL == ps_core_d)
     {
@@ -863,6 +882,7 @@ int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
         atomic_set(&pm_data->gnss_sleep_flag, GNSS_NOT_AGREE_SLEEP);
     }
 
+    /*????????????????????*/
     switch (sepreted_type)
     {
         case RX_SEQ_START:
@@ -892,9 +912,9 @@ int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
 
     if (SEPRETED_RX_PKT_SEQ_CORRECT == seq_correct)
     {
-        
+        /*????????????????????????????????buffer??*/
         ret = ps_store_rx_sepreated_data(ps_core_d, buf_ptr, subsys);
-
+        /*????????????????????????????LAST??????????????????buffer??????????????LAST????????????????????????????????????????*/
         if ((RX_PACKET_ERR == ret) && (RX_SEQ_LAST == sepreted_type))
         {
             PS_PRINT_ERR("%s rx data lenth err! give up this total pkt\n", g_bfgx_subsys_name[subsys]);
@@ -912,8 +932,10 @@ int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
         return -EINVAL;
     }
 
-   if (RX_SEQ_LAST == sepreted_type)
+    /*????LAST??????????????????????????????????????????????????????????????????????????????????*/
+    if (RX_SEQ_LAST == sepreted_type)
     {
+        /*??????????????????????????????????????????????????*/
         if (pst_bfgx_data->rx_queue.qlen >= g_bfgx_rx_queue_max_num[subsys])
         {
             PS_PRINT_WARNING("%s rx queue too large! qlen=%d\n", g_bfgx_subsys_name[subsys], pst_bfgx_data->rx_queue.qlen);
@@ -941,6 +963,7 @@ int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
             return -EINVAL;
         }
 
+        /*????skb??????????????????????????????????????????*/
         PS_PRINT_DBG("%s rx done! qlen=%d\n", g_bfgx_subsys_name[subsys], pst_bfgx_data->rx_queue.qlen);
         wake_up_interruptible(&pst_bfgx_data->rx_wait);
     }
@@ -965,10 +988,10 @@ int ps_recv_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, 
  *     Modification : Created function
  *
  */
-int ps_recv_no_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, unsigned char subsys)
+int32 ps_recv_no_sepreated_data(struct ps_core_s *ps_core_d, uint8 *buf_ptr, uint8 subsys)
 {
-    int  ret;
-    unsigned short rx_pkt_total_len = 0;
+    int32  ret;
+    uint16 rx_pkt_total_len = 0;
     struct st_bfgx_data *pst_bfgx_data = NULL;
 
     if (NULL == ps_core_d)
@@ -991,6 +1014,7 @@ int ps_recv_no_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_pt
 
     pst_bfgx_data = &ps_core_d->bfgx_info[subsys];
 
+    /*??????????????????????????????????????????????????*/
     if (pst_bfgx_data->rx_queue.qlen >= g_bfgx_rx_queue_max_num[subsys])
     {
          PS_PRINT_WARNING("%s rx queue too large! qlen=%d\n", g_bfgx_subsys_name[subsys], pst_bfgx_data->rx_queue.qlen);
@@ -1032,9 +1056,9 @@ int ps_recv_no_sepreated_data(struct ps_core_s *ps_core_d, unsigned char *buf_pt
  *     Modification : Created function
  *
  */
-int ps_decode_packet_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
+int32 ps_decode_packet_func(struct ps_core_s *ps_core_d, uint8 *buf_ptr)
 {
-    unsigned char *ptr;
+    uint8 *ptr;
     struct pm_drv_data  *pm_data = NULL;
     struct st_exception_info *pst_exception_data = NULL;
 
@@ -1217,11 +1241,11 @@ int ps_decode_packet_func(struct ps_core_s *ps_core_d, unsigned char *buf_ptr)
  *     Modification : Created function
  *
  */
-int ps_check_packet_head(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, int count)
+int32 ps_check_packet_head(struct ps_core_s *ps_core_d, uint8 *buf_ptr, int32 count)
 {
-    unsigned char *ptr;
-    unsigned short len;
-    unsigned short lenbak;
+    uint8 *ptr;
+    uint16 len;
+    uint16 lenbak;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -1359,10 +1383,11 @@ int ps_check_packet_head(struct ps_core_s *ps_core_d, unsigned char *buf_ptr, in
 static unsigned int g_reset_cnt = 0;
 void reset_uart_rx_buf(void)
 {
-	unsigned int i = 0;
+	uint32 i = 0;
 	struct ps_core_s *ps_core_d = NULL;
 	ps_get_core_reference(&ps_core_d);
 
+    /*uart??????????????????flaush buffer*/
     spin_lock(&ps_core_d->rx_lock);
 
     if (0 < ps_core_d->rx_have_recv_pkt_len)
@@ -1406,12 +1431,12 @@ void reset_uart_rx_buf(void)
  *     Modification : Created function
  *
  */
-int ps_core_recv(void *disc_data, const unsigned char *data, int count)
+int32 ps_core_recv(void *disc_data, const uint8 *data, int32 count)
 {
     struct ps_core_s *ps_core_d;
-    unsigned char *ptr;
-    int count1 = 0;
-    int ret = 0;
+    uint8 *ptr;
+    int32 count1 = 0;
+    int32 ret = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -1438,18 +1463,18 @@ int ps_core_recv(void *disc_data, const unsigned char *data, int count)
 #ifdef PLATFORM_DEBUG_ENABLE
     if (g_uart_rx_dump)
     {
-        if(NULL != ps_core_d->rx_data_fp)
+        if(!IS_ERR_OR_NULL(ps_core_d->rx_data_fp))
         {
             vfs_write(ps_core_d->rx_data_fp, data, count, &ps_core_d->rx_data_fp->f_pos);
         }
         else
         {
-            PS_PRINT_WARNING("uart rx dump dir not make or uart not translate data\n");
+            PS_PRINT_WARNING("uart rx dump dir not make or uart not translate data, fp_err_code(%ld)\n", PTR_ERR(ps_core_d->rx_data_fp));
         }
     }
 #endif
 
-    ps_core_d->rx_decode_tty_ptr = (unsigned char *)data;
+    ps_core_d->rx_decode_tty_ptr = (uint8 *)data;
     while (count)
     {   /* if curr packet is breaked packet,and first memcpy */
         if (ps_core_d->rx_have_recv_pkt_len)
@@ -1555,7 +1580,7 @@ int ps_core_recv(void *disc_data, const unsigned char *data, int count)
  *     Modification : Created function
  *
  */
-int ps_skb_enqueue(struct ps_core_s *ps_core_d, struct sk_buff *skb, unsigned char type)
+int32 ps_skb_enqueue(struct ps_core_s *ps_core_d, struct sk_buff *skb, uint8 type)
 {
     if (unlikely(NULL == ps_core_d))
     {
@@ -1617,7 +1642,7 @@ int ps_skb_enqueue(struct ps_core_s *ps_core_d, struct sk_buff *skb, unsigned ch
  *     Modification : Created function
  *
  */
-struct sk_buff *ps_skb_dequeue(struct ps_core_s *ps_core_d, unsigned char type)
+struct sk_buff *ps_skb_dequeue(struct ps_core_s *ps_core_d, uint8 type)
 {
     struct sk_buff *curr_skb = NULL;
 
@@ -1675,11 +1700,11 @@ struct sk_buff *ps_skb_dequeue(struct ps_core_s *ps_core_d, unsigned char type)
  *     Modification : Created function
  *
  */
-int ps_core_tx_attemper(struct ps_core_s *ps_core_d)
+int32 ps_core_tx_attemper(struct ps_core_s *ps_core_d)
 {
     struct sk_buff *skb = NULL;
-    unsigned char tx_high_times = 0;
-    int len = 0;
+    uint8 tx_high_times = 0;
+    int32 len = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -1795,6 +1820,7 @@ void ps_core_tx_work(struct work_struct *work)
  * Prototype    : ps_add_packet_head
  * Description  : add packet head to recv buf from hal or bt driver.
  * input        : buf  -> ptr of buf
+ *                type -> packet type??example bt,fm,or gnss
  *                lenth-> packet length
  * output       : not
  * Calls        :
@@ -1806,10 +1832,10 @@ void ps_core_tx_work(struct work_struct *work)
  *     Modification : Created function
  *
  */
-int ps_add_packet_head(unsigned char *buf, unsigned char type, unsigned short lenth)
+int32 ps_add_packet_head(uint8 *buf, uint8 type, uint16 lenth)
 {
-    char *ptr;
-    unsigned short len;
+    int8 *ptr;
+    uint16 len;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -1841,6 +1867,7 @@ int ps_add_packet_head(unsigned char *buf, unsigned char type, unsigned short le
  * Prototype    : ps_set_sys_packet
  * Description  : set sys packet head to buf
  * input        : buf  -> ptr of buf
+ *                type -> packet type??example bt,fm,or gnss
  *                lenth-> packet length
  * output       : not
  * Calls        :
@@ -1852,9 +1879,9 @@ int ps_add_packet_head(unsigned char *buf, unsigned char type, unsigned short le
  *     Modification : Created function
  *
  */
-int ps_set_sys_packet(unsigned char *buf, unsigned char type, unsigned char content)
+int32 ps_set_sys_packet(uint8 *buf, uint8 type, uint8 content)
 {
-    char *ptr;
+    int8 *ptr;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -1895,7 +1922,7 @@ int ps_set_sys_packet(unsigned char *buf, unsigned char type, unsigned char cont
  *     Modification : Created function
  *
  */
-int ps_tx_sys_cmd(struct ps_core_s *ps_core_d, unsigned char type, unsigned char content)
+int32 ps_tx_sys_cmd(struct ps_core_s *ps_core_d, uint8 type, uint8 content)
 {
     struct sk_buff *skb = NULL;
     bool ret = false;
@@ -1928,12 +1955,12 @@ int ps_tx_sys_cmd(struct ps_core_s *ps_core_d, unsigned char type, unsigned char
 }
 
 
-int ps_tx_fmbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t count)
+int32 ps_tx_fmbuf(struct ps_core_s *ps_core_d, const int8 __user *buf, size_t count)
 {
     struct sk_buff *skb;
-    unsigned short tx_skb_len;
-    unsigned short tx_fm_len;
-    unsigned char  start = 0;
+    uint16 tx_skb_len;
+    uint16 tx_fm_len;
+    uint8  start = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2000,12 +2027,12 @@ int ps_tx_fmbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t coun
 }
 
 
-int ps_tx_irbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t count)
+int32 ps_tx_irbuf(struct ps_core_s *ps_core_d, const int8 __user *buf, size_t count)
 {
     struct sk_buff *skb;
-    unsigned short tx_skb_len;
-    unsigned short tx_ir_len;
-    unsigned char  start = 0;
+    uint16 tx_skb_len;
+    uint16 tx_ir_len;
+    uint8  start = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2072,12 +2099,12 @@ int ps_tx_irbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t coun
 }
 
 
-int ps_tx_nfcbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t count)
+int32 ps_tx_nfcbuf(struct ps_core_s *ps_core_d, const int8 __user *buf, size_t count)
 {
     struct sk_buff *skb;
-    unsigned short tx_skb_len;
-    unsigned short tx_nfc_len;
-    unsigned char  start = 0;
+    uint16 tx_skb_len;
+    uint16 tx_nfc_len;
+    uint8  start = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2157,12 +2184,12 @@ int ps_tx_nfcbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t cou
  *     Modification : Created function
  *
  */
-int ps_tx_gnssbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t count)
+int32 ps_tx_gnssbuf(struct ps_core_s *ps_core_d, const int8 __user *buf, size_t count)
 {
     struct sk_buff *skb;
-    unsigned short tx_skb_len;
-    unsigned short tx_gnss_len;
-    unsigned char  start = 0;
+    uint16 tx_skb_len;
+    uint16 tx_gnss_len;
+    uint8  start = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2243,13 +2270,13 @@ int ps_tx_gnssbuf(struct ps_core_s *ps_core_d, const char __user *buf, size_t co
  *     Modification : Created function
  *
  */
-int ps_core_init(struct ps_core_s **core_data)
+int32 ps_core_init(struct ps_core_s **core_data)
 {
     struct ps_core_s *ps_core_d;
     struct ps_pm_s *ps_pm_d;
-    unsigned char *ptr;
-    int  err;
-    int i = 0;
+    uint8 *ptr;
+    int32  err;
+    int32 i = 0;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2337,13 +2364,17 @@ int ps_core_init(struct ps_core_s **core_data)
 
     for(i = 0; i < BFGX_BUTT; i++)
     {
+        /*????????????????*/
         skb_queue_head_init(&ps_core_d->bfgx_info[i].rx_queue);
+        /*??????BFGX????????????*/
         init_waitqueue_head(&ps_core_d->bfgx_info[i].rx_wait);
+        /*????????????????????????BT??????????????*/
         spin_lock_init(&ps_core_d->bfgx_info[i].sepreted_rx.sepreted_rx_lock);
         ps_core_d->bfgx_info[i].sepreted_rx.rx_prev_seq    = RX_SEQ_NULL;
         ps_core_d->bfgx_info[i].sepreted_rx.rx_buf_all_len = 0;
         ps_core_d->bfgx_info[i].sepreted_rx.rx_buf_ptr     = NULL;
         ps_core_d->bfgx_info[i].sepreted_rx.rx_buf_org_ptr = NULL;
+        /*????????????????????*/
         init_completion(&ps_core_d->bfgx_info[i].wait_closed);
         init_completion(&ps_core_d->bfgx_info[i].wait_opened);
         atomic_set(&ps_core_d->bfgx_info[i].subsys_state, POWER_STATE_SHUTDOWN);
@@ -2376,9 +2407,9 @@ int ps_core_init(struct ps_core_s **core_data)
  *     Modification : Created function
  *
  */
-int ps_core_exit(struct ps_core_s *ps_core_d)
+int32 ps_core_exit(struct ps_core_s *ps_core_d)
 {
-    int err;
+    int32 err;
 
     PS_PRINT_FUNCTION_NAME;
 
@@ -2414,9 +2445,9 @@ int ps_core_exit(struct ps_core_s *ps_core_d)
 }
 
 
-int wifi_choose_bfgn_channel_send_log2sdt(unsigned char* data, unsigned short len)
+int32 wifi_choose_bfgn_channel_send_log2sdt(uint8* data, uint16 len)
 {
-    int  ret = 0;
+    int32  ret = 0;
     struct ps_core_s *ps_core_d = NULL;
     ps_get_core_reference(&ps_core_d);
 

@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_AES_H__
 #define __OAL_AES_H__
 
@@ -7,23 +9,32 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_schedule.h"
 #include "oal_util.h"
 #include "oal_types.h"
 #include "oal_net.h"
 
+
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
+
 #define OAL_MMIE_IPN_LEN             6
 #define OAL_MMIE_MIC_LEN             8
 #define OAL_AES_BLOCK_SIZE          16
-#define OAL_AES_BLOCK_LEN           16
+#define OAL_AES_BLOCK_LEN           16   /* AES?????????3????? */
 
-#define OAL_ETH_ALEN                 6
+#define OAL_ETH_ALEN                 6   /* ???????????????3????? */
 
 #define OAL_AES_KEYSIZE_128         16
 #define OAL_AES_KEYSIZE_192         24
 #define OAL_AES_KEYSIZE_256         32
 
-#define OAL_BIP_AAD_LEN             20
+#define OAL_BIP_AAD_LEN             20   /* BIP ADD3????? */
 //#define OAL_AES_MAX_KEYLENGTH       (15 * 16)
 #define OAL_AES_MAX_KEYLENGTH       60
 
@@ -40,9 +51,34 @@ extern "C" {
 #define oal_host_to_le32(n) (n)
 #define oal_le32_to_host(n) (n)
 
-#define OAL_CMAC_TLEN           8
-#define OAL_AAD_LEN             20
+#define OAL_CMAC_TLEN           8    /* CMAC TLen = 64 bits (8 octets) */
+#define OAL_AAD_LEN             20   /* BIP ADD3????? */
 
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+/* AES???????????? */
 struct oal_aes_key_stru
 {
     oal_uint32 ul_key_enc[OAL_AES_MAX_KEYLENGTH];
@@ -56,10 +92,11 @@ struct oal_aes_ctx_stru
     oal_aes_key_stru  key;
     oal_uint8         pn[6];
     oal_uint8         key_idx;
-    oal_uint8         resv[1];
+    oal_uint8         resv[1];   /* crypto_buf??????????4?????????????????? */
     oal_uint8         crypto_buf[6 * OAL_AES_BLOCK_LEN];
 }__OAL_DECLARE_PACKED;
 typedef struct oal_aes_ctx_stru oal_aes_ctx_stru;
+
 
 struct oal_mmie_stru
 {
@@ -71,6 +108,20 @@ struct oal_mmie_stru
 }__OAL_DECLARE_PACKED;
 typedef struct oal_mmie_stru oal_mmie_stru;
 
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 extern oal_uint32  oal_aes_expand_key(oal_aes_key_stru *pst_aes_key,
                                             OAL_CONST oal_uint8 *in_key,
 		                                    unsigned int key_len);
@@ -85,6 +136,14 @@ extern oal_uint32  oal_aes_decrypt(oal_aes_key_stru *pst_aes_key,
 extern oal_uint32 oal_crypto_bip_enmic(oal_uint8 uc_igtk_keyid, oal_uint8 *pst_igtk_key, oal_uint8 *pst_igtk_seq, oal_netbuf_stru *pst_netbuf, oal_uint16 *pst_frame_len);
 #endif
 extern oal_uint32 oal_crypto_bip_demic(oal_uint8 uc_igtk_keyid, oal_uint8 *pst_igtk_key, oal_uint8 *pst_igtk_seq, oal_netbuf_stru *pst_netbuf, oal_uint32 *pul_dot11RSNAStatsCMACReplays, oal_uint32 *pul_dot11RSNAStatsCMACICVErrors);
+
+
+
+
+
+
+
+
 
 #ifdef __cplusplus
     #if __cplusplus

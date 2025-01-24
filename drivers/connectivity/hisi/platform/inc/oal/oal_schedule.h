@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_SCHEDULE_H__
 #define __OAL_SCHEDULE_H__
 
@@ -7,14 +9,25 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_types.h"
 #include "oal_hardware.h"
 #include "oal_mm.h"
 #include "arch/oal_schedule.h"
 
+
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 #if (_PRE_CHIP_BITS_MIPS32 == _PRE_CHIP_BITS)
+/* 32???????????????? */
 #define OAL_TIME_US_MAX_LEN  (0xFFFFFFFF - 1)
+
 #elif (_PRE_CHIP_BITS_MIPS64 == _PRE_CHIP_BITS)
+/* 64???????????????? */
 #define OAL_TIME_US_MAX_LEN  (0xFFFFFFFFFFFFFFFF - 1)
 
 #endif
@@ -39,7 +52,6 @@ typedef enum
 #ifdef _PRE_OAL_FEATURE_KEY_PROCESS_TRACE
 #include "oal_list.h"
 #include <linux/rtc.h>
-
 typedef struct _oal_dft_trace_item_
 {
     oal_list_entry_stru list;
@@ -58,6 +70,7 @@ extern oal_void oal_dft_exit(oal_void);
 extern oal_void oal_dft_print_error_key_info(oal_void);
 extern oal_void oal_dft_print_all_key_info(oal_void);
 
+/*????????????????????????????????????????*/
 #define DECLARE_DFT_TRACE_KEY_INFO(dname,dtype)\
         do\
         {\
@@ -93,17 +106,56 @@ extern oal_void oal_dft_print_all_key_info(oal_void);
 
 typedef struct _oal_wakelock_stru_
 {
-#ifdef CONFIG_WAKELOCK
-    struct wake_lock        st_wakelock;
-    oal_spin_lock_stru      lock;
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
+    struct wakeup_source        st_wakelock;        //wakelock??
+    oal_spin_lock_stru      lock;    //wakelock??????spinlock??
 #endif
-    oal_ulong               lock_count;
-    oal_ulong			    locked_addr;
+    oal_ulong               lock_count;         //????wakelock????????
+    oal_ulong			    locked_addr;/*the locked address*/
 }oal_wakelock_stru;
 
+
+/* ??????_ul_start??_ul_end???????? */
 #define OAL_TIME_GET_RUNTIME(_ul_start, _ul_end) \
     (((_ul_start) > (_ul_end))?(OAL_TIME_CALC_RUNTIME((_ul_start), (_ul_end))):((_ul_end) - (_ul_start)))
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 #ifdef _PRE_CONFIG_HISI_CONN_SOFTWDFT
 extern oal_int32 oal_softwdt_init(oal_void);
 extern oal_void oal_softwdt_exit(oal_void);
@@ -120,10 +172,10 @@ OAL_STATIC OAL_INLINE oal_void oal_softwdt_exit(oal_void)
 
 OAL_STATIC OAL_INLINE oal_void oal_wake_lock_init(oal_wakelock_stru *pst_wakelock,char* name)
 {
-#ifdef CONFIG_WAKELOCK
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
     oal_memset((oal_void*)pst_wakelock,0,sizeof(oal_wakelock_stru));
 
-    wake_lock_init(&pst_wakelock->st_wakelock, WAKE_LOCK_SUSPEND, name ? name:"wake_lock_null");
+    wakeup_source_init(&pst_wakelock->st_wakelock, name ? name:"wake_lock_null");
     oal_spin_lock_init(&pst_wakelock->lock);
     pst_wakelock->lock_count = 0;
     pst_wakelock->locked_addr = 0;
@@ -132,20 +184,20 @@ OAL_STATIC OAL_INLINE oal_void oal_wake_lock_init(oal_wakelock_stru *pst_wakeloc
 
 OAL_STATIC OAL_INLINE oal_void oal_wake_lock_exit(oal_wakelock_stru *pst_wakelock)
 {
-#ifdef CONFIG_WAKELOCK
-    wake_lock_destroy(&pst_wakelock->st_wakelock);
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
+    wakeup_source_trash(&pst_wakelock->st_wakelock);
 #endif
 }
 
 OAL_STATIC OAL_INLINE void oal_wake_lock(oal_wakelock_stru *pst_wakelock)
 {
-#ifdef CONFIG_WAKELOCK
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
     oal_ulong ul_flags;
 
     oal_spin_lock_irq_save(&pst_wakelock->lock, &ul_flags);
     if(!pst_wakelock->lock_count)
     {
-        wake_lock(&pst_wakelock->st_wakelock);
+        __pm_stay_awake(&pst_wakelock->st_wakelock);
         pst_wakelock->locked_addr = (oal_ulong)_RET_IP_;
     }
     pst_wakelock->lock_count++;
@@ -155,7 +207,7 @@ OAL_STATIC OAL_INLINE void oal_wake_lock(oal_wakelock_stru *pst_wakelock)
 
 OAL_STATIC OAL_INLINE  void oal_wake_unlock(oal_wakelock_stru *pst_wakelock)
 {
-#ifdef CONFIG_WAKELOCK
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
     oal_ulong ul_flags;
 
     oal_spin_lock_irq_save(&pst_wakelock->lock, &ul_flags);
@@ -164,7 +216,7 @@ OAL_STATIC OAL_INLINE  void oal_wake_unlock(oal_wakelock_stru *pst_wakelock)
         pst_wakelock->lock_count--;
         if(!pst_wakelock->lock_count)
         {
-            wake_unlock(&pst_wakelock->st_wakelock);
+            __pm_relax(&pst_wakelock->st_wakelock);
             pst_wakelock->locked_addr = (oal_ulong)0x0;
         }
     }
@@ -174,8 +226,9 @@ OAL_STATIC OAL_INLINE  void oal_wake_unlock(oal_wakelock_stru *pst_wakelock)
 
 OAL_STATIC OAL_INLINE oal_int32 oal_wakelock_active(oal_wakelock_stru *pst_wakelock)
 {
-#ifdef CONFIG_WAKELOCK
-    return wake_lock_active(&pst_wakelock->st_wakelock);
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)) && (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION) )
+
+    return pst_wakelock->st_wakelock.active;
 #else
     return 0;
 #endif

@@ -1,11 +1,28 @@
-#ifndef __CHR_USER_H__
-#define __CHR_USER_H__
-
+/*
+ * =====================================================================================
+ *
+ *       Filename:  chrdrv.h
+ *
+ *    Description:
+ *
+ *        Version:  1.0
+ *        Created:  09/18/2014 02:53:55 PM
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (),
+ *   Organization:
+ *
+ * =====================================================================================
+ */
 #ifdef __cpluscplus
 	#if __cplusplus
 	extern "C" {
 	#endif
 #endif
+
+#ifndef __CHR_USER_H__
+#define __CHR_USER_H__
 
 /*
  * 1 Other Include Head File
@@ -29,16 +46,16 @@ typedef enum chr_LogTag{
 }CHR_LOG_TAG;
 
 extern int __chr_printLog(CHR_LOGPRIORITY prio, CHR_LOG_TAG tag, const char *fmt,...);
-extern int __chr_exception(unsigned int errno);
-extern void chr_dev_exception_callback(void *buff, unsigned short len);
+extern int __chr_exception(uint32 errno);
+extern void chr_dev_exception_callback(void *buff, uint16 len);
 
 #define CHR_LOG(prio, tag, fmt...)                  __chr_printLog(prio, tag, ##fmt)
 #define CHR_EXCEPTION(errno)                        __chr_exception(errno)
+
+#endif
 
 #ifdef __cpluscplus
 	#if __cplusplus
 		}
 	#endif
-#endif
-
 #endif

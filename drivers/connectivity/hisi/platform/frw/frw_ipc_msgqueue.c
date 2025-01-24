@@ -1,16 +1,30 @@
+
+
+
 #ifdef __cplusplus
 #if __cplusplus
 extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include "frw_main.h"
 #include "frw_ipc_msgqueue.h"
 
+
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_FRW_IPC_MSGQUEUE_C
-
+/*****************************************************************************
+  2 ????????????
+*****************************************************************************/
 OAL_STATIC frw_ipc_msg_callback_stru gst_ipc_msg_callback;
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
 
 oal_uint32  frw_ipc_msg_queue_init(frw_ipc_msg_queue_stru *pst_msg_queue, oal_uint32 ul_queue_len)
 {
@@ -22,6 +36,7 @@ oal_uint32  frw_ipc_msg_queue_init(frw_ipc_msg_queue_stru *pst_msg_queue, oal_ui
         return OAL_ERR_CODE_PTR_NULL;
     }
 
+    /* ?????????????????????? */
     us_queue_size               = (oal_uint16)(OAL_SIZEOF(frw_ipc_msg_dscr_stru) * ul_queue_len);
     pst_msg_queue->pst_dscr     = (frw_ipc_msg_dscr_stru *)OAL_MEM_ALLOC(OAL_MEM_POOL_ID_LOCAL, us_queue_size, OAL_TRUE);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_msg_queue->pst_dscr))
@@ -30,6 +45,7 @@ oal_uint32  frw_ipc_msg_queue_init(frw_ipc_msg_queue_stru *pst_msg_queue, oal_ui
         return OAL_ERR_CODE_ALLOC_MEM_FAIL;
     }
 
+    /* ???????????????? */
     pst_msg_queue->ul_head      = 0;
     pst_msg_queue->ul_tail      = 0;
     pst_msg_queue->ul_max_num  = ul_queue_len;
@@ -37,8 +53,11 @@ oal_uint32  frw_ipc_msg_queue_init(frw_ipc_msg_queue_stru *pst_msg_queue, oal_ui
     return OAL_SUCC;
 }
 
+
 oal_uint32  frw_ipc_msg_queue_destroy(frw_ipc_msg_queue_stru *pst_msg_queue)
 {
+    /* ???????? */
+
     if (OAL_PTR_NULL == pst_msg_queue->pst_dscr)
     {
         OAM_WARNING_LOG0(0, OAM_SF_FRW, "{frw_ipc_msg_queue_destroy:: pst_msg_queue->pst_dscr is null ptr}");
@@ -51,6 +70,7 @@ oal_uint32  frw_ipc_msg_queue_destroy(frw_ipc_msg_queue_stru *pst_msg_queue)
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_msg_queue_recv(oal_void *p_arg)
 {
@@ -70,17 +90,20 @@ oal_uint32  frw_ipc_msg_queue_recv(oal_void *p_arg)
         return OAL_ERR_CODE_PTR_NULL;
     }
 
+    /* ???????? */
     do
     {
         ul_head = (pst_ipc_rx_msg_queue->ul_head);
         FRW_IPC_RING_RX_INCR(pst_ipc_rx_msg_queue->ul_head);
 
+        /* ????ipc_recv() */
         gst_ipc_msg_callback.p_rx_complete_func(pst_ipc_rx_msg_queue->pst_dscr[ul_head].pst_msg_mem);
 
     }while (!FRW_IPC_RING_EMPTY(pst_ipc_rx_msg_queue->ul_head, pst_ipc_rx_msg_queue->ul_tail));
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_msg_queue_send(frw_ipc_msg_queue_stru *pst_ipc_tx_msg_queue, frw_ipc_msg_mem_stru *pst_msg_input, oal_uint8 uc_flags, oal_uint8 uc_cpuid)
 {
@@ -92,6 +115,9 @@ oal_uint32  frw_ipc_msg_queue_send(frw_ipc_msg_queue_stru *pst_ipc_tx_msg_queue,
         return OAL_ERR_CODE_PTR_NULL;
     }
 
+    /* TBD ?? */
+
+    /* ?????????????? */
     if (OAL_UNLIKELY(FRW_IPC_RING_FULL(pst_ipc_tx_msg_queue->ul_head,
                       pst_ipc_tx_msg_queue->ul_tail,
                       pst_ipc_tx_msg_queue->ul_max_num)))
@@ -105,6 +131,7 @@ oal_uint32  frw_ipc_msg_queue_send(frw_ipc_msg_queue_stru *pst_ipc_tx_msg_queue,
 
     pst_ipc_tx_msg_queue->pst_dscr[ul_tail].pst_msg_mem = pst_msg_input;
 
+    /* ???????????????????????????????????? */
     if (FRW_IPC_TX_CTRL_ENABLED == uc_flags)
     {
         oal_irq_trigger(uc_cpuid);
@@ -112,6 +139,7 @@ oal_uint32  frw_ipc_msg_queue_send(frw_ipc_msg_queue_stru *pst_ipc_tx_msg_queue,
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_msg_queue_register_callback(frw_ipc_msg_callback_stru *p_ipc_msg_handler)
 {
@@ -127,11 +155,13 @@ oal_uint32  frw_ipc_msg_queue_register_callback(frw_ipc_msg_callback_stru *p_ipc
     return OAL_SUCC;
 }
 
+
 oal_uint32  frw_ipc_log_exit(frw_ipc_log_stru *pst_log)
 {
     /* TBD */
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_log_init(frw_ipc_log_stru *pst_log)
 {
@@ -153,6 +183,7 @@ oal_uint32  frw_ipc_log_init(frw_ipc_log_stru *pst_log)
     return OAL_SUCC;
 }
 
+
 oal_uint32  frw_ipc_log_recv_alarm(frw_ipc_log_stru *pst_log, oal_uint32 ul_lost)
 {
     oal_int32 l_lost, l_assert = 0;
@@ -163,8 +194,8 @@ oal_uint32  frw_ipc_log_recv_alarm(frw_ipc_log_stru *pst_log, oal_uint32 ul_lost
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    pst_log->ul_stats_recv_lost += ul_lost;
-    pst_log->ul_stats_assert++;
+    pst_log->ul_stats_recv_lost += ul_lost;    /* ?????????? */
+    pst_log->ul_stats_assert++;              /* ???????????? */
 
     l_lost      = (oal_int32)pst_log->ul_stats_recv_lost;
     l_assert    = (oal_int32)pst_log->ul_stats_assert;
@@ -174,6 +205,7 @@ oal_uint32  frw_ipc_log_recv_alarm(frw_ipc_log_stru *pst_log, oal_uint32 ul_lost
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_log_send_alarm(frw_ipc_log_stru *pst_log)
 {
@@ -186,7 +218,7 @@ oal_uint32  frw_ipc_log_send_alarm(frw_ipc_log_stru *pst_log)
     }
 
     pst_log->ul_stats_send_lost++;
-    pst_log->ul_stats_assert++;
+    pst_log->ul_stats_assert++;         /* ???????????? */
 
     l_lost = (oal_int32)pst_log->ul_stats_send_lost;
 
@@ -194,6 +226,7 @@ oal_uint32  frw_ipc_log_send_alarm(frw_ipc_log_stru *pst_log)
     OAM_WARNING_LOG1(0, OAM_SF_FRW, "{frw_ipc_log_send_alarm::the number of tx lost packets are %d. }\r\n", l_lost);
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_log_send(frw_ipc_log_stru *pst_log, oal_uint16 us_seq_num, oal_uint8 uc_target_cpuid, oal_uint8 uc_msg_type)
 {
@@ -216,6 +249,7 @@ oal_uint32  frw_ipc_log_send(frw_ipc_log_stru *pst_log, oal_uint16 us_seq_num, o
     return OAL_SUCC;
 }
 
+
 oal_uint32  frw_ipc_log_recv(frw_ipc_log_stru *pst_log, oal_uint16 us_seq_num, oal_uint8 uc_target_cpuid, oal_uint8 uc_msg_type)
 {
     if (OAL_PTR_NULL == pst_log)
@@ -236,6 +270,7 @@ oal_uint32  frw_ipc_log_recv(frw_ipc_log_stru *pst_log, oal_uint16 us_seq_num, o
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_log_tx_print(frw_ipc_log_stru *pst_log)
 {
@@ -258,6 +293,7 @@ oal_uint32  frw_ipc_log_tx_print(frw_ipc_log_stru *pst_log)
 
     return OAL_SUCC;
 }
+
 
 oal_uint32  frw_ipc_log_rx_print(frw_ipc_log_stru *pst_log)
 {
@@ -283,8 +319,18 @@ oal_uint32  frw_ipc_log_rx_print(frw_ipc_log_stru *pst_log)
     return OAL_SUCC;
 }
 
+
+
+
+
+
+
+
+
+
 #ifdef __cplusplus
     #if __cplusplus
         }
     #endif
 #endif
+

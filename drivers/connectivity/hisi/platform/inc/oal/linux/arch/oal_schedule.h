@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_LINUX_SCHEDULE_H__
 #define __OAL_LINUX_SCHEDULE_H__
 
@@ -7,6 +9,11 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
+/*lint -e322*/
 #include <asm/atomic.h>
 #include <linux/spinlock.h>
 #include <linux/interrupt.h>
@@ -20,10 +27,17 @@ extern "C" {
 #include <linux/module.h>
 #include <asm/uaccess.h>
 #include <linux/ktime.h>
+#include <linux/pm_wakeup.h>
 
-#ifdef CONFIG_WAKELOCK
-#include <linux/wakelock.h>
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+#include <uapi/linux/sched/types.h>
 #endif
+
+/*lint +e322*/
+
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 
 typedef atomic_t                oal_atomic;
 
@@ -46,6 +60,7 @@ typedef struct _oal_spin_lock_stru_
             .lock = __SPIN_LOCK_UNLOCKED(x)}
 #endif
 
+/* ???????????????????????????????????????? */
 typedef oal_uint32              (*oal_irqlocked_func)(oal_void *);
 
 typedef rwlock_t                oal_rwlock_stru;
@@ -55,9 +70,14 @@ typedef struct timer_list              oal_timer_list_stru;
 typedef struct tasklet_struct       oal_tasklet_stru;
 typedef oal_void                    (*oal_defer_func)(oal_uint);
 
+/* tasklet???? */
 #define OAL_DECLARE_TASK    DECLARE_TASKLET
 
-typedef wait_queue_t         oal_wait_queue_stru;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+    typedef wait_queue_entry_t   oal_wait_queue_stru;
+#else
+    typedef wait_queue_t         oal_wait_queue_stru;
+#endif
 typedef wait_queue_head_t    oal_wait_queue_head_stru;
 
 /**
@@ -94,14 +114,17 @@ typedef wait_queue_head_t    oal_wait_queue_head_stru;
 
 #define OAL_WAIT_QUEUE_INIT_HEAD(_pst_wq)   init_waitqueue_head(_pst_wq)
 
+/* ????????????????*/
 #define OAL_TIME_GET_STAMP_MS() jiffies_to_msecs(jiffies)
 
+/* ????????????????????,????1ms*/
 #define OAL_TIME_GET_HIGH_PRECISION_MS()  oal_get_time_stamp_from_timeval()
 
 #define OAL_ENABLE_CYCLE_COUNT()
 #define OAL_DISABLE_CYCLE_COUNT()
 #define OAL_GET_CYCLE_COUNT() 0
 
+/* ?????????????????????????? */
 #define OAL_TIME_CALC_RUNTIME(_ul_start, _ul_end)   ((((OAL_TIME_US_MAX_LEN) / HZ) * 1000) + ((OAL_TIME_US_MAX_LEN) % HZ) * (1000 / HZ) - (_ul_start) + (_ul_end))
 
 #define OAL_TIME_JIFFY    jiffies
@@ -123,6 +146,7 @@ typedef void (*oal_timer_func)(oal_uint);
 
 typedef oal_uint32 (*oal_module_func_t)(oal_void);
 
+/* ???????? */
 #define oal_module_init(_module_name)   module_init(_module_name)
 
 #define oal_module_license(_license_name) MODULE_LICENSE(_license_name)
@@ -131,18 +155,43 @@ typedef oal_uint32 (*oal_module_func_t)(oal_void);
 
 #define OAL_S_IRUGO         S_IRUGO
 
+/* ???????? */
 #define oal_module_exit(_module_name)   module_exit(_module_name)
 
+/* ???????????? */
 #define oal_module_symbol(_symbol)      EXPORT_SYMBOL(_symbol)
 #define OAL_MODULE_DEVICE_TABLE(_type, _name) MODULE_DEVICE_TABLE(_type, _name)
 
 #define oal_smp_call_function_single(core, task, info, wait) smp_call_function_single(core, task, info, wait)
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
 typedef struct proc_dir_entry       oal_proc_dir_entry_stru;
 
 typedef struct mutex                oal_mutex_stru;
 
 typedef struct completion           oal_completion;
+
 
 typedef struct
 {
@@ -161,6 +210,20 @@ typedef struct _oal_task_lock_stru_
     oal_uint32           claimed;
     oal_int32			 claim_cnt;
 }oal_task_lock_stru;
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 
 OAL_STATIC OAL_INLINE oal_void  oal_spin_lock_init(oal_spin_lock_stru *pst_lock)
 {
@@ -188,11 +251,13 @@ OAL_STATIC OAL_INLINE oal_void  oal_spin_lock_magic_bug(oal_spin_lock_stru *pst_
 #endif
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_spin_lock(oal_spin_lock_stru *pst_lock)
 {
     oal_spin_lock_magic_bug(pst_lock);
     spin_lock(&pst_lock->lock);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_spin_unlock(oal_spin_lock_stru *pst_lock)
 {
@@ -200,11 +265,13 @@ OAL_STATIC OAL_INLINE oal_void  oal_spin_unlock(oal_spin_lock_stru *pst_lock)
     spin_unlock(&pst_lock->lock);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void oal_spin_lock_bh(oal_spin_lock_stru *pst_lock)
 {
     oal_spin_lock_magic_bug(pst_lock);
     spin_lock_bh(&pst_lock->lock);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void oal_spin_unlock_bh(oal_spin_lock_stru *pst_lock)
 {
@@ -212,17 +279,20 @@ OAL_STATIC OAL_INLINE oal_void oal_spin_unlock_bh(oal_spin_lock_stru *pst_lock)
      spin_unlock_bh(&pst_lock->lock);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_spin_lock_irq_save(oal_spin_lock_stru *pst_lock, oal_uint *pui_flags)
 {
     oal_spin_lock_magic_bug(pst_lock);
     spin_lock_irqsave(&pst_lock->lock, *pui_flags);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_spin_unlock_irq_restore(oal_spin_lock_stru *pst_lock, oal_uint *pui_flags)
 {
     oal_spin_lock_magic_bug(pst_lock);
     spin_unlock_irqrestore(&pst_lock->lock, *pui_flags);
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint32  oal_spin_lock_irq_exec(oal_spin_lock_stru *pst_lock, oal_irqlocked_func func, oal_void *p_arg, oal_uint *pui_flags)
 {
@@ -237,80 +307,97 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_spin_lock_irq_exec(oal_spin_lock_stru *pst
     return ul_rslt;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_rw_lock_init(oal_rwlock_stru *pst_lock)
 {
     rwlock_init(pst_lock);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_rw_lock_read_lock(oal_rwlock_stru *pst_lock)
 {
     read_lock(pst_lock);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_rw_lock_read_unlock(oal_rwlock_stru *pst_lock)
 {
     read_unlock(pst_lock);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_rw_lock_write_lock(oal_rwlock_stru *pst_lock)
 {
     write_lock(pst_lock);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_rw_lock_write_unlock(oal_rwlock_stru *pst_lock)
 {
     write_unlock(pst_lock);
 }
+
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_task_init(oal_tasklet_stru *pst_task, oal_defer_func p_func, oal_void *p_args)
 {
     tasklet_init(pst_task, p_func, (oal_uint)p_args);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void oal_task_kill(oal_tasklet_stru *pst_task)
 {
     return tasklet_kill(pst_task);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_task_sched(oal_tasklet_stru *pst_task)
 {
     tasklet_schedule(pst_task);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint oal_task_is_scheduled(oal_tasklet_stru *pst_task)
 {
     return test_bit(TASKLET_STATE_SCHED, (oal_uint *)&pst_task->state);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_atomic_read(oal_atomic *p_vector)
 {
     return atomic_read(p_vector);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_atomic_set(oal_atomic *p_vector, oal_int32 l_val)
 {
     atomic_set(p_vector, l_val);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void oal_atomic_dec(oal_atomic *p_vector)
 {
     atomic_dec(p_vector);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_atomic_inc(oal_atomic *p_vector)
 {
     atomic_inc(p_vector);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_atomic_inc_and_test(oal_atomic *p_vector)
 {
     return atomic_inc_and_test(p_vector);
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_atomic_dec_and_test(oal_atomic *p_vector)
 {
     return atomic_dec_and_test(p_vector);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_time_get_stamp_us(oal_time_us_stru *pst_usec)
 {
@@ -324,15 +411,18 @@ OAL_STATIC OAL_INLINE oal_void  oal_time_get_stamp_us(oal_time_us_stru *pst_usec
 
 }
 
+
 OAL_STATIC OAL_INLINE oal_time_t_stru oal_ktime_get(oal_void)
 {
     return ktime_get();
 }
 
+
 OAL_STATIC OAL_INLINE oal_time_t_stru oal_ktime_sub(const oal_time_t_stru lhs, const oal_time_t_stru rhs)
 {
     return ktime_sub(lhs, rhs);
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_timer_init(oal_timer_list_stru *pst_timer, oal_uint32 ul_delay, oal_timer_func p_func, oal_uint ui_arg)
 {
@@ -342,25 +432,30 @@ OAL_STATIC OAL_INLINE oal_void  oal_timer_init(oal_timer_list_stru *pst_timer, o
     pst_timer->data = ui_arg;
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_timer_delete(oal_timer_list_stru *pst_timer)
 {
     return del_timer(pst_timer);
 }
+
 
 OAL_STATIC OAL_INLINE oal_int32  oal_timer_delete_sync(oal_timer_list_stru *pst_timer)
 {
     return del_timer_sync(pst_timer);
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  oal_timer_add(oal_timer_list_stru *pst_timer)
 {
     add_timer(pst_timer);
 }
 
+
 OAL_STATIC OAL_INLINE oal_int32  oal_timer_start(oal_timer_list_stru *pst_timer, oal_uint ui_delay)
 {
     return mod_timer(pst_timer, (jiffies + msecs_to_jiffies(ui_delay)));
 }
+
 
 OAL_STATIC OAL_INLINE oal_void  oal_timer_start_on(oal_timer_list_stru *pst_timer, oal_uint ui_delay, oal_int32 cpu)
 {
@@ -368,15 +463,18 @@ OAL_STATIC OAL_INLINE oal_void  oal_timer_start_on(oal_timer_list_stru *pst_time
     add_timer_on(pst_timer, cpu);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_copy_from_user(oal_void *p_to, const oal_void *p_from, oal_uint32 ul_size)
 {
     return (oal_uint32)copy_from_user(p_to, p_from, (oal_uint)ul_size);
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32  oal_copy_to_user(oal_void *p_to, const oal_void *p_from, oal_uint32 ul_size)
 {
     return (oal_uint32)copy_to_user(p_to, p_from, (oal_uint)ul_size);
 }
+
 
 OAL_STATIC OAL_INLINE oal_proc_dir_entry_stru* oal_create_proc_entry(const oal_int8 *pc_name, oal_uint16 us_mode, oal_proc_dir_entry_stru *pst_parent)
 {
@@ -387,6 +485,7 @@ OAL_STATIC OAL_INLINE oal_proc_dir_entry_stru* oal_create_proc_entry(const oal_i
 #endif
 }
 
+
 OAL_STATIC OAL_INLINE void oal_remove_proc_entry(const oal_int8 *pc_name, oal_proc_dir_entry_stru *pst_parent)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,44))
@@ -395,10 +494,12 @@ OAL_STATIC OAL_INLINE void oal_remove_proc_entry(const oal_int8 *pc_name, oal_pr
 #endif
 }
 
+
 OAL_STATIC OAL_INLINE oal_uint32 oal_time_is_before(oal_uint ui_time)
 {
     return (oal_uint32)time_is_before_jiffies(ui_time);
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint32 oal_time_after(oal_uint32 ul_time_a, oal_uint32 ul_time_b)
 {
@@ -416,8 +517,10 @@ OAL_STATIC OAL_INLINE oal_uint32  oal_wait_for_completion_timeout(oal_completion
 }
 
 #ifdef _PRE_OAL_FEATURE_TASK_NEST_LOCK
+
 extern oal_void _oal_smp_task_lock_(oal_task_lock_stru* pst_lock,oal_ulong  claim_addr);
 #define oal_smp_task_lock(lock)    _oal_smp_task_lock_(lock, (oal_ulong)_THIS_IP_)
+
 
 OAL_STATIC OAL_INLINE oal_void oal_smp_task_unlock(oal_task_lock_stru* pst_lock)
 {
@@ -448,6 +551,7 @@ OAL_STATIC OAL_INLINE oal_void oal_smp_task_unlock(oal_task_lock_stru* pst_lock)
 	}
 }
 
+
 OAL_STATIC OAL_INLINE oal_void oal_smp_task_lock_init(oal_task_lock_stru* pst_lock)
 {
     oal_memset((oal_void*)pst_lock,0,sizeof(oal_task_lock_stru));
@@ -458,6 +562,7 @@ OAL_STATIC OAL_INLINE oal_void oal_smp_task_lock_init(oal_task_lock_stru* pst_lo
 	pst_lock->claim_cnt = 0;
 }
 #endif
+
 
 OAL_STATIC OAL_INLINE oal_uint64 oal_get_time_stamp_from_timeval(oal_void)
 {

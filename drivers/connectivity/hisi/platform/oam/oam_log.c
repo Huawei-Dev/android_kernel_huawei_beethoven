@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oam_log.c
-  版 本 号   : 初稿
-  作    者   : c59720
-  生成日期   : 2012年9月10日
-  最近修改   :
-  功能描述   : OAM LOG功能。
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月10日
-    作    者   : c59720
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifdef __cplusplus
 #if __cplusplus
@@ -24,7 +7,7 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_main.h"
 #include "oam_log.h"
@@ -36,7 +19,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_OAM_LOG_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #ifdef _PRE_DEBUG_MODE
     oam_tx_complete_stat_stru   g_ast_tx_complete_stat[WLAN_DEVICE_SUPPORT_MAX_NUM_SPEC];
@@ -50,34 +33,11 @@ static char* g_loglevel_string[OAM_LOG_LEVEL_BUTT] ;
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
 
-/*****************************************************************************
- 函 数 名  : OAL_PRINT2KERNEL
- 功能描述  : 把打印信息保存一份到内核中
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_no
-             oal_int8*                        fmt
-             oal_uint                         p1
-             oal_uint                         p2
-             oal_uint                         p3
-             oal_uint                         p4
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015/1/23
-    作    者   : jwx222439
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-
-*****************************************************************************/
 oal_int32 OAL_PRINT2KERNEL(
         oal_uint32      ul_para,
         oal_uint16      us_line_no,
@@ -89,7 +49,7 @@ oal_int32 OAL_PRINT2KERNEL(
     oal_int32   l_ret;
     oal_int8    pc_buf[OAM_LOG_PRINT_DATA_LENGTH];
 
-    /* 将压缩参数解析成单个参数 */
+    /* ???????????????????????? */
     oal_uint8                   uc_vap_id       = (ul_para>>24)&0xf;
     oal_uint16                  us_file_no      = ul_para&0xffff;
     oam_log_level_enum_uint8    clog_level      = (ul_para>>28)&0xf;
@@ -120,54 +80,9 @@ oal_int32 OAL_PRINT2KERNEL(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : OAL_PRINT_NLOGS
- 功能描述  : 把打印信息保存一份到内核中
- 输入参数  : o
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015/1/23
-    作    者   : jwx222439
-    修改内容   : 新生成函数
 
-****************************************************************************
-oal_int32 OAL_PRINT_NLOGS(
-        const oal_int8* pfunc_local_name,
-        oal_uint16      us_file_no,
-        oal_uint16      us_line_no,
-        void*           pfunc_addr,
-        oal_uint8       uc_vap_id,
-        oal_uint8       en_feature_id,
-        oal_uint8       clog_level,
-        oal_int8*       fmt,
-        oal_uint p1, oal_uint p2, oal_uint p3, oal_uint p4)
-{
-    if (OAL_SWITCH_ON == oam_get_log_switch(uc_vap_id, en_feature_id, clog_level))
-        OAL_PRINT2KERNEL(uc_vap_id, us_file_no,clog_level,pfunc_local_name, us_line_no, pfunc_addr, fmt, p1, p2, p3, p4);
-    oam_log_print4(uc_vap_id, en_feature_id, us_file_no, us_line_no, clog_level, fmt, (oal_int32)p1, (oal_int32)p2, (oal_int32)p3, (oal_int32)p4);
 
-    return OAL_SUCC;
-}*/
-
-/*****************************************************************************
- 函 数 名  : oam_log_set_global_switch
- 功能描述  : 设置日志全局开关状态
- 输入参数  : oal_switch_enum_uint8 en_log_switch
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_set_global_switch(oal_switch_enum_uint8 en_log_switch)
 {
     if (OAL_UNLIKELY(en_log_switch >= OAL_SWITCH_BUTT))
@@ -181,22 +96,7 @@ oal_uint32 oam_log_set_global_switch(oal_switch_enum_uint8 en_log_switch)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_ratelimit_switch
- 功能描述  : 设置日志的流控开关
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oal_switch_enum_uint8 en_log_switch
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_uint32 oam_log_set_ratelimit_switch(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oal_switch_enum_uint8 en_log_switch)
@@ -218,22 +118,7 @@ OAL_STATIC  oal_uint32 oam_log_set_ratelimit_switch(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_ratelimit_switch
- 功能描述  : 获取日志的流控开关
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oal_switch_enum_uint8 *pen_log_switch
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_get_ratelimit_switch(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oal_switch_enum_uint8 *pen_log_switch)
@@ -255,22 +140,7 @@ oal_uint32 oam_log_get_ratelimit_switch(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_printk_ratelimit_intervel
- 功能描述  : 设置printk流控时间间隔，以秒为单位
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oal_uint32 ul_interval
- 输出参数  : 无
- 返 回 值  : OAL_STATIC  oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月21日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_uint32 oam_log_set_ratelimit_intervel(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oal_uint32 ul_interval)
@@ -295,22 +165,7 @@ OAL_STATIC  oal_uint32 oam_log_set_ratelimit_intervel(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_printk_ratelimit_burst
- 功能描述  : 设置printk流控的阈值
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oal_uint32 ul_burst
- 输出参数  : 无
- 返 回 值  : OAL_STATIC  oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月21日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_uint32 oam_log_set_ratelimit_burst(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oal_uint32 ul_burst)
@@ -335,22 +190,7 @@ OAL_STATIC  oal_uint32 oam_log_set_ratelimit_burst(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_ratelimit_param
- 功能描述  : 设置日志流控参数
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oam_ratelimit_stru *pst_printk_ratelimit
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月26日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_set_ratelimit_param(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oam_ratelimit_stru *pst_printk_ratelimit)
@@ -373,22 +213,7 @@ oal_uint32 oam_log_set_ratelimit_param(
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_ratelimit_param
- 功能描述  : 获取日志流控参数
- 输入参数  : oam_ratelimit_type_enum_uint8  en_ratelimit_type
-             oam_ratelimit_stru *pst_printk_ratelimit
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月26日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_get_ratelimit_param(
                 oam_ratelimit_type_enum_uint8  en_ratelimit_type,
                 oam_ratelimit_stru *pst_printk_ratelimit)
@@ -413,25 +238,7 @@ oal_uint32 oam_log_get_ratelimit_param(
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_printk_ratelimit
- 功能描述  : 检测相应的流控类型是否满足输出条件
-             在ul_interval时间范围内只允许ul_burst条记录输出；
-             在ul_interval内，若输出日志已经超过设定值，不再输出；
-             等待ul_interval之后再重新输出，ul_begin重新赋当前值
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : OAL_STATIC    oam_ratelimit_output_enum_uint8
-             RATELIMIT_NOT_OUTPUT  -- 不输出  RATELIMIT_OUTPUT  -- 输出
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oam_ratelimit_output_enum_uint8 oam_log_ratelimit(oam_ratelimit_type_enum_uint8 en_ratelimit_type )
 {
     oal_uint                            ui_flags;
@@ -440,13 +247,13 @@ oam_ratelimit_output_enum_uint8 oam_log_ratelimit(oam_ratelimit_type_enum_uint8 
 
     pst_ratelimit = &g_st_oam_mng_ctx.st_log_ctx.st_ratelimit[en_ratelimit_type];
 
-    //判断流控开关状态
+    //????????????????
     if (OAL_SWITCH_OFF == pst_ratelimit->en_ratelimit_switch)
     {
         return OAM_RATELIMIT_OUTPUT;
     }
 
-    //若间隔为0 表明不流控
+    //????????0 ??????????
     if (0 == pst_ratelimit->ul_interval)
     {
         return OAM_RATELIMIT_OUTPUT;
@@ -454,13 +261,13 @@ oam_ratelimit_output_enum_uint8 oam_log_ratelimit(oam_ratelimit_type_enum_uint8 
 
     oal_spin_lock_irq_save(&pst_ratelimit->spin_lock, &ui_flags);
 
-    //记录第一条日志的当前时间
+    //????????????????????????
     if (0 == pst_ratelimit->ul_begin)
     {
         pst_ratelimit->ul_begin = OAL_TIME_JIFFY;
     }
 
-    //起时时间+间隔在当前时间之前，表明间隔时间已经超时，需要重新计数了
+    //????????+????????????????????????????????????????????????????????
     if (oal_time_is_before(pst_ratelimit->ul_begin + pst_ratelimit->ul_interval))
     {
         pst_ratelimit->ul_begin   = 0;
@@ -468,14 +275,14 @@ oam_ratelimit_output_enum_uint8 oam_log_ratelimit(oam_ratelimit_type_enum_uint8 
         pst_ratelimit->ul_missed  = 0;
     }
 
-    /* 若未超时，判断当前时间周期内已输出日志计数是否达到限制输出数 */
-    /* 未达到限制的输出日志个数，继续输出 */
+    /* ???????????????????????????????????????????????????????????? */
+    /* ?????????????????????????????????? */
     if (pst_ratelimit->ul_burst && (pst_ratelimit->ul_burst > pst_ratelimit->ul_printed))
     {
         pst_ratelimit->ul_printed++;
         en_ret = OAM_RATELIMIT_OUTPUT;
     }
-    /* 达到限制的输出日志个数，不输出；待下一个周期再输出 */
+    /* ?????????????????????????????????????????????????? */
     else
     {
         pst_ratelimit->ul_missed++;
@@ -488,22 +295,7 @@ oam_ratelimit_output_enum_uint8 oam_log_ratelimit(oam_ratelimit_type_enum_uint8 
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_vap_switch
- 功能描述  : 设置VAP日志开关
- 输入参数  : oal_uint8 uc_vap_id
-             oam_log_switch_enum_uint8 en_log_switch
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_set_vap_switch(oal_uint8 uc_vap_id,
                                          oal_switch_enum_uint8 en_log_switch)
 {
@@ -524,24 +316,7 @@ oal_uint32 oam_log_set_vap_switch(oal_uint8 uc_vap_id,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_vap_level
- 功能描述  : 设置VAP下所有特性日志级别为en_log_level
-             不允许设置成OAM_LOG_LEVEL_INFO级别,在命令行里进行限制，本函数不处理
- 输入参数  : oal_uint8 uc_vap_id
-             oam_feature_enum_uint8 en_feature_id
-             oam_log_level_enum_uint8 en_log_level
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_set_vap_level(oal_uint8 uc_vap_id, oam_log_level_enum_uint8 en_log_level)
 {
     oam_feature_enum_uint8       en_feature_idx;
@@ -552,10 +327,10 @@ oal_uint32 oam_log_set_vap_level(oal_uint8 uc_vap_id, oam_log_level_enum_uint8 e
         return OAL_ERR_CODE_CONFIG_EXCEED_SPEC;
     }
 
-    /* 设置当前VAP的日志级别 */
+    /* ????????VAP?????????? */
     g_st_oam_mng_ctx.st_log_ctx.st_vap_log_info.aen_vap_log_level[uc_vap_id] = en_log_level;
 
-    /* 同时设置当前VAP下所有特性日志级别 */
+    /* ????????????VAP?????????????????? */
     for (en_feature_idx = 0; en_feature_idx < OAM_SOFTWARE_FEATURE_BUTT; en_feature_idx++)
     {
         oam_log_set_feature_level(uc_vap_id, en_feature_idx, en_log_level);
@@ -564,22 +339,7 @@ oal_uint32 oam_log_set_vap_level(oal_uint8 uc_vap_id, oam_log_level_enum_uint8 e
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_vap_level
- 功能描述  : 获取VAP的日志级别
- 输入参数  : oal_uint8 uc_vap_id
-             oam_log_level_enum_uint8 *pen_log_level
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月20日,星期二
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_get_vap_level(oal_uint8 uc_vap_id, oam_log_level_enum_uint8 *pen_log_level)
 {
     if (OAL_UNLIKELY(uc_vap_id >= WLAN_VAP_SUPPORT_MAX_NUM_LIMIT))
@@ -599,23 +359,7 @@ oal_uint32 oam_log_get_vap_level(oal_uint8 uc_vap_id, oam_log_level_enum_uint8 *
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_set_feature_level
- 功能描述  : 设置VAP下特性日志级别
- 输入参数  : oal_uint8 uc_vap_id
-             oam_feature_enum_uint8 en_feature_id
-             oam_log_level_enum_uint8 en_log_level
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_set_feature_level(oal_uint8 uc_vap_id,
                                            oam_feature_enum_uint8 en_feature_id,
                                            oam_log_level_enum_uint8 en_log_level)
@@ -643,22 +387,7 @@ oal_uint32 oam_log_set_feature_level(oal_uint8 uc_vap_id,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_get_feature_id
- 功能描述  : 由特性名称获取特性ID
- 输入参数  : oal_uint8 *puc_feature_name
-             oam_feature_enum_uint8 *puc_feature_id
- 输出参数  : puc_feature_id  对应特性名称的ID号
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_get_feature_id(oal_uint8 *puc_feature_name,
                                    oam_feature_enum_uint8 *puc_feature_id)
 {
@@ -682,23 +411,7 @@ oal_uint32 oam_get_feature_id(oal_uint8 *puc_feature_name,
     return OAL_FAIL;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_get_feature_name
- 功能描述  : 获取指定特性ID的特性名称
- 输入参数  : oam_feature_enum_uint8     en_feature_id
-             oal_uint8    *puc_feature_name
-             oal_uint8     uc_size
- 输出参数  : puc_feature_name
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_get_feature_name( oam_feature_enum_uint8     en_feature_id,
                                       oal_uint8    *puc_feature_name,
                                       oal_uint8     uc_size)
@@ -725,21 +438,7 @@ oal_uint32 oam_get_feature_name( oam_feature_enum_uint8     en_feature_id,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_show_feature_list
- 功能描述  : 显示特性缩写与全称的帮助信息
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月30日,星期五
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_show_feature_list(oal_void)
 {
     oam_feature_enum_uint8              en_feature_id;
@@ -753,33 +452,7 @@ oal_uint32 oam_show_feature_list(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_format_string
- 功能描述  : 根据格式,将日志信息写入到指定的文件中
- 输入参数  : oal_int8                        *pac_output_data
-             oal_uint16                       us_data_len
-             oal_uint8                        uc_vap_id
-             oam_feature_enum_uint8           en_feature_id
-             oal_uint16                       us_file_id
-             oal_uint16                       us_line_num
-             oam_log_level_enum_uint8         en_log_level
-             oal_int8                        *pc_string
-             oal_uint8                        uc_param_cnt
-             oal_int32                        l_param1
-             oal_int32                        l_param2
-             oal_int32                        l_param3
-             oal_int32                        l_param4
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_format_string(
                 oal_int8                        *pac_output_data,
                 oal_uint16                       us_data_len,
@@ -800,19 +473,19 @@ OAL_STATIC oal_uint32  oam_log_format_string(
     oal_uint8            auc_feature_name[OAM_FEATURE_NAME_ABBR_LEN] = {0};
     oal_int8            *pac_print_format[] =
     {
-        "LOG=%s, Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", \r\n",
-        "LOG=%s, Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu \r\n",
-        "LOG=%s, Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu \r\n",
-        "LOG=%s, Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu, %lu \r\n",
-        "LOG=%s, Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu, %lu, %lu \r\n"
+        "[LOG=%s]:Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", \r\n",
+        "[LOG=%s]:Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu \r\n",
+        "[LOG=%s]:Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu \r\n",
+        "[LOG=%s]:Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu, %lu \r\n",
+        "[LOG=%s]:Tick=%lu, FileId=%d, LineNo=%d, VAP=%d, FeatureName=%s, \"%s\", %lu, %lu, %lu, %lu \r\n"
      };
 
-    /* 获取系统TICK值 */
+    /* ????????TICK?? */
     ul_tick = (oal_uint32)OAL_TIME_GET_STAMP_MS();
 
     oam_get_feature_name(en_feature_id, auc_feature_name, OAL_SIZEOF(auc_feature_name));
 
-    /* 根据参数个数,将LOG信息保存到ac_file_data中 */
+    /* ????????????,??LOG??????????ac_file_data?? */
     switch (uc_param_cnt)
     {
         case 0:
@@ -851,33 +524,7 @@ OAL_STATIC oal_uint32  oam_log_format_string(
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_set_log_info_stru
- 功能描述  : 填写log结构体信息
- 输入参数  : 1) 输出内容
-             2) 输出最长长度
-             3) 打印级别
-             4) VAP编号
-             5) 模块ID
-             6) 文件ID
-             7) 行号
-             8) 要打印的字符串
-             9)打印的参数个数
-             10) 需要打印的第一个参数
-             11) 需要打印的第二个参数
-             12)需要打印的第三个参数
-             13)需要打印的第四个参数
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年10月18日
-    作    者   : z00237171
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  oam_set_log_info_stru(
                  oam_log_info_stru               *pst_log_info,
                  oal_uint8                        uc_vap_id,
@@ -892,10 +539,10 @@ OAL_STATIC oal_void  oam_set_log_info_stru(
 {
     oal_uint32                      ul_tick;
 
-    /* 获取系统TICK值 */
+    /* ????????TICK?? */
     ul_tick = (oal_uint32)OAL_TIME_GET_STAMP_MS();
 
-    /* 为日志结构体整数成员赋值 */
+    /* ???????????????????????? */
     pst_log_info->st_vap_log_level.bit_vap_id       = uc_vap_id;
     pst_log_info->st_vap_log_level.bit_log_level    = en_log_level;
     pst_log_info->us_file_id                        = us_file_id;
@@ -908,44 +555,28 @@ OAL_STATIC oal_void  oam_set_log_info_stru(
     pst_log_info->al_param[3]                       = l_param4;
 }
 
-#if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)||(_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)) /* UT需要部分接口进行测试 */
-/*****************************************************************************
- 函 数 名  : oam_log_check_param
- 功能描述  : 检查VAP编号、模块ID和打印级别的有效性
- 输入参数  : oal_uint8                           uc_vap_id
-             oam_feature_enum_uint8              en_feature_id
-             oam_log_level_enum_uint8            en_log_level
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
+#if ((_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)||(_PRE_OS_VERSION_WIN32_RAW == _PRE_OS_VERSION)) /* UT???????????????????? */
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_check_param(
                 oal_uint8                           uc_vap_id,
                 oam_feature_enum_uint8              en_feature_id,
                 oam_log_level_enum_uint8            en_log_level)
 {
-    /* 判断VAP是否合理 */
+    /* ????VAP???????? */
     if (OAL_UNLIKELY(uc_vap_id >= WLAN_VAP_SUPPORT_MAX_NUM_LIMIT))
     {
         OAM_IO_PRINTK("invalid uc_vap_id[%d]. \r\n", uc_vap_id);
         return OAL_ERR_CODE_CONFIG_EXCEED_SPEC;
     }
 
-    /* 判断特性ID的合理性 */
+    /* ????????ID???????? */
     if (OAL_UNLIKELY(en_feature_id >= OAM_SOFTWARE_FEATURE_BUTT))
     {
         OAM_IO_PRINTK("invalid en_feature_id[%d]. \r\n", en_feature_id);
         return OAL_ERR_CODE_CONFIG_EXCEED_SPEC;
     }
 
-    /* 判断打印级别的合理性 */
+    /* ???????????????????? */
     if (OAL_UNLIKELY(en_log_level >= OAM_LOG_LEVEL_BUTT))
     {
         OAM_IO_PRINTK("invalid en_log_level[%d]. \r\n", en_log_level);
@@ -955,23 +586,7 @@ OAL_STATIC oal_uint32  oam_log_check_param(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_feature_level
- 功能描述  : 获取VAP特性日志级别
- 输入参数  : oal_uint8 uc_vap_id
-             oam_soft_feature_enum_uint8 en_feature_id
-             oam_log_level_enum_uint8 *pen_log_level
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 oam_log_get_feature_level( oal_uint8 uc_vap_id,
                                                         oam_feature_enum_uint8 en_feature_id,
                                                         oam_log_level_enum_uint8 *pen_log_level)
@@ -999,21 +614,7 @@ OAL_STATIC oal_uint32 oam_log_get_feature_level( oal_uint8 uc_vap_id,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_global_switch
- 功能描述  : 获取全局开关状态
- 输入参数  : oal_switch_enum_uint8 *pen_log_switch
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月6日,星期五
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 oam_log_get_global_switch(oal_switch_enum_uint8 *pen_log_switch)
 {
     if (OAL_UNLIKELY(OAL_PTR_NULL == pen_log_switch))
@@ -1026,22 +627,7 @@ OAL_STATIC oal_uint32 oam_log_get_global_switch(oal_switch_enum_uint8 *pen_log_s
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_get_vap_switch
- 功能描述  : 获取VAP日志开关
- 输入参数  : oal_uint8 uc_vap_id
-             oal_switch_enum_uint8 *pen_log_switch
- 输出参数  : pen_log_switch
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 oam_log_get_vap_switch(oal_uint8 uc_vap_id,
                                                     oal_switch_enum_uint8 *pen_log_switch)
 {
@@ -1063,27 +649,7 @@ OAL_STATIC oal_uint32 oam_log_get_vap_switch(oal_uint8 uc_vap_id,
 }
 
 #if 0
-/*****************************************************************************
- 函 数 名  : oam_log_print_check
- 功能描述  : 打印前参数的合理性检查
- 输入参数  : 1) VAP编号
-             2) 模块ID
-             3) 打印级别
-             4) 是否需要打印标识
- 输出参数  : 无
- 返 回 值  : 1) OAL_ERR_CODE_PTR_NULL: 空指针
-             2) OAL_ERR_CODE_ARRAY_OVERFLOW: 枚举溢出
-             3) OAL_FAIL :失败
-             4) OAL_SUCC :成功
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年9月25日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_switch_check(
                 oal_uint8                           uc_vap_id,
                 oam_feature_enum_uint8              en_feature_id,
@@ -1100,35 +666,35 @@ OAL_STATIC oal_uint32  oam_log_switch_check(
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-     /* VAP编号、模块ID和打印级别参数检查 */
+     /* VAP??????????ID?????????????????? */
     ul_rslt = oam_log_check_param(uc_vap_id, en_feature_id, en_log_level);
     if (OAL_SUCC != ul_rslt)
     {
         return ul_rslt;
     }
 
-    /* 获取全局日志开关 */
+    /* ???????????????? */
     oam_log_get_global_switch(&en_log_switch);
     if (OAL_SWITCH_OFF == en_log_switch)
     {
         return OAL_SUCC;
     }
 
-    /* 获取VAP日志开关 */
+    /* ????VAP???????? */
     oam_log_get_vap_switch(uc_vap_id, &en_log_switch);
     if (OAL_SWITCH_OFF == en_log_switch)
     {
         return OAL_SUCC;
     }
 
-    /* 获取特性日志级别 */
+    /* ???????????????? */
     oam_log_get_feature_level(uc_vap_id, en_feature_id, &en_log_cfg_level);
     if (en_log_level > en_log_cfg_level)
     {
         return OAL_SUCC;
     }
 
-    /* 日志级别大于等于特性日志级别，则符合日志输出条件 */
+    /* ???????????????????????????????????????????????? */
     *pen_log_switch = OAL_SWITCH_ON;
 
     return OAL_SUCC;
@@ -1136,31 +702,7 @@ OAL_STATIC oal_uint32  oam_log_switch_check(
 #endif
 #endif
 
-/*****************************************************************************
- 函 数 名  : oam_log_print_to_console
- 功能描述  : 日志输出至串口终端
- 输入参数  : oal_uint8                        uc_vap_id
-             oam_feature_enum_uint8           en_feature_id
-             oal_uint16                       us_file_id
-             oal_uint16                       us_line_num
-             oam_log_level_enum_uint8         en_log_level
-             oal_int8                        *pc_string
-             oal_uint8                        uc_param_cnt
-             oal_int32                        l_param1
-             oal_int32                        l_param2
-             oal_int32                        l_param3
-             oal_int32                        l_param4
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_print_to_console(
                 oal_uint8                        uc_vap_id,
                 oam_feature_enum_uint8           en_feature_id,
@@ -1174,7 +716,7 @@ OAL_STATIC oal_uint32  oam_log_print_to_console(
                 oal_int32                        l_param3,
                 oal_int32                        l_param4)
 {
-    oal_int8    ac_print_buff[OAM_PRINT_FORMAT_LENGTH]; /* 用于保存写入到文件中的格式 */
+    oal_int8    ac_print_buff[OAM_PRINT_FORMAT_LENGTH]; /* ?????????????????????????? */
 
     oam_log_format_string(ac_print_buff,
                           OAM_PRINT_FORMAT_LENGTH,
@@ -1195,33 +737,7 @@ OAL_STATIC oal_uint32  oam_log_print_to_console(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_alarm_print_to_file
- 功能描述  : 将日志信息打印到文件中
- 输入参数  : 1) VAP编号
-             2) 文件ID
-             3) 行号
-             4) 模块ID
-             5) 打印级别
-             6) 要打印的字符串
-             7) 打印的参数个数
-             8) 需要打印的第一个参数
-             9) 需要打印的第二个参数
-             10)需要打印的第三个参数
-             11)需要打印的第四个参数
- 输出参数  : 无
- 返 回 值  : 1) OAL_ERR_CODE_PTR_NULL: 空指针
-             2) OAL_ERR_CODE_ARRAY_OVERFLOW: 枚举溢出
-             3) OAL_SUCC :成功
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月11日
-    作    者   : h00212953
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_log_print_to_file(
                 oal_uint8                        uc_vap_id,
                 oam_feature_enum_uint8           en_feature_id,
@@ -1236,7 +752,7 @@ oal_uint32  oam_log_print_to_file(
                 oal_int32                        l_param4)
 {
 #ifdef _PRE_WIFI_DMT
-    oal_int8    ac_output_data[OAM_PRINT_FORMAT_LENGTH]; /* 用于保存写入到文件中的格式 */
+    oal_int8    ac_output_data[OAM_PRINT_FORMAT_LENGTH]; /* ?????????????????????????? */
     oal_uint32  ul_ret;
 
     oam_log_format_string(ac_output_data,
@@ -1263,31 +779,7 @@ oal_uint32  oam_log_print_to_file(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_alarm_print_to_sdt
- 功能描述  : 日志的标准输出函数
- 输入参数  : 1) VAP编号
-             2) 文件ID
-             3) 行号
-             4) 模块ID
-             5) 打印级别
-             6) 要打印的字符串
-             7) 打印的参数个数
-             8) 需要打印的第一个参数
-             9) 需要打印的第二个参数
-             10)需要打印的第三个参数
-             11)需要打印的第四个参数
- 输出参数  : 无
- 返 回 值  : OAL_SUCC: 成功,或其他错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年10月11日
-    作    者   : c59720
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_print_to_sdt(
                 oal_uint8                        uc_vap_id,
                 oam_feature_enum_uint8           en_feature_id,
@@ -1316,7 +808,7 @@ OAL_STATIC oal_uint32  oam_log_print_to_sdt(
                           l_param3,
                           l_param4);
 
-    /* WARNING和ERROR级别流控 */
+    /* WARNING??ERROR???????? */
     if ((OAM_LOG_LEVEL_INFO != en_log_level)
         && (OAM_RATELIMIT_NOT_OUTPUT == oam_log_ratelimit(OAM_RATELIMIT_TYPE_LOG)))
     {
@@ -1333,32 +825,7 @@ OAL_STATIC oal_uint32  oam_log_print_to_sdt(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_print_n_param
- 功能描述  : LOG模块提供的LOG打印函数总入口(N个参数)
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oam_log_level_enum_uint8         en_log_level
-             oal_int8                        *pc_string
-             oal_uint8                        uc_param_cnt
-             oal_int32                        l_param1
-             oal_int32                        l_param2
-             oal_int32                        l_param3
-             oal_int32                        l_param4
- 输出参数  : 无
- 返 回 值  : OAL_STATIC oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul_para,
                                                     oal_uint16                       us_line_num,
                                                     oal_int8                        *pc_string,
@@ -1382,8 +849,8 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-#if 0   /* 日志输出检查放在宏实现中 */
-    /* 判断是否满足日志输出条件 */
+#if 0   /* ???????????????????????? */
+    /* ???????????????????????? */
     oam_log_switch_check(uc_vap_id, en_feature_id, en_log_level, &en_log_switch);
     if (OAL_SWITCH_OFF == en_log_switch)
     {
@@ -1391,11 +858,11 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
     }
 #endif
 
-    /* 若输出条件满足，判断输出方向 */
+    /* ???????????????????????????? */
     oam_get_output_type(&en_output_type);
     switch (en_output_type)
     {
-        /* 输出至控制台 */
+        /* ???????????? */
         case OAM_OUTPUT_TYPE_CONSOLE:
             ul_ret = oam_log_print_to_console(uc_vap_id,
                                                en_feature_id,
@@ -1410,7 +877,7 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
                                                l_param4);
             break;
 
-        /* 输出至文件系统中 */
+        /* ???????????????? */
         case OAM_OUTPUT_TYPE_FS:
             ul_ret =  oam_log_print_to_file(uc_vap_id,
                                             en_feature_id,
@@ -1425,7 +892,7 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
                                             l_param4);
             break;
 
-        /* 输出至PC侧调测工具平台 */
+        /* ??????PC?????????????? */
         case OAM_OUTPUT_TYPE_SDT:
             ul_ret =  oam_log_print_to_sdt(uc_vap_id,
                                            en_feature_id,
@@ -1440,7 +907,7 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
 
             break;
 
-        /* 无效配置 */
+        /* ???????? */
         default:
             ul_ret = OAL_ERR_CODE_INVALID_CONFIG;
             break;
@@ -1450,26 +917,7 @@ OAL_STATIC oal_uint32  oam_log_print_n_param(oal_uint32                       ul
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_log_print0
- 功能描述  : 日志打印函数：无参数日志输出
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oal_int8                         *pc_string
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-
-*****************************************************************************/
 oal_uint32  oam_log_print0( oal_uint32  ul_para,
                                 oal_uint16  us_line_num,
                                 oal_int8    *pc_string)
@@ -1486,27 +934,7 @@ oal_uint32  oam_log_print0( oal_uint32  ul_para,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_print1
- 功能描述  : 日志打印函数：一个参数
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oal_int8                         *pc_string
-             oal_uint                         l_param1
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-
-*****************************************************************************/
 oal_uint32  oam_log_print1( oal_uint32  ul_para,
                                 oal_uint16  us_line_num,
                                 oal_int8    *pc_string,
@@ -1525,28 +953,7 @@ oal_uint32  oam_log_print1( oal_uint32  ul_para,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_print2
- 功能描述  : 日志打印函数：两个参数
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oal_int8                         *pc_string
-             oal_uint                         l_param1
-             oal_uint                         l_param2
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-
-*****************************************************************************/
 oal_uint32  oam_log_print2( oal_uint32  ul_para,
                                 oal_uint16  us_line_num,
                                 oal_int8    *pc_string,
@@ -1566,28 +973,7 @@ oal_uint32  oam_log_print2( oal_uint32  ul_para,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_print3
- 功能描述  : 日志打印函数：三个参数
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oal_int8                         *pc_string
-             oal_uint                         l_param1
-             oal_uint                         l_param2
-             oal_uint                         l_param3
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-*****************************************************************************/
 oal_uint32  oam_log_print3( oal_uint32  ul_para,
                                 oal_uint16  us_line_num,
                                 oal_int8    *pc_string,
@@ -1608,29 +994,7 @@ oal_uint32  oam_log_print3( oal_uint32  ul_para,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_print4
- 功能描述  : 日志打印函数：四个参数
- 输入参数  : oal_uint32                       ul_para(压缩参数)
-             oal_uint16                       us_line_num
-             oal_int8                         *pc_string
-             oal_uint                         l_param1
-             oal_uint                         l_param2
-             oal_uint                         l_param3
-             oal_uint                         l_param4
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2016年5月13日
-    作    者   : lwx298727
-    修改内容   : 修改压缩参数，精简使用内存
-*****************************************************************************/
 oal_uint32  oam_log_print4( oal_uint32  ul_para,
                                 oal_uint16  us_line_num,
                                 oal_int8    *pc_string,
@@ -1652,31 +1016,14 @@ oal_uint32  oam_log_print4( oal_uint32  ul_para,
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_printk
- 功能描述  : 串口输出日志
- 输入参数  : oal_uint16                       us_file_no
-             oal_uint16                       us_line_num
-             const oal_int8                  *pc_func_name
-             oal_int8                        *pc_args_buf
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oam_log_printk(
                 oal_uint16                       us_file_no,
                 oal_uint16                       us_line_num,
                 const oal_int8                  *pc_func_name,
                 oal_int8                        *pc_args_buf)
 {
-    oal_int8    ac_output_data[OAM_PRINT_FORMAT_LENGTH]; /* 用于保存写入到文件中的格式 */
+    oal_int8    ac_output_data[OAM_PRINT_FORMAT_LENGTH]; /* ?????????????????????????? */
     oal_int8    ac_printk_format[] = {"Tick=%lu, FileId=%d, LineNo=%d, FuncName::%s, \"%s\"\r\n"};
     oal_uint32  ul_tick;
 
@@ -1690,26 +1037,7 @@ OAL_STATIC oal_uint32  oam_log_printk(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_console_printk
- 功能描述  : 输出串口日志函数
-             防止串口频繁打印，该串口使用了流控
- 输入参数  : oal_uint16                       us_file_no
-             oal_uint16                       us_line_num
-             const oal_int8                  *pc_func_name
-             const oal_int8                  *pc_fmt
-             ...
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月14日,星期三
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_log_console_printk(
                 oal_uint16                       us_file_no,
                 oal_uint16                       us_line_num,
@@ -1727,7 +1055,7 @@ oal_uint32  oam_log_console_printk(
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 流控判断 */
+    /* ???????? */
     if (OAM_RATELIMIT_NOT_OUTPUT == oam_log_ratelimit(OAM_RATELIMIT_TYPE_PRINTK))
     {
         return OAL_SUCC;
@@ -1742,21 +1070,7 @@ oal_uint32  oam_log_console_printk(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_ratelimit_init
- 功能描述  : printk日志流控初始化
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月20日,星期二
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_log_ratelimit_init(oal_void)
 {
     oal_uint32                          ul_ret = OAL_SUCC;
@@ -1790,22 +1104,7 @@ oal_void oam_log_param_init(oal_void)
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oam_log_init
- 功能描述  : 对LOG模块进行初始化操作
-             (系统上电和系统复位调用，在oam_init函数执行完后调用)
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC:成功
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年9月20日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oam_log_init(oal_void)
 {
     oal_uint8   uc_vap_idx;
@@ -1813,7 +1112,7 @@ oal_uint32  oam_log_init(oal_void)
 
     oam_log_param_init();
 
-    /* 日志全局开关默认为开 */
+    /* ???????????????????? */
     ul_ret = oam_log_set_global_switch(OAL_SWITCH_ON);
 
     if (OAL_SUCC != ul_ret)
@@ -1821,17 +1120,17 @@ oal_uint32  oam_log_init(oal_void)
         return ul_ret;
     }
 
-    /* VAP级别日志设置 */
+    /* VAP???????????? */
     for (uc_vap_idx = 0; uc_vap_idx < WLAN_VAP_SUPPORT_MAX_NUM_LIMIT; uc_vap_idx++)
     {
-        /* 设置VAP日志开关 */
+        /* ????VAP???????? */
         ul_ret += oam_log_set_vap_switch(uc_vap_idx, OAL_SWITCH_ON);
 
-        /* 设置VAP日志级别 */
+        /* ????VAP???????? */
         ul_ret += oam_log_set_vap_level(uc_vap_idx, OAM_LOG_DEFAULT_LEVEL);
 
 #if defined(_PRE_PRODUCT_ID_HI110X_DEV)
-        /* 设置feature打印级别 */
+        /* ????feature???????? */
         ul_ret += oam_log_set_feature_level(uc_vap_idx, OAM_SF_WPA, OAM_LOG_LEVEL_INFO);
 #endif
         if (OAL_SUCC != ul_ret)
@@ -1840,28 +1139,13 @@ oal_uint32  oam_log_init(oal_void)
         }
     }
 
-    /* printk日志流控初始化 */
+    /* printk?????????????? */
     ul_ret = oam_log_ratelimit_init();
 
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_exception_record
- 功能描述  : 异常统计记录更新
- 输入参数  : oal_uint8 uc_vap_id
-             oam_excp_type_enum_uint8 en_excp_id
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月26日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_exception_record(oal_uint8 uc_vap_id, oam_excp_type_enum_uint8 en_excp_id)
 {
     if (OAL_UNLIKELY(uc_vap_id >= WLAN_VAP_SUPPORT_MAX_NUM_LIMIT))
@@ -1878,7 +1162,7 @@ oal_uint32 oam_exception_record(oal_uint8 uc_vap_id, oam_excp_type_enum_uint8 en
 
     g_st_oam_mng_ctx.st_exception_ctx[uc_vap_id].ast_excp_record_tbl[en_excp_id].ul_record_cnt++;
 
-    /* 已刷新，可上报 */
+    /* ?????????????? */
     g_st_oam_mng_ctx.st_exception_ctx[uc_vap_id].en_status = OAM_EXCP_STATUS_REFRESHED;
 
     g_st_oam_mng_ctx.st_exception_ctx[uc_vap_id].ast_excp_record_tbl[en_excp_id].en_status = OAM_EXCP_STATUS_REFRESHED;
@@ -1886,23 +1170,7 @@ oal_uint32 oam_exception_record(oal_uint8 uc_vap_id, oam_excp_type_enum_uint8 en
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oam_exception_stat_report
- 功能描述  : 异常统计上报函数入口
- 输入参数  : oal_uint8 uc_vap_id
-             oam_excp_type_enum_uint8 en_excp_id
-             oal_uint32 ul_cnt
- 输出参数  : 无
- 返 回 值  : oal_uint32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月26日,星期一
-    作    者   : y00201072
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oam_exception_stat_report(
                 oal_uint8 uc_vap_id,
                 oam_excp_type_enum_uint8 en_excp_id,
@@ -2074,21 +1342,7 @@ oal_uint32 oam_exception_stat_report(
 }
 
 
-/*****************************************************************************
- 函 数 名  : oam_exception_stat_handler
- 功能描述  : 针对异常的处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月16日
-    作    者   : 张炜 64406
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oam_exception_stat_handler(oal_uint8 en_moduleid, oal_uint8 uc_vap_idx)
 {
     oam_excp_record_stru           *pst_excp_record;
@@ -2098,7 +1352,7 @@ oal_void oam_exception_stat_handler(oal_uint8 en_moduleid, oal_uint8 uc_vap_idx)
     {
         case OM_WIFI:
         {
-            /* 当前VAP异常统计为0 */
+            /* ????VAP??????????0 */
             if (OAM_EXCP_STATUS_REFRESHED != g_st_oam_mng_ctx.st_exception_ctx[uc_vap_idx].en_status)
             {
             }
@@ -2108,7 +1362,7 @@ oal_void oam_exception_stat_handler(oal_uint8 en_moduleid, oal_uint8 uc_vap_idx)
 
                 for (en_excp_idx = 0; en_excp_idx < OAM_EXCP_TYPE_BUTT; en_excp_idx++)
                 {
-                    /* 记录数已刷新 */
+                    /* ???????????? */
                     if (OAM_EXCP_STATUS_REFRESHED == pst_excp_record[en_excp_idx].en_status)
                     {
                         oam_exception_stat_report(uc_vap_idx, en_excp_idx, pst_excp_record[en_excp_idx].ul_record_cnt);
@@ -2116,7 +1370,7 @@ oal_void oam_exception_stat_handler(oal_uint8 en_moduleid, oal_uint8 uc_vap_idx)
                     }
                 }
 
-                /* 已上报，置初始状态 */
+                /* ?????????????????? */
                 g_st_oam_mng_ctx.st_exception_ctx[uc_vap_idx].en_status = OAM_EXCP_STATUS_INIT;
             }
         }

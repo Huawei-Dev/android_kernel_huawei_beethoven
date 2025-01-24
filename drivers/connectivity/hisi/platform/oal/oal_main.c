@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oal_main.c
-  版 本 号   : 初稿
-  作    者   : 康国昌
-  生成日期   : 2012年9月18日
-  最近修改   :
-  功能描述   : OAL模块初始化
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_main.h"
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
@@ -46,30 +29,16 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 void __iomem *g_l2cache_base;
 #endif
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : oal_main_init
- 功能描述  : OAL模块初始化总入口，包含OAL模块内部所有特性的初始化。
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
 {
     oal_uint32  ul_rslt;
@@ -80,12 +49,12 @@ oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
     }
 #endif
 
-    /* 为了解各模块的启动时间，增加时间戳打印 */
+    /* ?????????????????????????????????????? */
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST) && !defined(CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT) && defined(_PRE_CONFIG_CONN_HISI_SYSFS_SUPPORT)
-    /*110X 驱动build in，内存池初始化上移到内核完成，保证大片内存申请成功*/
+    /*110X ????build in??????????????????????????????????????????????????*/
 #else
-    /* 内存池初始化 */
+    /* ???????????? */
     ul_rslt = oal_mem_init_pool();
     if (ul_rslt != OAL_SUCC)
     {
@@ -96,11 +65,11 @@ oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
 #endif
 
 #if (_PRE_PRODUCT_ID_HI1151 == _PRE_PRODUCT_ID)
-    /* pci驱动注册 */
+    /* pci???????? */
     ul_rslt = oal_pci_init();
     if (OAL_SUCC != ul_rslt)
     {
-        /* 内存池卸载 */
+        /* ?????????? */
         oal_mem_exit();
         OAL_BUG_ON(1);
         return -OAL_EFAIL;
@@ -114,9 +83,9 @@ oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
         return -OAL_EFAIL;
     }
 #elif ((defined(_PRE_PRODUCT_ID_HI110X_HOST))||(defined(_PRE_PRODUCT_ID_HI110X_DEV)))
-    /* Hi1102 SDIO总线初始化接口 TBD */
+    /* Hi1102 SDIO?????????????? TBD */
 
-    /* 初始化: 总线上的chip数量增加1 */
+    /* ??????: ????????chip????????1 */
     oal_bus_init_chip_num();
     ul_rslt = oal_bus_inc_chip_num();
     if(OAL_SUCC != ul_rslt)
@@ -140,13 +109,13 @@ oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
     }
 #endif
 
-    /* 启动成功 */
+    /* ???????? */
 #if (_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)
     OAL_MEMZERO(g_past_net_device, WLAN_VAP_SUPPORT_MAX_NUM_LIMIT * OAL_SIZEOF(oal_net_device_stru *));
 #endif
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /* HCC初始化 */
+    /* HCC?????? */
     if (OAL_UNLIKELY(NULL ==hcc_module_init()))
     {
         OAL_IO_PRINT("[ERROR]hcc_module_init return err null\n");
@@ -173,21 +142,7 @@ oal_int32  ATTR_OAL_NO_FUNC_TRACE oal_main_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_main_exit
- 功能描述  : OAL模块卸载
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 模块卸载返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  ATTR_OAL_NO_FUNC_TRACE oal_main_exit(oal_void)
 {
 #ifdef _PRE_OAL_FEATURE_KEY_PROCESS_TRACE
@@ -199,28 +154,28 @@ oal_void  ATTR_OAL_NO_FUNC_TRACE oal_main_exit(oal_void)
 #endif
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /* HCC卸载*/
+    /* HCC????*/
     hcc_module_exit(hcc_get_default_handler());
 #endif
 
 #if (_PRE_PRODUCT_ID_HI1151 == _PRE_PRODUCT_ID)
 
-    /* pci驱动卸载 */
+    /* pci???????? */
     oal_pci_exit();
 
     oal_5115_pci_exit();
 
 #elif ((defined(_PRE_PRODUCT_ID_HI110X_HOST))||(defined(_PRE_PRODUCT_ID_HI110X_DEV)))
-    /* Hi1102 SDIO总线exit接口(不下电) TBD */
+    /* Hi1102 SDIO????exit????(??????) TBD */
 
-    /* chip num初始化:0 */
+    /* chip num??????:0 */
     oal_bus_init_chip_num();
 #endif
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST) && !defined(CONFIG_HI110X_KERNEL_MODULES_BUILD_SUPPORT) && defined(_PRE_CONFIG_CONN_HISI_SYSFS_SUPPORT)
-    /*110X 驱动build in，内存池初始化上移到内核完成，保证大片内存申请成功*/
+    /*110X ????build in??????????????????????????????????????????????????*/
 #else
-    /* 内存池卸载 */
+    /* ?????????? */
     oal_mem_exit();
 #endif
 
@@ -233,61 +188,19 @@ oal_void  ATTR_OAL_NO_FUNC_TRACE oal_main_exit(oal_void)
 }
 
 #if 0
-/*****************************************************************************
- 函 数 名  : __cyg_profile_func_enter
- 功能描述  : 进入替换函数原型
- 输入参数  : 固定为函数地址和call site
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月20日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void ATTR_OAL_NO_FUNC_TRACE __cyg_profile_func_enter(void *this_func, void *call_site)
 {
 
 }
 
-/*****************************************************************************
- 函 数 名  : __cyg_profile_func_exit
- 功能描述  : 退出替换函数原型
- 输入参数  : 固定为函数地址和call site
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月20日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 void ATTR_OAL_NO_FUNC_TRACE __cyg_profile_func_exit(void *this_func, void *call_site)
 {
 
 }
 #endif
-/*****************************************************************************
- 函 数 名  : oal_chip_get_version
- 功能描述  : 获取chip version,由平台提供总的version入口,device和host再分别调用
- 输入参数  : oal_void
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年05月25日
-    作    者   : liuzhengqi
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_chip_get_version(oal_void)
 {
     oal_uint32 ul_chip_ver = 0;
@@ -297,7 +210,7 @@ oal_uint32  oal_chip_get_version(oal_void)
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     ul_chip_ver   = WLAN_CHIP_VERSION_HI1151V100H;
 #elif defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /* 1102 02需要SOC提供寄存器后实现 */
+    /* 1102 02????SOC???????????????? */
     ul_chip_ver   = WLAN_CHIP_VERSION_HI1151V100H;
 #endif
 
@@ -306,7 +219,7 @@ oal_uint32  oal_chip_get_version(oal_void)
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
     ul_chip_ver   = WLAN_CHIP_VERSION_HI1151V100H;
 #elif defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST)
-    /* 1102 02需要SOC提供寄存器后实现 */
+    /* 1102 02????SOC???????????????? */
     ul_chip_ver   = WLAN_CHIP_VERSION_HI1151V100H;
 #endif
 
@@ -314,21 +227,7 @@ oal_uint32  oal_chip_get_version(oal_void)
     return ul_chip_ver;
 
 }
-/*****************************************************************************
- 函 数 名  : oal_chip_get_version
- 功能描述  : 根据chip version获取device num
- 输入参数  : chip version
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年05月25日
-    作    者   : liuzhengqi
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 oal_chip_get_device_num(oal_uint32   ul_chip_ver)
 {
     oal_uint8   uc_device_nums = 0;
@@ -348,7 +247,7 @@ oal_uint8 oal_chip_get_device_num(oal_uint32   ul_chip_ver)
     return uc_device_nums;
 }
 
-#if defined(_PRE_PRODUCT_ID_HI110X_HOST)
+#if defined(_PRE_PRODUCT_ID_HI110X_HOST) && defined(HAVE_HISI_NFC)
 #ifndef WIN32
 oal_void hi_wlan_power_off(void)
 {
@@ -357,7 +256,7 @@ oal_void hi_wlan_power_off(void)
 
 oal_void save_nfc_lowpower_log(oal_void)
 {
-    /*读取nfc低电log数据,然后下电*/
+    /*????nfc????log????,????????*/
     save_nfc_lowpower_log_2_sdt();
     hi_wlan_power_off();
 }

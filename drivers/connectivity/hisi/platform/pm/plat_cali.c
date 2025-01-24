@@ -1,12 +1,29 @@
+
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include "plat_firmware.h"
 #include "plat_cali.h"
 #include "plat_debug.h"
 #include "plat_type.h"
 
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 #define RF_CALI_DATA_BUF_LEN  (sizeof(oal_cali_param_stru))
 
+/*****************************************************************************
+  3 ????????????
+*****************************************************************************/
+
+/*??????????????buf*/
 oal_uint8 *g_pucCaliDataBuf = NULL;
 oal_uint8 g_uc_netdev_is_open = OAL_FALSE;
+/*****************************************************************************
+  4 ????????
+*****************************************************************************/
+
 
 oal_int32 get_cali_count(oal_uint32 *count)
 {
@@ -37,7 +54,8 @@ oal_int32 get_cali_count(oal_uint32 *count)
     return SUCC;
 }
 
-int get_bfgx_cali_data(oal_uint8 *buf, oal_uint32 *len, oal_uint32 buf_len)
+
+int32 get_bfgx_cali_data(oal_uint8 *buf, oal_uint32 *len, oal_uint32 buf_len)
 {
     oal_cali_param_stru *pst_cali_data         = NULL;
     oal_cali_param_addition_stru cali_addition = {0x00};
@@ -77,10 +95,20 @@ int get_bfgx_cali_data(oal_uint8 *buf, oal_uint32 *len, oal_uint32 buf_len)
     OS_MEM_CPY(buf, (oal_uint8 *)&(pst_cali_data->st_bfgn_cali_data), bfgx_cali_data_len);
     *len = bfgx_cali_data_len;
 
+    /**********************************************************************************
+    |----------------------------------------------------------------------------------|
+    |   oal_cali_param_stru          : ??????????        |            216 byte         |
+    |----------------------------------------------------------------------------------|
+    |   oal_cali_param_addition_stru : ????????????      |             40 byte         |
+    |----------------------------------------------------------------------------------|
+    ************************************************************************************/
+
+    /******************************* WIFI 5G?????????????? ******************************/
     result = get_cust_conf_int32(INI_MODU_WIFI, CHECK_5G_ENABLE, &wifi_5g_enable_info);
     if (0 > result)
     {
         PS_PRINT_WARNING("host get wifi 5g enable info fail\n");
+        /* ????????,??????5G */
         wifi_5g_enable_info = WIFI_MODE_5G;
     }
 
@@ -93,6 +121,7 @@ int get_bfgx_cali_data(oal_uint8 *buf, oal_uint32 *len, oal_uint32 buf_len)
         cali_addition.ul_wifi_2_4g_only = 0;
     }
 
+    /******************************** bfgx?????????????????????? *********************************/
     if (is_bfgx_exception())
     {
         cali_addition.ul_excep_reboot = SYS_EXCEP_REBOOT;
@@ -108,6 +137,7 @@ int get_bfgx_cali_data(oal_uint8 *buf, oal_uint32 *len, oal_uint32 buf_len)
     return SUCC;
 }
 
+
 void *get_cali_data_buf_addr(void)
 {
     return g_pucCaliDataBuf;
@@ -115,6 +145,7 @@ void *get_cali_data_buf_addr(void)
 
 EXPORT_SYMBOL(get_cali_data_buf_addr);
 EXPORT_SYMBOL(g_uc_netdev_is_open);
+
 
 void plat_bfgx_cali_data_test(void)
 {
@@ -141,6 +172,7 @@ void plat_bfgx_cali_data_test(void)
     return;
 }
 
+
 oal_int32 cali_data_buf_malloc(void)
 {
     oal_uint8 *buffer = NULL;
@@ -156,6 +188,7 @@ oal_int32 cali_data_buf_malloc(void)
 
     return SUCC;
 }
+
 
 void cali_data_buf_free(void)
 {

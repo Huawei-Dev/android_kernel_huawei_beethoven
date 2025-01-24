@@ -1,3 +1,8 @@
+
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
 #include <linux/moduleparam.h>
 #include <linux/delay.h>
 #include <linux/rtc.h>
@@ -11,7 +16,10 @@
 
 #include "hw_bfg_ps.h"
 #include "plat_efuse.h"
-
+#include "bfgx_exception_rst.h"
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
 #define BFGX_AND_WIFI_CFG_PATH        "/vendor/firmware/bfgx_and_wifi_cfg"
 #define WIFI_CFG_PATH                 "/vendor/firmware/wifi_cfg"
 #define BFGX_CFG_PATH                 "/vendor/firmware/bfgx_cfg"
@@ -25,7 +33,11 @@
 #define FILE_COUNT_PER_SEND           (1)
 #define MIN_FIRMWARE_FILE_TX_BUF_LEN  (4096)
 
-unsigned char *g_auc_cfg_in_system_path[CFG_FILE_TOTAL] =
+#include "oal_util.h"
+/*****************************************************************************
+  3 ????????????
+*****************************************************************************/
+uint8 *g_auc_cfg_in_system_path[CFG_FILE_TOTAL] =
                     {
                         BFGX_AND_WIFI_CFG_PATH,
                         WIFI_CFG_PATH,
@@ -33,33 +45,32 @@ unsigned char *g_auc_cfg_in_system_path[CFG_FILE_TOTAL] =
                         RAM_CHECK_CFG_PATH,
                     };
 
-unsigned char *g_auc_cfg_in_boot_path[CFG_FILE_TOTAL] =
-                    {
-                        BFGX_AND_WIFI_CFG_BUILDIN_PATH,
-                        WIFI_CFG_BUILDIN_PATH,
-                        BFGX_CFG_BUILDIN_PATH,
-                        RAM_CHECK_CFG_BUILDIN_PATH,
-                    };
-
-unsigned char **g_auc_cfg_path = g_auc_cfg_in_system_path;
+uint8 **g_auc_cfg_path = g_auc_cfg_in_system_path;
 
 struct st_wifi_dump_mem_info nfc_buffer_data = {0x30000000+0x000f9d00, OMLNFCDATABUFFLEN, "nfc_buffer_data"};
 
+/*????cfg??????????????cfg????????????????????????????????*/
 FIRMWARE_GLOBALS_STRUCT  g_st_cfg_info;
 
-unsigned char *g_pucDataBuf = NULL;
+/*????firmware file??????buffer??????????????????buffer????????????????device buffer????*/
+uint8 *g_pucDataBuf = NULL;
 
-unsigned int g_ulDataBufLen = 0;
+/* g_pucDataBuf?????? */
+uint32 g_ulDataBufLen = 0;
 
-unsigned int g_ulJumpCmdResult = CMD_JUMP_EXEC_RESULT_SUCC;
+uint32 g_ulJumpCmdResult = CMD_JUMP_EXEC_RESULT_SUCC;
 
 extern oal_uint32   oam_send_device_data2sdt(oal_uint8* pc_string, oal_uint16 len);
 
-unsigned char* g_pucNfcLog= NULL;
+uint8* g_pucNfcLog= NULL;
+/*****************************************************************************
+  4 ????????
+*****************************************************************************/
 
-int read_msg(unsigned char *data, int len)
+
+int32 read_msg(uint8 *data, int32 len)
 {
-    int  l_len;
+    int32  l_len;
 
     if (unlikely((NULL == data)))
     {
@@ -73,9 +84,9 @@ int read_msg(unsigned char *data, int len)
     return l_len;
 }
 
-int read_msg_timeout(unsigned char *data, int len, unsigned int timeout)
+int32 read_msg_timeout(uint8 *data, int32 len, uint32 timeout)
 {
-    int  l_len;
+    int32  l_len;
 
     if (unlikely((NULL == data)))
     {
@@ -89,9 +100,11 @@ int read_msg_timeout(unsigned char *data, int len, unsigned int timeout)
     return l_len;
 }
 
-int send_msg(unsigned char *data, int len)
+
+
+int32 send_msg(uint8 *data, int32 len)
 {
-    int   l_ret;
+    int32   l_ret;
 
     PS_PRINT_DBG("len = %d\n", len);
 #ifdef HW_DEBUG
@@ -103,11 +116,12 @@ int send_msg(unsigned char *data, int len)
     return l_ret;
 }
 
-int recv_expect_result(const unsigned char *expect)
+
+int32 recv_expect_result(const uint8 *expect)
 {
-    unsigned char auc_buf[RECV_BUF_LEN];
-    int l_len;
-    int i;
+    uint8 auc_buf[RECV_BUF_LEN];
+    int32 l_len;
+    int32 i;
 
     if (!OS_STR_LEN(expect))
     {
@@ -139,10 +153,10 @@ int recv_expect_result(const unsigned char *expect)
     return -EFAIL;
 }
 
-int recv_expect_result_timeout(const unsigned char *expect, unsigned int timeout)
+int32 recv_expect_result_timeout(const uint8 *expect, uint32 timeout)
 {
-    unsigned char auc_buf[RECV_BUF_LEN];
-    int l_len;
+    uint8 auc_buf[RECV_BUF_LEN];
+    int32 l_len;
 
     if (!OS_STR_LEN(expect))
     {
@@ -171,10 +185,12 @@ int recv_expect_result_timeout(const unsigned char *expect, unsigned int timeout
     return -EFAIL;
 }
 
-int msg_send_and_recv_except(unsigned char *data, int len, const unsigned char *expect)
+
+
+int32 msg_send_and_recv_except(uint8 *data, int32 len, const uint8 *expect)
 {
-    int  i;
-    int  l_ret;
+    int32  i;
+    int32  l_ret;
 
     for(i = 0; i < HOST_DEV_TIMEOUT; i++)
     {
@@ -194,11 +210,12 @@ int msg_send_and_recv_except(unsigned char *data, int len, const unsigned char *
     return -EFAIL;
 }
 
-void *malloc_cmd_buf(unsigned char *puc_cfg_info_buf, unsigned int ul_index)
+
+void *malloc_cmd_buf(uint8 *puc_cfg_info_buf, uint32 ul_index)
 {
-    int           l_len;
-    unsigned char          *flag;
-    unsigned char          *p_buf;
+    int32           l_len;
+    uint8          *flag;
+    uint8          *p_buf;
 
     if (NULL == puc_cfg_info_buf)
     {
@@ -206,10 +223,12 @@ void *malloc_cmd_buf(unsigned char *puc_cfg_info_buf, unsigned int ul_index)
         return NULL;
     }
 
+    /* ???????????? */
     flag = puc_cfg_info_buf;
     g_st_cfg_info.al_count[ul_index] = 0;
     while(NULL != flag)
     {
+        /* ???????????????????????? ; */
         flag = OS_STR_CHR(flag, CMD_LINE_SIGN);
         if (NULL == flag)
         {
@@ -220,6 +239,7 @@ void *malloc_cmd_buf(unsigned char *puc_cfg_info_buf, unsigned int ul_index)
     }
     PS_PRINT_DBG("cfg file cmd count: al_count[%d] = %d\n", ul_index, g_st_cfg_info.al_count[ul_index]);
 
+    /* ???????????????? */
     l_len = ((g_st_cfg_info.al_count[ul_index]) + CFG_INFO_RESERVE_LEN) * sizeof(struct cmd_type_st);
     p_buf = OS_KMALLOC_GFP(l_len);
     if (NULL == p_buf)
@@ -232,7 +252,8 @@ void *malloc_cmd_buf(unsigned char *puc_cfg_info_buf, unsigned int ul_index)
     return p_buf;
 }
 
-unsigned char *delete_space(unsigned char *string, int *len)
+
+uint8 *delete_space(uint8 *string, int32 *len)
 {
     int i;
 
@@ -241,6 +262,7 @@ unsigned char *delete_space(unsigned char *string, int *len)
         return NULL;
     }
 
+    /* ?????????????? */
     for(i = *len - 1; i >= 0; i--)
     {
         if (COMPART_KEYWORD != string[i])
@@ -249,19 +271,21 @@ unsigned char *delete_space(unsigned char *string, int *len)
         }
         string[i] = '\0';
     }
-
+    /* ???? */
     if (i < 0)
     {
         PS_PRINT_ERR(" string is Space bar\n");
         return NULL;
     }
-
+    /* ??for??????????1??????????1 */
     *len = i + 1;
 
+    /* ?????????????? */
     for(i = 0; i < *len; i++)
     {
         if (COMPART_KEYWORD != string[i])
         {
+            /* ?????????????? */
             *len = *len - i;
             return &string[i];
         }
@@ -270,10 +294,11 @@ unsigned char *delete_space(unsigned char *string, int *len)
     return NULL;
 }
 
-int string_to_num(unsigned char *string, int *number)
+
+int32 string_to_num(uint8 *string, int32 *number)
 {
-    int       i;
-    int       l_num;
+    int32       i;
+    int32       l_num;
 
     if (NULL == string)
     {
@@ -292,11 +317,12 @@ int string_to_num(unsigned char *string, int *number)
     return SUCC;
 }
 
-int num_to_string(unsigned char *string, unsigned int number)
+
+int32 num_to_string(uint8 *string, uint32 number)
 {
-    int  i = 0, j = 0;
-    int  tmp[INT32_STR_LEN];
-    unsigned int num = number;
+    int32  i = 0, j = 0;
+    int32  tmp[INT32_STR_LEN];
+    uint32 num = number;
 
     if (NULL == string)
     {
@@ -320,18 +346,15 @@ int num_to_string(unsigned char *string, unsigned int number)
     return SUCC;
 }
 
-OS_KERNEL_FILE_STRU * open_file_to_readm(unsigned char *name)
+
+OS_KERNEL_FILE_STRU * open_file_to_readm(uint8 *name)
 {
     OS_KERNEL_FILE_STRU *fp;
-    unsigned char *file_name = NULL;
+    uint8 *file_name = NULL;
 
     if (WARN_ON(NULL == name))
     {
-#if (_PRE_HI110X_LOG_VERSION == _PRE_HI110X_LOG_V2)
-        file_name = "/data/log/wifi/memdump/readm_wifi";
-#else
-        file_name = "/data/memdump/readm_wifi";
-#endif
+        file_name = WIFI_DUMP_PATH"/readm_wifi";
     }
     else
     {
@@ -343,12 +366,13 @@ OS_KERNEL_FILE_STRU * open_file_to_readm(unsigned char *name)
     return fp;
 }
 
-int recv_device_mem(OS_KERNEL_FILE_STRU *fp, unsigned char *pucDataBuf, int len)
+
+int32 recv_device_mem(OS_KERNEL_FILE_STRU *fp, uint8 *pucDataBuf, int32 len)
 {
-    int l_ret = -EFAIL;
+    int32 l_ret = -EFAIL;
     mm_segment_t fs;
-    unsigned char retry = 3;
-    int lenbuf = 0;
+    uint8 retry = 3;
+    int32 lenbuf = 0;
 
     if (IS_ERR_OR_NULL(fp))
     {
@@ -398,18 +422,19 @@ int recv_device_mem(OS_KERNEL_FILE_STRU *fp, unsigned char *pucDataBuf, int len)
     return l_ret;
 }
 
-int check_version(void)
+
+int32 check_version(void)
 {
-    int   l_ret;
-    int   l_len;
-    int   i;
-    unsigned char   rec_buf[VERSION_LEN];
+    int32   l_ret;
+    int32   l_len;
+    int32   i;
+    uint8   rec_buf[VERSION_LEN];
 
     for (i = 0; i < HOST_DEV_TIMEOUT; i++)
     {
         OS_MEM_SET(rec_buf, 0, VERSION_LEN);
 
-        OS_MEM_CPY(rec_buf, (unsigned char *)VER_CMD_KEYWORD, OS_STR_LEN(VER_CMD_KEYWORD));
+        OS_MEM_CPY(rec_buf, (uint8 *)VER_CMD_KEYWORD, OS_STR_LEN(VER_CMD_KEYWORD));
         l_len = OS_STR_LEN(VER_CMD_KEYWORD);
 
         rec_buf[l_len] = COMPART_KEYWORD;
@@ -435,8 +460,8 @@ int check_version(void)
 
         OS_MEM_CPY(g_st_cfg_info.auc_DevVersion, rec_buf, VERSION_LEN);
 
-        if (!OS_MEM_CMP((char *)g_st_cfg_info.auc_DevVersion,
-                              (char *)g_st_cfg_info.auc_CfgVersion,
+        if (!OS_MEM_CMP((int8 *)g_st_cfg_info.auc_DevVersion,
+                              (int8 *)g_st_cfg_info.auc_CfgVersion,
                               OS_STR_LEN(g_st_cfg_info.auc_CfgVersion)))
         {
             PS_PRINT_INFO("Device Version = [%s], CfgVersion = [%s].\n",
@@ -453,17 +478,18 @@ int check_version(void)
     return -EFAIL;
 }
 
-int number_type_cmd_send(unsigned char *Key, unsigned char *Value)
-{
-    int       l_ret;
-    int       data_len;
-    int       Value_len;
-    int       i;
-    int       n;
-    unsigned char       auc_num[INT32_STR_LEN];
-    unsigned char       buff_tx[SEND_BUF_LEN];
 
-    Value_len = OS_STR_LEN((char *)Value);
+int32 number_type_cmd_send(uint8 *Key, uint8 *Value)
+{
+    int32       l_ret;
+    int32       data_len;
+    int32       Value_len;
+    int32       i;
+    int32       n;
+    uint8       auc_num[INT32_STR_LEN];
+    uint8       buff_tx[SEND_BUF_LEN];
+
+    Value_len = OS_STR_LEN((int8 *)Value);
 
     OS_MEM_SET(auc_num, 0, INT32_STR_LEN);
     OS_MEM_SET(buff_tx, 0, SEND_BUF_LEN);
@@ -484,7 +510,7 @@ int number_type_cmd_send(unsigned char *Key, unsigned char *Value)
             {
                 continue;
             }
-            OS_MEM_CPY((unsigned char *)&buff_tx[data_len], auc_num, n);
+            OS_MEM_CPY((uint8 *)&buff_tx[data_len], auc_num, n);
             data_len = data_len + n;
 
             buff_tx[data_len] = COMPART_KEYWORD;
@@ -510,14 +536,17 @@ int number_type_cmd_send(unsigned char *Key, unsigned char *Value)
     return l_ret;
 }
 
-int update_device_cali_count(unsigned char *Key, unsigned char *Value)
-{
-    int  l_ret;
-    unsigned int len, Value_len;
-    unsigned int number = 0;
-    unsigned char *addr;
-    unsigned char  buff_tx[SEND_BUF_LEN];
 
+int32 update_device_cali_count(uint8 *Key, uint8 *Value)
+{
+    int32  l_ret;
+    uint32 len, Value_len;
+    uint32 number = 0;
+    uint8 *addr;
+    uint8  buff_tx[SEND_BUF_LEN];
+
+    /*????????Value????????????Value????????????????????"0xXXXXX"*/
+    /*????????????????"????????,??????????,????????"---"4,0xXXXX,value"*/
     len = 0;
     OS_MEM_SET(buff_tx, 0, SEND_BUF_LEN);
 
@@ -544,6 +573,9 @@ int update_device_cali_count(unsigned char *Key, unsigned char *Value)
     l_ret = get_cali_count(&number);
     l_ret = num_to_string(&buff_tx[len], number);
 
+    /* ????buff_tx="4,0xXXX,value" */
+
+    /*????WMEM_CMD_KEYWORD??????device????????????*/
     l_ret = number_type_cmd_send(WMEM_CMD_KEYWORD, buff_tx);
     if (0 > l_ret)
     {
@@ -561,13 +593,16 @@ int update_device_cali_count(unsigned char *Key, unsigned char *Value)
     return SUCC;
 }
 
-int download_bfgx_cali_data(unsigned char *Key, unsigned char *Value)
-{
-    int  l_ret;
-    unsigned int len = 0, Value_len;
-    unsigned char *addr;
-    unsigned char  buff_tx[SEND_BUF_LEN];
 
+int32 download_bfgx_cali_data(uint8 *Key, uint8 *Value)
+{
+    int32  l_ret;
+    uint32 len = 0, Value_len;
+    uint8 *addr;
+    uint8  buff_tx[SEND_BUF_LEN];
+
+    /*????????Value????????????Value????????????????????"0xXXXXX"*/
+    /*????????????????"FILES ???????? ??????????"---"FILES 1 0xXXXX "*/
     OS_MEM_SET(buff_tx, 0, SEND_BUF_LEN);
 
     /* buff_tx="" */
@@ -597,6 +632,7 @@ int download_bfgx_cali_data(unsigned char *Key, unsigned char *Value)
 
     /* buff_tx="FILES 1 0xXXXX " */
 
+    /*????????*/
     l_ret = msg_send_and_recv_except(buff_tx, len, MSG_FROM_DEV_READY_OK);
     if (0 > l_ret)
     {
@@ -604,6 +640,7 @@ int download_bfgx_cali_data(unsigned char *Key, unsigned char *Value)
         return -EFAIL;
     }
 
+    /*????bfgx????????*/
     l_ret = get_bfgx_cali_data(buff_tx, &len, sizeof(buff_tx));
     if (0 > l_ret  || len > SEND_BUF_LEN)
     {
@@ -614,6 +651,7 @@ int download_bfgx_cali_data(unsigned char *Key, unsigned char *Value)
     /* Wait at least 5 ms */
     usleep_range(FILE_CMD_WAIT_TIME_MIN, FILE_CMD_WAIT_TIME_MAX);
 
+    /*????bfgx????????*/
     l_ret = msg_send_and_recv_except(buff_tx, sizeof(buff_tx), MSG_FROM_DEV_FILES_OK);
     if(0 > l_ret)
     {
@@ -624,11 +662,12 @@ int download_bfgx_cali_data(unsigned char *Key, unsigned char *Value)
     return SUCC;
 }
 
-int parse_file_cmd(unsigned char *string, ulong *addr, char **file_path)
+
+int32 parse_file_cmd(uint8 *string, ulong *addr, int8 **file_path)
 {
-    unsigned char *tmp;
-    int count = 0;
-    char *after;
+    uint8 *tmp;
+    int32 count = 0;
+    int8 *after;
 
     if (string == NULL || addr == NULL || file_path == NULL)
     {
@@ -636,6 +675,7 @@ int parse_file_cmd(unsigned char *string, ulong *addr, char **file_path)
         return -EFAIL;
     }
 
+    /*????????????????????????????????1??string??????????????????"1,0xXXXXX,file_path"*/
     tmp = string;
     while(COMPART_KEYWORD == *tmp)
     {
@@ -648,6 +688,7 @@ int parse_file_cmd(unsigned char *string, ulong *addr, char **file_path)
         return -EFAIL;
     }
 
+    /*??tmp????????????????*/
     tmp = OS_STR_CHR(string, ',');
     if (tmp == NULL)
     {
@@ -667,6 +708,9 @@ int parse_file_cmd(unsigned char *string, ulong *addr, char **file_path)
 
     PS_PRINT_DBG("file to send addr:[0x%lx]\n", *addr);
 
+    /*"1,0xXXXX,file_path"*/
+    /*         ^          */
+    /*       after        */
     after++;
     while(COMPART_KEYWORD == *after)
     {
@@ -683,17 +727,152 @@ int parse_file_cmd(unsigned char *string, ulong *addr, char **file_path)
 #ifdef CONFIG_MMC
 extern void oal_sdio_sdt_print_wcpu_reg(oal_uint32* pst_buf, oal_uint32 ul_size);
 #endif
-
-int sdio_read_device_mem(struct st_wifi_dump_mem_info *pst_mem_dump_info,
-                                  OS_KERNEL_FILE_STRU *fp,
-                                  unsigned char *pucDataBuf,
-                                  unsigned int ulDataBufLen)
+#ifdef HI110X_HAL_MEMDUMP_ENABLE
+int32 recv_device_memdump(uint8 *pucDataBuf, int32 len)
 {
-    unsigned char buf_tx[SEND_BUF_LEN];
-    int ret = 0;
-    unsigned int size = 0;
-    unsigned int offset;
-    unsigned int remainder = pst_mem_dump_info->size;
+    int32 l_ret = -EFAIL;
+    uint8 retry = 3;
+    int32 lenbuf = 0;
+    if (NULL == pucDataBuf)
+    {
+        PS_PRINT_ERR("pucDataBuf is NULL\n");
+        return -EFAIL;
+    }
+    PS_PRINT_DBG("expect recv len is [%d]\n", len);
+    while (len > lenbuf)
+    {
+        l_ret = read_msg(pucDataBuf + lenbuf, len - lenbuf);
+        if (l_ret > 0)
+        {
+            lenbuf += l_ret;
+        }
+        else
+        {
+            retry--;
+            lenbuf = 0;
+            if (0 == retry)
+            {
+                l_ret = -EFAIL;
+                PS_PRINT_ERR("time out\n");
+                break;
+            }
+        }
+    }
+    if (len <= lenbuf)
+    {
+        wifi_memdump_enquenue(pucDataBuf,len);
+    }
+    return l_ret;
+}
+int32 sdio_read_device_mem(struct st_wifi_dump_mem_info *pst_mem_dump_info,
+                                  uint8 *pucDataBuf,
+                                  uint32 ulDataBufLen)
+{
+    uint8 buf_tx[SEND_BUF_LEN];
+    int32 ret = 0;
+    uint32 size = 0;
+    uint32 offset;
+    uint32 remainder = pst_mem_dump_info->size;
+    offset=0;
+    while(remainder > 0)
+    {
+        OS_MEM_SET(buf_tx, 0, SEND_BUF_LEN);
+        size = min(remainder, ulDataBufLen);
+        snprintf(buf_tx,sizeof(buf_tx),"%s%c0x%lx%c%d%c",
+                                                RMEM_CMD_KEYWORD,
+                                                COMPART_KEYWORD,
+                                                pst_mem_dump_info->mem_addr + offset,
+                                                COMPART_KEYWORD,
+                                                size,
+                                                COMPART_KEYWORD);
+        PS_PRINT_DBG("read mem cmd:[%s]\n", buf_tx);
+        send_msg(buf_tx, OS_STR_LEN(buf_tx));
+        ret = recv_device_memdump(pucDataBuf, size);
+        if(ret < 0)
+        {
+            PS_PRINT_ERR("wifi mem dump fail, filename is [%s],ret=%d\n", pst_mem_dump_info->file_name,ret);
+            break;
+        }
+#ifdef CONFIG_PRINTK
+        if( 0 == offset)
+        {
+            oal_int8* pst_file_name = (pst_mem_dump_info->file_name ? ((oal_int8*)pst_mem_dump_info->file_name):(oal_int8*)"default: ");
+            if(!oal_strcmp("wifi_device_panic_mem", pst_file_name))
+            {
+                if(size > (24 + 24*4))
+                {
+                    oal_print_hex_dump(pucDataBuf + 24, 24*4, 32, pst_file_name);
+#ifdef CONFIG_MMC
+                    oal_sdio_sdt_print_wcpu_reg((oal_uint32*)(pucDataBuf + 24), 24);
+#endif
+                }
+            }
+        }
+#endif
+        offset += size;
+        remainder -= size;
+    }
+    return ret;
+}
+int32 sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uint32 count)
+{
+    int32 ret = -EFAIL;
+    uint32 i;
+    uint8 *pucDataBuf = NULL;
+    uint8 buff[100];
+    uint32* pcount = (uint32*)&buff[0];
+    uint32 sdio_transfer_limit = oal_sdio_func_max_req_size(oal_get_sdio_default_handler());
+    sdio_transfer_limit = OAL_MIN(PAGE_SIZE, sdio_transfer_limit);
+    if (NULL == pst_mem_dump_info)
+    {
+        PS_PRINT_ERR("pst_wifi_dump_info is NULL\n");
+        return -EFAIL;
+    }
+    do
+    {
+        PS_PRINT_INFO("try to malloc mem dump buf len is [%d]\n", sdio_transfer_limit);
+        pucDataBuf = (uint8 *)OS_KMALLOC_GFP(sdio_transfer_limit);
+        if (NULL == pucDataBuf)
+        {
+            PS_PRINT_WARNING("malloc mem  len [%d] fail, continue to try in a smaller size\n", sdio_transfer_limit);
+            sdio_transfer_limit = sdio_transfer_limit >> 1;
+        }
+    }while((NULL == pucDataBuf) && (sdio_transfer_limit >= MIN_FIRMWARE_FILE_TX_BUF_LEN));
+    if (NULL == pucDataBuf)
+    {
+        PS_PRINT_ERR("pucDataBuf KMALLOC failed\n");
+        return -EFAIL;
+    }
+    PS_PRINT_INFO("mem dump data buf len is [%d]\n", sdio_transfer_limit);
+    wifi_notice_hal_memdump();
+    for (i = 0; i < count; i++)
+    {
+        *pcount = pst_mem_dump_info[i].size;
+        PS_PRINT_INFO("mem dump data size [%d]==> [%d]\n", *pcount, pst_mem_dump_info[i].size);
+        wifi_memdump_enquenue(buff,4);
+        ret = sdio_read_device_mem(&pst_mem_dump_info[i], pucDataBuf, sdio_transfer_limit);
+        if (ret < 0)
+        {
+            break;
+        }
+    }
+    wifi_memdump_finish();
+    OS_MEM_KFREE(pucDataBuf);
+    return ret;
+}
+#else
+
+
+int32 sdio_read_device_mem(struct st_wifi_dump_mem_info *pst_mem_dump_info,
+                                  OS_KERNEL_FILE_STRU *fp,
+                                  uint8 *pucDataBuf,
+                                  uint32 ulDataBufLen)
+{
+    uint8 buf_tx[SEND_BUF_LEN];
+    int32 ret = 0;
+    uint32 size = 0;
+    uint32 offset;
+    uint32 remainder = pst_mem_dump_info->size;
 
     offset=0;
     while(remainder > 0)
@@ -747,18 +926,20 @@ int sdio_read_device_mem(struct st_wifi_dump_mem_info *pst_mem_dump_info,
     return ret;
 }
 
-int sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsigned int count)
+
+int32 sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uint32 count)
 {
     OS_KERNEL_FILE_STRU *fp;
-    int ret = -EFAIL;
-    unsigned int i;
+    int32 ret = -EFAIL;
+    uint32 i;
     char filename[100] = {0};
 
     ktime_t time_start, time_stop;
     oal_uint64  trans_us;
-    unsigned char *pucDataBuf = NULL;
-    unsigned int sdio_transfer_limit = oal_sdio_func_max_req_size(oal_get_sdio_default_handler());
+    uint8 *pucDataBuf = NULL;
+    uint32 sdio_transfer_limit = oal_sdio_func_max_req_size(oal_get_sdio_default_handler());
 
+    /*??????????????????,??????????????????????????????*/
     sdio_transfer_limit = OAL_MIN(PAGE_SIZE, sdio_transfer_limit);
 
     if (NULL == pst_mem_dump_info)
@@ -770,7 +951,7 @@ int sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsign
     do
     {
         PS_PRINT_INFO("try to malloc mem dump buf len is [%d]\n", sdio_transfer_limit);
-        pucDataBuf = (unsigned char *)OS_KMALLOC_GFP(sdio_transfer_limit);
+        pucDataBuf = (uint8 *)OS_KMALLOC_GFP(sdio_transfer_limit);
         if (NULL == pucDataBuf)
         {
             PS_PRINT_WARNING("malloc mem  len [%d] fail, continue to try in a smaller size\n", sdio_transfer_limit);
@@ -791,12 +972,9 @@ int sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsign
     for (i = 0; i < count; i++)
     {
         time_start = ktime_get();
+        /*??????????????????wifi mem dump*/
         OS_MEM_SET(filename, 0, sizeof(filename));
-#if (_PRE_HI110X_LOG_VERSION == _PRE_HI110X_LOG_V2)
-        snprintf(filename, sizeof(filename), "/data/log/wifi/memdump/%s_%s.bin", SDIO_STORE_WIFI_MEM, pst_mem_dump_info[i].file_name);
-#else
-        snprintf(filename, sizeof(filename),"/data/memdump/%s_%s.bin", SDIO_STORE_WIFI_MEM, pst_mem_dump_info[i].file_name);
-#endif
+        snprintf(filename, sizeof(filename), WIFI_DUMP_PATH"/%s_%s.bin", SDIO_STORE_WIFI_MEM, pst_mem_dump_info[i].file_name);
         PS_PRINT_INFO("readm %s\n",filename);
 
         fp = open_file_to_readm(filename);
@@ -826,14 +1004,15 @@ int sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsign
     return ret;
 }
 
-int sdio_read_mem(unsigned char *Key, unsigned char *Value)
+#endif
+int32 sdio_read_mem(uint8 *Key, uint8 *Value)
 {
-    int l_ret = -EFAIL;
-    int size;
-    unsigned char *flag;
+    int32 l_ret = -EFAIL;
+    int32 size;
+    uint8 *flag;
     OS_KERNEL_FILE_STRU *fp;
-    unsigned char *pucDataBuf = NULL;
-    unsigned int sdio_transfer_limit = oal_sdio_func_max_req_size(oal_get_sdio_default_handler());
+    uint8 *pucDataBuf = NULL;
+    uint32 sdio_transfer_limit = oal_sdio_func_max_req_size(oal_get_sdio_default_handler());
 
     flag = OS_STR_CHR(Value, ',');
     if (NULL == flag)
@@ -853,7 +1032,7 @@ int sdio_read_mem(unsigned char *Key, unsigned char *Value)
     do
     {
         PS_PRINT_INFO("try to malloc sdio mem read buf len is [%d]\n", sdio_transfer_limit);
-        pucDataBuf = (unsigned char *)OS_KMALLOC_GFP(sdio_transfer_limit);
+        pucDataBuf = (uint8 *)OS_KMALLOC_GFP(sdio_transfer_limit);
         if (NULL == pucDataBuf)
         {
             PS_PRINT_WARNING("malloc mem len [%d] fail, continue to try in a smaller size\n", sdio_transfer_limit);
@@ -894,9 +1073,10 @@ int sdio_read_mem(unsigned char *Key, unsigned char *Value)
     return l_ret;
 }
 
-int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
+
+int32 exec_number_type_cmd(uint8 *Key, uint8 *Value)
 {
-    int       l_ret = -EFAIL;
+    int32       l_ret = -EFAIL;
     BOARD_INFO* board_info = NULL;
 
     board_info = get_hi110x_board_info();
@@ -917,9 +1097,9 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
             }
         }
 
-        if (!OS_STR_CMP((char *)Key, WMEM_CMD_KEYWORD))
+        if (!OS_STR_CMP((int8 *)Key, WMEM_CMD_KEYWORD))
         {
-            if (NULL != OS_STR_STR((char *)Value, (char *)STR_REG_NFC_EN_KEEP))
+            if (NULL != OS_STR_STR((int8 *)Value, (int8 *)STR_REG_NFC_EN_KEEP))
             {
                 if(V100 == get_ec_version())
                 {
@@ -947,8 +1127,9 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
             }
 
         }
-        else if (!OS_STR_CMP((char *)Key, CALI_COUNT_CMD_KEYWORD))
+        else if (!OS_STR_CMP((int8 *)Key, CALI_COUNT_CMD_KEYWORD))
         {
+            /*??????????????device*/
             l_ret = update_device_cali_count(Key, Value);
             if (0 > l_ret)
             {
@@ -956,8 +1137,9 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
                 return l_ret;
             }
         }
-        else if (!OS_STR_CMP((char *)Key, CALI_BFGX_DATA_CMD_KEYWORD))
+        else if (!OS_STR_CMP((int8 *)Key, CALI_BFGX_DATA_CMD_KEYWORD))
         {
+            /*????BFGX??????????*/
             l_ret = download_bfgx_cali_data(FILES_CMD_KEYWORD, Value);
             if (0 > l_ret)
             {
@@ -965,7 +1147,7 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
                 return l_ret;
             }
         }
-        else if (!OS_STR_CMP((char *)Key, JUMP_CMD_KEYWORD))
+        else if (!OS_STR_CMP((int8 *)Key, JUMP_CMD_KEYWORD))
         {
             g_ulJumpCmdResult = CMD_JUMP_EXEC_RESULT_SUCC;
             l_ret = number_type_cmd_send(Key, Value);
@@ -989,10 +1171,10 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
                 return l_ret;
             }
         }
-        else if (!OS_STR_CMP((char *)Key, SETPM_CMD_KEYWORD) || !OS_STR_CMP((char *)Key, SETBUCK_CMD_KEYWORD)
-              || !OS_STR_CMP((char *)Key, SETSYSLDO_CMD_KEYWORD) || !OS_STR_CMP((char *)Key, SETNFCRETLDO_CMD_KEYWORD)
-              || !OS_STR_CMP((char *)Key, SETPD_CMD_KEYWORD) || !OS_STR_CMP((char *)Key, SETNFCCRG_CMD_KEYWORD)
-              || !OS_STR_CMP((char *)Key, SETABB_CMD_KEYWORD) || !OS_STR_CMP((char *)Key, SETTCXODIV_CMD_KEYWORD))
+        else if (!OS_STR_CMP((int8 *)Key, SETPM_CMD_KEYWORD) || !OS_STR_CMP((int8 *)Key, SETBUCK_CMD_KEYWORD)
+              || !OS_STR_CMP((int8 *)Key, SETSYSLDO_CMD_KEYWORD) || !OS_STR_CMP((int8 *)Key, SETNFCRETLDO_CMD_KEYWORD)
+              || !OS_STR_CMP((int8 *)Key, SETPD_CMD_KEYWORD) || !OS_STR_CMP((int8 *)Key, SETNFCCRG_CMD_KEYWORD)
+              || !OS_STR_CMP((int8 *)Key, SETABB_CMD_KEYWORD) || !OS_STR_CMP((int8 *)Key, SETTCXODIV_CMD_KEYWORD))
         {
             l_ret = number_type_cmd_send(Key, Value);
             if (0 > l_ret)
@@ -1008,7 +1190,7 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
                 return l_ret;
             }
         }
-        else if (!OS_STR_CMP((char *)Key, RMEM_CMD_KEYWORD))
+        else if (!OS_STR_CMP((int8 *)Key, RMEM_CMD_KEYWORD))
         {
             l_ret = sdio_read_mem(Key, Value);
         }
@@ -1027,11 +1209,12 @@ int exec_number_type_cmd(unsigned char *Key, unsigned char *Value)
     return l_ret;
 }
 
-int exec_quit_type_cmd(void)
+
+int32 exec_quit_type_cmd(void)
 {
-    int   l_ret;
-    int   l_len;
-    unsigned char   buf[8];
+    int32   l_ret;
+    int32   l_len;
+    uint8   buf[8];
     BOARD_INFO* board_info = NULL;
 
     board_info = get_hi110x_board_info();
@@ -1044,7 +1227,7 @@ int exec_quit_type_cmd(void)
     OS_MEM_SET(buf, 0, 8);
     if (MODE_SDIO == board_info->wlan_download_channel)
     {
-        OS_MEM_CPY(buf, (unsigned char *)QUIT_CMD_KEYWORD, OS_STR_LEN(QUIT_CMD_KEYWORD));
+        OS_MEM_CPY(buf, (uint8 *)QUIT_CMD_KEYWORD, OS_STR_LEN(QUIT_CMD_KEYWORD));
         l_len = OS_STR_LEN(QUIT_CMD_KEYWORD);
 
         buf[l_len] = COMPART_KEYWORD;
@@ -1064,20 +1247,21 @@ int exec_quit_type_cmd(void)
     return l_ret;
 }
 
-int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
+
+int32 exec_file_type_cmd(uint8 *Key, uint8 *Value)
 {
     ulong addr;
     ulong addr_send;
-    char *path;
-    int ret;
-    unsigned int file_len;
-    unsigned int transmit_limit;
-    unsigned int per_send_len;
-    unsigned int send_count;
-    int rdlen;
-    unsigned int i;
-    unsigned int offset = 0;
-    unsigned char buff_tx[SEND_BUF_LEN] = {0};
+    int8 *path;
+    int32 ret;
+    uint32 file_len;
+    uint32 transmit_limit;
+    uint32 per_send_len;
+    uint32 send_count;
+    int32 rdlen;
+    uint32 i;
+    uint32 offset = 0;
+    uint8 buff_tx[SEND_BUF_LEN] = {0};
     OS_KERNEL_FILE_STRU *fp;
     BOARD_INFO* board_info = NULL;
 
@@ -1105,7 +1289,15 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
         return -EFAIL;
     }
 
+    /* ????file???????? */
     file_len = vfs_llseek(fp, 0, SEEK_END);
+    if (0 == file_len)
+    {
+        PS_PRINT_ERR("file size of %s is 0!!\n", path);
+        filp_close(fp, NULL);
+        return -EFAIL;
+    }
+    /* ????fp->f_pos?????????? */
     vfs_llseek(fp, 0, SEEK_SET);
 
     PS_PRINT_DBG("file len is [%d]\n", file_len);
@@ -1117,7 +1309,7 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
     {
         for (i = 0; i < send_count; i++)
         {
-            rdlen = kernel_read(fp, fp->f_pos, g_pucDataBuf, per_send_len);
+            rdlen = oal_file_read_ext(fp, fp->f_pos, g_pucDataBuf, per_send_len);
             if (rdlen > 0)
             {
                 PS_PRINT_DBG("len of kernel_read is [%d], i=%d\n", rdlen, i);
@@ -1140,6 +1332,7 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
                                                 addr_send,
                                                 COMPART_KEYWORD);
 
+            /*????????*/
             PS_PRINT_DBG("send file addr cmd is [%s]\n", buff_tx);
             ret = msg_send_and_recv_except(buff_tx, OS_STR_LEN(buff_tx), MSG_FROM_DEV_READY_OK);
             if (0 > ret)
@@ -1152,6 +1345,7 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
             /* Wait at least 5 ms */
             usleep_range(FILE_CMD_WAIT_TIME_MIN, FILE_CMD_WAIT_TIME_MAX);
 
+            /*????????????*/
             ret = msg_send_and_recv_except(g_pucDataBuf, rdlen, MSG_FROM_DEV_FILES_OK);
             if(0 > ret)
             {
@@ -1177,6 +1371,7 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
     }
     filp_close(fp, NULL);
 
+    /*????????????????????????????*/
     if (offset != file_len)
     {
         PS_PRINT_ERR("file send len is err! send len is [%d], file len is [%d]\n", offset, file_len);
@@ -1186,10 +1381,11 @@ int exec_file_type_cmd(unsigned char *Key, unsigned char *Value)
     return SUCC;
 }
 
-int exec_shutdown_type_cmd(unsigned int which_cpu)
+
+int32 exec_shutdown_type_cmd(uint32 which_cpu)
 {
-    int l_ret = -EFAIL;
-    unsigned char Value_SHUTDOWN[SHUTDOWN_TX_CMD_LEN];
+    int32 l_ret = -EFAIL;
+    uint8 Value_SHUTDOWN[SHUTDOWN_TX_CMD_LEN];
 
     if (DEV_WCPU == which_cpu)
     {
@@ -1245,9 +1441,10 @@ int exec_shutdown_type_cmd(unsigned int which_cpu)
     return SUCC;
 }
 
-int execute_download_cmd(int cmd_type, unsigned char *cmd_name, unsigned char *cmd_para)
+
+int32 execute_download_cmd(int32 cmd_type, uint8 *cmd_name, uint8 *cmd_para)
 {
-    int l_ret;
+    int32 l_ret;
 
     switch(cmd_type)
     {
@@ -1281,10 +1478,11 @@ int execute_download_cmd(int cmd_type, unsigned char *cmd_name, unsigned char *c
     return l_ret;
 }
 
-int firmware_read_cfg(unsigned char *puc_CfgPatch, unsigned char *puc_read_buffer)
+
+int32 firmware_read_cfg(uint8 *puc_CfgPatch, uint8 *puc_read_buffer)
 {
     OS_KERNEL_FILE_STRU    *fp;
-    int                   l_ret;
+    int32                   l_ret;
 
     if ((NULL == puc_CfgPatch) || (NULL == puc_read_buffer))
     {
@@ -1301,7 +1499,9 @@ int firmware_read_cfg(unsigned char *puc_CfgPatch, unsigned char *puc_read_buffe
     }
 
     OS_MEM_SET(puc_read_buffer, 0, READ_CFG_BUF_LEN);
-    l_ret = kernel_read(fp, fp->f_pos, puc_read_buffer, READ_CFG_BUF_LEN);
+
+    l_ret = oal_file_read_ext(fp, fp->f_pos, puc_read_buffer, READ_CFG_BUF_LEN);
+
 
     filp_close(fp, NULL);
     fp = NULL;
@@ -1309,16 +1509,17 @@ int firmware_read_cfg(unsigned char *puc_CfgPatch, unsigned char *puc_read_buffe
     return l_ret;
 }
 
-int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_name, unsigned char *puc_cmd_para)
+
+int32 firmware_parse_cmd(uint8 *puc_cfg_buffer, uint8 *puc_cmd_name, uint8 *puc_cmd_para)
 {
-    int       l_ret;
-    int       l_cmdlen;
-    int       l_paralen;
-    unsigned char      *begin;
-    unsigned char      *end;
-    unsigned char      *link;
-    unsigned char      *handle;
-    unsigned char      *handle_temp;
+    int32       l_ret;
+    int32       l_cmdlen;
+    int32       l_paralen;
+    uint8      *begin;
+    uint8      *end;
+    uint8      *link;
+    uint8      *handle;
+    uint8      *handle_temp;
 
     begin = puc_cfg_buffer;
     if((NULL == puc_cfg_buffer) || (NULL == puc_cmd_name) || (NULL == puc_cmd_para))
@@ -1327,23 +1528,26 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
         return ERROR_TYPE_CMD;
     }
 
+    /* ?????? */
     if ('@' == puc_cfg_buffer[0])
     {
         return ERROR_TYPE_CMD;
     }
 
-    link = OS_STR_CHR((char *)begin, '=');
+    /* ?????????????????????? */
+    link = OS_STR_CHR((int8 *)begin, '=');
     if (NULL == link)
     {
-        if (NULL != OS_STR_STR((char *)puc_cfg_buffer, QUIT_CMD_KEYWORD))
+        /* ?????????? */
+        if (NULL != OS_STR_STR((int8 *)puc_cfg_buffer, QUIT_CMD_KEYWORD))
         {
             return QUIT_TYPE_CMD;
         }
-        else if (NULL != OS_STR_STR((char *)puc_cfg_buffer, SHUTDOWN_WIFI_CMD_KEYWORD))
+        else if (NULL != OS_STR_STR((int8 *)puc_cfg_buffer, SHUTDOWN_WIFI_CMD_KEYWORD))
         {
             return SHUTDOWN_WIFI_TYPE_CMD;
         }
-        else if (NULL != OS_STR_STR((char *)puc_cfg_buffer, SHUTDOWN_BFGX_CMD_KEYWORD))
+        else if (NULL != OS_STR_STR((int8 *)puc_cfg_buffer, SHUTDOWN_BFGX_CMD_KEYWORD))
         {
             return SHUTDOWN_BFGX_TYPE_CMD;
         }
@@ -1351,6 +1555,7 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
         return ERROR_TYPE_CMD;
     }
 
+    /* ?????????????????? */
     end = OS_STR_CHR(link, ';');
     if (NULL == end)
     {
@@ -1359,15 +1564,17 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
 
     l_cmdlen = link - begin;
 
-    handle = delete_space((unsigned char *)begin, &l_cmdlen);
+    /* ???????????????????? */
+    handle = delete_space((uint8 *)begin, &l_cmdlen);
     if (NULL == handle)
     {
         return ERROR_TYPE_CMD;
     }
 
-    if (!OS_MEM_CMP(handle, (unsigned char *)FILE_TYPE_CMD_KEY, OS_STR_LEN((unsigned char *)FILE_TYPE_CMD_KEY)))
+    /* ???????????? */
+    if (!OS_MEM_CMP(handle, (uint8 *)FILE_TYPE_CMD_KEY, OS_STR_LEN((uint8 *)FILE_TYPE_CMD_KEY)))
     {
-        handle_temp = OS_STR_STR(handle, (unsigned char *)FILE_TYPE_CMD_KEY);
+        handle_temp = OS_STR_STR(handle, (uint8 *)FILE_TYPE_CMD_KEY);
         if (NULL == handle_temp)
         {
             PS_PRINT_ERR("'ADDR_FILE_'is not handle child string, handle=%s", handle);
@@ -1377,9 +1584,9 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
         l_cmdlen = l_cmdlen - OS_STR_LEN(FILE_TYPE_CMD_KEY);
         l_ret = FILE_TYPE_CMD;
     }
-    else if (!OS_MEM_CMP(handle, (unsigned char *)NUM_TYPE_CMD_KEY, OS_STR_LEN(NUM_TYPE_CMD_KEY)))
+    else if (!OS_MEM_CMP(handle, (uint8 *)NUM_TYPE_CMD_KEY, OS_STR_LEN(NUM_TYPE_CMD_KEY)))
     {
-        handle_temp = OS_STR_STR(handle, (unsigned char *)NUM_TYPE_CMD_KEY);
+        handle_temp = OS_STR_STR(handle, (uint8 *)NUM_TYPE_CMD_KEY);
         if (NULL == handle_temp)
         {
             PS_PRINT_ERR("'PARA_' is not handle child string, handle=%s", handle);
@@ -1401,6 +1608,7 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
     }
     OS_MEM_CPY(puc_cmd_name, handle, l_cmdlen);
 
+    /* ?????????????? */
     begin = link + 1;
     l_paralen = end - begin;
     if (DOWNLOAD_CMD_PARA_LEN < l_paralen || 0 > l_paralen)
@@ -1409,7 +1617,7 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
         return ERROR_TYPE_CMD;
     }
 
-    handle = delete_space((unsigned char *)begin, &l_paralen);
+    handle = delete_space((uint8 *)begin, &l_paralen);
     if (NULL == handle)
     {
         return ERROR_TYPE_CMD;
@@ -1419,17 +1627,18 @@ int firmware_parse_cmd(unsigned char *puc_cfg_buffer, unsigned char *puc_cmd_nam
     return l_ret;
 }
 
-int firmware_parse_cfg(unsigned char *puc_cfg_info_buf, int l_buf_len, unsigned int ul_index)
+
+int32 firmware_parse_cfg(uint8 *puc_cfg_info_buf, int32 l_buf_len, uint32 ul_index)
 {
-    int           i;
-    int           l_len;
-    unsigned char          *flag;
-    unsigned char          *begin;
-    unsigned char          *end;
-    int           cmd_type;
-    unsigned char           cmd_name[DOWNLOAD_CMD_LEN];
-    unsigned char           cmd_para[DOWNLOAD_CMD_PARA_LEN];
-    unsigned int          cmd_para_len = 0;
+    int32           i;
+    int32           l_len;
+    uint8          *flag;
+    uint8          *begin;
+    uint8          *end;
+    int32           cmd_type;
+    uint8           cmd_name[DOWNLOAD_CMD_LEN];
+    uint8           cmd_para[DOWNLOAD_CMD_PARA_LEN];
+    uint32          cmd_para_len = 0;
     if (NULL == puc_cfg_info_buf)
     {
         PS_PRINT_ERR("puc_cfg_info_buf is NULL!\n");
@@ -1443,19 +1652,24 @@ int firmware_parse_cfg(unsigned char *puc_cfg_info_buf, int l_buf_len, unsigned 
         return -EFAIL;
     }
 
+    /* ????CMD BUF*/
     flag = puc_cfg_info_buf;
     l_len = l_buf_len;
     i = 0;
     while((i < g_st_cfg_info.al_count[ul_index]) && (flag < &puc_cfg_info_buf[l_len]))
     {
+        /*
+         *????????????????????,??????????????unix????.
+         *?????????????????????????? @ ??????????????????
+         */
         begin = flag;
         end   = OS_STR_CHR(flag, '\n');
-        if (NULL == end)
+        if (NULL == end)           /*??????????????????????????*/
         {
             PS_PRINT_DBG("lost of new line!\n");
             end = &puc_cfg_info_buf[l_len];
         }
-        else if (end == begin)
+        else if (end == begin)     /* ?????????????????? */
         {
             PS_PRINT_DBG("blank line\n");
             flag = end + 1;
@@ -1472,12 +1686,12 @@ int firmware_parse_cfg(unsigned char *puc_cfg_info_buf, int l_buf_len, unsigned 
 
         PS_PRINT_DBG("cmd type=[%d],cmd_name=[%s],cmd_para=[%s]\n", cmd_type, cmd_name, cmd_para);
 
-        if (ERROR_TYPE_CMD != cmd_type)
+        if (ERROR_TYPE_CMD != cmd_type)/* ???????????????????? */
         {
             g_st_cfg_info.apst_cmd[ul_index][i].cmd_type = cmd_type;
             OS_MEM_CPY(g_st_cfg_info.apst_cmd[ul_index][i].cmd_name, cmd_name, DOWNLOAD_CMD_LEN);
             OS_MEM_CPY(g_st_cfg_info.apst_cmd[ul_index][i].cmd_para, cmd_para, DOWNLOAD_CMD_PARA_LEN);
-
+            /* ?????????????? */
             if (!OS_MEM_CMP(g_st_cfg_info.apst_cmd[ul_index][i].cmd_name,
                             VER_CMD_KEYWORD,
                             OS_STR_LEN(VER_CMD_KEYWORD)))
@@ -1501,17 +1715,19 @@ int firmware_parse_cfg(unsigned char *puc_cfg_info_buf, int l_buf_len, unsigned 
         flag = end + 1;
     }
 
+    /* ???????????????????????????????????? */
     g_st_cfg_info.al_count[ul_index] = i;
     PS_PRINT_INFO("effective cmd count: al_count[%d] = %d\n", ul_index, g_st_cfg_info.al_count[ul_index]);
 
     return SUCC;
 }
 
-int firmware_get_cfg(unsigned char *puc_CfgPatch, unsigned int ul_index)
+
+int32 firmware_get_cfg(uint8 *puc_CfgPatch, uint32 ul_index)
 {
-    unsigned char   *puc_read_cfg_buf;
-    int   l_readlen;
-    int   l_ret;
+    uint8   *puc_read_cfg_buf;
+    int32   l_readlen;
+    int32   l_ret;
 
     if (NULL == puc_CfgPatch)
     {
@@ -1519,6 +1735,7 @@ int firmware_get_cfg(unsigned char *puc_CfgPatch, unsigned int ul_index)
         return -EFAIL;
     }
 
+    /*cfg??????????????2048,????cfg??????????????????2048??????????READ_CFG_BUF_LEN????*/
     puc_read_cfg_buf = OS_KMALLOC_GFP(READ_CFG_BUF_LEN);
     if (NULL == puc_read_cfg_buf)
     {
@@ -1534,7 +1751,7 @@ int firmware_get_cfg(unsigned char *puc_CfgPatch, unsigned int ul_index)
         puc_read_cfg_buf = NULL;
         return -EFAIL;
     }
-
+    /*??1??????????cfg????????????????READ_CFG_BUF_LEN??????firmware_read_cfg????????????READ_CFG_BUF_LEN??????????*/
     else if (l_readlen > READ_CFG_BUF_LEN - 1)
     {
         PS_PRINT_ERR("cfg file [%s] larger than %d\n", puc_CfgPatch, READ_CFG_BUF_LEN);
@@ -1559,13 +1776,14 @@ int firmware_get_cfg(unsigned char *puc_CfgPatch, unsigned int ul_index)
     return l_ret;
 }
 
-int firmware_download(unsigned int ul_index)
+
+int32 firmware_download(uint32 ul_index)
 {
-    int l_ret;
-    int i;
-    int l_cmd_type;
-    unsigned char *puc_cmd_name;
-    unsigned char *puc_cmd_para;
+    int32 l_ret;
+    int32 i;
+    int32 l_cmd_type;
+    uint8 *puc_cmd_name;
+    uint8 *puc_cmd_para;
 
     if (ul_index >= CFG_FILE_TOTAL)
     {
@@ -1594,7 +1812,7 @@ int firmware_download(unsigned int ul_index)
     do
     {
         PS_PRINT_INFO("try to malloc firmware download file buf len is [%d]\n", g_ulDataBufLen);
-        g_pucDataBuf = (unsigned char *)OS_KMALLOC_GFP(g_ulDataBufLen);
+        g_pucDataBuf = (uint8 *)OS_KMALLOC_GFP(g_ulDataBufLen);
         if (NULL == g_pucDataBuf)
         {
             PS_PRINT_WARNING("malloc mem len [%d] fail, continue to try in a smaller size\n", g_ulDataBufLen);
@@ -1627,6 +1845,7 @@ int firmware_download(unsigned int ul_index)
             {
                 if ((!OS_MEM_CMP(puc_cmd_name, JUMP_CMD_KEYWORD, OS_STR_LEN(JUMP_CMD_KEYWORD))) && (CMD_JUMP_EXEC_RESULT_FAIL == g_ulJumpCmdResult))
                 {
+                    /*device mem check ??????????????????READM??????????????????*/
                     PS_PRINT_ERR("Device Mem Reg check result is fail\n");
                     continue;
                 }
@@ -1642,6 +1861,7 @@ int firmware_download(unsigned int ul_index)
         {
             if ((!OS_MEM_CMP(puc_cmd_name, RMEM_CMD_KEYWORD, OS_STR_LEN(RMEM_CMD_KEYWORD))) && (CMD_JUMP_EXEC_RESULT_FAIL == g_ulJumpCmdResult))
             {
+                /*device mem check??????????????????????????????????????????*/
                 PS_PRINT_ERR("Device Mem Reg check WL_L2_RAM_BASEADDR fail\n");
                 break;
             }
@@ -1659,13 +1879,13 @@ int firmware_download(unsigned int ul_index)
 }
 
 
-int print_firmwrae_download_cmd(unsigned int ul_index)
+int32 print_firmwrae_download_cmd(uint32 ul_index)
 {
-    int i;
-    int l_cmd_type;
-    unsigned char *puc_cmd_name;
-    unsigned char *puc_cmd_para;
-    unsigned int count;
+    int32 i;
+    int32 l_cmd_type;
+    uint8 *puc_cmd_name;
+    uint8 *puc_cmd_para;
+    uint32 count;
 
     count = g_st_cfg_info.al_count[ul_index];
     PS_PRINT_INFO("[%s] download cmd, total count is [%d]\n", g_auc_cfg_path[ul_index], count);
@@ -1682,9 +1902,9 @@ int print_firmwrae_download_cmd(unsigned int ul_index)
     return 0;
 }
 
-int print_cfg_file_cmd(void)
+int32 print_cfg_file_cmd(void)
 {
-    int i;
+    int32 i;
 
     for (i = 0; i < CFG_FILE_TOTAL; i++)
     {
@@ -1694,10 +1914,11 @@ int print_cfg_file_cmd(void)
     return 0;
 }
 
-static int firmware_cfg_cmd_fill(unsigned int index, unsigned int cmd_count, unsigned char* cmd_str)
+
+static int32 firmware_cfg_cmd_fill(uint32 index, uint32 cmd_count, uint8* cmd_str)
 {
-    unsigned int ul_size = 0;
-    unsigned int ul_len  = 0;
+    uint32 ul_size = 0;
+    uint32 ul_len  = 0;
 
     if ((NULL == cmd_str) || (cmd_count > g_st_cfg_info.al_count[index] + CFG_INFO_RESERVE_LEN - 1))
     {
@@ -1706,21 +1927,21 @@ static int firmware_cfg_cmd_fill(unsigned int index, unsigned int cmd_count, uns
 
     g_st_cfg_info.apst_cmd[index][cmd_count].cmd_type = NUM_TYPE_CMD;
 
-    ul_len  = OS_STR_LEN((unsigned char *)WMEM_CMD_KEYWORD) + 1;
+    ul_len  = OS_STR_LEN((uint8 *)WMEM_CMD_KEYWORD) + 1;
     ul_size = (DOWNLOAD_CMD_LEN > ul_len) ? ul_len : DOWNLOAD_CMD_LEN;
     OS_MEM_CPY(g_st_cfg_info.apst_cmd[index][cmd_count].cmd_name, WMEM_CMD_KEYWORD, ul_size);
 
-    ul_len  = OS_STR_LEN((unsigned char *)cmd_str) + 1;
+    ul_len  = OS_STR_LEN((uint8 *)cmd_str) + 1;
     ul_size = (DOWNLOAD_CMD_PARA_LEN > ul_len) ? ul_len : DOWNLOAD_CMD_PARA_LEN;
     OS_MEM_CPY(g_st_cfg_info.apst_cmd[index][cmd_count].cmd_para, cmd_str, ul_size);
 
     return 0;
 }
 
-static int firmware_cfg_fill (unsigned int index, unsigned int cmd_count)
+static int32 firmware_cfg_fill (uint32 index, uint32 cmd_count)
 {
-    int  result = 0;
-    unsigned int count;
+    int32  result = 0;
+    uint32 count;
 
     if (CFG_FILE_TOTAL <= index || (0 == cmd_count))
     {
@@ -1729,6 +1950,7 @@ static int firmware_cfg_fill (unsigned int index, unsigned int cmd_count)
 
     count = cmd_count;
 
+    /*????????????????: QUIT*/
     count -= 1;
 
     result  = firmware_cfg_cmd_fill(index, count++, "2,0x50002210,0x351C");
@@ -1736,6 +1958,7 @@ static int firmware_cfg_fill (unsigned int index, unsigned int cmd_count)
     result |= firmware_cfg_cmd_fill(index, count++, "2,0x50002280,0x5413");
     result |= firmware_cfg_cmd_fill(index, count++, "2,0x50002284,0x2C00");
 
+    /*????????????????: QUIT*/
     if (count > g_st_cfg_info.al_count[index] + CFG_INFO_RESERVE_LEN - 1)
     {
         PS_PRINT_ERR("cfg space overflow, maxlen[0x%x] < reallen[0x%x]",(g_st_cfg_info.al_count[index] + CFG_INFO_RESERVE_LEN),count);
@@ -1747,17 +1970,18 @@ static int firmware_cfg_fill (unsigned int index, unsigned int cmd_count)
     return result;
 }
 
-int firmware_cfg_init_extra(void)
+int32 firmware_cfg_init_extra(void)
 {
     oal_int32  result;
     oal_int32  wifi_5g_enable_info = WIFI_MODE_5G;
-    unsigned int index = BFGX_AND_WIFI_CFG;
-    unsigned int cmd_count = g_st_cfg_info.al_count[BFGX_AND_WIFI_CFG];
+    uint32 index = BFGX_AND_WIFI_CFG;
+    uint32 cmd_count = g_st_cfg_info.al_count[BFGX_AND_WIFI_CFG];
 
     result = get_cust_conf_int32(INI_MODU_WIFI, CHECK_5G_ENABLE, &wifi_5g_enable_info);
     if (0 > result)
     {
         PS_PRINT_WARNING("host get wifi 5g enable info fail\n");
+        /* ????????,??????5G */
         wifi_5g_enable_info = WIFI_MODE_5G;
     }
 
@@ -1777,33 +2001,14 @@ int firmware_cfg_init_extra(void)
     return result;
 }
 
-int firmware_cfg_init(void)
+
+
+int32 firmware_cfg_init(void)
 {
-    int  l_ret;
-    unsigned int i;
+    int32  l_ret;
+    uint32 i;
 
-#ifdef _PRE_HI110X_FIRMWARE_NOT_BUILDIN
-    int  firmware_in_boot = 1;
-
-    l_ret = get_cust_conf_int32(INI_MODU_PLAT, "firmware_buildin", &firmware_in_boot);
-    if (l_ret < 0)
-    {
-        PS_PRINT_INFO("not found firmware_buildin in ini file\n");
-        firmware_in_boot = 1;
-    }
-
-    if (firmware_in_boot)
-    {
-        PS_PRINT_INFO("Hi110x firmware is buildin\n");
-        g_auc_cfg_path = g_auc_cfg_in_boot_path;
-    }
-    else
-    {
-        PS_PRINT_INFO("Hi110x firmware is not buildin\n");
-        g_auc_cfg_path = g_auc_cfg_in_system_path;
-    }
-#endif
-
+    /*????cfg????*/
     for (i = 0; i < CFG_FILE_TOTAL; i++)
     {
         l_ret = firmware_get_cfg(g_auc_cfg_path[i], i);
@@ -1827,6 +2032,7 @@ int firmware_cfg_init(void)
         goto cfg_file_init_fail;
     }
 
+    /*??????????????????????buffer*/
     l_ret = cali_data_buf_malloc();
     if(0 > l_ret)
     {
@@ -1844,9 +2050,10 @@ cfg_file_init_fail:
     return -EFAIL;
 }
 
-int firmware_cfg_clear(void)
+
+int32 firmware_cfg_clear(void)
 {
-    int i;
+    int32 i;
 
     cali_data_buf_free();
 
@@ -1863,11 +2070,12 @@ int firmware_cfg_clear(void)
     return SUCC;
 }
 
-int nfc_buffer_data_recv(unsigned char *pucDataBuf, int len)
+
+int32 nfc_buffer_data_recv(uint8 *pucDataBuf, int32 len)
 {
-    unsigned int l_ret = 0;
-    int lenbuf = 0;
-    int retry = 3;
+    uint32 l_ret = 0;
+    int32 lenbuf = 0;
+    int32 retry = 3;
 
     if (NULL == pucDataBuf)
     {
@@ -1875,6 +2083,7 @@ int nfc_buffer_data_recv(unsigned char *pucDataBuf, int len)
         return -EFAIL;
     }
 
+    //????????
     while (len > lenbuf)
     {
         l_ret = read_msg(pucDataBuf + lenbuf, len - lenbuf);
@@ -1896,14 +2105,15 @@ int nfc_buffer_data_recv(unsigned char *pucDataBuf, int len)
     return SUCC;
 }
 
+
 void save_nfc_lowpower_log_2_sdt(void)
 {
-    unsigned int cp_len = 0;
-    unsigned int index = 0;
-    unsigned char buf_tx[SEND_BUF_LEN];
-    unsigned int total_len = 0;
-    unsigned int buf_tx_len = 0;
-    unsigned char retry;
+    uint32 cp_len = 0;
+    uint32 index = 0;
+    uint8 buf_tx[SEND_BUF_LEN];
+    uint32 total_len = 0;
+    uint32 buf_tx_len = 0;
+    uint8 retry;
     struct pm_drv_data *pm_data = pm_get_drvdata();
     if (NULL == pm_data)
     {
@@ -1936,6 +2146,8 @@ void save_nfc_lowpower_log_2_sdt(void)
                                                 cp_len,
                                                 COMPART_KEYWORD);
         PS_PRINT_INFO("read nfc buffer cmd:[%s]\n", buf_tx);
+
+        /* ????????delay??????????????SDIO?????????????? */
         /*usleep_range(10000, 11000);*/
         send_msg(buf_tx, buf_tx_len);
 
@@ -1957,6 +2169,7 @@ void save_nfc_lowpower_log_2_sdt(void)
             }
         }
 #endif
+        /**????nfc????bfgn??log??bfgn????**/
         retry = 3;
         while (!wifi_choose_bfgn_channel_send_log2sdt(g_pucNfcLog, cp_len))
         {

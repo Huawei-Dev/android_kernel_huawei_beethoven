@@ -1,23 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_tx_data.h
-  版 本 号   : 初稿
-  作    者   : c00178899
-  生成日期   : 2012年11月12日
-  最近修改   :
-  功能描述   : hmac_tx_bss_ap.c 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年11月12日
-    作    者   : c00178899
-    修改内容   : 创建文件
-  2.日    期   : 2013年1月8日
-    作    者   : z52447
-    修改内容   : 文件名修改
-******************************************************************************/
 
 #ifndef __HMAC_TX_DATA_H__
 #define __HMAC_TX_DATA_H__
@@ -30,7 +11,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "mac_frame.h"
 #include "dmac_ext_if.h"
@@ -45,9 +26,9 @@ extern "C" {
 
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
-/* 基本能力信息中关于是否是QOS的能力位 */
+/* ????????????????????????QOS???????? */
 #define HMAC_CAP_INFO_QOS_MASK 0x0200
 
 #define WLAN_TOS_TO_TID(_tos) (      \
@@ -59,7 +40,7 @@ extern "C" {
 #define WLAN_BA_CNT_INTERVAL 100
 
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 typedef enum
 {
@@ -70,30 +51,30 @@ typedef enum
 }hmac_tx_bss_qos_type_enum;
 
 /*****************************************************************************
-  4 全局变量声明
+  4 ????????????
 *****************************************************************************/
 
 /*****************************************************************************
-  5 消息头定义
-*****************************************************************************/
-
-
-/*****************************************************************************
-  6 消息定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  8 UNION定义
+  7 STRUCT????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  8 UNION????
 *****************************************************************************/
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32  hmac_tx_encap(hmac_vap_stru    *pst_vap,
                                             hmac_user_stru   *pst_user,
@@ -118,24 +99,10 @@ extern  oal_void hmac_tx_ba_cnt_vary(
 extern  oal_uint8 hmac_tx_wmm_acm(oal_bool_enum_uint8  en_wmm, hmac_vap_stru *pst_hmac_vap, oal_uint8 *puc_tid);
 #endif /* defined(_PRE_PRODUCT_ID_HI110X_HOST) */
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_get_next_mpdu
- 功能描述  : 获取下一个MPDU
- 输入参数  : pst_buf netbuf结构体;uc_netbuf_num netbuf个数
- 输出参数  :
- 返 回 值  :
- 调用函数  : hmac_tx_event_process_ap
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_netbuf_stru *hmac_tx_get_next_mpdu(oal_netbuf_stru *pst_buf, oal_uint8 uc_netbuf_num)
 {
     oal_netbuf_stru       *pst_next_buf = OAL_PTR_NULL;
@@ -156,21 +123,7 @@ OAL_STATIC OAL_INLINE oal_netbuf_stru *hmac_tx_get_next_mpdu(oal_netbuf_stru *ps
     return pst_next_buf;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_netbuf_list_enqueue
- 功能描述  : MPDU入队
- 输入参数  : pst_head 表头; pst_buf netbuf结构体;uc_netbuf_num netbuf个数
- 输出参数  :
- 返 回 值  :
- 调用函数  : hmac_tx_event_process_ap
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void hmac_tx_netbuf_list_enqueue(oal_netbuf_head_stru *pst_head, oal_netbuf_stru *pst_buf, oal_uint8 uc_netbuf_num)
 {
     oal_uint32             ul_netbuf_index;
@@ -191,21 +144,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_netbuf_list_enqueue(oal_netbuf_head_stru 
 }
 
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_get_addr
- 功能描述  : 获取原地址和目的地址
- 输入参数  : pst_hdr 802.11头结构体
- 输出参数  : puc_saddr 原地址 puc_daddr 目的地址
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void hmac_tx_get_addr(mac_ieee80211_qos_htc_frame_addr4_stru *pst_hdr,
                                                 oal_uint8                               *puc_saddr,
                                                 oal_uint8                               *puc_daddr)
@@ -242,21 +181,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_get_addr(mac_ieee80211_qos_htc_frame_addr
     }
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_set_frame_ctrl
- 功能描述  : 设置帧控制
- 输入参数  : ul_qos 是否是QOS站点 pst_tx_ctl CB字段 pst_hdr 802.11头
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void hmac_tx_set_frame_ctrl(oal_uint32                               ul_qos,
                                                       mac_tx_ctl_stru                         *pst_tx_ctl,
                                                       mac_ieee80211_qos_htc_frame_addr4_stru  *pst_hdr_addr4)
@@ -274,14 +199,14 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_set_frame_ctrl(oal_uint32                
             en_is_amsdu = pst_tx_ctl->en_is_amsdu;
         }
 
-        /* 设置帧控制字段 */
+        /* ?????????????? */
         mac_hdr_set_frame_control((oal_uint8 *)pst_hdr_addr4, (WLAN_FC0_SUBTYPE_QOS | WLAN_FC0_TYPE_DATA));
 
-        /* 更新帧头长度 */
+        /* ???????????? */
         if (OAL_FALSE == pst_tx_ctl->en_use_4_addr)
         {
             pst_hdr = (mac_ieee80211_qos_htc_frame_stru *)pst_hdr_addr4;
-            /* 设置QOS控制字段 */
+            /* ????QOS???????? */
             pst_hdr->bit_qc_tid        = pst_tx_ctl->uc_tid;
             pst_hdr->bit_qc_eosp       = 0;
             pst_hdr->bit_qc_ack_polocy = pst_tx_ctl->en_ack_policy;
@@ -291,7 +216,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_set_frame_ctrl(oal_uint32                
         }
         else
         {
-            /* 设置QOS控制字段 */
+            /* ????QOS???????? */
             pst_hdr_addr4->bit_qc_tid        = pst_tx_ctl->uc_tid;
             pst_hdr_addr4->bit_qc_eosp       = 0;
             pst_hdr_addr4->bit_qc_ack_polocy = pst_tx_ctl->en_ack_policy;
@@ -300,14 +225,14 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_set_frame_ctrl(oal_uint32                
             pst_tx_ctl->uc_frame_header_length = MAC_80211_QOS_4ADDR_FRAME_LEN;
         }
 
-        /* 由DMAC考虑是否需要HTC */
+        /* ??DMAC????????????HTC */
     }
     else
     {
-        /* 设置帧控制字段 */
+        /* ?????????????? */
         mac_hdr_set_frame_control((oal_uint8 *)pst_hdr_addr4, WLAN_FC0_TYPE_DATA | WLAN_FC0_SUBTYPE_DATA);
 
-        /* 非QOS数据帧帧控制字段设置 */
+        /* ??QOS???????????????????? */
         if (pst_tx_ctl->en_use_4_addr)
         {
             pst_tx_ctl->uc_frame_header_length = MAC_80211_4ADDR_FRAME_LEN;
@@ -319,21 +244,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_tx_set_frame_ctrl(oal_uint32                
     }
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_set_addresses
- 功能描述  : 设置帧地址控制
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月14日
-    作    者   : c00178899
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
                 hmac_vap_stru                           *pst_vap,
                 hmac_user_stru                          *pst_user,
@@ -343,17 +254,17 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
                 mac_ieee80211_qos_htc_frame_addr4_stru  *pst_hdr,
                 oal_uint16                               us_ether_type)
 {
-    /* 分片号置成0，后续分片特性需要重新赋值 */
+    /* ??????????0?????????????????????????? */
     pst_hdr->bit_frag_num    = 0;
     pst_hdr->bit_seq_num     = 0;
 
     if ((WLAN_VAP_MODE_BSS_AP == pst_vap->st_vap_base_info.en_vap_mode)
           && (!(pst_tx_ctl->en_use_4_addr))) /* From AP */
     {
-        /* From DS标识位设置 */
+        /* From DS?????????? */
         mac_hdr_set_from_ds((oal_uint8 *)pst_hdr, 1);
 
-        /* to DS标识位设置 */
+        /* to DS?????????? */
         mac_hdr_set_to_ds((oal_uint8 *)pst_hdr, 0);
 
         /* Set Address1 field in the WLAN Header with destination address */
@@ -362,7 +273,7 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
         /* Set Address2 field in the WLAN Header with the BSSID */
         oal_set_mac_addr(pst_hdr->auc_address2, pst_vap->st_vap_base_info.auc_bssid);
 
-        if (pst_tx_ctl->en_is_amsdu) /* AMSDU情况，地址3填写BSSID */
+        if (pst_tx_ctl->en_is_amsdu) /* AMSDU??????????3????BSSID */
         {
             /* Set Address3 field in the WLAN Header with the BSSID */
             oal_set_mac_addr(pst_hdr->auc_address3, pst_vap->st_vap_base_info.auc_bssid);
@@ -376,10 +287,10 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
     }
     else if (WLAN_VAP_MODE_BSS_STA == pst_vap->st_vap_base_info.en_vap_mode)
     {
-        /* From DS标识位设置 */
+        /* From DS?????????? */
         mac_hdr_set_from_ds((oal_uint8 *)pst_hdr, 0);
 
-        /* to DS标识位设置 */
+        /* to DS?????????? */
         mac_hdr_set_to_ds((oal_uint8 *)pst_hdr, 1);
 
         /* Set Address1 field in the WLAN Header with BSSID */
@@ -396,7 +307,7 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
             oal_set_mac_addr(pst_hdr->auc_address2, pst_vap->st_vap_base_info.pst_mib_info->st_wlan_mib_sta_config.auc_dot11StationID);
         }
 
-        if (pst_tx_ctl->en_is_amsdu) /* AMSDU情况，地址3填写BSSID */
+        if (pst_tx_ctl->en_is_amsdu) /* AMSDU??????????3????BSSID */
         {
             /* Set Address3 field in the WLAN Header with the BSSID */
             oal_set_mac_addr(pst_hdr->auc_address3, pst_user->st_user_base_info.auc_user_mac_addr);
@@ -415,32 +326,32 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
             return OAL_ERR_CODE_PTR_NULL;
         }
 
-        /* TO DS标识位设置 */
+        /* TO DS?????????? */
         mac_hdr_set_to_ds((oal_uint8 *)pst_hdr, 1);
 
-        /* From DS标识位设置 */
+        /* From DS?????????? */
         mac_hdr_set_from_ds((oal_uint8 *)pst_hdr, 1);
 
-        /* 地址1是 RA */
+        /* ????1?? RA */
         oal_set_mac_addr(pst_hdr->auc_address1, pst_user->st_user_base_info.auc_user_mac_addr);
 
-        /* 地址2是 TA (当前只有BSSID) */
+        /* ????2?? TA (????????BSSID) */
         oal_set_mac_addr(pst_hdr->auc_address2, pst_vap->st_vap_base_info.auc_bssid);
 
-        if (pst_tx_ctl->en_is_amsdu) /* AMSDU情况，地址3和地址4填写BSSID */
+        if (pst_tx_ctl->en_is_amsdu) /* AMSDU??????????3??????4????BSSID */
         {
-            /* 地址3是 BSSID */
+            /* ????3?? BSSID */
             oal_set_mac_addr(pst_hdr->auc_address3, pst_vap->st_vap_base_info.auc_bssid);
 
-            /* 地址4也是 BSSID */
+            /* ????4???? BSSID */
             oal_set_mac_addr(pst_hdr->auc_address4, pst_vap->st_vap_base_info.auc_bssid);
         }
         else
         {
-            /* 地址3是 DA */
+            /* ????3?? DA */
             oal_set_mac_addr(pst_hdr->auc_address3, puc_daddr);
 
-            /* 地址4是 SA */
+            /* ????4?? SA */
             oal_set_mac_addr(pst_hdr->auc_address4, puc_saddr);
         }
 
@@ -449,50 +360,17 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_tx_set_addresses(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_vap_ba_is_setup
- 功能描述  : 判断该用户对应的TID是否已经建立BA会话
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_TRUE代表已经创建了BA会话
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年4月11日
-    作    者   : huxiaotong
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_vap_ba_is_setup(hmac_user_stru *pst_hmac_user, oal_uint8 uc_tidno)
 {
    if (OAL_UNLIKELY(OAL_PTR_NULL == pst_hmac_user) || uc_tidno >= WLAN_TID_MAX_NUM)
    {
        return OAL_FALSE;
    }
-   return (DMAC_BA_COMPLETE == pst_hmac_user->ast_tid_info[uc_tidno].st_ba_tx_info.en_ba_status) ? OAL_TRUE : OAL_FALSE;/* [false alarm]:返回值是布尔值和函数类型一致*/
+   return (DMAC_BA_COMPLETE == pst_hmac_user->ast_tid_info[uc_tidno].st_ba_tx_info.en_ba_status) ? OAL_TRUE : OAL_FALSE;/* [false alarm]:????????????????????????????*/
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_ba_check
- 功能描述  : 判断是否需要建立BA会话
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_TRUE代表需要建立BA会话
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月24日
-    作    者   : sunxiaolin
-    修改内容   : 新生成函数
-
-修改历史      :
-  2.日    期   : 2015年7月24日
-    作    者   : lixiaochuan
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
                                     hmac_vap_stru   *pst_hmac_vap,
                                     hmac_user_stru  *pst_hmac_user,
@@ -501,7 +379,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
 {
     mac_device_stru       *pst_mac_device;
     hmac_tid_stru         *pst_hmac_tid_info;
-    mac_action_mgmt_args_stru       st_action_args;   /* 用于填写ACTION帧的参数 */
+    mac_action_mgmt_args_stru       st_action_args;   /* ????????ACTION???????? */
 
     if(OAL_TRUE == hmac_vap_ba_is_setup(pst_hmac_user, uc_tidno))
     {
@@ -518,7 +396,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
         return OAL_FALSE;
     }
 
-    /* 配置命令不允许建立聚合时返回 */
+    /* ???????????????????????????? */
     if (OAL_FALSE == pst_hmac_vap->en_ampdu_tx_on_switch)
     {
         return OAL_FALSE;
@@ -533,13 +411,13 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
         return OAL_FALSE;
     }
 
-    /* 针对VO业务, 根据VAP标志位确定是否建立BA会话 */
+    /* ????VO????, ????VAP??????????????????BA???? */
     if ((WLAN_WME_AC_VO == WLAN_WME_TID_TO_AC(uc_tidno)) && (OAL_FALSE == pst_hmac_vap->st_vap_base_info.bit_voice_aggr))
     {
         return OAL_FALSE;
     }
 
-    /* 判断HMAC VAP的是否支持聚合 */
+    /* ????HMAC VAP?????????????? */
     if (!((pst_hmac_vap->en_tx_aggr_on) || (pst_hmac_vap->st_vap_base_info.st_cap_flag.bit_rifs_tx_on)))
     {
         OAM_INFO_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_BA, "{hmac_tid_need_ba_session::en_tx_aggr_on of vap is off");
@@ -573,7 +451,7 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
         return OAL_FALSE;
     }
 #endif
-    /* 需要先发送5个单播帧，再进行BA会话的建立 */
+    /* ??????????5????????????????BA?????????? */
     if ((OAL_TRUE == pst_hmac_user->st_user_base_info.st_cap_info.bit_qos) &&
         (pst_hmac_user->auc_ba_flag[uc_tidno] < DMAC_UCAST_FRAME_TX_COMP_TIMES) &&
         (HMAC_ADDBA_MODE_AUTO == pst_hmac_vap->en_addba_mode))
@@ -583,14 +461,13 @@ OAL_STATIC OAL_INLINE oal_bool_enum_uint8 hmac_tid_need_ba_session(
         hmac_tx_ba_cnt_vary(pst_hmac_vap, pst_hmac_user, uc_tidno, pst_buf);
         return OAL_FALSE;
     }
-    /* 针对关闭WMM，非QOS帧处理 */
+    /* ????????WMM????QOS?????? */
     else if(OAL_FALSE == pst_hmac_user->st_user_base_info.st_cap_info.bit_qos)
     {
         OAM_INFO_LOG0(pst_hmac_vap->st_vap_base_info.uc_vap_id, OAM_SF_TX,"{UnQos Frame pass!!}");
         return OAL_FALSE;
     }
 
-    /* DTS2016012002852 虽然上面判断了状态不是COMPLETE,这里状态仍然可能是COMPLETE */
     if ((pst_hmac_tid_info->st_ba_tx_info.en_ba_status == DMAC_BA_INIT)
      && (pst_hmac_tid_info->st_ba_tx_info.uc_addba_attemps < HMAC_ADDBA_EXCHANGE_ATTEMPTS))
     {

@@ -1,5 +1,4 @@
-#ifndef __CHR_DEVS_H__
-#define __CHR_DEVS_H__
+
 
 #ifdef __cplusplus
     #if __cplusplus
@@ -7,7 +6,23 @@
     #endif
 #endif
 
+#ifndef __CHR_DEVS_H__
+#define __CHR_DEVS_H__
+
+/*****************************************************************************
+  1 ??????????
+*****************************************************************************/
+
 #include <linux/debugfs.h>
+#include "plat_type.h"
+
+/*****************************************************************************
+  2 CHR????????
+*****************************************************************************/
+
+/*****************************************************************************
+  3 ??????
+*****************************************************************************/
 
 #define CHR_DEV_KMSG_PLAT           "chrKmsgPlat"
 
@@ -30,8 +45,11 @@
 #define CHR_MAGIC                   'C'
 #define CHR_MAX_NR                  1
 #define chr_ERRNO_WRITE_NR          1
-#define CHR_ERRNO_WRITE             _IOW(CHR_MAGIC, 1, int)
+#define CHR_ERRNO_WRITE             _IOW(CHR_MAGIC, 1, int32)
 
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
 typedef enum chr_dev_index{
     CHR_INDEX_KMSG_PLAT = 0,
     CHR_INDEX_KMSG_WIFI,
@@ -73,6 +91,9 @@ enum return_type
     CHR_EFAIL,
 };
 
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
 typedef struct {
     wait_queue_head_t       errno_wait;
     struct sk_buff_head     errno_queue;
@@ -81,16 +102,16 @@ typedef struct {
 
 typedef struct
 {
-    unsigned char  framehead;
-    unsigned char  reserved[3];
-    unsigned int errno;
-    unsigned char  frametail;
+    uint8  framehead;
+    uint8  reserved[3];
+    uint32 errno;
+    uint8  frametail;
 }CHR_DEV_EXCEPTION_STRU;
+
+#endif
 
 #ifdef __cplusplus
     #if __cplusplus
         }
     #endif
-#endif
-
 #endif

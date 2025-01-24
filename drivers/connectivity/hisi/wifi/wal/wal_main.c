@@ -1,22 +1,5 @@
 
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_main.c
-  版 本 号   : 初稿
-  作    者   : 康国昌
-  生成日期   : 2012年9月18日
-  最近修改   :
-  功能描述   : WAL模块初始化与卸载
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -27,7 +10,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
@@ -60,18 +43,18 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_WAL_MAIN_C
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
-/* HOST CRX子表 */
+/* HOST CRX???? */
 OAL_STATIC frw_event_sub_table_item_stru g_ast_wal_host_crx_table[WAL_HOST_CRX_SUBTYPE_BUTT];
 
-/* HOST CTX字表 */
+/* HOST CTX???? */
 OAL_STATIC frw_event_sub_table_item_stru g_ast_wal_host_ctx_table[HMAC_HOST_CTX_EVENT_SUB_TYPE_BUTT];
 
-/* HOST DRX子表 */
+/* HOST DRX???? */
 /* OAL_STATIC frw_event_sub_table_item_stru g_ast_wal_host_drx_table[WAL_HOST_DRX_SUBTYPE_BUTT]; */
 
-/* wal对外钩子函数 */
+/* wal???????????? */
 oam_wal_func_hook_stru     g_st_wal_drv_func_hook;
 
 oal_wakelock_stru   g_st_wal_wakelock;
@@ -91,24 +74,10 @@ wal_hw_wlan_filter_ops g_st_ip_filter_ops;
 #endif
 #endif /* _PRE_WLAN_FEATURE_IP_FILTER */
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 
-/*****************************************************************************
- 函 数 名  : wal_event_fsm_init
- 功能描述  : 注册事件处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月16日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_event_fsm_init(oal_void)
 {
     g_ast_wal_host_crx_table[WAL_HOST_CRX_SUBTYPE_CFG].p_func = wal_config_process_pkt;
@@ -153,21 +122,7 @@ oal_uint32  wal_event_fsm_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_event_fsm_exit
- 功能描述  : 卸载事件处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : OAL_SUCC
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年12月28日
-    作    者   : zhangheng
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  wal_event_fsm_exit(oal_void)
 {
     OAL_IO_PRINT("debug2");
@@ -201,7 +156,7 @@ oal_int32 wal_wakelock_info_print(char* buf, oal_int32 buf_len)
     return ret;
 }
 
-OAL_STATIC ssize_t  wal_get_wakelock_info(struct device *dev, struct device_attribute *attr, char*buf)
+OAL_STATIC ssize_t  wal_get_wakelock_info(struct kobject *dev, struct kobj_attribute *attr, char*buf)
 {
     int ret = 0;
     OAL_BUG_ON(NULL == dev);
@@ -214,7 +169,7 @@ OAL_STATIC ssize_t  wal_get_wakelock_info(struct device *dev, struct device_attr
 }
 
 extern oal_int32 wal_atcmsrv_ioctl_get_rx_pckg(oal_net_device_stru *pst_net_dev, oal_int32 *pl_rx_pckg_succ_num);
-OAL_STATIC ssize_t  wal_get_packet_statistics_wlan0_info(struct device *dev, struct device_attribute *attr, char*buf)
+OAL_STATIC ssize_t  wal_get_packet_statistics_wlan0_info(struct kobject *dev, struct kobj_attribute *attr, char*buf)
 {
     ssize_t                     ret = 0;
     oal_net_device_stru*        pst_net_dev;
@@ -233,16 +188,16 @@ OAL_STATIC ssize_t  wal_get_packet_statistics_wlan0_info(struct device *dev, str
         OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_packet_statistics_wlan0_info_print::oal_dev_get_by_name return null ptr!}\r\n");
         return ret;
     }
-    oal_dev_put(pst_net_dev);   /* 调用oal_dev_get_by_name后，必须调用oal_dev_put使net_dev的引用计数减一 */
-    /* 获取VAP结构体 */
+    oal_dev_put(pst_net_dev);   /* ????oal_dev_get_by_name????????????oal_dev_put??net_dev?????????????? */
+    /* ????VAP?????? */
     pst_vap = (mac_vap_stru *)OAL_NET_DEV_PRIV(pst_net_dev);
-    /* 如果VAP结构体不存在，返回0 */
+    /* ????VAP??????????????????0 */
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_vap))
     {
         OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_packet_statistics_wlan0_info_print::pst_vap = OAL_PTR_NULL!}\r\n");
         return ret;
     }
-    /* 非STA直接返回 */
+    /* ??STA???????? */
     if (WLAN_VAP_MODE_BSS_STA != pst_vap->en_vap_mode)
     {
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_packet_statistics_wlan0_info_print::vap_mode:%d.}\r\n", pst_vap->en_vap_mode);
@@ -267,8 +222,10 @@ OAL_STATIC ssize_t  wal_get_packet_statistics_wlan0_info(struct device *dev, str
     return ret;
 }
 
-OAL_STATIC DEVICE_ATTR(wakelock, S_IRUGO, wal_get_wakelock_info, NULL);
-OAL_STATIC DEVICE_ATTR(packet_statistics_wlan0, S_IRUGO, wal_get_packet_statistics_wlan0_info, NULL);
+OAL_STATIC struct kobj_attribute dev_attr_wakelock =
+    __ATTR(wakelock, S_IRUGO, wal_get_wakelock_info, NULL);
+OAL_STATIC struct kobj_attribute dev_attr_packet_statistics_wlan0 =
+    __ATTR(packet_statistics_wlan0, S_IRUGO, wal_get_packet_statistics_wlan0_info, NULL);
 
 oal_int32 wal_msg_queue_info_print(char* buf, oal_int32 buf_len)
 {
@@ -279,7 +236,7 @@ oal_int32 wal_msg_queue_info_print(char* buf, oal_int32 buf_len)
     return ret;
 }
 
-OAL_STATIC ssize_t  wal_get_msg_queue_info(struct device *dev, struct device_attribute *attr, char*buf)
+OAL_STATIC ssize_t  wal_get_msg_queue_info(struct kobject *dev, struct kobj_attribute *attr, char*buf)
 {
     int ret = 0;
     OAL_BUG_ON(NULL == dev);
@@ -305,16 +262,16 @@ OAL_STATIC ssize_t  wal_get_dev_wifi_info_print(char* buf, oal_int32 buf_len)
         OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_get_dev_wifi_info_print::oal_dev_get_by_name return null ptr!}\r\n");
         return ret;
     }
-    oal_dev_put(pst_net_dev);   /* 调用oal_dev_get_by_name后，必须调用oal_dev_put使net_dev的引用计数减一 */
-    /* 获取VAP结构体 */
+    oal_dev_put(pst_net_dev);   /* ????oal_dev_get_by_name????????????oal_dev_put??net_dev?????????????? */
+    /* ????VAP?????? */
     pst_vap = (mac_vap_stru *)OAL_NET_DEV_PRIV(pst_net_dev);
-    /* 如果VAP结构体不存在，返回0 */
+    /* ????VAP??????????????????0 */
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_vap))
     {
         OAM_WARNING_LOG0(0, OAM_SF_ANY, "{wal_get_dev_wifi_info_print::pst_vap = OAL_PTR_NULL!}\r\n");
         return ret;
     }
-    /* 非STA直接返回 */
+    /* ??STA???????? */
     if (WLAN_VAP_MODE_BSS_STA != pst_vap->en_vap_mode)
     {
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_get_dev_wifi_info_print::vap_mode:%d.}\r\n", pst_vap->en_vap_mode);
@@ -340,7 +297,7 @@ OAL_STATIC ssize_t  wal_get_dev_wifi_info_print(char* buf, oal_int32 buf_len)
 
     return ret;
 }
-OAL_STATIC ssize_t  wal_get_dev_wifi_info(struct device *dev, struct device_attribute *attr, char*buf)
+OAL_STATIC ssize_t  wal_get_dev_wifi_info(struct kobject *dev, struct kobj_attribute *attr, char*buf)
 {
     int ret = 0;
     OAL_BUG_ON(NULL == dev);
@@ -351,9 +308,11 @@ OAL_STATIC ssize_t  wal_get_dev_wifi_info(struct device *dev, struct device_attr
 
     return ret;
 }
-OAL_STATIC DEVICE_ATTR(dev_wifi_info, S_IRUGO, wal_get_dev_wifi_info, NULL);
+OAL_STATIC struct kobj_attribute dev_attr_dev_wifi_info =
+    __ATTR(dev_wifi_info, S_IRUGO, wal_get_dev_wifi_info, NULL);
 
-OAL_STATIC DEVICE_ATTR(msg_queue, S_IRUGO, wal_get_msg_queue_info, NULL);
+OAL_STATIC struct kobj_attribute dev_attr_msg_queue =
+    __ATTR(msg_queue, S_IRUGO, wal_get_msg_queue_info, NULL);
 
 OAL_STATIC struct attribute *wal_sysfs_entries[] = {
         &dev_attr_wakelock.attr,
@@ -407,21 +366,7 @@ OAL_STATIC oal_int32 wal_sysfs_entry_exit(oal_void)
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : wal_main_init
- 功能描述  : WAL模块初始化总入口，包含WAL模块内部所有特性的初始化。
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 初始化返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wal_main_init(oal_void)
 {
     oal_uint32           ul_ret;
@@ -435,7 +380,7 @@ oal_int32  wal_main_init(oal_void)
     wal_msg_queue_init();
 
     en_init_state = frw_get_init_state();
-    /* WAL模块初始化开始时，说明HMAC肯定已经初始化成功 */
+    /* WAL??????????????????????HMAC?????????????????? */
     if ((FRW_INIT_STATE_BUTT == en_init_state) || (en_init_state < FRW_INIT_STATE_HMAC_CONFIG_VAP_SUCC))
     {
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_main_init::en_init_state has a invalid value [%d]!}\r\n", en_init_state);
@@ -446,7 +391,7 @@ oal_int32  wal_main_init(oal_void)
 
     wal_event_fsm_init();
 
-    /* 创建proc */
+    /* ????proc */
     ul_ret = wal_hipriv_create_proc(OAL_PTR_NULL);
     if (OAL_SUCC != ul_ret)
     {
@@ -456,7 +401,7 @@ oal_int32  wal_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 初始化每个device硬件设备对应的wiphy */
+    /* ??????????device??????????????wiphy */
     ul_ret = wal_cfg80211_init();
     if (ul_ret != OAL_SUCC)
     {
@@ -466,18 +411,18 @@ oal_int32  wal_main_init(oal_void)
         return -OAL_EFAIL;
     }
 
-    /* 在host侧如果WAL初始化成功，即为全部初始化成功 */
+    /* ??host??????WAL?????????????????????????????? */
     frw_set_init_state(FRW_INIT_STATE_ALL_SUCC);
 
 
-    /* wal钩子函数初始化 */
+    /* wal?????????????? */
     wal_drv_cfg_func_hook_init();
 
-    /* wal层对外钩子函数注册至oam模块 */
+    /* wal????????????????????oam???? */
     oam_wal_func_fook_register(&g_st_wal_drv_func_hook);
 
 #ifdef _PRE_WLAN_FEATURE_P2P
-    /* 初始化cfg80211 删除网络设备工作队列 */
+    /* ??????cfg80211 ???????????????????? */
     g_pst_del_virtual_inf_workqueue = OAL_CREATE_SINGLETHREAD_WORKQUEUE("cfg80211_del_virtual_inf");
     if (!g_pst_del_virtual_inf_workqueue)
     {
@@ -510,21 +455,7 @@ oal_int32  wal_main_init(oal_void)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_destroy_all_vap
- 功能描述  : 卸载前删除所有vap
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年4月28日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wal_destroy_all_vap(oal_void)
 {
 #if (_PRE_TEST_MODE_UT != _PRE_TEST_MODE)
@@ -534,7 +465,6 @@ oal_void  wal_destroy_all_vap(oal_void)
     oal_wireless_dev_stru  *pst_wdev;
     oal_int8                ac_param[10] = {0};
     OAL_IO_PRINT("wal_destroy_all_vap start");
-    /* 删除业务vap，双芯片id从2开始，增加编译宏表示板级业务vap起始id 后续业务vap的处理，采用此宏 DTS2015062404971  */
     for (uc_vap_id = WLAN_SERVICE_VAP_START_ID_PER_BOARD; uc_vap_id < WLAN_VAP_SUPPORT_MAX_NUM_LIMIT; uc_vap_id++)
     {
         pst_net_dev = hmac_vap_get_net_device(uc_vap_id);
@@ -577,21 +507,7 @@ oal_void  wal_destroy_all_vap(oal_void)
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_main_exit
- 功能描述  : WAL模块卸载
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  : 模块卸载返回值，成功或失败原因
- 调用函数  : 无
- 被调函数  : 无
 
- 修改历史      :
-  1.日    期   : 2012年9月18日
-    作    者   : 康国昌
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wal_main_exit(oal_void)
 {
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
@@ -602,29 +518,29 @@ oal_void  wal_main_exit(oal_void)
 /*debug sysfs*/
     wal_sysfs_entry_exit();
 #endif
-    /* down掉所有的vap */
+    /* down????????vap */
     wal_destroy_all_vap();
 
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
-    /* 卸载每个device硬件设备对应的wiphy */
+    /* ????????device??????????????wiphy */
     wal_cfg80211_exit();
 #endif
     wal_event_fsm_exit();
 
-    /* 删除proc */
+    /* ????proc */
     wal_hipriv_remove_proc();
 
 
-    /* 卸载成功时，将初始化状态置为HMAC初始化成功 */
+    /* ????????????????????????????HMAC?????????? */
     frw_set_init_state(FRW_INIT_STATE_HMAC_CONFIG_VAP_SUCC);
 
-    /* wal钩子函数去初始化 */
+    /* wal???????????????? */
     wal_drv_cfg_func_hook_deinit();
 
-    /* 去注册钩子函数 */
+    /* ?????????????? */
     oam_wal_func_fook_unregister();
 #ifdef _PRE_WLAN_FEATURE_P2P
-    /* 删除cfg80211 删除网络设备工作队列 */
+    /* ????cfg80211 ???????????????????? */
     if (g_pst_del_virtual_inf_workqueue)
     {
         oal_destroy_workqueue(g_pst_del_virtual_inf_workqueue);

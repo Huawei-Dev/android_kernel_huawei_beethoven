@@ -1,17 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_proxysta.h
-  版 本 号   : 初稿
-  作    者   : gaolin g00196511
-  生成日期   : 2016年03月18日
-  最近修改   :
-  功能描述   : hmac_proxysta.c 的头文件
-  函数列表   :
-  修改历史   :
-******************************************************************************/
 
 #ifndef __HMAC_PROXYSTA_H__
 #define __HMAC_PROXYSTA_H__
@@ -31,7 +18,7 @@ extern "C" {
 #define VAMP_MAX_RSP_SIZE   64
 
 /*
- * driver向vamp上报的消息类型
+ * driver??vamp??????????????
  */
 typedef enum
 {
@@ -41,12 +28,12 @@ typedef enum
 typedef oal_uint8 vamp_resp_enum_uint8;
 
 /*
- * driver向vamp上报的消息结构体
+ * driver??vamp????????????????
  */
 typedef struct
 {
-    vamp_resp_enum_uint8    en_type;    // 类型
-    oal_uint8               uc_size;    // 长度，不包括type与size
+    vamp_resp_enum_uint8    en_type;    // ????
+    oal_uint8               uc_size;    // ????????????type??size
     oal_uint8               auc_payload[VAMP_MAX_RSP_SIZE-2];   // payload
 }__OAL_DECLARE_PACKED vamp_nlc_msg_stru;
 

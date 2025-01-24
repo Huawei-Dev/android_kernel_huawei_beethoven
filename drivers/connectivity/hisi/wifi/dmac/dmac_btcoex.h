@@ -1,19 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : dmac_btcoex.h
-
-  最近修改   :
-  功能描述   : dmac_btcoex.h 的头文件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年12月02日
-    作    者   : c00221210
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __DMAC_BTCOEX_H__
 #define __DMAC_BTCOEX_H__
@@ -27,7 +12,7 @@ extern "C" {
 #ifdef _PRE_WLAN_FEATURE_BTCOEX
 
 /*****************************************************************************
-  1 其他头文件包含
+  1 ??????????????
 *****************************************************************************/
 #include "hal_ext_if.h"
 #include "mac_resource.h"
@@ -39,31 +24,32 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_DMAC_BTCOEX_H
 
 /*****************************************************************************
-  2 宏定义
+  2 ??????
+*****************************************************************************/
+
+#define BTCOEX_RELEASE_TIMEOUT              (1000)
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  3 枚举定义
-*****************************************************************************/
-
-/*****************************************************************************
-  4 全局变量声明
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
-*****************************************************************************/
-
-
-/*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 typedef struct
 {
@@ -95,8 +81,8 @@ typedef struct
 
 typedef struct
 {
-    frw_timeout_stru bt_coex_priority_timer;                 /* 读取寄存器周期定时器 */
-    frw_timeout_stru bt_coex_occupied_timer;                 /* 周期拉高occupied信号线，保证WiFi不被BT抢占 */
+    frw_timeout_stru bt_coex_priority_timer;                 /* ???????????????????? */
+    frw_timeout_stru bt_coex_occupied_timer;                 /* ????????occupied????????????WiFi????BT???? */
     oal_uint32 ul_ap_beacon_count;
     oal_uint32 ul_timestamp;
     oal_uint8 uc_ap_beacon_miss;
@@ -150,12 +136,12 @@ typedef struct
     dmac_user_btcoex_sco_rx_rate_status_stru st_dmac_user_btcoex_sco_rx_rate_status;
 } dmac_user_btcoex_stru;
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 OAL_INLINE OAL_STATIC oal_uint32 dmac_btcoex_check_legacy_sta(mac_vap_stru *pst_mac_vap)
 {
@@ -226,7 +212,7 @@ OAL_INLINE OAL_STATIC oal_void dmac_btcoex_get_legacy_ap(mac_device_stru *pst_ma
 }
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
 extern oal_uint32 dmac_btcoex_init(oal_void);
 extern oal_uint32 dmac_btcoex_exit(oal_void);
@@ -243,6 +229,9 @@ extern oal_void dmac_btcoex_bt_low_rate_process (mac_vap_stru *pst_vap, hal_to_d
 extern oal_void dmac_btcoex_release_rx_prot(mac_vap_stru *pst_mac_vap, oal_uint8 uc_data_type);
 extern oal_void dmac_btcoex_tx_vip_frame(hal_to_dmac_device_stru *pst_hal_device, mac_vap_stru *pst_mac_vap, oal_dlist_head_stru *pst_tx_dscr_list_hdr);
 extern oal_void dmac_btcoex_sco_rx_rate_process (mac_vap_stru *pst_vap, hal_to_dmac_device_stru *pst_hal_device);
+extern oal_void dmac_btcoex_ps_stop_check_and_notify(oal_void);
+extern oal_void dmac_btcoex_ps_pause_check_and_notify(hal_to_dmac_device_stru *pst_hal_device);
+extern oal_uint32 dmac_btcoex_ps_status_handler(frw_event_mem_stru *pst_event_mem);
 #endif /* #ifdef _PRE_WLAN_FEATURE_COEXIST_BT */
 
 #ifdef __cplusplus

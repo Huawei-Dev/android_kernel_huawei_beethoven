@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : wal_linux_atcmdsrv.c
-  版 本 号   : 初稿
-  作    者   : zhangxiang
-  生成日期   : 2015年10月10日
-  最近修改   :
-  功能描述   : 装备测试配置命令
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_ext_if.h"
 #include "oal_profiling.h"
@@ -41,6 +24,8 @@ extern "C" {
 #include "mac_vap.h"
 #include "mac_resource.h"
 #include "mac_ie.h"
+#include "hmac_resource.h"
+#include "hmac_scan.h"
 
 #include "hmac_ext_if.h"
 #include "hmac_chan_mgmt.h"
@@ -72,45 +57,45 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_WAL_LINUX_ATCMDSRV_C
 
 /*****************************************************************************
-  2 结构体定义
+  2 ??????????
 *****************************************************************************/
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST))
 typedef enum
 {
-    CHECK_LTE_GPIO_INIT            = 0,    /* 初始化 */
-    CHECK_LTE_GPIO_LOW             = 1,    /* 设置为低电平 */
-    CHECK_LTE_GPIO_HIGH            = 2,    /*设置为高电平 */
-    CHECK_LTE_GPIO_RESUME          = 3,    /*恢复寄存器设置 */
-    CHECK_LTE_GPIO_DEV_LEVEL       = 4,    /*读取device GPIO管脚电平值*/
+    CHECK_LTE_GPIO_INIT            = 0,    /* ?????? */
+    CHECK_LTE_GPIO_LOW             = 1,    /* ???????????? */
+    CHECK_LTE_GPIO_HIGH            = 2,    /*???????????? */
+    CHECK_LTE_GPIO_RESUME          = 3,    /*?????????????? */
+    CHECK_LTE_GPIO_DEV_LEVEL       = 4,    /*????device GPIO??????????*/
     CHECK_LTE_GPIO_BUTT
 }check_lte_gpio_step;
 
 typedef struct
 {
-    oal_uint8                     uc_mode;          /* 模式*/
-    oal_uint8                     uc_band;          /* 频段 */
+    oal_uint8                     uc_mode;          /* ????*/
+    oal_uint8                     uc_band;          /* ???? */
 }wal_atcmdsrv_mode_stru;
 
 typedef struct
 {
-    oal_uint32                   ul_datarate;          /* at命令配置的速率值 */
-    oal_int8                    *puc_datarate;          /* 速率字符串*/
+    oal_uint32                   ul_datarate;          /* at???????????????? */
+    oal_int8                    *puc_datarate;          /* ??????????*/
 }wal_atcmdsrv_datarate_stru;
 
 OAL_CONST wal_atcmdsrv_mode_stru g_ast_atcmdsrv_mode_table[] =
 {
     {WLAN_LEGACY_11A_MODE, WLAN_BAND_5G},    /* 11a, 5G, OFDM */
     {WLAN_LEGACY_11B_MODE, WLAN_BAND_2G},    /* 11b, 2.4G */
-    {WLAN_LEGACY_11G_MODE, WLAN_BAND_2G},    /* 旧的11g only已废弃, 2.4G, OFDM */
+    {WLAN_LEGACY_11G_MODE, WLAN_BAND_2G},    /* ????11g only??????, 2.4G, OFDM */
     {WLAN_MIXED_ONE_11G_MODE, WLAN_BAND_2G},    /* 11bg, 2.4G */
     {WLAN_MIXED_TWO_11G_MODE, WLAN_BAND_2G},    /* 11g only, 2.4G */
-    {WLAN_HT_MODE, WLAN_BAND_5G},    /* 11n(11bgn或者11an，根据频段判断) */
+    {WLAN_HT_MODE, WLAN_BAND_5G},    /* 11n(11bgn????11an??????????????) */
     {WLAN_VHT_MODE, WLAN_BAND_5G},    /* 11ac */
-    {WLAN_HT_ONLY_MODE, WLAN_BAND_5G},    /* 11n only 5Gmode,只有带HT的设备才可以接入 */
-    {WLAN_VHT_ONLY_MODE, WLAN_BAND_5G},    /* 11ac only mode 只有带VHT的设备才可以接入 */
-    {WLAN_HT_11G_MODE, WLAN_BAND_2G},    /* 11ng,不包括11b*/
+    {WLAN_HT_ONLY_MODE, WLAN_BAND_5G},    /* 11n only 5Gmode,??????HT???????????????? */
+    {WLAN_VHT_ONLY_MODE, WLAN_BAND_5G},    /* 11ac only mode ??????VHT???????????????? */
+    {WLAN_HT_11G_MODE, WLAN_BAND_2G},    /* 11ng,??????11b*/
     {WLAN_HT_ONLY_MODE_2G, WLAN_BAND_2G},/* 11nonlg 2Gmode*/
-    {WLAN_VHT_ONLY_MODE_2G, WLAN_BAND_2G},    /* 11ac 2g mode 只有带VHT的设备才可以接入 */
+    {WLAN_VHT_ONLY_MODE_2G, WLAN_BAND_2G},    /* 11ac 2g mode ??????VHT???????????????? */
     {WLAN_PROTOCOL_BUTT,WLAN_BAND_2G},
 };
 
@@ -148,26 +133,14 @@ wal_atcmdsrv_ant_info_stru g_st_atcmdsrv_ant_info;
 #endif
 
 #endif
+extern oal_int32 wal_ioctl_reduce_sar(oal_net_device_stru *pst_net_dev, oal_uint8 uc_tx_power);
+extern oal_uint32  wal_hipriv_sta_pm_on(oal_net_device_stru * pst_cfg_net_dev, oal_int8 * pc_param);
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_rx_pckg
- 功能描述  : 查询接收数据包的个数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wal_atcmsrv_ioctl_get_rx_pckg(oal_net_device_stru *pst_net_dev, oal_int32 *pl_rx_pckg_succ_num)
 {
     oal_int32                   l_ret;
@@ -192,14 +165,14 @@ oal_int32  wal_atcmsrv_ioctl_get_rx_pckg(oal_net_device_stru *pst_net_dev, oal_i
     }
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     pst_hmac_vap->st_atcmdsrv_get_status.uc_get_rx_pkct_flag = OAL_FALSE;
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_RX_FCS_INFO, OAL_SIZEOF(mac_cfg_rx_fcs_info_stru));
 
-    /* 设置配置命令参数 */
+    /* ???????????????? */
     pst_rx_fcs_info = (mac_cfg_rx_fcs_info_stru *)(st_write_msg.auc_value);
-    /*这两个参数在02已经没有意义*/
+    /*????????????02????????????*/
     pst_rx_fcs_info->ul_data_op    = 1;
     pst_rx_fcs_info->ul_print_info = 0;
 
@@ -216,26 +189,26 @@ oal_int32  wal_atcmsrv_ioctl_get_rx_pckg(oal_net_device_stru *pst_net_dev, oal_i
         return l_ret;
     }
 
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_get_rx_pkct_flag),WAL_ATCMDSRB_GET_RX_PCKT);
 
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_pckg::dbb_num wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_pckg::dbb_num wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else
     {
-        /* 正常结束  */
+        /* ????????  */
         OAM_INFO_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_pckg::dbb_num wait for %ld ms error!}",
                       ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         *pl_rx_pckg_succ_num = (oal_int)pst_hmac_vap->st_atcmdsrv_get_status.ul_rx_pkct_succ_num;
@@ -243,21 +216,7 @@ oal_int32  wal_atcmsrv_ioctl_get_rx_pckg(oal_net_device_stru *pst_net_dev, oal_i
     }
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_hw_addr
- 功能描述  : 设置接收mac地址
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wal_atcmsrv_ioctl_set_hw_addr(oal_net_device_stru *pst_net_dev, oal_uint8 *pc_hw_addr)
 {
     oal_int32                       l_ret;
@@ -266,13 +225,13 @@ oal_int32  wal_atcmsrv_ioctl_set_hw_addr(oal_net_device_stru *pst_net_dev, oal_u
 
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_STATION_ID, OAL_SIZEOF(mac_cfg_staion_id_param_stru));
 
-    /* 设置配置命令参数 */
+    /* ???????????????? */
     pst_mac_cfg_para = (mac_cfg_staion_id_param_stru *)(st_write_msg.auc_value);
-    /*这两个参数在02已经没有意义*/
+    /*????????????02????????????*/
     pst_mac_cfg_para->en_p2p_mode = WLAN_LEGACY_VAP_MODE;
     oal_set_mac_addr(pst_mac_cfg_para->auc_station_id, pc_hw_addr);
 
@@ -296,21 +255,7 @@ oal_int32  wal_atcmsrv_ioctl_set_hw_addr(oal_net_device_stru *pst_net_dev, oal_u
 }
 
 #if (defined(_PRE_PRODUCT_ID_HI110X_DEV) || defined(_PRE_PRODUCT_ID_HI110X_HOST))
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_freq
- 功能描述  : 设置频点/信道
- 输入参数  : 频点1~24 36~165
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-************************** ***************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_freq(oal_net_device_stru *pst_net_dev, oal_int32 l_freq)
 {
     wal_msg_write_stru          st_write_msg;
@@ -319,13 +264,13 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_freq(oal_net_device_stru *pst_net_de
 
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_atcmsrv_ioctl_set_freq:l_freq[%d]", l_freq);
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
-    /* 填写消息 */
+    /* ???????? */
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_CURRENT_CHANEL, OAL_SIZEOF(oal_int32));
     *((oal_int32 *)(st_write_msg.auc_value)) = l_freq;
 
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
                                WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(oal_int32),
@@ -341,21 +286,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_freq(oal_net_device_stru *pst_net_de
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_country
- 功能描述  : 设置国家码
- 输入参数  : 国家码
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年10月08日
-    作    者   :
-    修改内容   : 新生成函数
-
-************************** ***************************************************/
 OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_country(oal_net_device_stru *pst_net_dev, oal_int8 *puc_countrycode)
 {
 #ifdef _PRE_WLAN_FEATURE_11D
@@ -377,21 +308,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_country(oal_net_device_stru *pst_net_
 #endif
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_txpower
- 功能描述  : 设置频点/信道
- 输入参数  : 频点1~24 36~165
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_txpower(oal_net_device_stru *pst_net_dev, oal_int32 l_txpower)
 {
     wal_msg_write_stru          st_write_msg;
@@ -401,13 +318,13 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_txpower(oal_net_device_stru *pst_net
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_atcmsrv_ioctl_set_txpower:l_txpower[%d]", l_txpower);
 
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
-    /* 填写消息 */
+    /* ???????? */
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_TX_POWER, OAL_SIZEOF(oal_int32));
     *((oal_int32 *)(st_write_msg.auc_value)) = l_txpower;
 
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
                                WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(oal_int32),
@@ -423,21 +340,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_txpower(oal_net_device_stru *pst_net
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_mode
- 功能描述  : 设置模式
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_mode(oal_net_device_stru *pst_net_dev, oal_int32 l_mode)
 {
     wal_msg_write_stru          st_write_msg;
@@ -454,7 +357,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_mode(oal_net_device_stru *pst_net_de
         return -OAL_EINVAL;
     }
 
-    /*获取模式对应的band*/
+    /*??????????????band*/
     for (uc_prot_idx = 0; uc_prot_idx < WAL_ATCMDSRV_IOCTL_MODE_NUM; uc_prot_idx++)
     {
         if (g_ast_atcmdsrv_mode_table[uc_prot_idx].uc_mode == (oal_uint8)l_mode)
@@ -464,12 +367,12 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_mode(oal_net_device_stru *pst_net_de
     }
 
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
-    /* 填写消息 */
+    /* ???????? */
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_MODE, OAL_SIZEOF(mac_cfg_mode_param_stru));
 
-    /*设置模式，在配置模式的时候将带宽默认成20M*/
+    /*??????????????????????????????????????20M*/
     pst_mode_param = (mac_cfg_mode_param_stru *)(st_write_msg.auc_value);
     if(WLAN_HT_ONLY_MODE_2G == l_mode)
     {
@@ -490,11 +393,11 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_mode(oal_net_device_stru *pst_net_de
     }
     pst_mode_param->en_band      = (wlan_channel_band_enum_uint8)g_ast_atcmdsrv_mode_table[uc_prot_idx].uc_band;
     pst_mode_param->en_bandwidth = WLAN_BAND_WIDTH_20M;
-    /*未测使用，后续将删除*/
+    /*????????????????????*/
     OAM_WARNING_LOG3(pst_mac_vap->uc_vap_id, OAM_SF_CFG, "{wal_atcmsrv_ioctl_set_mode::protocol[%d],band[%d],bandwidth[%d]!}\r\n",
                             pst_mode_param->en_protocol, pst_mode_param->en_band, pst_mode_param->en_bandwidth);
 
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
                                WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(mac_cfg_mode_param_stru),
@@ -510,21 +413,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_mode(oal_net_device_stru *pst_net_de
     g_l_mode = pst_mode_param->en_protocol;
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_datarate
- 功能描述  : 设置发送速率
- 输入参数  : 速率值
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_datarate(oal_net_device_stru *pst_net_dev, oal_int32 l_datarate)
 {
     oal_uint8                   uc_prot_idx;
@@ -545,7 +434,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_datarate(oal_net_device_stru *pst_ne
 
     OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "wal_atcmsrv_ioctl_set_datarate:l_datarate[%d]", l_datarate);
 
-    /*获取速率对应的字符，方便调用设置速率的相应接口*/
+    /*??????????????????????????????????????????????*/
     for (uc_prot_idx = 0; uc_prot_idx < WAL_ATCMDSRV_IOCTL_DATARATE_NUM; uc_prot_idx++)
     {
         if (past_atcmdsrv_non_ht_rate_table[uc_prot_idx].ul_datarate == (oal_uint32)l_datarate)
@@ -558,7 +447,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_datarate(oal_net_device_stru *pst_ne
         OAM_ERROR_LOG0(0, OAM_SF_ANY,"uc_prot_idx Overrunning!");
         return -OAL_EINVAL;
     }
-    if(WLAN_HT_ONLY_MODE == g_l_mode)/*当速率设置为7时表示MCS7*/
+    if(WLAN_HT_ONLY_MODE == g_l_mode)/*????????????7??????MCS7*/
     {
         ul_ret = wal_hipriv_set_mcs(pst_net_dev,(oal_int8 *)past_atcmdsrv_non_ht_rate_table[uc_prot_idx].puc_datarate);
     }
@@ -574,13 +463,13 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_datarate(oal_net_device_stru *pst_ne
     {
         return -OAL_EFAIL;
     }
-    /*设置长发描述符带宽*/
+    /*??????????????????*/
    /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_BW, OAL_SIZEOF(mac_cfg_tx_comp_stru));
 
-    /* 解析并设置配置命令参数 */
+    /* ?????????????????????? */
     pst_set_bw_param = (mac_cfg_tx_comp_stru *)(st_write_msg.auc_value);
     if ((WLAN_BAND_WIDTH_80PLUSPLUS <= g_l_bandwidth)
         && (g_l_bandwidth<=WLAN_BAND_WIDTH_80MINUSMINUS)) {
@@ -608,21 +497,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_datarate(oal_net_device_stru *pst_ne
     }
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_bandwidth
- 功能描述  : 设置带宽
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_bandwidth(oal_net_device_stru *pst_net_dev, oal_int32 l_bandwidth)
 {
     wal_msg_write_stru          st_write_msg;
@@ -635,17 +510,17 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_bandwidth(oal_net_device_stru *pst_n
     g_l_bandwidth = l_bandwidth;
 
     /***************************************************************************
-        抛事件到wal层处理
+        ????????wal??????
     ***************************************************************************/
-    /* 填写消息 */
+    /* ???????? */
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_BANDWIDTH, OAL_SIZEOF(oal_int32));
 
-    /*设置带宽时，模式不做修改，还是按照之前的值配置*/
+    /*??????????????????????????????????????????????*/
     pst_mode_param = (mac_cfg_mode_param_stru *)(st_write_msg.auc_value);
 
     pst_mode_param->en_bandwidth = (oal_uint8)l_bandwidth;
 
-    /* 发送消息 */
+    /* ???????? */
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
                                WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(mac_cfg_mode_param_stru),
@@ -662,21 +537,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_bandwidth(oal_net_device_stru *pst_n
     return OAL_SUCC;
 
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_always_tx
- 功能描述  : 设置长发模式
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_tx(oal_net_device_stru *pst_net_dev,oal_int32 l_always_tx)
 {
     wal_msg_write_stru               st_write_msg;
@@ -690,14 +551,14 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_tx(oal_net_device_stru *pst_n
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_atcmsrv_ioctl_set_always_tx:l_always_tx[%d]", l_always_tx);
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_ALWAYS_TX_1102, OAL_SIZEOF(mac_cfg_tx_comp_stru));
 
-    /* 解析并设置配置命令参数 */
+    /* ?????????????????????? */
     pst_set_bcast_param = (mac_cfg_tx_comp_stru *)(st_write_msg.auc_value);
 
-    /* 装备测试的情况下直接将长发参数设置好 */
+    /* ???????????????????????????????????? */
     pst_set_bcast_param->en_payload_flag = RF_PAYLOAD_ALL_ONE;
     pst_set_bcast_param->ul_payload_len = WAL_ATCMDSRB_IOCTL_AL_TX_LEN;
     pst_set_bcast_param->uc_param = (oal_uint8)l_always_tx;
@@ -715,15 +576,15 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_tx(oal_net_device_stru *pst_n
         return l_ret;
     }
 
-    /*打印未测信息*/
+    /*????????????*/
     l_ret = (oal_int32)wal_hipriv_vap_info(pst_net_dev,&pc_param);
     if (OAL_UNLIKELY(OAL_SUCC != l_ret))
     {
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_always_tx::return err code [%d]!}", l_ret);
     }
-    /*打印所有寄存器*/
+    /*??????????????*/
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     oal_memcopy(st_write_msg.auc_value, auc_param, OAL_STRLEN((oal_int8*)auc_param));
 
@@ -747,21 +608,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_tx(oal_net_device_stru *pst_n
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_ioctl_convert_dbb_num
- 功能描述  : 转换dbb版本号
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 
 OAL_STATIC oal_void wal_atcmdsrv_ioctl_convert_dbb_num(oal_uint32 ul_dbb_num,oal_uint8 *pc_dbb_num)
 {
@@ -807,21 +654,7 @@ OAL_STATIC oal_void wal_atcmdsrv_ioctl_convert_dbb_num(oal_uint32 ul_dbb_num,oal
     return ;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_dbb_num
- 功能描述  : 获取dbb版本号
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_dbb_num(oal_net_device_stru *pst_net_dev, oal_int8 *pc_dbb_num)
 {
     wal_msg_write_stru              st_write_msg;
@@ -845,7 +678,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_dbb_num(oal_net_device_stru *pst_net
     }
 
     /***************************************************************************
-                              抛事件到wal层处理
+                              ????????wal??????
     ***************************************************************************/
     pst_hmac_vap->st_atcmdsrv_get_status.uc_get_dbb_completed_flag = OAL_FALSE;
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_GET_VERSION, 0);
@@ -862,27 +695,27 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_dbb_num(oal_net_device_stru *pst_net
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_dbb_num::wal_send_cfg_event return err_code [%d]!}", l_ret);
         return l_ret;
     }
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     /*lint -e730*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_get_dbb_completed_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
     /*lint +e730*/
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_dbb_num::dbb_num wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_dbb_num::dbb_num wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else
     {
-        /* 正常结束  */
+        /* ????????  */
         OAM_INFO_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_dbb_num::dbb_num wait for %ld ms error!}",
                       ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         if(0x0225020a != pst_hmac_vap->st_atcmdsrv_get_status.ul_dbb_num)
@@ -897,21 +730,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_dbb_num(oal_net_device_stru *pst_net
 
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_mode
- 功能描述  : LTE共存引脚虚焊检测模式设置
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_mode(oal_net_device_stru *pst_net_dev, oal_int32 l_check_lte_gpio_step)
 {
     wal_msg_write_stru              st_write_msg;
@@ -937,15 +756,15 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_mode(oal_net_device_stru *pst_n
     pst_hmac_vap->st_atcmdsrv_get_status.uc_lte_gpio_check_flag = OAL_FALSE;
 
     /***************************************************************************
-         抛事件到wal层处理
+         ????????wal??????
      ***************************************************************************/
-     /* 填写消息 */
+     /* ???????? */
      WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_CHECK_LTE_GPIO, OAL_SIZEOF(oal_int32));
 
-     /*设置LTE虚焊检测的模式*/
+     /*????LTE??????????????*/
      *(oal_int32 *)(st_write_msg.auc_value) = l_check_lte_gpio_step;
 
-     /* 发送消息 */
+     /* ???????? */
      l_ret = wal_send_cfg_event(pst_net_dev,
                                 WAL_MSG_TYPE_WRITE,
                                 WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(oal_int32),
@@ -958,20 +777,20 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_mode(oal_net_device_stru *pst_n
          OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_lte_gpio_mode::return err code %d!}\r\n", l_ret);
          return l_ret;
      }
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     /*lint -e730*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_lte_gpio_check_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
     /*lint +e730*/
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_lte_gpio_mode:: wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_lte_gpio_mode:: wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
@@ -982,21 +801,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_mode(oal_net_device_stru *pst_n
     }
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_level_set
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_level_set(oal_int32 l_gpio_level)
 {
     oal_int32 l_ret = OAL_SUCC;
@@ -1029,21 +834,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_level_set(oal_int32 l_gpio_leve
     return l_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_level_check
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint8 g_uc_dev_lte_gpio_level = 0x0;
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_level_check(oal_net_device_stru *pst_net_dev, oal_int32 l_gpio_level)
 {
@@ -1083,26 +874,12 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_level_check(oal_net_device_stru
     return l_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_set
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_set(oal_void)
 {
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     oal_int32       l_ret = -OAL_EFAIL;
-    /*将检测管脚配置成gpio模式*/
+    /*????????????????gpio????*/
     if (g_board_info.need_power_prepare)
     {
         /* set LowerPower mode */
@@ -1164,21 +941,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_set(oal_void)
 #endif
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_free
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_void  wal_atcmsrv_ioctl_lte_gpio_free(oal_net_device_stru *pst_net_dev)
 {
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
@@ -1199,15 +962,15 @@ OAL_STATIC oal_void  wal_atcmsrv_ioctl_lte_gpio_free(oal_net_device_stru *pst_ne
         }
     }
     /***************************************************************************
-         抛事件到wal层处理
+         ????????wal??????
      ***************************************************************************/
-     /* 填写消息 */
+     /* ???????? */
      WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_CHECK_LTE_GPIO, OAL_SIZEOF(oal_int32));
 
-     /*设置LTE虚焊检测的模式*/
+     /*????LTE??????????????*/
      *(oal_int32 *)(st_write_msg.auc_value) = CHECK_LTE_GPIO_RESUME;
 
-     /* 发送消息 */
+     /* ???????? */
      l_ret = wal_send_cfg_event(pst_net_dev,
                                 WAL_MSG_TYPE_WRITE,
                                 WAL_MSG_WRITE_MSG_HDR_LENGTH + OAL_SIZEOF(oal_int32),
@@ -1221,21 +984,7 @@ OAL_STATIC oal_void  wal_atcmsrv_ioctl_lte_gpio_free(oal_net_device_stru *pst_ne
      }
 #endif
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_free
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 #if 0
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_get(oal_int32 l_check_lte_gpio)
 {
@@ -1264,35 +1013,21 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_get(oal_int32 l_check_lte_gpio)
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_lte_gpio_check
- 功能描述  : LTE共存引脚虚焊检测
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_net_dev)
 {
     oal_int32 l_ret;
 
-    /*********step1 设置管脚为gpio模式********/
+    /*********step1 ??????????gpio????********/
     OAM_WARNING_LOG0(0, 0, "wal_atcmsrv_ioctl_lte_gpio_check:enter lte gpio check!");
-    /*初始化host管脚*/
+    /*??????host????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_set();
     if(OAL_SUCC != l_ret)
     {
         return l_ret;
     }
 
-    /*初始化device lte共存引脚检测*/
+    /*??????device lte????????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_mode(pst_net_dev,CHECK_LTE_GPIO_INIT);
     if(OAL_SUCC != l_ret)
     {
@@ -1301,8 +1036,8 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_
         return l_ret;
     }
 
-    /*********step2 设置host管脚为低，读取device结果********/
-    /*将gpio全部设置为低*/
+    /*********step2 ????host??????????????device????********/
+    /*??gpio????????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_level_set(0);
     if(OAL_SUCC != l_ret)
     {
@@ -1311,7 +1046,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_
         return l_ret;
     }
 
-    /*读取device GPIO管脚电平*/
+    /*????device GPIO????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_level_check(pst_net_dev, 0);
     if(OAL_SUCC != l_ret)
     {
@@ -1320,8 +1055,8 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_
         return l_ret;
     }
 
-    /*********step3 设置host管脚为高，读取device结果********/
-    /*将gpio全部设置为高*/
+    /*********step3 ????host??????????????device????********/
+    /*??gpio????????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_level_set(1);
     if(OAL_SUCC != l_ret)
     {
@@ -1330,7 +1065,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_
         return l_ret;
     }
 
-    /*读取device GPIO管脚电平*/
+    /*????device GPIO????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_level_check(pst_net_dev, 1);
     if(0 != l_ret)
     {
@@ -1344,21 +1079,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_lte_gpio_check(oal_net_device_stru *pst_
     return OAL_SUCC;
  }
  oal_uint64                      ul_gpio_wakeup_host_int_get_save;
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_hw_status
- 功能描述  : 获取硬件检测结果，包括fem、pa、host wakeup device引脚、lte共存管脚
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wal_atcmsrv_ioctl_get_hw_status(oal_net_device_stru *pst_net_dev, oal_int32 *pl_fem_pa_status)
 {
     oal_cali_param_stru            *pst_cali_data;
@@ -1367,14 +1088,14 @@ oal_int32  wal_atcmsrv_ioctl_get_hw_status(oal_net_device_stru *pst_net_dev, oal
     oal_int32                       l_ret = 0;
     oal_int8                        auc_dbb[WAL_ATCMDSRV_IOCTL_DBB_LEN];
     oal_uint32                      ul_lte_status = 0;
-    /*device上报消息，产生唤醒中断，检测唤醒引脚*/
+    /*device????????????????????????????????????*/
     l_ret = wal_atcmsrv_ioctl_get_dbb_num(pst_net_dev,auc_dbb);
     if(OAL_SUCC != l_ret)
     {
         OAM_ERROR_LOG0(0, OAM_SF_ANY,"wal_atcmsrv_ioctl_get_fem_pa_status:Failed to get dbb num !");
     }
 
-    /*device唤醒host gpio引脚检测*/
+    /*device????host gpio????????*/
     ul_gpio_wakeup_host_int_get = oal_get_gpio_int_count_para();
 
     if(ul_gpio_wakeup_host_int_get_save == ul_gpio_wakeup_host_int_get)
@@ -1390,7 +1111,7 @@ oal_int32  wal_atcmsrv_ioctl_get_hw_status(oal_net_device_stru *pst_net_dev, oal
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
     if(g_st_wlan_customize.ul_lte_gpio_check_switch == 1)
     {
-        /*获取lte共存管脚结果*/
+        /*????lte????????????*/
         l_ret = wal_atcmsrv_ioctl_lte_gpio_check(pst_net_dev);
         if(OAL_SUCC != l_ret)
         {
@@ -1402,7 +1123,7 @@ oal_int32  wal_atcmsrv_ioctl_get_hw_status(oal_net_device_stru *pst_net_dev, oal
         ul_lte_status = 0;
     }
 #else
-    /*获取lte共存管脚结果*/
+    /*????lte????????????*/
     l_ret = wal_atcmsrv_ioctl_lte_gpio_check(pst_net_dev);
     if(OAL_SUCC != l_ret)
     {
@@ -1422,21 +1143,7 @@ oal_int32  wal_atcmsrv_ioctl_get_hw_status(oal_net_device_stru *pst_net_dev, oal
 
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_fem_pa_status
- 功能描述  : 获取fem和pa是否烧毁
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  wal_atcmsrv_ioctl_get_fem_pa_status(oal_net_device_stru *pst_net_dev, oal_int32 *pl_fem_pa_status)
 {
     oal_cali_param_stru            *pst_cali_data;
@@ -1444,14 +1151,14 @@ oal_void  wal_atcmsrv_ioctl_get_fem_pa_status(oal_net_device_stru *pst_net_dev, 
     oal_uint32                      ul_check_gpio_wakeup_host_status = 0;
     oal_int32                       l_ret = 0;
     oal_int8                        auc_dbb[WAL_ATCMDSRV_IOCTL_DBB_LEN];
-    /*device上报消息，产生唤醒中断，检测唤醒引脚*/
+    /*device????????????????????????????????????*/
     l_ret = wal_atcmsrv_ioctl_get_dbb_num(pst_net_dev,auc_dbb);
     if(OAL_SUCC != l_ret)
     {
         OAM_ERROR_LOG0(0, OAM_SF_ANY,"wal_atcmsrv_ioctl_get_fem_pa_status:Failed to get dbb num !");
     }
 
-    /*device唤醒host gpio引脚检测*/
+    /*device????host gpio????????*/
     ul_gpio_wakeup_host_int_get = oal_get_gpio_int_count_para();
 
     if(ul_gpio_wakeup_host_int_get_save == ul_gpio_wakeup_host_int_get)
@@ -1471,25 +1178,14 @@ oal_void  wal_atcmsrv_ioctl_get_fem_pa_status(oal_net_device_stru *pst_net_dev, 
     {
         OAM_ERROR_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_fem_pa_status::fem_pa_status[bit0-bit1],lna_status[bit2-bit3],gpio[bit4];ul_check_hw_status[0x%x]}", *pl_fem_pa_status);
         CHR_EXCEPTION(CHR_WIFI_DEV(CHR_WIFI_DEV_EVENT_CHIP, CHR_WIFI_DEV_ERROR_FEM_FAIL));
+#ifdef CONFIG_HUAWEI_DSM
+        hw_1102_dsm_client_notify(DSM_WIFI_FEMERROR, "%s: fem error",  __FUNCTION__);
+#endif
     }
 
 
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_always_rx
- 功能描述  : 打开长收功能
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_rx(oal_net_device_stru *pst_net_dev, oal_int32 l_always_rx)
 {
     wal_msg_write_stru               st_write_msg;
@@ -1497,11 +1193,11 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_rx(oal_net_device_stru *pst_n
     oal_uint8                        auc_param[] = {"all"};
     oal_uint16                       us_len;
 
-     /*将状态赋值*/
+     /*??????????*/
      *(oal_uint8 *)(st_write_msg.auc_value) = (oal_uint8)l_always_rx;
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_ALWAYS_RX, OAL_SIZEOF(oal_uint8));
 
@@ -1518,9 +1214,9 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_rx(oal_net_device_stru *pst_n
         return l_ret;
     }
 
-     /*打印所有寄存器*/
+     /*??????????????*/
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     oal_memcopy(st_write_msg.auc_value, auc_param, OAL_STRLEN((oal_int8*)auc_param));
 
@@ -1543,33 +1239,20 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_always_rx(oal_net_device_stru *pst_n
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_pm_switch
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月12日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_pm_switch(oal_net_device_stru *pst_net_dev, oal_int32 l_pm_switch)
 {
     wal_msg_write_stru          st_write_msg;
 
     oal_int32                   l_ret;
+    oal_uint8                   sta_pm_on[5] = " 0 ";
 
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_atcmsrv_ioctl_set_pm_switch:l_pm_switch[%d]", l_pm_switch);
 
     *(oal_uint8 *)(st_write_msg.auc_value) = (oal_uint8)l_pm_switch;
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_PM_SWITCH, OAL_SIZEOF(oal_int32));
 
@@ -1585,25 +1268,21 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_pm_switch(oal_net_device_stru *pst_n
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_pm_switch::return err code [%d]!}\r\n", l_ret);
         return l_ret;
     }
+#ifdef _PRE_WLAN_FEATURE_STA_PM
+    l_ret = wal_hipriv_sta_pm_on(pst_net_dev, sta_pm_on);
+
+    if (OAL_UNLIKELY(OAL_SUCC != l_ret))
+    {
+        OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_pm_switch::CMD_SET_STA_PM_ON return err code [%d]!}\r\n", l_ret);
+        return l_ret;
+    }
+
+#endif
 
     return OAL_SUCC;
 
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_rx_rssi
- 功能描述  : 查询接收RSSI值
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_rx_rssi(oal_net_device_stru *pst_net_dev, oal_int32 *pl_rx_rssi)
 {
     oal_int32                   l_ret;
@@ -1628,14 +1307,14 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_rx_rssi(oal_net_device_stru *pst_net
     }
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     pst_hmac_vap->st_atcmdsrv_get_status.uc_get_rx_pkct_flag = OAL_FALSE;
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_RX_FCS_INFO, OAL_SIZEOF(mac_cfg_rx_fcs_info_stru));
 
-    /* 设置配置命令参数 */
+    /* ???????????????? */
     pst_rx_fcs_info = (mac_cfg_rx_fcs_info_stru *)(st_write_msg.auc_value);
-    /*这两个参数在02已经没有意义*/
+    /*????????????02????????????*/
     pst_rx_fcs_info->ul_data_op    = 0;
     pst_rx_fcs_info->ul_print_info = 0;
 
@@ -1652,47 +1331,33 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_rx_rssi(oal_net_device_stru *pst_net
         return l_ret;
     }
 
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_get_rx_pkct_flag),WAL_ATCMDSRB_GET_RX_PCKT);
 
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_rssi::dbb_num wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_rssi::dbb_num wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else
     {
-        /* 正常结束  */
+        /* ????????  */
         OAM_INFO_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_get_rx_rssi::dbb_num wait for %ld ms error!}",
                       ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         *pl_rx_rssi = (oal_int)pst_hmac_vap->st_atcmdsrv_get_status.s_rx_rssi;
         return OAL_SUCC;
     }
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_chipcheck
- 功能描述  : 进行芯片自检，获取自检结果
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_chipcheck(oal_net_device_stru *pst_net_dev, oal_int32 *l_chipcheck_result)
 {
     oal_int32                ul_ret;
@@ -1700,21 +1365,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_chipcheck(oal_net_device_stru *pst_n
 
     return ul_ret;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_chipcheck_result
- 功能描述  : 进行芯片自检，获取自检结果
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_chipcheck_result(oal_net_device_stru *pst_net_dev, oal_int32 *l_chipcheck_result)
 {
 
@@ -1724,21 +1375,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_chipcheck_result(oal_net_device_stru
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_chipcheck_time
- 功能描述  : 查询chipcheck所用时间
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_chipcheck_time(oal_net_device_stru *pst_net_dev, oal_uint64 *ul_chipcheck_time)
 {
     *ul_chipcheck_time = ul_chipcheck_total_time;
@@ -1746,79 +1383,23 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_chipcheck_time(oal_net_device_stru *
     OAM_WARNING_LOG1(0, OAM_SF_ANY, "wal_atcmsrv_ioctl_get_chipcheck_time:[%d]",ul_chipcheck_total_time);
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_uart_loop
- 功能描述  : uart环回测试
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_uart_loop(oal_net_device_stru *pst_net_dev, oal_int32 *l_uart_loop_set)
 {
     return conn_test_uart_loop((oal_int8 *)&l_uart_loop_set);
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_sdio_loop
- 功能描述  : 查询chipcheck所用时间
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_sdio_loop(oal_net_device_stru *pst_net_dev, oal_int32 *l_sdio_loop_set)
 {
     return conn_test_sdio_loop((oal_int8 *)&l_sdio_loop_set);
 }
 #ifdef _PRE_PLAT_FEATURE_CUSTOMIZE
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_fetch_caldata
- 功能描述  : 获取校准参数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_fetch_caldata(oal_uint8* auc_caldata)
 {
     return hwifi_fetch_ori_caldata(auc_caldata, WAL_ATCMDSRV_NV_WINVRAM_LENGTH);
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_caldata
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_caldata(oal_net_device_stru *pst_net_dev)
 {
     hwifi_atcmd_update_host_nv_params();
@@ -1826,22 +1407,8 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_caldata(oal_net_device_stru *pst_net
     return OAL_SUCC;
 }
 #endif
-/*efuse检测*/
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_efuse_regs_read
- 功能描述  :
- 输入参数  : void
- 输出参数  : 无
- 返 回 值  : static INT32
- 调用函数  :
- 被调函数  :
+/*efuse????*/
 
- 修改历史      :
-  1.日    期   : 2015年12月9日
-    作    者   : k00355907
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_atcmdsrv_efuse_regs_read(oal_net_device_stru *pst_net_dev)
 {
     oal_int32                   l_ret;
@@ -1868,9 +1435,9 @@ OAL_STATIC oal_int32 wal_atcmdsrv_efuse_regs_read(oal_net_device_stru *pst_net_d
 
     pst_hmac_vap->st_atcmdsrv_get_status.uc_report_efuse_reg_flag = OAL_FALSE;
 
-     /*打印所有寄存器*/
+     /*??????????????*/
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     oal_memcopy(st_write_msg.auc_value, auc_param, OAL_STRLEN((oal_int8*)auc_param));
     st_write_msg.auc_value[OAL_STRLEN((oal_int8*)auc_param)] = '\0';
@@ -1892,19 +1459,19 @@ OAL_STATIC oal_int32 wal_atcmdsrv_efuse_regs_read(oal_net_device_stru *pst_net_d
         return -OAL_EINVAL;
     }
 
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_report_efuse_reg_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
 
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmdsrv_efuse_regs_read::efuse_regs wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmdsrv_efuse_regs_read::efuse_regs wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
@@ -1915,21 +1482,7 @@ OAL_STATIC oal_int32 wal_atcmdsrv_efuse_regs_read(oal_net_device_stru *pst_net_d
     }
 
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_efuse_info_print
- 功能描述  :
- 输入参数  : void
- 输出参数  : 无
- 返 回 值  : static INT32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月9日
-    作    者   : k00355907
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC void wal_atcmdsrv_efuse_info_print(void)
 {
     oal_uint32 loop         = 0;
@@ -1943,44 +1496,30 @@ OAL_STATIC void wal_atcmdsrv_efuse_info_print(void)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_ioctl_efuse_bits_check
- 功能描述  :
- 输入参数  : void
- 输出参数  : 无
- 返 回 值  : static INT32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年12月9日
-    作    者   : k00355907
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 {
     oal_int32 result     = OAL_SUCC;
 
     st_efuse_bits = (wal_efuse_bits*)g_us_efuse_buffer;
 
-    /*打印所有efuse字段*/
+    /*????????efuse????*/
     wal_atcmdsrv_efuse_info_print();
 /***********************************************
     (1): DIE_ID [154:0]
-    (2): 映射位域为
+    (2): ??????????
             1): die_id_0 [31:   0]
             2): die_id_1 [63:  32]
             3): die_id_2 [95:  64]
             4): die_id_3 [127: 96]
             5): die_id_4 [154:128]
-    (3): 可取任意值
-    (4): 打印die ID
+    (3): ??????????
+    (4): ????die ID
 ************************************************/
 
 /*************************************************
     (1): Reserve0 [159:155]
-    (2): 预留,为零,其他值为错
+    (2): ????,????,??????????
 **************************************************/
     if (0 != st_efuse_bits->reserve0)
     {
@@ -1990,8 +1529,8 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /**************************************************
     (1): CHIP ID [167:160]
-    (2): 可取0x02
-    (4): 其他值为错
+    (2): ????0x02
+    (4): ??????????
 ***************************************************/
     if (WAL_ATCMDSRV_EFUSE_CHIP_ID != st_efuse_bits->chip_id)
     {
@@ -2001,7 +1540,7 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /*****************************************************
     (1): Reserve1 [170:169]
-    (2): 预留,为零,其他值为错
+    (2): ????,????,??????????
 ******************************************************/
     if ( 0 != st_efuse_bits->reserve1)
     {
@@ -2011,16 +1550,16 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /******************************************************
     (1): CHIP FUNCTION Value [202:171]
-    (2): 映射位域为
+    (2): ??????????
             1):chip_function_value_low  [191:171]
             2):chip_function_value_high [202:192]
-    (3): 可取任意值
+    (3): ??????????
 *******************************************************/
 
 /*******************************************************
     (1): ADC [206:203]
-    (2): [205]和[206]不可同时取1
-    (3): 其他值合法
+    (2): [205]??[206]??????????1
+    (3): ??????????
 ********************************************************/
     if (WAL_ATCMDSRV_EFUSE_ADC_ERR_FLAG == ((st_efuse_bits->adc) & WAL_ATCMDSRV_EFUSE_ADC_ERR_FLAG))
     {
@@ -2030,7 +1569,7 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /*******************************************************
     (1): Reserve2 [207:207]
-    (2): 预留,为零,其他值为错
+    (2): ????,????,??????????
 *******************************************************/
     if (0 != st_efuse_bits->reserve2)
     {
@@ -2040,15 +1579,15 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /****************************************************
     (1): BCPU [208:208]
-    (2): 可取任意值
+    (2): ??????????
 *****************************************************/
 
 /******************************************************
     (1): Reserve3 [227:209]
-    (2): 映射位域为
+    (2): ??????????
             1): reserve3_low  [223:209]
             2): reserve3_high [227:224]
-    (3): 预留,为零,其他值为错
+    (3): ????,????,??????????
 ******************************************************/
     if (0 != st_efuse_bits->reserve3_low || 0 != st_efuse_bits->reserve3_high)
     {
@@ -2059,17 +1598,17 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
 /*******************************************************
     (1): PMU TRIM Value [247:228]
-    (2): 可取任意值
+    (2): ??????????
 ********************************************************/
 
 /*********************************************************
     (1): NFC PMU TRIM Value [253:248]
-    (2): 可取任意值
+    (2): ??????????
 *********************************************************/
 
 /**********************************************************
     (1): Reserve4 [255:254]
-    (2): 预留,为零,其他值为错
+    (2): ????,????,??????????
 **********************************************************/
     if (0 != st_efuse_bits->reserve4)
     {
@@ -2080,34 +1619,20 @@ OAL_STATIC oal_int32 wal_atcmdsrv_ioctl_efuse_bits_check(void)
 
     return result;
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_dieid_inform
- 功能描述  : 上报die_id
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月15日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_atcmsrv_ioctl_dieid_inform(oal_net_device_stru *pst_net_dev, oal_uint16 *pl_die_id)
 {
     oal_int32    l_ret;
     oal_uint16                               ul_loop = 0;
 
-    /*获取efuse字段*/
+    /*????efuse????*/
     l_ret = wal_atcmdsrv_efuse_regs_read(pst_net_dev);
     if(OAL_SUCC != l_ret)
     {
         OAM_WARNING_LOG0(0, 0, "wal_atcmsrv_ioctl_efuse_check:get efuse reg fail");
         return l_ret;
     }
-    /*上报efuse字段*/
+    /*????efuse????*/
     for(ul_loop = 0;ul_loop < 16;ul_loop++)
     {
         pl_die_id[ul_loop] = g_us_efuse_buffer[ul_loop];
@@ -2115,26 +1640,12 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_dieid_inform(oal_net_device_stru *pst_net
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_efuse_check
- 功能描述  : 设置接收mac地址
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月15日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_atcmsrv_ioctl_efuse_check(oal_net_device_stru *pst_net_dev, oal_int32 *pl_efuse_check_result)
 {
     oal_int32    l_ret;
 
-    /*获取efuse字段*/
+    /*????efuse????*/
     l_ret = wal_atcmdsrv_efuse_regs_read(pst_net_dev);
     if(OAL_SUCC != l_ret)
     {
@@ -2142,7 +1653,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_efuse_check(oal_net_device_stru *pst_net_
         *pl_efuse_check_result = OAL_TRUE;
         return l_ret;
     }
-    /*检测efuse字段*/
+    /*????efuse????*/
     l_ret = wal_atcmdsrv_ioctl_efuse_bits_check();
     if(OAL_SUCC != l_ret)
     {
@@ -2153,21 +1664,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_efuse_check(oal_net_device_stru *pst_net_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_set_ant
- 功能描述  : 设置接收mac地址
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月15日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_ant(oal_net_device_stru *pst_net_dev, oal_int32 *pl_pm_switch)
 {
     wal_msg_write_stru              st_write_msg;
@@ -2181,7 +1678,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_ant(oal_net_device_stru *pst_net_dev,
     *(oal_uint8 *)(st_write_msg.auc_value) = (oal_uint8)*pl_pm_switch;
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_SET_ANT, OAL_SIZEOF(oal_int32));
 
@@ -2213,7 +1710,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_ant(oal_net_device_stru *pst_net_dev,
     }
 
     /***************************************************************************
-                              抛事件到wal层处理
+                              ????????wal??????
     ***************************************************************************/
     pst_hmac_vap->st_atcmdsrv_get_status.uc_get_ant_flag = OAL_FALSE;
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_GET_ANT, 0);
@@ -2230,27 +1727,27 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_ant(oal_net_device_stru *pst_net_dev,
         OAM_WARNING_LOG1(0, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_ant::wal_send_cfg_event return err_code [%d]!}", l_ret);
         return l_ret;
     }
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     /*lint -e730*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(OAL_TRUE == pst_hmac_vap->st_atcmdsrv_get_status.uc_get_ant_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
     /*lint +e730*/
     if ( 0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_ant::dbb_num wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_ant::dbb_num wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else
     {
-        /* 正常结束  */
+        /* ????????  */
         OAM_INFO_LOG1(pst_mac_vap->uc_vap_id, OAM_SF_ANY, "{wal_atcmsrv_ioctl_set_ant::dbb_num wait for %ld ms error!}",
                       ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         if(*pl_pm_switch != pst_hmac_vap->st_atcmdsrv_get_status.uc_ant_status)
@@ -2263,21 +1760,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_set_ant(oal_net_device_stru *pst_net_dev,
     }
 
 }
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_upccode
- 功能描述  : 进行芯片自检，获取自检结果
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_upccode(oal_net_device_stru *pst_net_dev, oal_int32 *l_upc_code)
 {
     oal_cali_param_stru            *pst_cali_data;
@@ -2295,7 +1778,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_upccode(oal_net_device_stru *pst_net
         return -OAL_EINVAL;
     }
     pst_cali_data = (oal_cali_param_stru *)get_cali_data_buf_addr();
-    /*获取5G信道校准补偿值编码*/
+    /*????5G??????????????????*/
     for(uc_chnnel_num=0;uc_chnnel_num < WAL_ATCMDSRV_CHANNEL_NUM;uc_chnnel_num++)
     {
         if(uc_channel_idx[uc_chnnel_num] >= pst_mac_vap->st_channel.uc_chan_number)
@@ -2329,7 +1812,7 @@ OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_upccode(oal_net_device_stru *pst_net
 
 
 #ifdef _PRE_WLAN_FEATURE_SMARTANT
-#if 0//保留在此，后续可能会用
+#if 0//??????????????????????
 OAL_STATIC oal_int32 wal_atcmsrv_ioctl_get_ant_info(oal_net_device_stru *pst_net_dev, oal_uint8 *puc_ant_type,
                                                 oal_uint32 *pul_last_ant_change_time_ms,
                                                 oal_uint32 *pul_ant_change_number,
@@ -2364,7 +1847,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_get_ant_info(oal_net_device_stru *pst_net
     }
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     us_len = 0;
     pst_hmac_vap->en_ant_info_query_completed_flag = OAL_FALSE;
@@ -2382,19 +1865,19 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_get_ant_info(oal_net_device_stru *pst_net
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_ioctl_get_ant_info::return err code [%d]!}\r\n", l_ret);
         return l_ret;
     }
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->en_ant_info_query_completed_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
 
     if (0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_ioctl_get_ant_info::query info wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_ioctl_get_ant_info::query info wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
@@ -2440,7 +1923,7 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_double_ant_switch(oal_net_device_stru *ps
     }
 
     /***************************************************************************
-                                抛事件到wal层处理
+                                ????????wal??????
     ***************************************************************************/
     st_write_msg.auc_value[0] = (oal_uint8)ul_double_ant_sw;
     st_write_msg.auc_value[1] = 0;
@@ -2460,19 +1943,19 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_double_ant_switch(oal_net_device_stru *ps
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_atcmsrv_ioctl_double_ant_switch::return err code [%d]!}\r\n", l_ret);
         return l_ret;
     }
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->en_double_ant_switch_query_completed_flag),WAL_ATCMDSRB_DBB_NUM_TIME);
 
     if (0 == i_leftime)
     {
-        /* 超时还没有上报扫描结束 */
+        /* ?????????????????????? */
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_atcmsrv_ioctl_double_ant_switch::query info wait for %ld ms timeout!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
     }
     else if (i_leftime < 0)
     {
-        /* 定时器内部错误 */
+        /* ?????????????? */
         OAM_WARNING_LOG1(0, OAM_SF_CFG, "{wal_atcmsrv_ioctl_double_ant_switch::query info wait for %ld ms error!}",
                          ((WAL_ATCMDSRB_DBB_NUM_TIME * 1000)/OAL_TIME_HZ));
         return -OAL_EINVAL;
@@ -2489,22 +1972,107 @@ OAL_STATIC oal_int32 wal_atcmsrv_ioctl_double_ant_switch(oal_net_device_stru *ps
 #endif
 
 
+OAL_STATIC oal_int32  wal_atcmsrv_ioctl_set_bss_expire_age(oal_net_device_stru *pst_net_dev, oal_uint32 ul_expire_age)
+{
+    g_pd_bss_expire_time = (ul_expire_age < WAL_ATCMSRV_MIN_BSS_EXPIRATION_AGE)?WAL_ATCMSRV_MIN_BSS_EXPIRATION_AGE:ul_expire_age;
+    g_pd_bss_expire_time = (g_pd_bss_expire_time > WAL_ATCMSRV_MAX_BSS_EXPIRATION_AGE)?WAL_ATCMSRV_MAX_BSS_EXPIRATION_AGE:g_pd_bss_expire_time;
 
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_wifi_priv_cmd
- 功能描述  : 私有接口函数
- 输入参数  : net device指针
- 输出参数  : 无
- 返 回 值  : 统计结果指针
- 调用函数  :
- 被调函数  :
+    OAM_WARNING_LOG2(0, OAM_SF_CFG, "wal_atcmsrv_ioctl_set_bss_expire_age::pd_bss_expire_time %d, input expire time %d",
+                        g_pd_bss_expire_time, ul_expire_age);
 
- 修改历史      :
-  1.日    期   : 2015年06月25日
-    作    者   : z00285102
-    修改内容   : 新增函数
+    return OAL_SUCC;
+}
 
-*****************************************************************************/
+
+OAL_STATIC oal_int32  wal_atcmsrv_ioctl_get_wifi_connect_info(oal_net_device_stru *pst_net_dev,struct wal_atcmdsrv_wifi_connect_info *pst_connect_info)
+{
+    mac_vap_stru                *pst_mac_vap;
+    hmac_vap_stru               *pst_hmac_vap;
+    hmac_device_stru            *pst_hmac_device;
+    hmac_bss_mgmt_stru          *pst_bss_mgmt;          /*??????????bss???????????? */
+    hmac_scanned_bss_info       *pst_scanned_bss_info   = OAL_PTR_NULL;
+
+    if (pst_net_dev == OAL_PTR_NULL || pst_connect_info == OAL_PTR_NULL)
+    {
+        OAM_ERROR_LOG2(0, OAM_SF_CFG, "wal_atcmsrv_ioctl_get_wifi_connect_info::null pointer. net_dev %p, connect_info %p",
+                            pst_net_dev, pst_connect_info);
+        return -OAL_EFAIL;
+    }
+
+    OAL_MEMZERO(pst_connect_info, OAL_SIZEOF(*pst_connect_info));
+
+    pst_mac_vap = OAL_NET_DEV_PRIV(pst_net_dev);
+    if (OAL_PTR_NULL == pst_mac_vap)
+    {
+        OAM_ERROR_LOG0(0,OAM_SF_ANY,"{wal_atcmsrv_ioctl_get_wifi_connect_info::vap is null.}");
+        return -OAL_EINVAL;
+    }
+
+    if (pst_mac_vap->en_vap_mode != WLAN_VAP_MODE_BSS_STA)
+    {
+        OAM_ERROR_LOG1(0,OAM_SF_ANY,"{wal_atcmsrv_ioctl_get_wifi_connect_info::invalid vap mode.vap_mode [%d]}", pst_mac_vap->en_vap_mode);
+        return -OAL_EINVAL;
+    }
+
+    if (pst_mac_vap->en_vap_state == MAC_VAP_STATE_UP)
+    {
+
+        pst_hmac_vap = (hmac_vap_stru *)mac_res_get_hmac_vap(pst_mac_vap->uc_vap_id);
+        if (OAL_PTR_NULL == pst_hmac_vap)
+        {
+            OAM_ERROR_LOG1(0,OAM_SF_ANY,"{wal_atcmsrv_ioctl_get_wifi_connect_info::mac_res_get_hmac_vap fail.vap_id[%u]}",pst_mac_vap->uc_vap_id);
+            return -OAL_EINVAL;
+        }
+
+        /* ????hmac device ???? */
+        pst_hmac_device = hmac_res_get_mac_dev(pst_mac_vap->uc_device_id);
+        if (OAL_PTR_NULL == pst_hmac_device)
+        {
+            OAM_WARNING_LOG0(0, OAM_SF_SCAN, "{wal_atcmsrv_ioctl_get_wifi_connect_info::hmac_device is null.}");
+            return -OAL_EINVAL;
+        }
+
+        pst_connect_info->en_status = ATCMDSRV_WIFI_CONNECTED;
+        pst_connect_info->c_rssi    = pst_hmac_vap->station_info.signal;
+        oal_memcopy(pst_connect_info->auc_bssid, pst_mac_vap->auc_bssid, WLAN_MAC_ADDR_LEN);
+
+        /* ??????????????bss???????????? */
+        pst_bss_mgmt = &(pst_hmac_device->st_scan_mgmt.st_scan_record_mgmt.st_bss_mgmt);
+        /* ??????????????????*/
+        oal_spin_lock(&(pst_bss_mgmt->st_lock));
+        pst_scanned_bss_info = hmac_scan_find_scanned_bss_by_bssid(pst_bss_mgmt, pst_connect_info->auc_bssid);
+        if (OAL_PTR_NULL == pst_scanned_bss_info)
+        {
+        OAM_WARNING_LOG4(pst_mac_vap->uc_vap_id, OAM_SF_CFG,
+                             "{wal_atcmsrv_ioctl_get_wifi_connect_info::find the bss failed by bssid:%02X:XX:XX:%02X:%02X:%02X}",
+                             pst_connect_info->auc_bssid[0],
+                             pst_connect_info->auc_bssid[3],
+                             pst_connect_info->auc_bssid[4],
+                             pst_connect_info->auc_bssid[5]);
+
+            /* ???? */
+        oal_spin_unlock(&(pst_bss_mgmt->st_lock));
+    return -OAL_EINVAL;
+        }
+        /* ????*/
+        oal_spin_unlock(&(pst_bss_mgmt->st_lock));
+
+        oal_memcopy(pst_connect_info->auc_ssid, pst_scanned_bss_info->st_bss_dscr_info.ac_ssid, WLAN_SSID_MAX_LEN);
+    }
+    else
+    {
+        pst_connect_info->en_status = ATCMDSRV_WIFI_DISCONNECT;
+    }
+
+        OAM_WARNING_LOG4(0, OAM_SF_CFG, "wal_atcmsrv_ioctl_get_wifi_connect_info::state %d, rssi %d, BSSID[XX:XX:XX:XX:%02X:%02X]",
+                        pst_connect_info->en_status, pst_connect_info->c_rssi,
+                        pst_connect_info->auc_bssid[4], pst_connect_info->auc_bssid[5]);
+
+    return OAL_SUCC;
+}
+
+
+
 oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_net_device_stru *pst_net_dev, oal_ifreq_stru *pst_ifr, oal_int32 ul_cmd)
 {
     wal_atcmdsrv_wifi_priv_cmd_stru  st_priv_cmd;
@@ -2516,7 +2084,7 @@ oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_net_device_stru *pst_net_dev, oal_ifreq
         l_ret = -OAL_EINVAL;
         return l_ret;
     }
-    /*将用户态数据拷贝到内核态*/
+    /*????????????????????????*/
     if (oal_copy_from_user(&st_priv_cmd, pst_ifr->ifr_data, sizeof(wal_atcmdsrv_wifi_priv_cmd_stru)))
     {
 		l_ret = -OAL_EINVAL;
@@ -2659,29 +2227,37 @@ oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_net_device_stru *pst_net_dev, oal_ifreq
             l_ret = wal_atcmsrv_ioctl_get_upccode(pst_net_dev,&st_priv_cmd.pri_data.upc_code);
             oal_copy_to_user(pst_ifr->ifr_data,&st_priv_cmd,sizeof(wal_atcmdsrv_wifi_priv_cmd_stru));
             break;
+        case WAL_ATCMDSRV_IOCTL_CMD_SET_CONN_POWER:
+            l_ret = wal_ioctl_reduce_sar(pst_net_dev, (oal_uint8)st_priv_cmd.pri_data.l_pow);
+            break;
+
+        case WAL_ATCMDSRV_IOCTL_CMD_SET_BSS_EXPIRE_AGE:
+            l_ret = wal_atcmsrv_ioctl_set_bss_expire_age(pst_net_dev, st_priv_cmd.pri_data.ul_bss_expire_age);
+            break;
+
+        case WAL_ATCMDSRV_IOCTL_CMD_GET_CONN_INFO:
+            l_ret = wal_atcmsrv_ioctl_get_wifi_connect_info(pst_net_dev, &st_priv_cmd.pri_data.st_connect_info);
+
+            OAL_IO_PRINT("wal_atcmsrv_ioctl_get_wifi_connect_info::status %d, %.32s,%02x:%02x:xx:xx:%02x:%02x,%d",
+                         st_priv_cmd.pri_data.st_connect_info.en_status,
+                         st_priv_cmd.pri_data.st_connect_info.auc_ssid,
+                         st_priv_cmd.pri_data.st_connect_info.auc_bssid[0], st_priv_cmd.pri_data.st_connect_info.auc_bssid[1],
+                         st_priv_cmd.pri_data.st_connect_info.auc_bssid[4], st_priv_cmd.pri_data.st_connect_info.auc_bssid[5],
+                         st_priv_cmd.pri_data.st_connect_info.c_rssi);
+
+            oal_copy_to_user(pst_ifr->ifr_data, &st_priv_cmd, sizeof(wal_atcmdsrv_wifi_priv_cmd_stru));
+            break;
+
         default:
-             break;
+            break;
     }
+
     return l_ret;
 }
 #endif
 
 #if (_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151) && defined(_PRE_WLAN_FEATURE_EQUIPMENT_TEST)
-/*****************************************************************************
- 函 数 名  : wal_atcmsrv_ioctl_get_rx_pckg
- 功能描述  : 查询接收数据包的个数
- 输入参数  :
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月10日
-    作    者   : zhangxiang 00285102
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32  wal_atcmdsrv_ioctl_chip_check(oal_net_device_stru *pst_net_dev)
 {
     wal_msg_write_stru          st_write_msg;
@@ -2704,10 +2280,10 @@ oal_int32  wal_atcmdsrv_ioctl_chip_check(oal_net_device_stru *pst_net_dev)
     }
 
     /***************************************************************************
-                                    抛事件到wal层处理
+                                    ????????wal??????
     ***************************************************************************/
     WAL_WRITE_MSG_HDR_INIT(&st_write_msg, WLAN_CFGID_CHIP_CHECK_SWITCH, OAL_SIZEOF(oal_uint8));
-    *((oal_uint8 *)(st_write_msg.auc_value)) = en_chip_check_flag;  /* 设置配置命令参数 */
+    *((oal_uint8 *)(st_write_msg.auc_value)) = en_chip_check_flag;  /* ???????????????? */
 
     l_ret = wal_send_cfg_event(pst_net_dev,
                                WAL_MSG_TYPE_WRITE,
@@ -2722,12 +2298,12 @@ oal_int32  wal_atcmdsrv_ioctl_chip_check(oal_net_device_stru *pst_net_dev)
         return (oal_int32)l_ret;
     }
 
-    /*阻塞等待dmac上报*/
+    /*????????dmac????*/
     i_leftime = OAL_WAIT_EVENT_INTERRUPTIBLE_TIMEOUT(pst_hmac_vap->query_wait_q,(oal_uint32)(OAL_TRUE == pst_hmac_vap->st_hipriv_ack_stats.uc_get_hipriv_ack_flag),WAL_ATCMDSRB_GET_RX_PCKT);
 
     if(i_leftime > 0)
     {
-        /* 正常结束  */
+        /* ????????  */
         l_ret = (OAL_TRUE == pst_hmac_vap->st_hipriv_ack_stats.uc_get_hipriv_ack_flag)?
                     OAL_SUCC: (-OAL_EINVAL);
         return l_ret;
@@ -2738,21 +2314,7 @@ oal_int32  wal_atcmdsrv_ioctl_chip_check(oal_net_device_stru *pst_net_dev)
     }
 }
 
-/*****************************************************************************
- 函 数 名  : wal_atcmdsrv_wifi_priv_cmd
- 功能描述  : 私有接口函数
- 输入参数  : net device指针
- 输出参数  : 无
- 返 回 值  : 统计结果指针
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年06月25日
-    作    者   : z00285102
-    修改内容   : 新增函数
-
-*****************************************************************************/
 oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_int8 *ac_dev_name, oal_int32 ul_cmd, oal_uint8 * puc_param)
 {
     oal_int32                        l_ret              = OAL_SUCC;
@@ -2768,7 +2330,7 @@ oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_int8 *ac_dev_name, oal_int32 ul_cmd, oa
         return l_ret;
     }
 
-    /* 根据dev_name找到dev */
+    /* ????dev_name????dev */
     pst_net_dev = oal_dev_get_by_name(ac_dev_name);
     if (OAL_PTR_NULL == pst_net_dev)
     {
@@ -2777,7 +2339,7 @@ oal_int32 wal_atcmdsrv_wifi_priv_cmd(oal_int8 *ac_dev_name, oal_int32 ul_cmd, oa
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 调用oal_dev_get_by_name后，必须调用oal_dev_put使net_dev的引用计数减一 */
+    /* ????oal_dev_get_by_name????????????oal_dev_put??net_dev?????????????? */
     oal_dev_put(pst_net_dev);
 
     pst_mac_vap = OAL_NET_DEV_PRIV(pst_net_dev);

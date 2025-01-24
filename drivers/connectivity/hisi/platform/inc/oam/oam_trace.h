@@ -1,3 +1,5 @@
+
+
 #ifndef __OAM_TRACE_H__
 #define __OAM_TRACE_H__
 
@@ -7,26 +9,46 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
 
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_OAM_TRACE_H
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
+/*****************************************************************************
+    2.1 profiling??????????
+*****************************************************************************/
+#define OAM_PROFILING_TX_PACKET_MAX_COUNT       2      /* ?????????????????? */
+#define OAM_PROFILING_RX_PACKET_MAX_COUNT       20      /* ?????????????????? */
+#define OAM_PROFILING_ALG_PACKET_MAX_COUNT       2      /* ????ALG?????????? */
 
-#define OAM_PROFILING_TX_PACKET_MAX_COUNT       2
-#define OAM_PROFILING_RX_PACKET_MAX_COUNT       20
-#define OAM_PROFILING_ALG_PACKET_MAX_COUNT       2
-
-#define OAM_PROFILING_PACKET_INVALID_VALUE      1010
+#define OAM_PROFILING_PACKET_INVALID_VALUE      1010    /* ????????skb id????????????????1010 */
 #define OAM_PROFILING_PACKET_ABNORMAL_GAP       2000
 
-#define OAM_PROFILING_STATISTIC_RX_DEBUG        0x01
-#define OAM_PROFILING_STATISTIC_TX_DEBUG        0x02
-#define OAM_PROFILING_STATISTIC_ALG_DEBUG       0x04
+#define OAM_PROFILING_STATISTIC_RX_DEBUG        0x01    /* RX??????????:1??enbale??0??disable */
+#define OAM_PROFILING_STATISTIC_TX_DEBUG        0x02    /* RX??????????:1??enbale??0??disable */
+#define OAM_PROFILING_STATISTIC_ALG_DEBUG       0x04    /* ALG??????????:1??enbale??0??disable */
 
-#define OAM_TRACE_PRINT_DATA_LENGTH     128
-#define OAM_TRACE_PRINT_FORMAT_LENGTH   128
 
+/*****************************************************************************
+    2.2 trace??????????
+*****************************************************************************/
+#define OAM_TRACE_PRINT_DATA_LENGTH     128     /* TRACE?????????????? */
+#define OAM_TRACE_PRINT_FORMAT_LENGTH   128     /* TRACE?????????????????? */
+
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
+/*****************************************************************************
+    3.1 profiling????????????
+*****************************************************************************/
+/* ?????????????????????????????? */
 typedef enum
 {
     OAM_PROFILING_SWITCH_DEBUG_CONFIG = 1,
@@ -35,55 +57,80 @@ typedef enum
 }oam_profiling_switch_config_enum;
 typedef oal_uint8  oam_profiling_switch_config_enum_uint8;
 
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
+/*****************************************************************************
+    7.1 profiling????STRUCT????
+*****************************************************************************/
+/* tx?????????????? */
 typedef struct
 {
-    oal_spin_lock_stru  st_spin_lock;
-    oal_uint16          us_abnormal_index;
-    oal_uint8           uc_idx_for_array;
-    oal_uint8           uc_skb_id_idx;
+    oal_spin_lock_stru  st_spin_lock;           /* ?????? */
+    oal_uint16          us_abnormal_index;      /* ?????????????? */
+    oal_uint8           uc_idx_for_array;       /* ???????????????????????? */
+    oal_uint8           uc_skb_id_idx;          /* ???????????????????????? */
 
-    oal_uint16          aus_tx_skb_id_list[OAM_PROFILING_TX_PACKET_MAX_COUNT];
-    oal_uint16          aus_tx_pass_count[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT];
-    oal_uint32          ast_tx_func_stand_time[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT];
-    oal_uint32          ast_tx_func_time_offset[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT];
+    oal_uint16          aus_tx_skb_id_list[OAM_PROFILING_TX_PACKET_MAX_COUNT];                                  /* ???????????????????????????????????????????????? */
+    oal_uint16          aus_tx_pass_count[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT];       /* ???????????????? */
+    oal_uint32          ast_tx_func_stand_time[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT];  /* ???????????????? */
+    oal_uint32          ast_tx_func_time_offset[OAM_PROFILING_TX_PACKET_MAX_COUNT][OAM_PROFILING_TX_FUNC_BUTT]; /* ?????????????? */
 }oam_profiling_tx_statistic_stru;
 
+/* rx?????????????? */
 typedef struct
 {
-    oal_spin_lock_stru  st_spin_lock;
-    oal_uint16          us_abnormal_index;
-    oal_uint8           uc_idx_for_array;
-    oal_uint8           uc_skb_id_idx;
+    oal_spin_lock_stru  st_spin_lock;           /* ?????? */
+    oal_uint16          us_abnormal_index;      /* ?????????????? */
+    oal_uint8           uc_idx_for_array;       /* ???????????????????????? */
+    oal_uint8           uc_skb_id_idx;          /* ???????????????????????? */
 
-    oal_uint16          aus_rx_skb_id_list[OAM_PROFILING_RX_PACKET_MAX_COUNT];
-    oal_uint16          aus_rx_pass_count[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT];
-    oal_uint32          ast_rx_func_stand_time[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT];
-    oal_uint32          ast_rx_func_time_offset[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT];
+    oal_uint16          aus_rx_skb_id_list[OAM_PROFILING_RX_PACKET_MAX_COUNT];                                  /* ???????????????????????????????????????????????? */
+    oal_uint16          aus_rx_pass_count[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT];       /* ???????????????? */
+    oal_uint32          ast_rx_func_stand_time[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT];  /* ???????????????? */
+    oal_uint32          ast_rx_func_time_offset[OAM_PROFILING_RX_PACKET_MAX_COUNT][OAM_PROFILING_RX_FUNC_BUTT]; /* ?????????????? */
 }oam_profiling_rx_statistic_stru;
 
+/* alg?????????????? */
 typedef struct
 {
-    oal_spin_lock_stru  st_spin_lock;
-    oal_uint16          us_abnormal_index;
-    oal_uint8           uc_idx_for_array;
-    oal_uint8           uc_skb_id_idx;
+    oal_spin_lock_stru  st_spin_lock;           /* ?????? */
+    oal_uint16          us_abnormal_index;      /* ?????????????? */
+    oal_uint8           uc_idx_for_array;       /* ???????????????????????? */
+    oal_uint8           uc_skb_id_idx;          /* ???????????????????????? */
 
-    oal_uint16          aus_alg_skb_id_list[OAM_PROFILING_ALG_PACKET_MAX_COUNT];
-    oal_uint16          aus_alg_pass_count[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT];
-    oal_uint32          ast_alg_func_stand_time[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT];
-    oal_uint32          ast_alg_func_time_offset[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT];
+    oal_uint16          aus_alg_skb_id_list[OAM_PROFILING_ALG_PACKET_MAX_COUNT];                                  /* ???????????????????????????????????????????????? */
+    oal_uint16          aus_alg_pass_count[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT];       /* ???????????????? */
+    oal_uint32          ast_alg_func_stand_time[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT];  /* ???????????????? */
+    oal_uint32          ast_alg_func_time_offset[OAM_PROFILING_ALG_PACKET_MAX_COUNT][OAM_PROFILING_ALG_FUNC_BUTT]; /* ?????????????? */
 }oam_profiling_alg_statistic_stru;
 
+/* ?????????????????????? */
 typedef struct
 {
     oal_uint32          aul_timestamp[OAM_PROFILING_STARTTIME_FUNC_BUTT];
 }oam_profiling_starttime_statistic_stru;
 
+/* ???????????????? */
 typedef struct
 {
     oal_uint32          aul_timestamp[OAM_PROFILING_CHSWITCH_FUNC_BUTT];
 }oam_profiling_chswitch_statistic_stru;
 
+
+/* OAM PROFILING?????????? */
 typedef struct
 {
     oal_int     i_profiling_tx_debuging_enable;
@@ -91,15 +138,48 @@ typedef struct
     oal_int     i_profiling_alg_debuging_enable;
 }oam_profiling_statistic_debug_stru;
 
+/* ??????skb cb?????????????????????????????? */
 typedef struct
 {
-    oal_uint8   auc_resv[44];
+    oal_uint8   auc_resv[44];       /* ??ping??????????????????????dmac_rx_ctrl_stru */
 
-    oal_uint16  us_skb_id;
-    oal_uint8   uc_is_broad_cast;
+    oal_uint16  us_skb_id;          /* skb id?? */
+    oal_uint8   uc_is_broad_cast;   /* ?????????????????? */
     oal_uint8   uc_is_used;
 }oam_profiling_skb_cb_stru;
 
+/*****************************************************************************
+    7.2 trace????STRUCT????
+*****************************************************************************/
+
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+/*****************************************************************************
+    4.1 profiling????????????
+*****************************************************************************/
+
+/*****************************************************************************
+    4.3 trace????????????
+*****************************************************************************/
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
+
+
+
+/*****************************************************************************
+    trace????????????
+*****************************************************************************/
 extern oal_uint32  oam_trace_init(oal_void);
 extern oal_uint32  oam_trace_set_switch(oal_switch_enum_uint8 en_switch);
 

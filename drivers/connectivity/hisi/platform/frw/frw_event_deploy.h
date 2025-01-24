@@ -1,3 +1,5 @@
+
+
 #ifndef __FRW_EVENT_DEPLOY_H__
 #define __FRW_EVENT_DEPLOY_H__
 
@@ -7,6 +9,10 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_ext_if.h"
 #include "frw_event_main.h"
 #include "frw_ipc_msgqueue.h"
@@ -14,6 +20,9 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_FRW_EVENT_DEPLOY_H
 
+/*****************************************************************************
+  3 ????????
+*****************************************************************************/
 typedef enum
 {
     FRW_IPC_CORE_ID_MASTER   = 0,
@@ -32,6 +41,7 @@ typedef enum
 }frw_ipc_core_type_enum;
 typedef oal_uint8 frw_ipc_core_type_enum_uint8;
 
+/* ?????????????????????????????????????????????? */
 typedef enum
 {
     FRW_IPC_CORE_STATE_INIT      = 0,
@@ -45,55 +55,94 @@ typedef OAL_VOLATILE oal_uint8 frw_ipc_core_state_enum_uint8;
 
 typedef enum
 {
-    FRW_IPC_MSG_TYPE_EVENT            = 0,
-    FRW_IPC_MSG_TYPE_CONNECT_REQUEST  = 1,
-    FRW_IPC_MSG_TYPE_CONNECT_RESPONSE = 2,
-    FRW_IPC_MSG_TYPE_CONFIG_REQUEST   = 3,
-    FRW_IPC_MSG_TYPE_CONFIG_RESPONSE  = 4,
-    FRW_IPC_MSG_TYPE_ERROR_NOTICE     = 5,
-    FRW_IPC_MSG_TYPE_RESET_REQUEST    = 6,
-    FRW_IPC_MSG_TYPE_RESET_RESPONSE   = 7,
-    FRW_IPC_MSG_TYPE_OPEN_OAM         = 8,
-    FRW_IPC_MSG_TYPE_CLOSE_OAM        = 9,
-    FRW_IPC_MSG_TYPE_EXIT_REQUEST     = 10,
-    FRW_IPC_MSG_TYPE_EXIT_RESPONSE    = 11,
-    FRW_IPC_MSG_TYPE_TX_INT_ENABLE    = 12,
-    FRW_IPC_MSG_TYPE_TX_INT_DISENABLE = 13,
+    FRW_IPC_MSG_TYPE_EVENT            = 0,  /* ???????? */
+    FRW_IPC_MSG_TYPE_CONNECT_REQUEST  = 1,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_CONNECT_RESPONSE = 2,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_CONFIG_REQUEST   = 3,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_CONFIG_RESPONSE  = 4,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_ERROR_NOTICE     = 5,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_RESET_REQUEST    = 6,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_RESET_RESPONSE   = 7,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_OPEN_OAM         = 8,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_CLOSE_OAM        = 9,  /* IPC???????? */
+    FRW_IPC_MSG_TYPE_EXIT_REQUEST     = 10, /* IPC???????? */
+    FRW_IPC_MSG_TYPE_EXIT_RESPONSE    = 11, /* IPC????????*/
+    FRW_IPC_MSG_TYPE_TX_INT_ENABLE    = 12, /* IPC TX???????? */
+    FRW_IPC_MSG_TYPE_TX_INT_DISENABLE = 13, /* IPC TX???????? */
 
     FRW_IPC_MSG_TYPE_BUTT
 }frw_ipc_msg_type_enum;
 typedef oal_uint8 frw_ipc_msg_type_enum_uint8;
 
+/*****************************************************************************
+  2 ??????
+*****************************************************************************/
+/* ?????????????? */
 #define FRW_IPC_MAX_SEQ_NUMBER   (0xFFFF)
 
+/* ???????????? */
 #define FRW_IPC_GET_MSG_QUEUE(_queue, _type)     (_queue = (FRW_IPC_CORE_TYPE_MASTER == _type) ? \
                                                            &g_st_queue_master_to_slave : \
                                                            &g_st_queue_slave_to_master)
 
+/*****************************************************************************
+  4 ????????????
+*****************************************************************************/
+
+
+
+/*****************************************************************************
+  5 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 ????????
+*****************************************************************************/
+/* IPC?????????????? */
 typedef struct
 {
     frw_ipc_msg_header_stru st_ipc_hdr;
     oal_uint8               auc_resv[2];
-    oal_uint16              ul_length;
+    oal_uint16              ul_length;   /* ???????? */
     oal_uint8               auc_data[4];
 }frw_ipc_inter_msg_stru;
 
+/*****************************************************************************
+  7 STRUCT????
+*****************************************************************************/
 typedef struct
 {
-    frw_ipc_core_id_enum_uint8      en_cpuid;
-    frw_ipc_core_id_enum_uint8      en_target_cpuid;
-    frw_ipc_core_state_enum_uint8   en_states;
-    frw_ipc_tx_ctrl_enum_uint8      en_tx_int_ctl;
-    frw_ipc_core_type_enum_uint8    en_cpu_type;
-    oal_uint8                       uc_resv[3];
-    oal_uint16                      us_seq_num_rx_expect;
-    oal_uint16                      us_seq_num_tx_expect;
-    frw_ipc_msg_callback_stru       st_ipc_msg_callback;
-    oal_irq_dev_stru                st_irq_dev;
+    frw_ipc_core_id_enum_uint8      en_cpuid;                       /* ????cpuid */
+    frw_ipc_core_id_enum_uint8      en_target_cpuid;                /* ????????cpuid */
+    frw_ipc_core_state_enum_uint8   en_states;                      /* ????????????: ??????, ????, ????, ?????????? */
+    frw_ipc_tx_ctrl_enum_uint8      en_tx_int_ctl;                  /* TX???????? */
+    frw_ipc_core_type_enum_uint8    en_cpu_type;                    /* ????CPU?????????????????? */
+    oal_uint8                       uc_resv[3];                     /* ???? */
+    oal_uint16                      us_seq_num_rx_expect;           /* ????????????????,????????0,?????????????????????????? */
+    oal_uint16                      us_seq_num_tx_expect;           /* ????????????????,????????0,?????????????????????????? */
+    frw_ipc_msg_callback_stru       st_ipc_msg_callback;            /* ???????????? */
+    oal_irq_dev_stru                st_irq_dev;                     /* ?????????? */
 #ifdef _PRE_DEBUG_MODE
-    frw_ipc_log_stru                st_log;
+    frw_ipc_log_stru                st_log;                         /* ?????????? */
 #endif
 }frw_ipc_node_stru;
+
+
+/*****************************************************************************
+  8 UNION????
+*****************************************************************************/
+
+
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 
 OAL_STATIC OAL_INLINE frw_ipc_core_type_enum frw_ipc_get_core_type(oal_void)
 {
@@ -104,6 +153,7 @@ OAL_STATIC OAL_INLINE frw_ipc_core_type_enum frw_ipc_get_core_type(oal_void)
 
     return FRW_IPC_CORE_TYPE_SLAVE;
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint8 *frw_ipc_get_header(frw_ipc_msg_mem_stru *pst_ipc_mem_msg)
 {

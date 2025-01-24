@@ -1,3 +1,5 @@
+
+
 #ifndef __OAL_SDIO_HOST_IF_H__
 #define __OAL_SDIO_HOST_IF_H__
 
@@ -6,6 +8,7 @@
 extern "C" {
 #endif
 #endif
+
 
 #include "oal_util.h"
 #include "oal_net.h"
@@ -103,11 +106,11 @@ struct hsdio_credit_info{
 
 typedef struct _wlan_pm_callback
 {
-    oal_uint (*wlan_pm_wakeup_dev)(oal_void);
-    oal_uint (*wlan_pm_state_get)(oal_void);
-    oal_uint (*wlan_pm_wakeup_host)(oal_void);
-    oal_void (*wlan_pm_feed_wdg)(oal_void);
-    oal_void (*wlan_pm_wakeup_dev_ack)(oal_void);
+    oal_uint (*wlan_pm_wakeup_dev)(oal_void);                        //SDIO????????????PM??????????????????????????????????
+    oal_uint (*wlan_pm_state_get)(oal_void);                         //????????PM????
+    oal_uint (*wlan_pm_wakeup_host)(oal_void);                       //device????host????????
+    oal_void (*wlan_pm_feed_wdg)(oal_void);                          //PM Sleep watch dog????????
+    oal_void (*wlan_pm_wakeup_dev_ack)(oal_void);   				//????device??ACK ????????
 }wlan_pm_callback_stru;
 
 #define OAL_SDIO_TX        (1<<0)
@@ -119,11 +122,11 @@ struct oal_sdio
     /*sdio work state, sleep , work or shutdown?*/
     oal_uint32                  state;
 
-    oal_spin_lock_stru          st_pm_state_lock;
+    oal_spin_lock_stru          st_pm_state_lock;       //pm state????????pm??gpio??????????
     wlan_pm_callback_stru      *pst_pm_callback;
 
-    oal_spin_lock_stru          st_irq_lock;
-    oal_uint                    ul_wlan_irq;
+    oal_spin_lock_stru          st_irq_lock;         //wlan gpio??????????
+    oal_uint                    ul_wlan_irq ;        //wlan gpio????
 
     oal_wakelock_stru           st_sdio_wakelock;   
 
@@ -145,6 +148,7 @@ struct oal_sdio
 
     /*used to process the sdio int*/
     struct semaphore            gpio_rx_sema;
+
 
     oal_void*       bus_data;
     sdio_bus_ops    bus_ops;
@@ -684,9 +688,12 @@ OAL_STATIC OAL_INLINE oal_void oal_sdio_writel(struct sdio_func *func, oal_uint3
 }
 #endif
 
+
 #define oal_sdio_wake_lock(pst_hi_sdio) oal_wake_lock(&pst_hi_sdio->st_sdio_wakelock)
 
+
 #define oal_sdio_wake_unlock(pst_hi_sdio) oal_wake_unlock(&pst_hi_sdio->st_sdio_wakelock)
+
 
 #define oal_sdio_wakelock_active(pst_hi_sdio)   oal_wakelock_active(&pst_hi_sdio->st_sdio_wakelock)
 #ifdef __cplusplus

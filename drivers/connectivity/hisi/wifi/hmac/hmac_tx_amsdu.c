@@ -1,21 +1,4 @@
-/****************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_tx_amsdu.c
-  版 本 号   : 初稿
-  作    者   : t00231215
-  生成日期   : 2012年11月12日
-  最近修改   :
-  功能描述   : amsdu聚合
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2012年11月12日
-    作    者   : t00231215
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "hmac_tx_amsdu.h"
 #include "hmac_tx_data.h"
@@ -37,7 +20,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_TX_AMSDU_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_tx_timeout_process(oal_void *p_arg);
 OAL_STATIC oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
@@ -48,40 +31,24 @@ OAL_STATIC oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
 
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_encap
- 功能描述  : amsdu子帧头封装
- 输入参数  : pst_amsdu: amsdu结构体指针
-             pst_buf: 新加入的子帧
-             ul_framelen: 对齐后的长度
- 输出参数  : 无
- 返 回 值  : 成功:OAL_SUCC;失败OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月13日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netbuf_stru **pst_netbuf, oal_uint32 ul_framelen)
 {
-    oal_uint32              ul_headroom;    /* 暂存skb剩余头部空间 */
-    oal_uint32              ul_tailroom;    /* 暂存skb剩余尾部空间 */
-    oal_uint8               uc_align;       /* 为4字节对齐尾部需要的偏移量 */
-    mac_ether_header_stru   st_ether_head;  /* 暂存以太网过来的skb的以太网头 */
-    mac_ether_header_stru  *pst_amsdu_head; /* 为填写amsdu子帧头的临时指针 */
-    mac_llc_snap_stru      *pst_snap_head;  /* 为填写snap头的临时指针 */
+    oal_uint32              ul_headroom;    /* ????skb???????????? */
+    oal_uint32              ul_tailroom;    /* ????skb???????????? */
+    oal_uint8               uc_align;       /* ??4???????????????????????? */
+    mac_ether_header_stru   st_ether_head;  /* ????????????????skb?????????? */
+    mac_ether_header_stru  *pst_amsdu_head; /* ??????amsdu???????????????? */
+    mac_llc_snap_stru      *pst_snap_head;  /* ??????snap???????????? */
     mac_tx_ctl_stru        *pst_cb;
     oal_netbuf_stru        *pst_first_netbuf;
     mac_tx_ctl_stru        *pst_first_cb;
     oal_netbuf_stru        *pst_buf;
     oal_uint32              ul_netbuf_len;
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY((OAL_PTR_NULL == pst_netbuf)
      || (OAL_PTR_NULL == pst_amsdu)))
     {
@@ -97,13 +64,13 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
     pst_first_cb->us_mpdu_bytes += pst_cb->us_mpdu_bytes;
 
 #if 0
-    /* WLAN TO WLAN 的 AMSDU报文 */
+    /* WLAN TO WLAN ?? AMSDU???? */
     if ((FRW_EVENT_TYPE_WLAN_DTX == pst_cb->en_event_type)
         && ((OAL_TRUE == pst_cb->en_is_amsdu)))
     {
         hmac_tx_netbuf_list_enqueue(&pst_amsdu->st_msdu_head, pst_buf, pst_cb->uc_netbuf_num);
 
-        /* 更新amsdu信息 */
+        /* ????amsdu???? */
         pst_amsdu->uc_msdu_num += pst_cb->uc_netbuf_num;
         pst_amsdu->us_amsdu_size += pst_cb->us_mpdu_len;
         pst_amsdu->uc_netbuf_num += pst_cb->uc_netbuf_num;
@@ -112,7 +79,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
     }
 #endif
 
-    /* 暂存数据剩余空间信息 */
+    /* ???????????????????? */
     ul_headroom = oal_netbuf_headroom(pst_buf);
     ul_tailroom = oal_netbuf_tailroom(pst_buf);
     if (ul_framelen < oal_netbuf_get_len(pst_buf))
@@ -126,7 +93,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
 
     OAM_INFO_LOG3(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::headroom[%d] tailroom[%d] offset[%d].}", ul_headroom, ul_tailroom, uc_align);
 
-    /* 头部剩余空间不足需要扩展头部空间 */
+    /* ???????????????????????????????? */
     if (OAL_UNLIKELY(ul_headroom < SNAP_LLC_FRAME_LEN))
     {
         OAM_INFO_LOG1(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::headroom[%d] need realloc.}", ul_headroom);
@@ -139,14 +106,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
         *pst_netbuf = pst_buf;
     }
 
-    /* 暂存以太网头的信息 */
+    /* ?????????????????? */
     st_ether_head.us_ether_type = ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->us_ether_type;
     oal_set_mac_addr(st_ether_head.auc_ether_dhost, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_dhost);
     oal_set_mac_addr(st_ether_head.auc_ether_shost, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_shost);
     oal_set_mac_addr(pst_amsdu->auc_eth_da, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_dhost);
     oal_set_mac_addr(pst_amsdu->auc_eth_sa, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_shost);
 
-    /* 填写snap头 */
+    /* ????snap?? */
     pst_snap_head = (mac_llc_snap_stru *)oal_netbuf_pull(pst_buf, ETHER_HDR_LEN - SNAP_LLC_FRAME_LEN);
     if (OAL_PTR_NULL == pst_snap_head)
     {
@@ -161,14 +128,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
     pst_snap_head->auc_org_code[2]  = SNAP_RFC1042_ORGCODE_2;
     pst_snap_head->us_ether_type    = st_ether_head.us_ether_type;
 
-    /* 填写amsdu子帧头 */
+    /* ????amsdu?????? */
     pst_amsdu_head = (mac_ether_header_stru *)oal_netbuf_push(pst_buf, ETHER_HDR_LEN);
 
     oal_set_mac_addr(pst_amsdu_head->auc_ether_dhost, st_ether_head.auc_ether_dhost);
     oal_set_mac_addr(pst_amsdu_head->auc_ether_shost, st_ether_head.auc_ether_shost);
     pst_amsdu_head->us_ether_type = oal_byteorder_host_to_net_uint16((oal_uint16)(oal_netbuf_get_len(pst_buf) - ETHER_HDR_LEN));
 
-    /* 尾部空间不够字节对齐需扩展尾部空间 */
+    /* ?????????????????????????????????? */
     if (OAL_UNLIKELY(ul_tailroom < uc_align))
     {
         OAM_INFO_LOG1(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::tailroom[%d] need realloc.}", ul_tailroom);
@@ -185,11 +152,11 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
 
     pst_amsdu->uc_last_pad_len = uc_align;
 
-    /* 更新amsdu信息 */
+    /* ????amsdu???? */
     pst_amsdu->uc_msdu_num++;
     pst_amsdu->us_amsdu_size += (oal_uint16)oal_netbuf_get_len(pst_buf);
 
-    /* 更新frame len */
+    /* ????frame len */
     pst_cb->us_mpdu_len = (oal_uint16)oal_netbuf_get_len(pst_buf);
 
     OAM_INFO_LOG2(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::msdu_num[%d] amsdu_size[%d].}", pst_amsdu->uc_msdu_num, pst_amsdu->us_amsdu_size);
@@ -198,22 +165,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap_hdr(hmac_amsdu_stru *pst_amsdu, oal_netb
 }
 
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_send
- 功能描述  : 发送amsdu
- 输入参数  : pst_user: 用户结构体指针
-             pst_amsdu: 要发送的amsdu
- 输出参数  : 无
- 返 回 值  : 成功OAL_SUCC；失败OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月13日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, hmac_amsdu_stru *pst_amsdu)
 {
     frw_event_mem_stru *pst_amsdu_send_event_mem;
@@ -225,14 +177,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     dmac_tx_event_stru *pst_amsdu_event;
     mac_ieee80211_qos_htc_frame_stru *mac_header;
 
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY((OAL_PTR_NULL == pst_vap) || (OAL_PTR_NULL == pst_user) || (OAL_PTR_NULL == pst_amsdu)))
     {
         OAM_ERROR_LOG3(0, OAM_SF_AMPDU, "{hmac_amsdu_send::input error %x %x %x}", pst_vap, pst_user, pst_amsdu);
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 给dmac传送的amsdu相关的信息以及802.11头挂接 */
+    /* ??dmac??????amsdu??????????????802.11?????? */
     pst_net_buf = oal_netbuf_peek(&(pst_amsdu->st_msdu_head));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_net_buf))
     {
@@ -244,7 +196,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     pst_cb->us_mpdu_len         = pst_amsdu->us_amsdu_size - pst_amsdu->uc_last_pad_len;
     pst_cb->uc_mpdu_num         = 1;
 
-    /* 为整个amsdu封装802.11头 */
+    /* ??????amsdu????802.11?? */
     ul_ret = hmac_tx_encap(pst_vap, pst_user, pst_net_buf);
     if (OAL_UNLIKELY(OAL_SUCC != ul_ret))
     {
@@ -258,15 +210,15 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 标示amsdu */
+    /* ????amsdu */
     mac_header                  = (mac_ieee80211_qos_htc_frame_stru *)pst_cb->pst_frame_header;
     mac_header->bit_qc_amsdu    = 1;
 
-    /* 把最后一个子帧的PAD去除 */
+    /* ????????????????PAD???? */
     oal_netbuf_trim(pst_net_buf, pst_amsdu->uc_last_pad_len);
 
-    /* 如果只有一个帧(amsdu超时情形，tid中只有一个amsdu等待聚合，但是一直没有别的
-       msdu过来)，则去除子帧的以太网头，按照非AMSDU处理
+    /* ??????????????(amsdu??????????tid??????????amsdu??????????????????????????
+       msdu????)??????????????????????????????AMSDU????
     */
     if (1 == pst_amsdu->uc_msdu_num)
     {
@@ -276,14 +228,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         {
            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);
         }
-        else if (!(pst_cb->en_use_4_addr)) /*来自AP*/
+        else if (!(pst_cb->en_use_4_addr)) /*????AP*/
         {
            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_sa);
         }
-        else /*WDS  TBD 暂不支持*/
+        else /*WDS  TBD ????????*/
         {
-            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);/* 地址3是 DA */
-            //oal_set_mac_addr(pst_cb->pst_frame_header->auc_address4, pst_amsdu->auc_eth_sa);/* 地址4是 SA */
+            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);/* ????3?? DA */
+            //oal_set_mac_addr(pst_cb->pst_frame_header->auc_address4, pst_amsdu->auc_eth_sa);/* ????4?? SA */
         }
 
         pst_cb->en_is_amsdu = OAL_FALSE;
@@ -291,13 +243,13 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         mac_header->bit_qc_amsdu = 0;
     }
 
-    /* 链表头尾处理 */
+    /* ???????????? */
     if (OAL_PTR_NULL != oal_netbuf_tail(&pst_amsdu->st_msdu_head) && OAL_PTR_NULL != oal_netbuf_peek(&pst_amsdu->st_msdu_head))
     {
         OAL_NETBUF_PREV(oal_netbuf_peek(&pst_amsdu->st_msdu_head)) = OAL_PTR_NULL;
         OAL_NETBUF_NEXT(oal_netbuf_tail(&pst_amsdu->st_msdu_head)) = OAL_PTR_NULL;
     }
-    /* 抛事件 */
+    /* ?????? */
     pst_amsdu_send_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_tx_event_stru));
 
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_amsdu_send_event_mem))
@@ -306,7 +258,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 填事件头 */
+    /* ???????? */
     pst_amsdu_send_event = (frw_event_stru *)(pst_amsdu_send_event_mem->puc_data);
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_amsdu_send_event))
     {
@@ -342,12 +294,12 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     #endif
     }
 
-    /* 清零amsdu结构体信息 */
+    /* ????amsdu?????????? */
     pst_amsdu->us_amsdu_size = 0;
     pst_amsdu->uc_msdu_num   = 0;
     oal_netbuf_list_head_init(&pst_amsdu->st_msdu_head);
 
-    /* 释放事件内存 */
+    /* ???????????? */
     FRW_EVENT_FREE(pst_amsdu_send_event_mem);
 
     OAM_INFO_LOG0(0, OAM_SF_AMSDU, "{hmac_amsdu_send::amsdu send success.");
@@ -355,21 +307,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     return  ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_build_netbuf
- 功能描述  : 聚合组装amsdu
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月6日
-    作    者   : s00304087
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_void hmac_amsdu_build_netbuf(hmac_vap_stru *pst_vap, hmac_amsdu_stru *pst_amsdu, oal_netbuf_stru *pst_buf)
 {
     oal_uint16       us_buf_len;
@@ -386,7 +324,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_amsdu_build_netbuf(hmac_vap_stru *pst_vap, h
         return;
     }
 
-    /*加上pad超出长度 去掉last pad*/
+    /*????pad???????? ????last pad*/
     if(oal_netbuf_tailroom(pst_dest_buf) < us_buf_len)
     {
         us_buf_len -= pst_amsdu->uc_last_pad_len;
@@ -401,21 +339,7 @@ OAL_STATIC OAL_INLINE oal_void hmac_amsdu_build_netbuf(hmac_vap_stru *pst_vap, h
 
     return;
 }
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_alloc_netbuf
- 功能描述  : 申请netbuf用于聚合组装amsdu
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月6日
-    作    者   : s00304087
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC OAL_INLINE oal_uint32 hmac_amsdu_alloc_netbuf(hmac_amsdu_stru *pst_amsdu, oal_netbuf_stru *pst_dest_buf, oal_netbuf_stru *pst_buf)
 {
     mac_tx_ctl_stru *pst_cb;
@@ -425,7 +349,7 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_amsdu_alloc_netbuf(hmac_amsdu_stru *pst_am
     {
         return OAL_FAIL;
     }
-    /* 子帧链入amsdu尾部 */
+    /* ????????amsdu???? */
     oal_netbuf_add_to_list_tail(pst_dest_buf, &pst_amsdu->st_msdu_head);
 
     oal_memcopy(oal_netbuf_cb(pst_dest_buf), oal_netbuf_cb(pst_buf), OAL_SIZEOF(mac_tx_ctl_stru));
@@ -441,21 +365,7 @@ OAL_STATIC OAL_INLINE oal_uint32 hmac_amsdu_alloc_netbuf(hmac_amsdu_stru *pst_am
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_tx_process
- 功能描述  : amsdu聚合发送处理函数
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年1月6日
-    作    者   : s00304087
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, oal_netbuf_stru *pst_buf)
 {
     oal_uint8           uc_tid_no;
@@ -469,7 +379,7 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
 
     ul_frame_len = oal_netbuf_get_len(pst_buf);
 
-    /* 记录字节数，不包括以太网头长度，维测用 */
+    /* ?????????????????????????????????????? */
     pst_tx_ctl->us_mpdu_bytes = (oal_uint16)(ul_frame_len - ETHER_HDR_LEN);
 
     uc_tid_no    = pst_tx_ctl->uc_tid;
@@ -479,7 +389,7 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::the length of amsdu is exceeded, so it is to be sent.}");
 
-        /* 重启定时器 */
+        /* ?????????? */
         FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_amsdu->st_amsdu_timer);
 
         ul_ret = hmac_amsdu_send(pst_vap, pst_user, pst_amsdu);
@@ -497,14 +407,14 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
 
         oal_netbuf_list_head_init(&(pst_amsdu->st_msdu_head));
 
-        /* 申请netbuf用于聚合amsdu */
+        /* ????netbuf????????amsdu */
         if(OAL_SUCC != hmac_amsdu_alloc_netbuf(pst_amsdu, pst_dest_buf, pst_buf))
         {
             OAM_ERROR_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::failed to alloc netbuf.}");
             return HMAC_TX_DROP_AMSDU_ENCAP_FAIL;
         }
 
-        /* 启动定时器 */
+        /* ?????????? */
         FRW_TIMER_CREATE_TIMER(&pst_amsdu->st_amsdu_timer,
                                hmac_amsdu_tx_timeout_process,
                                HMAC_AMSDU_LIFE_TIME,
@@ -514,7 +424,7 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
                                pst_vap->st_vap_base_info.ul_core_id);
 
     }
-    /* 4字节对齐后的帧的长度 */
+    /* 4???????????????????? */
     ul_frame_len = OAL_ROUNDUP(ul_frame_len, 4);
 
     ul_ret = hmac_amsdu_encap_hdr(pst_amsdu, &pst_buf, ul_frame_len);
@@ -525,27 +435,13 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
         return HMAC_TX_DROP_AMSDU_ENCAP_FAIL;
     }
 
-    /*软件聚合amsdu 组装buffer*/
+    /*????????amsdu ????buffer*/
     hmac_amsdu_build_netbuf(pst_vap, pst_amsdu, pst_buf);
 
     return HMAC_TX_BUFF;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_amsdu_is_overflow
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月16日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
                 hmac_amsdu_stru    *pst_amsdu,
                 mac_tx_ctl_stru    *pst_tx_ctl,
@@ -569,9 +465,9 @@ OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
     }
 
     pst_head_ctl = (mac_tx_ctl_stru *)oal_netbuf_cb(pst_head_buf);
-    /* amsdu不为空，并且amsdu中的子帧来源(lan或者wlan)与当前要封装的netbuf不同，则将amsdu发送出去，
-       这样做是因为在发送完成中释放一个mpdu时，是根据第一个netbuf的cb中填写的事件类型来选择释放策略，
-       如果一个mpdu中的netbuf来源不同，会造成内存泄漏
+    /* amsdu????????????amsdu????????????(lan????wlan)??????????????netbuf??????????amsdu??????????
+       ????????????????????????????????mpdu????????????????netbuf??cb????????????????????????????????
+       ????????mpdu????netbuf????????????????????????
     */
     if (pst_tx_ctl->en_event_type != pst_head_ctl->en_event_type)
     {
@@ -583,7 +479,7 @@ OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
     OAM_INFO_LOG3(0, OAM_SF_TX, "{hmac_tx_amsdu_is_overflow::us_amsdu_size=%d uc_msdu_num=%d us_amsdu_maxsize=%d.}",
                   pst_amsdu->us_amsdu_size, pst_amsdu->uc_msdu_num, pst_amsdu->us_amsdu_maxsize);
 
-    /* payload + padmax(3) 不能大于1568 */
+    /* payload + padmax(3) ????????1568 */
     if (((pst_amsdu->us_amsdu_size + ul_frame_len + SNAP_LLC_FRAME_LEN + 3) > 1568)
      || ((pst_amsdu->uc_msdu_num + 1) > pst_amsdu->uc_amsdu_maxnum) || ((pst_amsdu->us_amsdu_size + ul_frame_len + SNAP_LLC_FRAME_LEN) > WLAN_AMSDU_FRAME_MAX_LEN))
     {
@@ -595,36 +491,20 @@ OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
 
 #elif(_PRE_PRODUCT_ID == _PRE_PRODUCT_ID_HI1151)
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_encap
- 功能描述  : amsdu子帧头封装
- 输入参数  : pst_amsdu: amsdu结构体指针
-             pst_buf: 新加入的子帧
-             ul_framelen: 对齐后的长度
- 输出参数  : 无
- 返 回 值  : 成功:OAL_SUCC;失败OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月13日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_stru *pst_buf, oal_uint32 ul_framelen)
 {
-    oal_uint32              ul_headroom;    /* 暂存skb剩余头部空间 */
-    oal_uint32              ul_tailroom;    /* 暂存skb剩余尾部空间 */
-    oal_uint8               uc_align;       /* 为4字节对齐尾部需要的偏移量 */
-    mac_ether_header_stru   st_ether_head;  /* 暂存以太网过来的skb的以太网头 */
-    mac_ether_header_stru  *pst_amsdu_head; /* 为填写amsdu子帧头的临时指针 */
-    mac_llc_snap_stru      *pst_snap_head;  /* 为填写snap头的临时指针 */
+    oal_uint32              ul_headroom;    /* ????skb???????????? */
+    oal_uint32              ul_tailroom;    /* ????skb???????????? */
+    oal_uint8               uc_align;       /* ??4???????????????????????? */
+    mac_ether_header_stru   st_ether_head;  /* ????????????????skb?????????? */
+    mac_ether_header_stru  *pst_amsdu_head; /* ??????amsdu???????????????? */
+    mac_llc_snap_stru      *pst_snap_head;  /* ??????snap???????????? */
     mac_tx_ctl_stru        *pst_cb;
     oal_netbuf_stru        *pst_first_netbuf;
     mac_tx_ctl_stru        *pst_first_cb;
 
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY((OAL_PTR_NULL == pst_buf)
      || (OAL_PTR_NULL == pst_amsdu)))
     {
@@ -638,21 +518,21 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
     pst_first_netbuf = oal_netbuf_peek(&pst_amsdu->st_msdu_head);
     if (OAL_PTR_NULL != pst_first_netbuf)
     {
-        /* 取出第一个buf为空，说明此时amsdu链中还没有msdu,不用增加amsdu的字节数,如果已经存在了msdu，
-           则需要把新的msdu的字节数加到第一个msdu的cb字段中，作为后续封装后的mpdu的字节数，给维测用
+        /* ??????????buf??????????????amsdu??????????msdu,????????amsdu????????,??????????????msdu??
+           ????????????msdu??????????????????msdu??cb????????????????????????mpdu??????????????????
         */
         pst_first_cb = (mac_tx_ctl_stru *)oal_netbuf_cb(pst_first_netbuf);
         pst_first_cb->us_mpdu_bytes += pst_cb->us_mpdu_bytes;
     }
 
 #if 0
-    /* WLAN TO WLAN 的 AMSDU报文 */
+    /* WLAN TO WLAN ?? AMSDU???? */
     if ((FRW_EVENT_TYPE_WLAN_DTX == pst_cb->en_event_type)
         && ((OAL_TRUE == pst_cb->en_is_amsdu)))
     {
         hmac_tx_netbuf_list_enqueue(&pst_amsdu->st_msdu_head, pst_buf, pst_cb->uc_netbuf_num);
 
-        /* 更新amsdu信息 */
+        /* ????amsdu???? */
         pst_amsdu->uc_msdu_num += pst_cb->uc_netbuf_num;
         pst_amsdu->us_amsdu_size += pst_cb->us_mpdu_len;
         pst_amsdu->uc_netbuf_num += pst_cb->uc_netbuf_num;
@@ -661,7 +541,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
     }
 #endif
 
-    /* 暂存数据剩余空间信息 */
+    /* ???????????????????? */
     ul_headroom = oal_netbuf_headroom(pst_buf);
     ul_tailroom = oal_netbuf_tailroom(pst_buf);
     if (ul_framelen < oal_netbuf_get_len(pst_buf))
@@ -674,7 +554,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
 
     OAM_INFO_LOG3(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::headroom[%d] tailroom[%d] offset[%d].}", ul_headroom, ul_tailroom, uc_align);
 
-    /* 头部剩余空间不足需要扩展头部空间 */
+    /* ???????????????????????????????? */
     if (OAL_UNLIKELY(ul_headroom < SNAP_LLC_FRAME_LEN))
     {
         OAM_INFO_LOG1(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::headroom[%d] need realloc.}", ul_headroom);
@@ -686,14 +566,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
         }
     }
 
-    /* 暂存以太网头的信息 */
+    /* ?????????????????? */
     st_ether_head.us_ether_type = ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->us_ether_type;
     oal_set_mac_addr(st_ether_head.auc_ether_dhost, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_dhost);
     oal_set_mac_addr(st_ether_head.auc_ether_shost, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_shost);
     oal_set_mac_addr(pst_amsdu->auc_eth_da, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_dhost);
     oal_set_mac_addr(pst_amsdu->auc_eth_sa, ((mac_ether_header_stru *)oal_netbuf_data(pst_buf))->auc_ether_shost);
 
-    /* 填写snap头 */
+    /* ????snap?? */
     pst_snap_head = (mac_llc_snap_stru *)oal_netbuf_pull(pst_buf, ETHER_HDR_LEN - SNAP_LLC_FRAME_LEN);
     if (OAL_PTR_NULL == pst_snap_head)
     {
@@ -708,14 +588,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
     pst_snap_head->auc_org_code[2]  = SNAP_RFC1042_ORGCODE_2;
     pst_snap_head->us_ether_type    = st_ether_head.us_ether_type;
 
-    /* 填写amsdu子帧头 */
+    /* ????amsdu?????? */
     pst_amsdu_head = (mac_ether_header_stru *)oal_netbuf_push(pst_buf, ETHER_HDR_LEN);
 
     oal_set_mac_addr(pst_amsdu_head->auc_ether_dhost, st_ether_head.auc_ether_dhost);
     oal_set_mac_addr(pst_amsdu_head->auc_ether_shost, st_ether_head.auc_ether_shost);
     pst_amsdu_head->us_ether_type = oal_byteorder_host_to_net_uint16((oal_uint16)(oal_netbuf_get_len(pst_buf) - ETHER_HDR_LEN));
 
-    /* 尾部空间不够字节对齐需扩展尾部空间 */
+    /* ?????????????????????????????????? */
     if (OAL_UNLIKELY(ul_tailroom < uc_align))
     {
         OAM_INFO_LOG1(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::tailroom[%d] need realloc.}", ul_tailroom);
@@ -732,14 +612,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
 
     pst_amsdu->uc_last_pad_len = uc_align;
 
-    /* 子帧链入amsdu尾部 */
+    /* ????????amsdu???? */
     oal_netbuf_add_to_list_tail(pst_buf, &pst_amsdu->st_msdu_head);
 
-    /* 更新amsdu信息 */
+    /* ????amsdu???? */
     pst_amsdu->uc_msdu_num++;
     pst_amsdu->us_amsdu_size += (oal_uint16)oal_netbuf_get_len(pst_buf);
 
-    /* 更新frame len */
+    /* ????frame len */
     pst_cb->us_mpdu_len = (oal_uint16)oal_netbuf_get_len(pst_buf);
 
     OAM_INFO_LOG2(0, OAM_SF_AMSDU, "{hmac_amsdu_encap::msdu_num[%d] amsdu_size[%d].}", pst_amsdu->uc_msdu_num, pst_amsdu->us_amsdu_size);
@@ -747,22 +627,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_encap(hmac_amsdu_stru *pst_amsdu, oal_netbuf_s
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_send
- 功能描述  : 发送amsdu
- 输入参数  : pst_user: 用户结构体指针
-             pst_amsdu: 要发送的amsdu
- 输出参数  : 无
- 返 回 值  : 成功OAL_SUCC；失败OAL_ERR_CODE_PTR_NULL
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月13日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, hmac_amsdu_stru *pst_amsdu)
 {
     frw_event_mem_stru *pst_amsdu_send_event_mem;
@@ -777,14 +642,14 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     oal_uint16          us_buf_num = 0;
 #endif
 
-    /* 入参检查 */
+    /* ???????? */
     if (OAL_UNLIKELY((OAL_PTR_NULL == pst_vap) || (OAL_PTR_NULL == pst_user) || (OAL_PTR_NULL == pst_amsdu)))
     {
         OAM_ERROR_LOG3(0, OAM_SF_AMPDU, "{hmac_amsdu_send::input error %x %x %x}", pst_vap, pst_user, pst_amsdu);
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 给dmac传送的amsdu相关的信息以及802.11头挂接 */
+    /* ??dmac??????amsdu??????????????802.11?????? */
     pst_net_buf = oal_netbuf_peek(&(pst_amsdu->st_msdu_head));
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_net_buf))
     {
@@ -799,7 +664,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     pst_cb->uc_netbuf_num       = pst_amsdu->uc_msdu_num;
     pst_cb->uc_mpdu_num         = 1;
 
-    /* 为整个amsdu封装802.11头 */
+    /* ??????amsdu????802.11?? */
     ul_ret = hmac_tx_encap(pst_vap, pst_user, pst_net_buf);
     if (OAL_UNLIKELY(OAL_SUCC != ul_ret))
     {
@@ -816,7 +681,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 把最后一个子帧的PAD去除 */
+    /* ????????????????PAD???? */
     pst_buf_temp = oal_netbuf_tail(&pst_amsdu->st_msdu_head);
     if (OAL_PTR_NULL == pst_buf_temp)
     {
@@ -826,8 +691,8 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
 
     oal_netbuf_trim(pst_buf_temp, pst_amsdu->uc_last_pad_len);
 
-    /* 如果只有一个帧(amsdu超时情形，tid中只有一个amsdu等待聚合，但是一直没有别的
-       msdu过来)，则去除子帧的以太网头，按照非AMSDU处理
+    /* ??????????????(amsdu??????????tid??????????amsdu??????????????????????????
+       msdu????)??????????????????????????????AMSDU????
     */
     if (1 == pst_amsdu->uc_msdu_num)
     {
@@ -837,25 +702,25 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         {
            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);
         }
-        else if (!(pst_cb->en_use_4_addr)) /*来自AP*/
+        else if (!(pst_cb->en_use_4_addr)) /*????AP*/
         {
            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_sa);
         }
-        else /*WDS  TBD 暂不支持*/
+        else /*WDS  TBD ????????*/
         {
-            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);/* 地址3是 DA */
-            //oal_set_mac_addr(pst_cb->pst_frame_header->auc_address4, pst_amsdu->auc_eth_sa);/* 地址4是 SA */
+            oal_set_mac_addr(pst_cb->pst_frame_header->auc_address3, pst_amsdu->auc_eth_da);/* ????3?? DA */
+            //oal_set_mac_addr(pst_cb->pst_frame_header->auc_address4, pst_amsdu->auc_eth_sa);/* ????4?? SA */
         }
 
         pst_cb->en_is_amsdu = OAL_FALSE;
         pst_cb->us_mpdu_len -= ETHER_HDR_LEN;
     }
 
-    /* 链表头尾处理 */
+    /* ???????????? */
     OAL_NETBUF_PREV(oal_netbuf_peek(&pst_amsdu->st_msdu_head)) = OAL_PTR_NULL;
     OAL_NETBUF_NEXT(oal_netbuf_tail(&pst_amsdu->st_msdu_head)) = OAL_PTR_NULL;
 
-    /* 抛事件 */
+    /* ?????? */
     pst_amsdu_send_event_mem = FRW_EVENT_ALLOC(OAL_SIZEOF(dmac_tx_event_stru));
 
     if (OAL_UNLIKELY(OAL_PTR_NULL == pst_amsdu_send_event_mem))
@@ -864,7 +729,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
         return OAL_ERR_CODE_PTR_NULL;
     }
 
-    /* 填事件头 */
+    /* ???????? */
     pst_amsdu_send_event = (frw_event_stru *)(pst_amsdu_send_event_mem->puc_data);
 
     FRW_EVENT_HDR_INIT(&(pst_amsdu_send_event->st_event_hdr),
@@ -896,15 +761,15 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     #endif
     }
 
-    /* 清零amsdu结构体信息 */
+    /* ????amsdu?????????? */
     pst_amsdu->us_amsdu_size = 0;
     pst_amsdu->uc_msdu_num   = 0;
     oal_netbuf_list_head_init(&pst_amsdu->st_msdu_head);
 
-    /* 清零amsdu短包计数    */
+    /* ????amsdu????????    */
     pst_amsdu->uc_short_pkt_num = 0x00;
 
-    /* 释放事件内存 */
+    /* ???????????? */
     FRW_EVENT_FREE(pst_amsdu_send_event_mem);
 
     OAM_INFO_LOG0(0, OAM_SF_AMSDU, "{hmac_amsdu_send::amsdu send success.");
@@ -912,38 +777,23 @@ OAL_STATIC oal_uint32  hmac_amsdu_send(hmac_vap_stru *pst_vap, hmac_user_stru *p
     return  ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_update_cap
- 功能描述  : 配置AMSDU聚合能力
- 输入参数  : pst_hmac_user_sta: 用户结构体指针
-             pst_amsdu: 要发送的amsdu
- 输出参数  : 无
- 返 回 值  : 无
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年09月06日
-    作    者   : ywx282918
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void hmac_amsdu_update_cap(hmac_user_stru *pst_hmac_user_sta, hmac_amsdu_stru *pst_amsdu)
 {
     mac_user_stru      *pst_mac_user;
     oal_uint16      us_amsdu_maxsize;
 
-    /* AMSDU最大聚合长度获取    */
+    /* AMSDU????????????????    */
     if ((WLAN_VHT_MODE == pst_hmac_user_sta->st_user_base_info.en_cur_protocol_mode)
     || (WLAN_VHT_ONLY_MODE == pst_hmac_user_sta->st_user_base_info.en_cur_protocol_mode))
     {
-        /* VHT模式最大AMSDU最大长度更新 */
+        /* VHT????????AMSDU???????????? */
         pst_mac_user = &pst_hmac_user_sta->st_user_base_info;
         us_amsdu_maxsize  = pst_mac_user->st_vht_hdl.us_max_mpdu_length;
 
         if (WLAN_80211_CIPHER_SUITE_NO_ENCRYP == pst_mac_user->st_key_info.en_cipher_type)
         {
-            /* 遗留问题:11ac聚合11454字节时性能会下降，所以限制open最大聚合长度为7935字节   */
+            /* ????????:11ac????11454??????????????????????????open??????????????7935????   */
             if(us_amsdu_maxsize > WLAN_AMSDU_FRAME_MAX_LEN_LONG)
             {
                 us_amsdu_maxsize = WLAN_AMSDU_FRAME_MAX_LEN_LONG;
@@ -951,7 +801,7 @@ oal_void hmac_amsdu_update_cap(hmac_user_stru *pst_hmac_user_sta, hmac_amsdu_str
         }
         else
         {
-            /* 11ac聚合7935字节时，asus ac68网卡解密出问题会断流，所以限制加密最大聚合长度为3839字节   */
+            /* 11ac????7935????????asus ac68????????????????????????????????????????????????3839????   */
             if(us_amsdu_maxsize > WLAN_AMSDU_FRAME_MAX_LEN_SHORT)
             {
                 us_amsdu_maxsize = WLAN_AMSDU_FRAME_MAX_LEN_SHORT;
@@ -960,12 +810,12 @@ oal_void hmac_amsdu_update_cap(hmac_user_stru *pst_hmac_user_sta, hmac_amsdu_str
     }
     else
     {
-        /* HT模式最大AMSDU最大长度更新  */
-        /* 11n受限于Delimeter MPDU长度限制，强制Amsdu最小长度聚合   */
+        /* HT????????AMSDU????????????  */
+        /* 11n??????Delimeter MPDU??????????????Amsdu????????????   */
         us_amsdu_maxsize = WLAN_AMSDU_FRAME_MAX_LEN_SHORT;
     }
 
-    /* AMSUD最大长度和最大聚合个数配置  */
+    /* AMSUD??????????????????????????  */
     pst_amsdu->us_amsdu_maxsize = us_amsdu_maxsize;
     if (1 == pst_hmac_user_sta->st_user_base_info.st_ht_hdl.uc_htc_support)
     {
@@ -985,55 +835,40 @@ oal_void hmac_amsdu_update_cap(hmac_user_stru *pst_hmac_user_sta, hmac_amsdu_str
     }
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_process
- 功能描述  : amsdu处理函数
- 输入参数  : pst_user: 用户结构体指针
-             pst_buf: skb结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月12日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, oal_netbuf_stru *pst_buf)
 {
     oal_uint8           uc_tid_no;
     oal_uint32          ul_frame_len;
     hmac_amsdu_stru    *pst_amsdu;
-    oal_uint32          ul_ret;         /* 所调用函数的返回值 */
+    oal_uint32          ul_ret;         /* ?????????????????? */
     mac_tx_ctl_stru    *pst_tx_ctl;
 
     pst_tx_ctl = (mac_tx_ctl_stru *)(oal_netbuf_cb(pst_buf));
 
     ul_frame_len = oal_netbuf_get_len(pst_buf);
 
-    /* 记录字节数，不包括以太网头长度，维测用 */
+    /* ?????????????????????????????????????? */
     pst_tx_ctl->us_mpdu_bytes = (oal_uint16)(ul_frame_len - ETHER_HDR_LEN);
 
     uc_tid_no    = pst_tx_ctl->uc_tid;
 
     OAM_INFO_LOG1(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::uc_tid_no=%d.}", uc_tid_no);
 
-    /* 根据CB结构体中的TID信息，从用户结构体中获取amsdu结构体 */
+    /* ????CB??????????TID????????????????????????amsdu?????? */
     pst_amsdu    = &(pst_user->ast_hmac_amsdu[uc_tid_no]);
 
     pst_tx_ctl->uc_is_first_msdu = 0;
 
-    /* 根据能力位动态设定最大聚合长度   */
+    /* ??????????????????????????????   */
     hmac_amsdu_update_cap(pst_user, pst_amsdu);
 
-    /* 获取到的amsdu中已有子帧，但新的子帧加入后该amsdu超过最大长度，则发送amsdu后封装新子帧并链入该amsdu */
+    /* ????????amsdu??????????????????????????????amsdu????????????????????amsdu????????????????????amsdu */
     if (hmac_tx_amsdu_is_overflow(pst_amsdu, pst_tx_ctl, ul_frame_len, pst_user))
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::the length of amsdu is exceeded, so it is to be sent.}");
 
-        /* 重启定时器 */
+        /* ?????????? */
         FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_amsdu->st_amsdu_timer);
 
         ul_ret = hmac_amsdu_send(pst_vap, pst_user, pst_amsdu);
@@ -1047,28 +882,28 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
         }
     }
 
-    /* 小于500字节的短包AMSDU聚合不超过2个,否则会导致TX DATAFLOW BREAK高概率出现,流量极低   */
+    /* ????500??????????AMSDU??????????2??,??????????TX DATAFLOW BREAK??????????,????????   */
     if( pst_amsdu->uc_short_pkt_num >= HMAC_AMSDU_SHORT_PACKET_NUM )
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::the short packet num is overflow, so it is to be sent.}");
 
-        /* 重启定时器 */
+        /* ?????????? */
         FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_amsdu->st_amsdu_timer);
 
         ul_ret = hmac_amsdu_send(pst_vap, pst_user, pst_amsdu);
 
-        /* 下一包MPDU为非AMSDU帧    */
+        /* ??????MPDU????AMSDU??    */
         return HMAC_TX_PASS;
     }
 
-    /* 若获取到的amsdu里为空则初始化amsdu中msdu链表头记录该amsdu诞生时间，封装子帧并链入该amsdu */
+    /* ??????????amsdu??????????????amsdu??msdu????????????amsdu??????????????????????????amsdu */
     if (0 == pst_amsdu->uc_msdu_num)
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_process::there is no msdu in the amsdu.}");
 
         oal_netbuf_list_head_init(&(pst_amsdu->st_msdu_head));
 
-        /* 启动定时器 */
+        /* ?????????? */
         FRW_TIMER_CREATE_TIMER(&pst_amsdu->st_amsdu_timer,
                                hmac_amsdu_tx_timeout_process,
                                HMAC_AMSDU_LIFE_TIME,
@@ -1079,13 +914,13 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
 
     }
 
-    /* 4字节对齐后的帧的长度 */
+    /* 4???????????????????? */
     ul_frame_len = OAL_ROUNDUP(ul_frame_len, 4);
 
-    /* 获取到的amsdu中已有子帧，但新的子帧加入后该amsdu没有超过最大长度，则封装新子帧并链入该amsdu */
+    /* ????????amsdu??????????????????????????????amsdu??????????????????????????????????????amsdu */
     ul_ret = hmac_amsdu_encap(pst_amsdu, pst_buf, ul_frame_len);
 
-    /* 小于500字节的短包个数统计    */
+    /* ????500??????????????????    */
     if(OAL_TRUE == hmac_amsdu_is_short_pkt(ul_frame_len))
     {
         pst_amsdu->uc_short_pkt_num++;
@@ -1103,21 +938,7 @@ oal_uint32  hmac_amsdu_tx_process(hmac_vap_stru *pst_vap, hmac_user_stru *pst_us
 }
 
 
-/*****************************************************************************
- 函 数 名  : hmac_tx_amsdu_is_overflow
- 功能描述  :
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年2月16日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
                 hmac_amsdu_stru    *pst_amsdu,
                 mac_tx_ctl_stru    *pst_tx_ctl,
@@ -1141,9 +962,9 @@ OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
     }
 
     pst_head_ctl = (mac_tx_ctl_stru *)oal_netbuf_cb(pst_head_buf);
-    /* amsdu不为空，并且amsdu中的子帧来源(lan或者wlan)与当前要封装的netbuf不同，则将amsdu发送出去，
-       这样做是因为在发送完成中释放一个mpdu时，是根据第一个netbuf的cb中填写的事件类型来选择释放策略，
-       如果一个mpdu中的netbuf来源不同，会造成内存泄漏
+    /* amsdu????????????amsdu????????????(lan????wlan)??????????????netbuf??????????amsdu??????????
+       ????????????????????????????????mpdu????????????????netbuf??cb????????????????????????????????
+       ????????mpdu????netbuf????????????????????????
     */
     if (pst_tx_ctl->en_event_type != pst_head_ctl->en_event_type)
     {
@@ -1164,38 +985,23 @@ OAL_STATIC  oal_bool_enum_uint8 hmac_tx_amsdu_is_overflow(
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_notify
- 功能描述  : amsdu入口函数
- 输入参数  : pst_user: 用户结构体指针
-             pst_buf: skb结构体指针
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月12日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, oal_netbuf_stru *pst_buf)
 {
     oal_uint8           uc_tid_no;
-    oal_uint32          ul_ret;         /* 所调用函数的返回值 */
+    oal_uint32          ul_ret;         /* ?????????????????? */
     mac_tx_ctl_stru    *pst_tx_ctl;
     hmac_amsdu_stru    *pst_amsdu;
 
     pst_tx_ctl = (mac_tx_ctl_stru *)(oal_netbuf_cb(pst_buf));
 
-    /* 获取cb中的tid信息 */
+    /* ????cb????tid???? */
     uc_tid_no    = pst_tx_ctl->uc_tid;
 
     pst_amsdu    = &(pst_user->ast_hmac_amsdu[uc_tid_no]);
     oal_spin_lock_bh(&pst_amsdu->st_amsdu_lock);
 
-    /* 针对关闭WMM，非QOS帧处理 */
+    /* ????????WMM????QOS?????? */
     if(OAL_FALSE == pst_user->st_user_base_info.st_cap_info.bit_qos)
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_TX,"{hmac_amsdu_notify::UnQos Frame pass!!}");
@@ -1203,7 +1009,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
         return HMAC_TX_PASS;
     }
 
-    /* 判断该tid是否在ampdu情况下支持amsdu的发送 */
+    /* ??????tid??????ampdu??????????amsdu?????? */
     if (0 == HMAC_USER_IS_AMSDU_SUPPORT(pst_user, uc_tid_no))
     {
         OAM_INFO_LOG2(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_notify::AMPDU NOT SUPPORT AMSDU uc_tid_no=%d uc_amsdu_supported=%d}",
@@ -1221,7 +1027,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
-    /* 为了解决业务量小时ping包延迟的问题   */
+    /* ??????????????????ping????????????   */
     if(OAL_TRUE == oal_netbuf_is_icmp((oal_ip_header_stru *)(oal_netbuf_data(pst_buf) + ETHER_HDR_LEN)))
     {
         oal_spin_unlock_bh(&pst_amsdu->st_amsdu_lock);
@@ -1234,7 +1040,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
     {
         if(pst_amsdu->uc_msdu_num)
         {
-            /* 重启定时器 */
+            /* ?????????? */
             FRW_TIMER_IMMEDIATE_DESTROY_TIMER(&pst_amsdu->st_amsdu_timer);
 
             ul_ret = hmac_amsdu_send(pst_vap, pst_user, pst_amsdu);
@@ -1249,7 +1055,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
         return HMAC_TX_PASS;
     }
 
-    /* 检查amsdu开关是否打开 */
+    /* ????amsdu???????????? */
     if (OAL_TRUE != pst_vap->en_amsdu_active)
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_notify::amsdu is unenable in amsdu notify}");
@@ -1257,7 +1063,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
         return HMAC_TX_PASS;
     }
 
-    /* 检查用户是否是HT/VHT */
+    /* ??????????????HT/VHT */
     if (OAL_FALSE == hmac_user_xht_support(pst_user))
     {
         OAM_INFO_LOG0(pst_vap->st_vap_base_info.uc_vap_id, OAM_SF_AMSDU, "{hmac_amsdu_notify::user is not qos in amsdu notify}");
@@ -1286,24 +1092,7 @@ oal_uint32  hmac_amsdu_notify(hmac_vap_stru *pst_vap, hmac_user_stru *pst_user, 
     return ul_ret;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_tx_timeout_process
- 功能描述  : 时钟中断事件的处理函数
- 输入参数  : pst_hmac_vap:
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2012年11月13日
-    作    者   : t00231215
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月31日
-    作    者   : s00304087
-    修改内容   : 加入互斥锁
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  hmac_amsdu_tx_timeout_process(oal_void *p_arg)
 {
     hmac_amsdu_stru         *pst_temp_amsdu;
@@ -1329,7 +1118,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_tx_timeout_process(oal_void *p_arg)
         return OAL_FAIL;
     }
 
-    /* 根据要发送的amsdu下第一个msdu子帧的cb字段的信息寻找对应用户结构体 */
+    /* ????????????amsdu????????msdu??????cb???????????????????????????? */
     pst_netbuf      = oal_netbuf_peek(&pst_temp_amsdu->st_msdu_head);
     if (OAL_PTR_NULL == pst_netbuf)
     {
@@ -1366,24 +1155,7 @@ OAL_STATIC oal_uint32  hmac_amsdu_tx_timeout_process(oal_void *p_arg)
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_amsdu_init_user
- 功能描述  : 初始化用户tid队列的AMSDU特性值
- 输入参数  : hmac_user_stru *pst_hmac_user_sta
- 输出参数  : 无
- 返 回 值  : OAL_STATIC OAL_INLINE oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月12日,星期四
-    作    者   : y00201072
-    修改内容   : 新生成函数
-  2.日    期   : 2015年1月31日
-    作    者   : s00304087
-    修改内容   : 初始化自旋锁
-
-*****************************************************************************/
 oal_void hmac_amsdu_init_user(hmac_user_stru *pst_hmac_user_sta)
 {
     oal_uint32           ul_amsdu_idx;
@@ -1396,7 +1168,7 @@ oal_void hmac_amsdu_init_user(hmac_user_stru *pst_hmac_user_sta)
     }
 
 #if (_PRE_MULTI_CORE_MODE_OFFLOAD_DMAC != _PRE_MULTI_CORE_MODE)
-    /* Hi1151只做初始化动作 */
+    /* Hi1151?????????????? */
     pst_hmac_user_sta->uc_amsdu_supported = AMSDU_ENABLE_ALL_TID;
 
     for (ul_amsdu_idx = 0; ul_amsdu_idx < WLAN_WME_MAX_TID_NUM; ul_amsdu_idx++)
@@ -1409,7 +1181,7 @@ oal_void hmac_amsdu_init_user(hmac_user_stru *pst_hmac_user_sta)
         hmac_amsdu_set_maxnum(pst_amsdu, WLAN_AMSDU_MAX_NUM);
     }
 #else
-    /* 设置amsdu域 */
+    /* ????amsdu?? */
     pst_hmac_user_sta->us_amsdu_maxsize   = WLAN_AMSDU_FRAME_MAX_LEN_LONG;
     pst_hmac_user_sta->uc_amsdu_supported = AMSDU_ENABLE_ALL_TID;
 

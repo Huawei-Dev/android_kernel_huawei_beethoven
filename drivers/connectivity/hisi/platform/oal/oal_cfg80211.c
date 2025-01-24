@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : oal_cfg80211.c
-  版 本 号   : 初稿
-  作    者   : daihu 00262548
-  生成日期   : 2014年5月9日
-  最近修改   :
-  功能描述   : 80211的事件上报hostapd和wpa_supplicant事件
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2014年5月9日
-    作    者   : daihu 00262548
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oal_net.h"
 #include "oal_cfg80211.h"
@@ -36,7 +19,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_OAL_CFG80211_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
@@ -46,27 +29,9 @@ static oal_kobj_uevent_env_stru env;
 #endif
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_ready_on_channel
- 功能描述  : 上报linux 内核已经处于指定信道
- 输入参数  : oal_wireless_dev_stru       *pst_wdev
-             oal_uint64                  ull_cookie
-             oal_ieee80211_channel_stru *pst_chan
-             oal_uint32                  ul_duration
-             oal_gfp_enum_uint8          en_gfp
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月22日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oal_cfg80211_ready_on_channel(oal_wireless_dev_stru       *pst_wdev,
                                         oal_uint64                  ull_cookie,
                                         oal_ieee80211_channel_stru *pst_chan,
@@ -77,52 +42,17 @@ oal_void oal_cfg80211_ready_on_channel(oal_wireless_dev_stru       *pst_wdev,
      cfg80211_ready_on_channel(pst_wdev, ull_cookie, pst_chan, ul_duration, en_gfp);
 #endif
 }
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_vowifi_report
- 功能描述  : 上报linux 内核vowifi/volte逻辑切换申请
- 输入参数  : oal_wireless_dev_stru       *pst_wdev
-             oal_uint64                  ull_cookie
-             oal_ieee80211_channel_stru *pst_chan
-             oal_uint32                  ul_duration
-             oal_gfp_enum_uint8          en_gfp
- 输出参数  : 无
- 返 回 值  : oal_void
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年04月21日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oal_cfg80211_vowifi_report(oal_net_device_stru       *pst_netdev,
                                             oal_gfp_enum_uint8         en_gfp)
 {
 #ifdef CONFIG_HW_VOWIFI
-    /* 此接口为终端实现的内核接口，定义处用内核宏CONFIG_HW_VOWIFI包裹 */
+    /* ??????????????????????????????????????????CONFIG_HW_VOWIFI???? */
      cfg80211_drv_vowifi(pst_netdev, en_gfp);
 #endif /* CONFIG_HW_VOWIFI */
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_remain_on_channel_expired
- 功能描述  : 监听超时上报
- 输入参数  : oal_wireless_dev_stru        *pst_wdev
-             oal_uint64                   ull_cookie
-             oal_ieee80211_channel_stru  *pst_listen_channel
-             oal_gfp_enum_uint8           en_gfp
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年11月25日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void oal_cfg80211_remain_on_channel_expired(oal_wireless_dev_stru        *pst_wdev,
                                         oal_uint64                   ull_cookie,
                                         oal_ieee80211_channel_stru  *pst_listen_channel,
@@ -147,22 +77,7 @@ oal_void oal_cfg80211_mgmt_tx_status(struct wireless_dev *wdev, oal_uint64 cooki
 #if (_PRE_OS_VERSION_LINUX == _PRE_OS_VERSION)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,34))
 #else
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_calculate_bitrate
- 功能描述  : oal_cfg80211_new_sta上报new sta事件获取比特率值(参考内核实现)
-             如果MCS大于等于32，就返回错误OAL_ERR_CODE_CFG80211_MCS_EXCEED
- 输入参数  : pst_rate: 速率信息结构
- 输出参数  :
- 返 回 值  : l_bitrate: 比特率
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日
-    作    者   : daihu 00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32 oal_cfg80211_calculate_bitrate(oal_rate_info_stru *pst_rate)
 {
     oal_int32  l_modulation;
@@ -206,21 +121,7 @@ OAL_STATIC oal_int32 oal_cfg80211_calculate_bitrate(oal_rate_info_stru *pst_rate
     return (l_bitrate + 50000) / 100000;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_nl80211_send_station
- 功能描述  : netlink上报send new sta事件进行命令符号和属性值填充
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月15日
-    作    者   : daihu 00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oal_nl80211_send_station(
                 oal_netbuf_stru *pst_buf, oal_uint32 ul_pid, oal_uint32 ul_seq,
 				oal_int32 l_flags, oal_net_device_stru *pst_net_dev,
@@ -242,7 +143,7 @@ OAL_STATIC oal_uint32  oal_nl80211_send_station(
 	OAL_NLA_PUT(pst_buf, PRIV_NL80211_ATTR_MAC, OAL_ETH_ALEN_SIZE, puc_mac_addr);
 
     /*
-        linux-2.6.30内核station_info没有generation成员
+        linux-2.6.30????station_info????generation????
     	NLA_PUT_U32(pst_buf, PRIV_NL80211_ATTR_GENERATION, pst_station_info->generation);
     */
 
@@ -327,21 +228,7 @@ nla_put_failure:
 }
 
 #ifdef _PRE_WLAN_FEATURE_HILINK
-/*****************************************************************************
- 函 数 名  : oal_nl80211_send_find_station_msg
- 功能描述  : netlink上报send new sta事件进行命令符号和属性值填充
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月26日
-    作    者   : luolingzhi 00225940
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int32  oal_nl80211_send_find_station_msg(
                 oal_netbuf_stru *pst_buf, oal_uint32 ul_pid, oal_uint32 ul_seq,
                 oal_int32 l_flags, oal_net_device_stru *pst_net_dev,
@@ -363,7 +250,7 @@ OAL_STATIC oal_int32  oal_nl80211_send_find_station_msg(
     OAL_NLA_PUT(pst_buf, PRIV_NL80211_ATTR_MAC, OAL_ETH_ALEN_SIZE, puc_mac_addr);
 
     /*
-        linux-2.6.30内核station_info没有generation成员
+        linux-2.6.30????station_info????generation????
         NLA_PUT_U32(pst_buf, PRIV_NL80211_ATTR_GENERATION, pst_station_info->generation);
     */
     pst_sinfoattr = oal_nla_nest_start(pst_buf, PRIV_NL80211_ATTR_STA_INFO);
@@ -447,20 +334,7 @@ nla_put_failure:
 }
 
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_fbt_notify_find_sta
- 功能描述  : hilink fbt 通知找到sta
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月26日
-    作    者   : luolingzhi 00225940
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oal_cfg80211_fbt_notify_find_sta(
                 oal_net_device_stru     *pst_net_device,
                 const oal_uint8         *puc_mac_addr,
@@ -471,7 +345,7 @@ oal_uint32  oal_cfg80211_fbt_notify_find_sta(
     oal_netbuf_stru   *pst_msg = OAL_PTR_NULL;
 	oal_int32          l_let;
 
-    /* 分配一个新的netlink消息 */
+    /* ????????????netlink???? */
     pst_msg = oal_nlmsg_new(OAL_NLMSG_GOODSIZE, en_gfp);
     if(OAL_PTR_NULL == pst_msg)
     {
@@ -485,7 +359,7 @@ oal_uint32  oal_cfg80211_fbt_notify_find_sta(
         return l_let;
     }
 
-    /* 调用封装的内核netlink广播发送函数，发送成功返回0，失败为负值 */
+    /* ??????????????netlink??????????????????????????0???????????? */
     l_let = oal_genlmsg_multicast(pst_msg, 0, nl80211_mlme_mcgrp.id, en_gfp);
     if(l_let < 0)
     {
@@ -497,21 +371,7 @@ oal_uint32  oal_cfg80211_fbt_notify_find_sta(
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : oal_nl80211_send_connect_result
- 功能描述  : 驱动调用内核netlink接口上报关联结构
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月21日
-    作    者   : daihu 00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 oal_nl80211_send_connect_result(
                         oal_netbuf_stru             *pst_buf,
                         oal_net_device_stru         *pst_net_device,
@@ -534,7 +394,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_connect_result(
 	}
 
     /*
-        这个属性上层没有解析，可以不上报
+        ????????????????????????????????
         OAL_NLA_PUT_U32(pst_buf, PRIV_NL80211_ATTR_WIPHY, pst_net_device->wiphy_idx);
     */
 	OAL_NLA_PUT_U32(pst_buf, PRIV_NL80211_ATTR_IFINDEX, pst_net_device->ifindex);
@@ -561,7 +421,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_connect_result(
     ul_let = oal_genlmsg_multicast(pst_buf, 0, nl80211_mlme_mcgrp.id, en_gfp);
     if(ul_let < 0)
     {
-        /* 如果不加载hostapd和wpa_supplicant的话，这个也会失败，这里报fail，影响使用，去掉报错 */
+        /* ??????????hostapd??wpa_supplicant??????????????????????????fail???????????????????? */
         return OAL_FAIL;
     }
 
@@ -573,21 +433,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_connect_result(
 	return OAL_ERR_CODE_CFG80211_EMSGSIZE;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_nl80211_send_disconnected
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月21日
-    作    者   : daihu 00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 oal_nl80211_send_disconnected(
                    oal_net_device_stru *pst_net_device,
                    oal_uint16           us_reason,
@@ -614,7 +460,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_disconnected(
 	}
 
 /*
-    这个属性上层没有解析，可以不上报
+    ????????????????????????????????
     OAL_NLA_PUT_U32(pst_msg, PRIV_NL80211_ATTR_WIPHY, pst_net_device->wiphy_idx);
 */
 
@@ -635,7 +481,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_disconnected(
     ul_let = oal_genlmsg_multicast(pst_msg, 0, nl80211_mlme_mcgrp.id, en_gfp);
     if(ul_let < 0)
     {
-        /* oal_genlmsg_multicast接口内部会释放skb，返回失败不需要手动释放 */
+        /* oal_genlmsg_multicast??????????????skb???????????????????????? */
         return OAL_FAIL;
     }
 
@@ -649,21 +495,7 @@ OAL_STATIC oal_uint32 oal_nl80211_send_disconnected(
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3,10,44))
-/*****************************************************************************
- 函 数 名  : oal_nl80211_send_mgmt
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年6月9日
-    作    者   : daihu 00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32  oal_nl80211_send_mgmt(
                         oal_cfg80211_registered_device_stru *pst_rdev,
                         oal_net_device_stru *pst_netdev,
@@ -715,27 +547,16 @@ nla_put_failure:
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_sched_scan_result
- 功能描述  : 上报调度扫描结果
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月16日
-    作    者   : l00279018
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_sched_scan_result(oal_wiphy_stru *pst_wiphy)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,44))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,12,0))
+    cfg80211_sched_scan_results(pst_wiphy, 0);
+    return;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,44))
     return cfg80211_sched_scan_results(pst_wiphy);
 #else
-    /* 51不支持，do nothing */
+    /* 51????????do nothing */
     return;
 #endif
 }
@@ -744,9 +565,9 @@ oal_void  oal_cfg80211_sched_scan_result(oal_wiphy_stru *pst_wiphy)
 oal_void oal_kobject_uevent_env_sta_join(oal_net_device_stru *pst_net_device, const oal_uint8 *puc_mac_addr)
 {
     oal_memset(&env, 0, sizeof(env));
-	/* Android上层需要STA_JOIN和mac地址，中间参数无效，但是必须是4个参数 */
-	add_uevent_var(&env, "SOFTAP=STA_JOIN wlan0 wlan0 %02x:%02x:%02x:%02x:%02x:%02x",
-				puc_mac_addr[0], puc_mac_addr[1], puc_mac_addr[2], puc_mac_addr[3], puc_mac_addr[4], puc_mac_addr[5]);
+    /* ????????STA_JOIN??mac??????????????????????????????4?????? */
+    add_uevent_var(&env, "SOFTAP=STA_JOIN wlan0 wlan0 %02x:%02x:%02x:%02x:%02x:%02x",
+                puc_mac_addr[0], puc_mac_addr[1], puc_mac_addr[2], puc_mac_addr[3], puc_mac_addr[4], puc_mac_addr[5]);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0))
     kobject_uevent_env(&(pst_net_device->dev.kobj), KOBJ_CHANGE, env.envp);
 #else
@@ -757,9 +578,9 @@ oal_void oal_kobject_uevent_env_sta_join(oal_net_device_stru *pst_net_device, co
 oal_void oal_kobject_uevent_env_sta_leave(oal_net_device_stru *pst_net_device, const oal_uint8 *puc_mac_addr)
 {
     oal_memset(&env, 0, sizeof(env));
-	/* Android上层需要STA_LEAVE和mac地址，中间参数无效，但是必须是4个参数 */
-	add_uevent_var(&env, "SOFTAP=STA_LEAVE wlan0 wlan0 %02x:%02x:%02x:%02x:%02x:%02x",
-				puc_mac_addr[0], puc_mac_addr[1], puc_mac_addr[2], puc_mac_addr[3], puc_mac_addr[4], puc_mac_addr[5]);
+    /* ????????STA_LEAVE??mac??????????????????????????????4?????? */
+    add_uevent_var(&env, "SOFTAP=STA_LEAVE wlan0 wlan0 %02x:%02x:%02x:%02x:%02x:%02x",
+                puc_mac_addr[0], puc_mac_addr[1], puc_mac_addr[2], puc_mac_addr[3], puc_mac_addr[4], puc_mac_addr[5]);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0))
     kobject_uevent_env(&(pst_net_device->dev.kobj), KOBJ_CHANGE, env.envp);
 #else
@@ -768,21 +589,7 @@ oal_void oal_kobject_uevent_env_sta_leave(oal_net_device_stru *pst_net_device, c
 }
 #endif
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_put_bss
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_put_bss(oal_wiphy_stru *pst_wiphy, oal_cfg80211_bss_stru *pst_cfg80211_bss)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,44))
@@ -792,21 +599,7 @@ oal_void  oal_cfg80211_put_bss(oal_wiphy_stru *pst_wiphy, oal_cfg80211_bss_stru 
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_get_bss
- 功能描述  : 根据bssid 和ssid 查找内核保存的bss 信息
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年06月16日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_cfg80211_bss_stru *oal_cfg80211_get_bss(oal_wiphy_stru *pst_wiphy,
                       oal_ieee80211_channel_stru *pst_channel,
                       oal_uint8 *puc_bssid,
@@ -822,21 +615,7 @@ oal_cfg80211_bss_stru *oal_cfg80211_get_bss(oal_wiphy_stru *pst_wiphy,
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_inform_bss_frame
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_cfg80211_bss_stru *oal_cfg80211_inform_bss_frame(
                                 oal_wiphy_stru              *pst_wiphy,
                                 oal_ieee80211_channel_stru  *pst_ieee80211_channel,
@@ -848,45 +627,20 @@ oal_cfg80211_bss_stru *oal_cfg80211_inform_bss_frame(
     return cfg80211_inform_bss_frame(pst_wiphy, pst_ieee80211_channel, pst_mgmt, ul_len, l_signal, en_ftp);
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_scan_done
- 功能描述  : 上报扫描完成结果
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_scan_done(oal_cfg80211_scan_request_stru *pst_cfg80211_scan_request,oal_int8 c_aborted)
 {
-    return cfg80211_scan_done(pst_cfg80211_scan_request,c_aborted);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,8,0))
+    struct cfg80211_scan_info info = {0};
+    info.aborted = c_aborted;
+    cfg80211_scan_done(pst_cfg80211_scan_request, &info);
+#else
+    cfg80211_scan_done(pst_cfg80211_scan_request,c_aborted);
+#endif
 }
 
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_connect_result
- 功能描述  : STA上报给关联结果结构体
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月5日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-  2.日    期   : 2014年5月21日
-    作    者   : d00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_connect_result(
                         oal_net_device_stru         *pst_net_device,
                         const oal_uint8             *puc_bssid,
@@ -906,7 +660,7 @@ oal_uint32  oal_cfg80211_connect_result(
     oal_netbuf_stru         *pst_msg  = OAL_PTR_NULL;
     oal_wireless_dev_stru   *pst_wdev = OAL_PTR_NULL;
 
-    /* 分配一个新的netlink消息 */
+    /* ????????????netlink???? */
     pst_msg = oal_nlmsg_new(OAL_NLMSG_GOODSIZE, en_gfp);
     if(OAL_PTR_NULL == pst_msg)
     {
@@ -926,30 +680,14 @@ oal_uint32  oal_cfg80211_connect_result(
 		return OAL_ERR_CODE_CONFIG_UNSUPPORT;
 	}
 
-    /* 如果不加载hostapd和wpa_supplicant的话，这个也会失败，这里报fail，影响使用，去掉报错
-        成功的话，打印SUCC, 不成功的话，不打印 */
+    /* ??????????hostapd??wpa_supplicant??????????????????????????fail????????????????????
+        ??????????????SUCC, ?????????????????? */
     return oal_nl80211_send_connect_result(pst_msg, pst_net_device, puc_bssid, puc_req_ie, ul_req_ie_len,
                                     puc_resp_ie, ul_resp_ie_len, us_status, en_gfp);
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_disconnected
- 功能描述  : STA上报给内核去关联结果
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月5日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-  2.日    期   : 2014年5月21日
-    作    者   : d00262548
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oal_cfg80211_disconnected(
                     oal_net_device_stru        *pst_net_device,
                     oal_uint16                  us_reason,
@@ -991,20 +729,7 @@ oal_uint32  oal_cfg80211_disconnected(
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_roamed
- 功能描述  : STA上报给内核去关联结果
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月18日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oal_cfg80211_roamed(
                         oal_net_device_stru         *pst_net_device,
                         struct ieee80211_channel    *pst_channel,
@@ -1015,7 +740,17 @@ oal_uint32  oal_cfg80211_roamed(
                               oal_uint32             ul_resp_ie_len,
                         oal_gfp_enum_uint8           en_gfp)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,34))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,12,0))
+    struct cfg80211_roam_info info = {0};
+    info.channel     = pst_channel;
+    info.bssid       = puc_bssid;
+    info.req_ie      = puc_req_ie;
+    info.req_ie_len  = ul_req_ie_len;
+    info.resp_ie     = puc_resp_ie;
+    info.resp_ie_len = ul_resp_ie_len;
+    cfg80211_roamed(pst_net_device, &info, en_gfp);
+    return OAL_SUCC;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,34))
     cfg80211_roamed(pst_net_device, pst_channel, puc_bssid,
                     puc_req_ie, ul_req_ie_len,
                     puc_resp_ie, ul_resp_ie_len, en_gfp);
@@ -1027,20 +762,7 @@ oal_uint32  oal_cfg80211_roamed(
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_ft_event
- 功能描述  : STA上报给内核ft事件
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月18日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oal_cfg80211_ft_event(oal_net_device_stru *pst_net_device, oal_cfg80211_ft_event_stru  *pst_ft_event)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,34))
@@ -1053,24 +775,7 @@ oal_uint32  oal_cfg80211_ft_event(oal_net_device_stru *pst_net_device, oal_cfg80
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : cfg80211_new_sta
- 功能描述  : AP上报新关联某个STA情况
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-  2.日    期   : 2014年5月14日
-    作    者   : d00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_new_sta(
                 oal_net_device_stru     *pst_net_device,
                 const oal_uint8         *puc_mac_addr,
@@ -1089,7 +794,7 @@ oal_uint32  oal_cfg80211_new_sta(
     oal_netbuf_stru   *pst_msg = OAL_PTR_NULL;
 	oal_uint32          l_let;
 
-    /* 分配一个新的netlink消息 */
+    /* ????????????netlink???? */
     pst_msg = oal_nlmsg_new(OAL_NLMSG_GOODSIZE, en_gfp);
     if(OAL_PTR_NULL == pst_msg)
     {
@@ -1103,7 +808,7 @@ oal_uint32  oal_cfg80211_new_sta(
         return l_let;
     }
 
-    /* 调用封装的内核netlink广播发送函数，发送成功返回0，失败为负值 */
+    /* ??????????????netlink??????????????????????????0???????????? */
     l_let = oal_genlmsg_multicast(pst_msg, 0, nl80211_mlme_mcgrp.id, en_gfp);
     if(l_let < 0)
     {
@@ -1114,24 +819,7 @@ oal_uint32  oal_cfg80211_new_sta(
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_mic_failure
- 功能描述  : 上报mic攻击
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-  2.日    期   : 2014年5月15日
-    作    者   : d00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_mic_failure(
                         oal_net_device_stru     *pst_net_device,
                         const oal_uint8         *puc_mac_addr,
@@ -1174,7 +862,7 @@ oal_void  oal_cfg80211_mic_failure(
 	    return;
 	}
 
-    /* rdev对应内核core.h中的cfg80211_registered_device结构体，这个属性在上层没有处理 */
+    /* rdev????????core.h????cfg80211_registered_device?????????????????????????????? */
     OAL_NLA_PUT_U32(pst_msg, PRIV_NL80211_ATTR_WIPHY, pst_rdev->wiphy_idx);
     OAL_NLA_PUT_U32(pst_msg, PRIV_NL80211_ATTR_IFINDEX, pst_net_device->ifindex);
 
@@ -1208,24 +896,7 @@ nla_put_failure:
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_del_sta
- 功能描述  : AP上报去关联某个STA情况
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-  2.日    期   : 2014年5月21日
-    作    者   : d00262548
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
                                    const oal_uint8      *puc_mac_addr,
                                    oal_gfp_enum_uint8    en_gfp)
@@ -1241,8 +912,8 @@ oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
 #else
 
     /*
-        TBD yaorui  内核2.6.34中没有内核3.x版本中 cfg80211_del_sta这个函数
-        linux-2.6.30和linux-2.6.34实现方式可以统一，目前34内核仍打桩，不然需要修改5115内核代码
+        TBD yaorui  ????2.6.34??????????3.x?????? cfg80211_del_sta????????
+        linux-2.6.30??linux-2.6.34??????????????????????34????????????????????????5115????????
     */
     oal_netbuf_stru  *pst_msg = OAL_PTR_NULL;
     oal_void         *p_hdr   = OAL_PTR_NULL;
@@ -1276,9 +947,9 @@ oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
     }
 
 /*
-    liuux-2.6.30和liuux-2.6.34内核都是从这个函数上,都能达到要求
-    linux-2.6.34内核接着调用genlmsg_multicast_netns(&init_net......)
-    linux-2.6.30内核接着调用nlmsg_multicast(genl_sock......)
+    liuux-2.6.30??liuux-2.6.34????????????????????,????????????
+    linux-2.6.34????????????genlmsg_multicast_netns(&init_net......)
+    linux-2.6.30????????????nlmsg_multicast(genl_sock......)
 */
     l_let = oal_genlmsg_multicast(pst_msg, 0, nl80211_mlme_mcgrp.id, en_gfp);
     if(l_let < 0)
@@ -1290,25 +961,7 @@ oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_rx_mgmt
- 功能描述  : 上报接收到的管理帧
- 输入参数  : oal_net_device_stru    *pst_dev,
-             oal_int32               l_freq,
-             const oal_uint8        *puc_buf,
-             oal_uint32              ul_len,
-             gfp_t                   gfp
- 输出参数  : OAL_SUCC 上报成功，其它错误码 上报失败
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月17日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru *pst_dev,
                                                     oal_int32               l_freq,
                                                     oal_uint8               uc_rssi,
@@ -1317,7 +970,7 @@ oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru *pst_dev,
                                                     oal_gfp_enum_uint8      en_gfp)
 {
 #if (_PRE_CONFIG_TARGET_PRODUCT == _PRE_TARGET_PRODUCT_TYPE_E5)
-    /* E5 hostapd 适配后统一修改 */
+    /* E5 hostapd ?????????????? */
     return OAL_SUCC;
 #endif
 
@@ -1327,7 +980,6 @@ oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru *pst_dev,
     oal_bool_enum_uint8      uc_ret;
     pst_wdev = pst_dev->ieee80211_ptr;
     uc_ret   = cfg80211_rx_mgmt(pst_wdev, l_freq, 0, puc_buf, ul_len, en_gfp);
-    /* 返回值适配  DTS2015020509562 */
     (OAL_TRUE == uc_ret) ? (ul_ret = OAL_SUCC) : (ul_ret = OAL_FAIL);
     return ul_ret;
 #else
@@ -1349,21 +1001,7 @@ oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru *pst_dev,
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_rx_exception
- 功能描述  : 收到异常后上报上层,私有命令
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月11日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_rx_exception(oal_net_device_stru *pst_netdev,
                                                oal_uint8           *puc_data,
                                                oal_uint32          ul_data_len)
@@ -1374,22 +1012,7 @@ oal_uint32  oal_cfg80211_rx_exception(oal_net_device_stru *pst_netdev,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_vendor_cmd_alloc_reply_skb
- 功能描述  : 申请厂家自定义返回数据
- 输入参数  : oal_wiphy_stru * pst_wiphy: wiphy 结构
-             oal_uint32     ul_len     : 申请长度
- 输出参数  :
- 返 回 值  : oal_netbuf_stru *
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月26日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_netbuf_stru * oal_cfg80211_vendor_cmd_alloc_reply_skb(oal_wiphy_stru * pst_wiphy, oal_uint32 ul_len)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
@@ -1399,21 +1022,7 @@ oal_netbuf_stru * oal_cfg80211_vendor_cmd_alloc_reply_skb(oal_wiphy_stru * pst_w
 #endif
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_vendor_cmd_reply
- 功能描述  : 厂家自定义数据上报
- 输入参数  : oal_netbuf_stru *pst_skb: 返回数据
- 输出参数  :
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月26日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 oal_cfg80211_vendor_cmd_reply(oal_netbuf_stru *pst_skb)
 {
 #if defined(_PRE_PRODUCT_ID_HI110X_HOST)
@@ -1424,41 +1033,13 @@ oal_int32 oal_cfg80211_vendor_cmd_reply(oal_netbuf_stru *pst_skb)
 }
 
 #elif (_PRE_OS_VERSION_WIN32 == _PRE_OS_VERSION)
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_put_bss
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_put_bss(oal_wiphy_stru *pst_wiphy, oal_cfg80211_bss_stru *pst_cfg80211_bss)
 {
 
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_get_bss
- 功能描述  : 根据bssid 和ssid 查找保存的bss 信息
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年06月16日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_cfg80211_bss_stru *oal_cfg80211_get_bss(oal_wiphy_stru *pst_wiphy,
                       oal_ieee80211_channel_stru *pst_channel,
                       oal_uint8 *puc_bssid,
@@ -1468,21 +1049,7 @@ oal_cfg80211_bss_stru *oal_cfg80211_get_bss(oal_wiphy_stru *pst_wiphy,
     return (oal_cfg80211_bss_stru *)OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_inform_bss_frame
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_cfg80211_bss_stru *oal_cfg80211_inform_bss_frame(
                                 oal_wiphy_stru              *pst_wiphy,
                                 oal_ieee80211_channel_stru  *pst_ieee80211_channel,
@@ -1494,61 +1061,19 @@ oal_cfg80211_bss_stru *oal_cfg80211_inform_bss_frame(
     return (oal_cfg80211_bss_stru *)OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_scan_done
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年8月29日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_scan_done(oal_cfg80211_scan_request_stru *pst_cfg80211_scan_req, oal_int8 c_aborted)
 {
 
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_sched_scan_result
- 功能描述  : 上报调度扫描结果
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月16日
-    作    者   : l00279018
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_sched_scan_result(oal_wiphy_stru *pst_wiphy)
 {
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_connect_result
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_connect_result(
                         oal_net_device_stru         *pst_net_device,
                         const oal_uint8             *puc_bssid,
@@ -1561,21 +1086,7 @@ oal_uint32  oal_cfg80211_connect_result(
 {
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_roamed
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年6月18日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_roamed(
                         oal_net_device_stru         *pst_net_device,
                         struct ieee80211_channel    *pst_channel,
@@ -1589,41 +1100,13 @@ oal_uint32  oal_cfg80211_roamed(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_ft_event
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年8月18日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_ft_event(oal_net_device_stru *pst_net_device, oal_cfg80211_ft_event_stru  *pst_ft_event)
 {
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_disconnected
- 功能描述  :
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_disconnected(
                     oal_net_device_stru        *pst_net_device,
                     oal_uint16                  us_reason,
@@ -1634,21 +1117,7 @@ oal_uint32  oal_cfg80211_disconnected(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_new_sta
- 功能描述  : AP 上报关联了某个sta的情况
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_new_sta(
                        oal_net_device_stru     *pst_net_device,
                        const oal_uint8         *puc_mac_addr,
@@ -1658,20 +1127,7 @@ oal_uint32  oal_cfg80211_new_sta(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_fbt_notify_find_sta
- 功能描述  : hilink fbt 通知找到sta
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年1月26日
-    作    者   : luolingzhi 00225940
-    修改内容   : 新生成函数
-*****************************************************************************/
 oal_uint32  oal_cfg80211_fbt_notify_find_sta(
                 oal_net_device_stru     *pst_net_device,
                 const oal_uint8         *puc_mac_addr,
@@ -1681,21 +1137,7 @@ oal_uint32  oal_cfg80211_fbt_notify_find_sta(
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_mic_failure
- 功能描述  : 上报mic攻击
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年12月28日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void  oal_cfg80211_mic_failure(
                         oal_net_device_stru     *pst_net_device,
                         const oal_uint8         *puc_mac_addr,
@@ -1707,21 +1149,7 @@ oal_void  oal_cfg80211_mic_failure(
     /* do nothing */
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_del_sta
- 功能描述  : AP 上报去关联了某个sta的情况
- 输入参数  :
- 输出参数  :
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2013年9月6日
-    作    者   : y00184180
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
                                    const oal_uint8      *puc_mac_addr,
                                    oal_gfp_enum_uint8    en_gfp)
@@ -1729,25 +1157,7 @@ oal_uint32  oal_cfg80211_del_sta(oal_net_device_stru *pst_net_device,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_rx_mgmt
- 功能描述  : 上报接收到的管理帧
- 输入参数  : oal_net_device_stru    *pst_dev,
-             oal_int32               l_freq,
-             const oal_uint8        *puc_buf,
-             oal_uint32              ul_len,
-             gfp_t                   gfp
- 输出参数  : OAL_SUCC 上报成功，其它错误码 上报失败
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2014年5月17日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru   *pst_dev,
                                 oal_int32              l_freq,
                                 oal_uint8              uc_rssi,
@@ -1758,21 +1168,7 @@ oal_uint32 oal_cfg80211_rx_mgmt(oal_net_device_stru   *pst_dev,
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_rx_exception
- 功能描述  : 收到异常后上报上层,私有命令
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年10月11日
-    作    者   : z00273164
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32  oal_cfg80211_rx_exception(oal_net_device_stru *pst_netdev,
                                                oal_uint8          *puc_data,
                                                oal_uint32          ul_data_len)
@@ -1783,42 +1179,13 @@ oal_uint32  oal_cfg80211_rx_exception(oal_net_device_stru *pst_netdev,
 
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_vendor_cmd_alloc_reply_skb
- 功能描述  : 申请厂家自定义返回数据
- 输入参数  : oal_wiphy_stru * pst_wiphy: wiphy 结构
-             oal_uint32     ul_len     : 申请长度
- 输出参数  :
- 返 回 值  : oal_netbuf_stru *
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月26日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_netbuf_stru * oal_cfg80211_vendor_cmd_alloc_reply_skb(oal_wiphy_stru * pst_wiphy, oal_uint32 ul_approxlen)
 {
     return (oal_netbuf_stru *)OAL_PTR_NULL;
 }
 
-/*****************************************************************************
- 函 数 名  : oal_cfg80211_vendor_cmd_reply
- 功能描述  : 厂家自定义数据上报
- 输入参数  : oal_netbuf_stru *pst_skb: 返回数据
- 输出参数  :
- 返 回 值  : oal_int32
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2016年5月26日
-    作    者   : duankaiyong 00194999
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_int32 oal_cfg80211_vendor_cmd_reply(oal_netbuf_stru *pst_skb)
 {
     return OAL_SUCC;

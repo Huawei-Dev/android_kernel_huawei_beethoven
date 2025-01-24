@@ -1,22 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : plat_firmware.h
-  版 本 号   : 初稿
-  作    者   :
-  生成日期   :
-  最近修改   :
-  功能描述   : plat_firmware.c头文件
-  函数列表   :
-
-  修改历史   :
-  1.日    期   :
-    作    者   :
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 #ifndef __PLAT_FIRMWARE_H__
 #define __PLAT_FIRMWARE_H__
@@ -28,7 +10,7 @@
 #endif
 
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "plat_type.h"
 #include "oal_net.h"
@@ -36,7 +18,7 @@
 #include "plat_exception_rst.h"
 #endif
 /*****************************************************************************
-  2 宏定义
+  2 ??????
 *****************************************************************************/
 
 /* string */
@@ -85,7 +67,7 @@
 #define SOFT_BCPU_EN_ADDR           "0x50000c04"
 #define BCPU_DE_RESET_ADDR          "0x50000094"
 
-/*以下是发往device命令的关键字*/
+/*??????????device????????????*/
 #define VER_CMD_KEYWORD             "VERSION"
 #define JUMP_CMD_KEYWORD            "JUMP"
 #define FILES_CMD_KEYWORD           "FILES"
@@ -101,13 +83,13 @@
 #define WMEM_CMD_KEYWORD            "WRITEM"
 #define QUIT_CMD_KEYWORD            "QUIT"
 
-/*以下命令字不会发往device，用于控制校准流程，但是会体现在cfg文件中*/
+/*??????????????????device????????????????????????????????cfg??????*/
 #define CALI_COUNT_CMD_KEYWORD      "CALI_COUNT"
 #define CALI_BFGX_DATA_CMD_KEYWORD  "CALI_BFGX_DATA"
 #define SHUTDOWN_WIFI_CMD_KEYWORD   "SHUTDOWN_WIFI"
 #define SHUTDOWN_BFGX_CMD_KEYWORD   "SHUTDOWN_BFGX"
 
-/*以下是device对命令执行成功返回的关键字，host收到一下关键字则命令执行成功*/
+/*??????device????????????????????????????host????????????????????????????*/
 #define MSG_FROM_DEV_WRITEM_OK      "WRITEM OK"
 #define MSG_FROM_DEV_READM_OK       ""
 #define MSG_FROM_DEV_FILES_OK       "FILES OK"
@@ -116,7 +98,7 @@
 #define MSG_FROM_DEV_SET_OK         "SET OK"
 #define MSG_FROM_DEV_QUIT_OK        ""
 
-/*以下是cfg文件配置命令的参数头，一条合法的cfg命令格式为:参数头+命令关键字(QUIT命令除外)*/
+/*??????cfg????????????????????????????????cfg??????????:??????+??????????(QUIT????????)*/
 #define FILE_TYPE_CMD_KEY           "ADDR_FILE_"
 #define NUM_TYPE_CMD_KEY            "PARA_"
 
@@ -125,7 +107,7 @@
 
 #define CFG_INFO_RESERVE_LEN        (8)
 /*****************************************************************************
-  3 枚举定义
+  3 ????????
 *****************************************************************************/
 enum return_type
 {
@@ -135,27 +117,27 @@ enum return_type
 
 enum FIRMWARE_CFG_CMD_ENUM
 {
-    ERROR_TYPE_CMD = 0,            /* 错误的命令 */
-    FILE_TYPE_CMD,                 /* 下载文件的命令 */
-    NUM_TYPE_CMD,                  /* 下载配置参数的命令 */
-    QUIT_TYPE_CMD,                 /* 退出命令 */
-    SHUTDOWN_WIFI_TYPE_CMD,        /* SHUTDOWN WCPU命令 */
-    SHUTDOWN_BFGX_TYPE_CMD         /* SHUTDOWN BCPU命令 */
+    ERROR_TYPE_CMD = 0,            /* ?????????? */
+    FILE_TYPE_CMD,                 /* ?????????????? */
+    NUM_TYPE_CMD,                  /* ?????????????????? */
+    QUIT_TYPE_CMD,                 /* ???????? */
+    SHUTDOWN_WIFI_TYPE_CMD,        /* SHUTDOWN WCPU???? */
+    SHUTDOWN_BFGX_TYPE_CMD         /* SHUTDOWN BCPU???? */
 };
 
 /*
-*1.首次开机时，使用BFGN_AND_WIFI_CFG，完成首次开机校准，host保存校准数据，完成后device下电
-*2.deivce下电状态，开wifi，使用BFGN_AND_WIFI_CFG
-*3.deivce下电状态，开bt，使用BFGX_CFG
-*4.bt开启，再开wifi，使用WIFI_CFG
-*5.wifi开启，再开bt，通过sdio解复位BCPU
+*1.????????????????BFGN_AND_WIFI_CFG????????????????????host????????????????????device????
+*2.deivce????????????wifi??????BFGN_AND_WIFI_CFG
+*3.deivce????????????bt??????BFGX_CFG
+*4.bt??????????wifi??????WIFI_CFG
+*5.wifi??????????bt??????sdio??????BCPU
 */
 enum FIRMWARE_CFG_FILE_ENUM
 {
-    BFGX_AND_WIFI_CFG = 0,         /*加载BFGIN和wifi fimware的命令数组index，执行独立校准*/
-    WIFI_CFG,                      /*只加载wifi firmware的命令数组索引，执行独立校准*/
-    BFGX_CFG,                      /*只加载bfgx firmware的命令数组索引，不执行独立校准*/
-    RAM_REG_TEST_CFG,              /*产线测试mem reg遍历使用*/
+    BFGX_AND_WIFI_CFG = 0,         /*????BFGIN??wifi fimware??????????index??????????????*/
+    WIFI_CFG,                      /*??????wifi firmware????????????????????????????*/
+    BFGX_CFG,                      /*??????bfgx firmware??????????????????????????????*/
+    RAM_REG_TEST_CFG,              /*????????mem reg????????*/
 
     CFG_FILE_TOTAL
 };
@@ -168,56 +150,56 @@ enum FIRMWARE_SUBSYS_ENUM
 };
 
 /*****************************************************************************
-  4 全局变量定义
+  4 ????????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  5 消息头定义
+  5 ??????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  6 消息定义
+  6 ????????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  7 STRUCT定义
+  7 STRUCT????
 *****************************************************************************/
 typedef struct cmd_type_st
 {
-    int       cmd_type;
-    unsigned char       cmd_name[DOWNLOAD_CMD_LEN];
-    unsigned char       cmd_para[DOWNLOAD_CMD_PARA_LEN];
+    int32       cmd_type;
+    uint8       cmd_name[DOWNLOAD_CMD_LEN];
+    uint8       cmd_para[DOWNLOAD_CMD_PARA_LEN];
 
 }CMD_TYPE_STRUCT;
 
 typedef struct firmware_globals_st
 {
-    int            al_count[CFG_FILE_TOTAL];      /*存储每个cfg文件解析后有效的命令个数*/
-    CMD_TYPE_STRUCT *apst_cmd[CFG_FILE_TOTAL];      /*存储每个cfg文件的有效命令*/
-    unsigned char            auc_CfgVersion[VERSION_LEN];   /*存储cfg文件中配置的版本号信息*/
-    unsigned char            auc_DevVersion[VERSION_LEN];   /*存储加载时device侧上报的版本号信息*/
+    int32            al_count[CFG_FILE_TOTAL];      /*????????cfg????????????????????????*/
+    CMD_TYPE_STRUCT *apst_cmd[CFG_FILE_TOTAL];      /*????????cfg??????????????*/
+    uint8            auc_CfgVersion[VERSION_LEN];   /*????cfg??????????????????????*/
+    uint8            auc_DevVersion[VERSION_LEN];   /*??????????device??????????????????*/
 }FIRMWARE_GLOBALS_STRUCT;
 
 /*****************************************************************************
-  8 UNION定义
+  8 UNION????
 *****************************************************************************/
 
 
 /*****************************************************************************
-  9 OTHERS定义
+  9 OTHERS????
 *****************************************************************************/
 typedef struct file OS_KERNEL_FILE_STRU;
 
 /*****************************************************************************
-  10 函数声明
+  10 ????????
 *****************************************************************************/
-extern int firmware_download(unsigned int ul_index);
-extern int firmware_cfg_init(void);
-extern int firmware_cfg_clear(void);
-extern int sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, unsigned int count);
+extern int32 firmware_download(uint32 ul_index);
+extern int32 firmware_cfg_init(void);
+extern int32 firmware_cfg_clear(void);
+extern int32 sdio_device_mem_dump(struct st_wifi_dump_mem_info *pst_mem_dump_info, uint32 count);
 extern void save_nfc_lowpower_log_2_sdt(void);
 #ifdef __cplusplus
     #if __cplusplus

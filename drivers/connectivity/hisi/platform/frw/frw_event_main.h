@@ -1,3 +1,5 @@
+
+
 #ifndef __FRW_EVENT_MAIN_H__
 #define __FRW_EVENT_MAIN_H__
 
@@ -7,6 +9,10 @@ extern "C" {
 #endif
 #endif
 
+
+/*****************************************************************************
+  1 ??????????????
+*****************************************************************************/
 #include "oal_ext_if.h"
 #include "oam_ext_if.h"
 #include "frw_ext_if.h"
@@ -17,24 +23,41 @@ extern "C" {
 #undef  THIS_FILE_ID
 #define THIS_FILE_ID OAM_FILE_ID_FRW_EVENT_MAIN_H
 
+
+/*****************************************************************************
+  2 ????????
+*****************************************************************************/
+/*****************************************************************************
+  ??????  : frw_event_deploy_enum_uint8
+  ????????:
+  ????????: ????????????
+*****************************************************************************/
 typedef enum
 {
-    FRW_EVENT_DEPLOY_NON_IPC  = 0,
-    FRW_EVENT_DEPLOY_IPC,
+    FRW_EVENT_DEPLOY_NON_IPC  = 0,    /* ?????????? */
+    FRW_EVENT_DEPLOY_IPC,             /* ???????? */
 
     FRW_EVENT_DEPLOY_BUTT
 }frw_event_deploy_enum;
 typedef oal_uint8 frw_event_deploy_enum_uint8;
 
+/*****************************************************************************
+  8 ??????
+*****************************************************************************/
+/* ???????????????? */
+/* ????????????????????????????????????????????????????????2?? */
 #define FRW_EVENT_TABLE_MAX_ITEMS    (FRW_EVENT_TYPE_BUTT * 2)
 
+/*****************************************************************************
+  3 ????????????
+*****************************************************************************/
 #ifdef _PRE_FRW_EVENT_PROCESS_TRACE_DEBUG
 typedef struct _frw_event_segment_stru_
 {
-    frw_event_type_enum_uint8        en_type;
-    oal_uint8                        uc_sub_type;
-    frw_event_pipeline_enum_uint8    en_pipeline;
-    oal_uint8                        uc_vap_id;
+    frw_event_type_enum_uint8        en_type;         /* ???????? */
+    oal_uint8                        uc_sub_type;     /* ?????????? */
+    frw_event_pipeline_enum_uint8    en_pipeline;     /* ?????????? */
+    oal_uint8                        uc_vap_id;       /* VAP ID */
 }frw_event_segment_stru;
 
 typedef struct _frw_event_trace_item_stru_
@@ -51,13 +74,17 @@ typedef struct _frw_event_trace_stru_
     oal_uint32  ul_over_flag;
     const char*       pst_func_name;
     oal_int32   line_num;
- }frw_event_trace_stru;
+    //oal_void*   pst_last_ip;/*last pc address*/
+}frw_event_trace_stru;
 #endif
-
+/*****************************************************************************
+  ??????  : frw_event_mgmt_stru
+  ????????: ??????????????
+*****************************************************************************/
 typedef struct _frw_event_mgmt_stru_
 {
-    frw_event_queue_stru          st_event_queue[FRW_EVENT_MAX_NUM_QUEUES];
-    frw_event_sched_queue_stru    st_sched_queue[FRW_SCHED_POLICY_BUTT];
+    frw_event_queue_stru          st_event_queue[FRW_EVENT_MAX_NUM_QUEUES];    /* ???????? */
+    frw_event_sched_queue_stru    st_sched_queue[FRW_SCHED_POLICY_BUTT];         /* ?????????? */
 #ifdef  _PRE_FRW_EVENT_PROCESS_TRACE_DEBUG
     frw_event_trace_stru          *pst_frw_trace;
 #endif
@@ -66,6 +93,30 @@ extern frw_event_table_item_stru g_ast_event_table[FRW_EVENT_TABLE_MAX_ITEMS];
 
 extern frw_event_mgmt_stru g_ast_event_manager[WLAN_FRW_MAX_NUM_CORES];
 
+/*****************************************************************************
+  4 ??????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  5 ????????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  6 STRUCT????
+*****************************************************************************/
+
+
+
+/*****************************************************************************
+  7 UNION????
+*****************************************************************************/
+
+
+/*****************************************************************************
+  10 ????????
+*****************************************************************************/
 extern oal_uint32  frw_event_init(oal_void);
 extern oal_uint32  frw_event_exit(oal_void);
 extern oal_uint32  frw_event_queue_enqueue(frw_event_queue_stru *pst_event_queue, frw_event_mem_stru *pst_event_mem);
@@ -81,15 +132,29 @@ extern oal_uint32  frw_event_vap_flush_event(oal_uint8 uc_vap_id, frw_event_type
 extern oal_uint32  frw_event_lookup_process_entry(frw_event_mem_stru *pst_event_mem, frw_event_hdr_stru *pst_event_hrd);
 extern oal_uint32  frw_event_queue_info(oal_void);
 
+
+/*****************************************************************************
+  9 OTHERS????
+*****************************************************************************/
+
+
 OAL_STATIC OAL_INLINE oal_uint32  frw_event_to_qid(frw_event_mem_stru *pst_event_mem, oal_uint16 *pus_qid)
 {
     oal_uint16            us_qid;
     frw_event_hdr_stru   *pst_event_hrd;
 
+    /* ?????????????? */
     pst_event_hrd = (frw_event_hdr_stru *)pst_event_mem->puc_data;
 
     us_qid        = pst_event_hrd->uc_vap_id * FRW_EVENT_TYPE_BUTT + pst_event_hrd->en_type;
 
+  /*
+    us_qid = (pst_event_hrd->uc_chip_id * (WLAN_DEVICE_MAX_NUM_PER_CHIP * WLAN_VAP_MAX_NUM_PER_DEVICE) +
+              pst_event_hrd->uc_device_id * (WLAN_VAP_MAX_NUM_PER_DEVICE) + pst_event_hrd->uc_vap_id) *
+              FRW_EVENT_TYPE_BUTT + pst_event_hrd->en_type;
+  */
+
+    /* ????: ????ID?????????? */
     if ((us_qid >= FRW_EVENT_MAX_NUM_QUEUES))
     {
         OAM_ERROR_LOG4(0, OAM_SF_FRW, "{frw_event_to_qid, array overflow! us_qid[%d], vap_id[%d], en_type[%d], sub_type[%d]}",
@@ -102,22 +167,27 @@ OAL_STATIC OAL_INLINE oal_uint32  frw_event_to_qid(frw_event_mem_stru *pst_event
     return OAL_SUCC;
 }
 
+
 OAL_STATIC OAL_INLINE oal_void  frw_event_report(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_stru      *pst_event;
     oal_uint8            auc_event[OAM_EVENT_INFO_MAX_LEN] = {0};
     pst_event = (frw_event_stru *)pst_event_mem->puc_data;
 
+
+    /* ?????????? */
     oal_memcopy((oal_void *)auc_event, (const oal_void *)&pst_event->st_event_hdr, OAL_SIZEOF(frw_event_hdr_stru));
 
     FRW_EVENT_INTERNAL(BROADCAST_MACADDR, 0, OAM_EVENT_INTERNAL, auc_event);
 }
+
 
 OAL_STATIC OAL_INLINE oal_uint32  frw_event_process(frw_event_mem_stru *pst_event_mem)
 {
     frw_event_hdr_stru   *pst_event_hrd;
     oal_uint32            ul_core_id;
 
+    /* ?????????????? */
     pst_event_hrd  = (frw_event_hdr_stru *)pst_event_mem->puc_data;
 
     if (OAL_UNLIKELY(pst_event_hrd->en_pipeline >= FRW_EVENT_PIPELINE_STAGE_BUTT))
@@ -125,6 +195,8 @@ OAL_STATIC OAL_INLINE oal_uint32  frw_event_process(frw_event_mem_stru *pst_even
         return OAL_ERR_CODE_ARRAY_OVERFLOW;
     }
 
+    /* ????pipleline??0??????????????????????
+       ?????????????????????????????????????????????????????? */
     if (FRW_EVENT_PIPELINE_STAGE_0 == pst_event_hrd->en_pipeline)
     {
         ul_core_id = OAL_GET_CORE_ID();

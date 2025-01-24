@@ -1,21 +1,4 @@
-/******************************************************************************
 
-                  版权所有 (C), 2001-2011, 华为技术有限公司
-
- ******************************************************************************
-  文 件 名   : hmac_roam_alg.c
-  版 本 号   : 初稿
-  作    者   : guyanjie 00260350
-  生成日期   : 2015年3月18日
-  最近修改   :
-  功能描述   : 漫游模块算法实现
-  函数列表   :
-  修改历史   :
-  1.日    期   : 2015年3月18日
-    作    者   : guyanjie 00260350
-    修改内容   : 创建文件
-
-******************************************************************************/
 
 
 #ifdef __cplusplus
@@ -26,7 +9,7 @@ extern "C" {
 
 #ifdef _PRE_WLAN_FEATURE_ROAM
 /*****************************************************************************
-  1 头文件包含
+  1 ??????????
 *****************************************************************************/
 #include "oam_ext_if.h"
 #include "mac_ie.h"
@@ -47,7 +30,7 @@ extern "C" {
 #define THIS_FILE_ID OAM_FILE_ID_HMAC_ROAM_ALG_C
 
 /*****************************************************************************
-  2 全局变量定义
+  2 ????????????
 *****************************************************************************/
 hmac_roam_rssi_capacity_stru   gst_rssi_table_11a_ofdm[ROAM_RSSI_LEVEL] = {
     {-75,               29300},
@@ -82,23 +65,9 @@ hmac_roam_rssi_capacity_stru   gst_rssi_table_vht80_ofdm[ROAM_RSSI_LEVEL] = {
 };
 
 /*****************************************************************************
-  3 函数实现
+  3 ????????
 *****************************************************************************/
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_init
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月10日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_void hmac_roam_alg_init(hmac_roam_info_stru *pst_roam_info, oal_int8 c_current_rssi)
 {
     hmac_roam_alg_stru         *pst_roam_alg;
@@ -127,27 +96,13 @@ oal_void hmac_roam_alg_init(hmac_roam_info_stru *pst_roam_info, oal_int8 c_curre
     pst_roam_alg->c_current_rssi        = c_current_rssi;
     pst_roam_alg->c_max_rssi            = 0;
     pst_roam_alg->uc_another_bss_scaned = 0;
-    /* 首次关联时初始化 pst_roam_alg->uc_invalid_scan_cnt   = 0x0; */
+    /* ???????????????? pst_roam_alg->uc_invalid_scan_cnt   = 0x0; */
     pst_roam_alg->pst_max_rssi_bss      = OAL_PTR_NULL;
 
     return;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_get_delta_rssi
- 功能描述  : 调整rssi增益
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_int8 hmac_roam_alg_adjust_rssi_increase(hmac_roam_info_stru *pst_roam_info, mac_bss_dscr_stru *pst_bss_dscr)
 {
     oal_int8  c_current_rssi;
@@ -178,7 +133,7 @@ OAL_STATIC oal_int8 hmac_roam_alg_adjust_rssi_increase(hmac_roam_info_stru *pst_
 
     if (uc_delta_rssi >= ROAM_RSSI_DIFF_4_DB + 2)
     {
-        /* 步进2DB至4DB*/
+        /* ????2DB??4DB*/
         uc_delta_rssi -= 2;
     }
 
@@ -189,7 +144,7 @@ OAL_STATIC oal_int8 hmac_roam_alg_adjust_rssi_increase(hmac_roam_info_stru *pst_
 
     if (uc_delta_rssi >= ROAM_RSSI_DIFF_4_DB + 2)
     {
-        /* 步进2DB至4DB*/
+        /* ????2DB??4DB*/
         uc_delta_rssi -= 2;
     }
 
@@ -201,21 +156,7 @@ OAL_STATIC oal_int8 hmac_roam_alg_adjust_rssi_increase(hmac_roam_info_stru *pst_
     return (c_target_rssi - c_current_rssi - ROAM_RSSI_DIFF_4_DB);
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_add_list
- 功能描述  : 将bssid添加到列表中
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 hmac_roam_alg_add_bsslist(hmac_roam_bss_list_stru *pst_roam_bss_list, oal_uint8 *puc_bssid, roam_blacklist_type_enum_uint8 list_type)
 {
     hmac_roam_bss_info_stru    *pst_cur_bss;
@@ -236,7 +177,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_add_bsslist(hmac_roam_bss_list_stru *pst_roa
         ul_timeout = (oal_uint32)pst_cur_bss->ul_timeout;
         if (0 == oal_compare_mac_addr(pst_cur_bss->auc_bssid, puc_bssid))
         {
-            /* 优先查找已存在的记录，如果名单超时更新时间戳，否则更新count */
+            /* ??????????????????????????????????????????????????????count */
 
             if (OAL_TIME_GET_RUNTIME(pst_cur_bss->ul_time_stamp, ul_now) > ul_timeout)
             {
@@ -254,7 +195,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_add_bsslist(hmac_roam_bss_list_stru *pst_roa
             return OAL_SUCC;
         }
 
-        /* 记录第一个空记录 */
+        /* ???????????????? */
         if (OAL_PTR_NULL != pst_zero_bss)
         {
             continue;
@@ -266,7 +207,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_add_bsslist(hmac_roam_bss_list_stru *pst_roa
             continue;
         }
 
-        /* 记录一个非空最老记录 */
+        /* ???????????????????? */
         if (OAL_PTR_NULL == pst_oldest_bss)
         {
             pst_oldest_bss = pst_cur_bss;
@@ -296,21 +237,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_add_bsslist(hmac_roam_bss_list_stru *pst_roa
     return OAL_FAIL;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_find_in_blacklist
- 功能描述  : 检查列表中是否存在该bssid
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_bool_enum_uint8 hmac_roam_alg_find_in_bsslist(hmac_roam_bss_list_stru *pst_roam_bss_list, oal_uint8 *puc_bssid)
 {
     hmac_roam_bss_info_stru    *pst_cur_bss;
@@ -330,7 +257,7 @@ OAL_STATIC oal_bool_enum_uint8 hmac_roam_alg_find_in_bsslist(hmac_roam_bss_list_
 
         if (0 == oal_compare_mac_addr(pst_cur_bss->auc_bssid, puc_bssid))
         {
-            /* 如果在超时时间内出现count_limit次以上记录 */
+            /* ????????????????????count_limit?????????? */
             ul_delta_time = OAL_TIME_GET_RUNTIME(pst_cur_bss->ul_time_stamp, ul_now);
             if ((ul_delta_time <= ul_timeout) &&
                 (pst_cur_bss->us_count >= us_count_limit))
@@ -344,21 +271,7 @@ OAL_STATIC oal_bool_enum_uint8 hmac_roam_alg_find_in_bsslist(hmac_roam_bss_list_
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_add_blacklist
- 功能描述  : 将bssid添加到黑名单列表中
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_roam_alg_add_blacklist(hmac_roam_info_stru *pst_roam_info, oal_uint8 *puc_bssid, roam_blacklist_type_enum_uint8 list_type)
 {
     oal_uint32      ul_ret;
@@ -377,21 +290,7 @@ oal_uint32 hmac_roam_alg_add_blacklist(hmac_roam_info_stru *pst_roam_info, oal_u
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_find_in_blacklist
- 功能描述  : 检查黑名单列表中是否存在该bssid
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 hmac_roam_alg_find_in_blacklist(hmac_roam_info_stru *pst_roam_info, oal_uint8 *puc_bssid)
 {
     if ((pst_roam_info == OAL_PTR_NULL) || (puc_bssid == OAL_PTR_NULL))
@@ -403,21 +302,7 @@ oal_bool_enum_uint8 hmac_roam_alg_find_in_blacklist(hmac_roam_info_stru *pst_roa
 }
 
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_add_bss_history
- 功能描述  : 将bssid添加到历史优选AP列表中
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_roam_alg_add_history(hmac_roam_info_stru *pst_roam_info, oal_uint8 *puc_bssid)
 {
     oal_uint32      ul_ret;
@@ -438,21 +323,7 @@ oal_uint32 hmac_roam_alg_add_history(hmac_roam_info_stru *pst_roam_info, oal_uin
 }
 
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_find_in_blacklist
- 功能描述  : 检查历史优选列表中是否存在该bssid
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 hmac_roam_alg_find_in_history(hmac_roam_info_stru *pst_roam_info, oal_uint8 *puc_bssid)
 {
     if ((pst_roam_info == OAL_PTR_NULL) || (puc_bssid == OAL_PTR_NULL))
@@ -463,21 +334,7 @@ oal_bool_enum_uint8 hmac_roam_alg_find_in_history(hmac_roam_info_stru *pst_roam_
     return hmac_roam_alg_find_in_bsslist(&pst_roam_info->st_alg.st_history, puc_bssid);
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_scan_channel_init
- 功能描述  : chu
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_roam_alg_scan_channel_init(hmac_roam_info_stru *pst_roam_info, mac_scan_req_stru *pst_scan_params)
 {
     oal_uint32         ul_ret;
@@ -572,21 +429,7 @@ oal_uint32 hmac_roam_alg_scan_channel_init(hmac_roam_info_stru *pst_roam_info, m
 
     return OAL_SUCC;
 }
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_get_capacity_by_rssi
- 功能描述  : chu
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 hmac_roam_alg_get_capacity_by_rssi(wlan_protocol_enum_uint8 en_protocol, wlan_bw_cap_enum_uint8 en_bw_cap, oal_int8 c_rssi)
 {
     hmac_roam_rssi_capacity_stru   *pst_rssi_table = OAL_PTR_NULL;
@@ -643,21 +486,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_get_capacity_by_rssi(wlan_protocol_enum_uint
 
     return 0;
 }
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_calc_avail_channel_capacity
- 功能描述  : chu
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月8日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 OAL_STATIC oal_uint32 hmac_roam_alg_calc_avail_channel_capacity(mac_bss_dscr_stru *pst_bss_dscr)
 {
     oal_uint32                 ul_capacity = 0;
@@ -684,7 +513,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_calc_avail_channel_capacity(mac_bss_dscr_str
     uc_ie_offset = MAC_80211_FRAME_LEN + MAC_TIME_STAMP_LEN + MAC_BEACON_INTERVAL_LEN + MAC_CAP_INFO_LEN;
     puc_obss_ie = mac_find_ie(MAC_EID_QBSS_LOAD, (oal_uint8 *)(pst_bss_dscr->auc_mgmt_buff + uc_ie_offset), (oal_int32)(pst_bss_dscr->ul_mgmt_len - uc_ie_offset));
     /*lint +e416*/
-    /* 长度要到达ChannelUtilization这个域，至少为3 */
+    /* ??????????ChannelUtilization??????????????3 */
     if (puc_obss_ie && (puc_obss_ie[1] >= 3))
     {
         uc_channel_utilization = *(puc_obss_ie + 4);
@@ -696,21 +525,7 @@ OAL_STATIC oal_uint32 hmac_roam_alg_calc_avail_channel_capacity(mac_bss_dscr_str
 
     return ul_avail_channel_capacity;
 }
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_bss_in_ess
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年11月25日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_roam_alg_bss_in_ess(hmac_roam_info_stru *pst_roam_info, mac_bss_dscr_stru *pst_bss_dscr)
 {
     hmac_vap_stru              *pst_hmac_vap;
@@ -741,7 +556,7 @@ oal_uint32 hmac_roam_alg_bss_in_ess(hmac_roam_info_stru *pst_roam_info, mac_bss_
     }
     pst_roam_alg = &(pst_roam_info->st_alg);
 
-    /* 是否扫描到了当前关联的 bss, 仅置位，不过滤 */
+    /* ?????????????????????? bss, ?????????????? */
     if (0 != oal_compare_mac_addr(pst_mac_vap->auc_bssid, pst_bss_dscr->auc_bssid))
     {
         pst_roam_alg->uc_another_bss_scaned = 1;
@@ -751,21 +566,7 @@ oal_uint32 hmac_roam_alg_bss_in_ess(hmac_roam_info_stru *pst_roam_info, mac_bss_
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_bss_check
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年3月18日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_dscr_stru *pst_bss_dscr)
 {
     hmac_vap_stru              *pst_hmac_vap;
@@ -802,13 +603,13 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
     }
     pst_roam_alg = &(pst_roam_info->st_alg);
 
-    /* 挑选HMAC_SCAN_MAX_VALID_SCANNED_BSS_EXPIRE时间以内的有效bss */
+    /* ????HMAC_SCAN_MAX_VALID_SCANNED_BSS_EXPIRE??????????????bss */
     if (oal_time_after((oal_uint32)OAL_TIME_GET_STAMP_MS(),(pst_bss_dscr->ul_timestamp + HMAC_SCAN_MAX_VALID_SCANNED_BSS_EXPIRE)))
     {
         return OAL_SUCC;
     }
 
-    /* 检查黑名单 */
+    /* ?????????? */
     ul_ret = hmac_roam_alg_find_in_blacklist(pst_roam_info, pst_bss_dscr->auc_bssid);
     if (OAL_TRUE == ul_ret)
     {
@@ -817,13 +618,13 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
         return OAL_SUCC;
     }
 
-    /* 排除当前bss的rssi值计算，本地已经保存了dmac上报的rssi */
+    /* ????????bss??rssi??????????????????????dmac??????rssi */
     if (0 == oal_compare_mac_addr(pst_mac_vap->auc_bssid, pst_bss_dscr->auc_bssid))
     {
         return OAL_SUCC;
     }
 
-    /*  wep的bss直接过滤掉 */
+    /*  wep??bss?????????? */
     pst_cap_info = (mac_cap_info_stru *)&pst_bss_dscr->us_cap_info;
     if ((0 == pst_bss_dscr->st_bss_sec_info.uc_bss_80211i_mode) &&
         (0 != pst_cap_info->bit_privacy))
@@ -831,7 +632,7 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
         return OAL_SUCC;
     }
 
-    /*  open加密方式到wpa/wpa2直接过滤掉 */
+    /*  open??????????wpa/wpa2?????????? */
     /*lint -e731*/
     if ((0 == pst_cap_info->bit_privacy) != (OAL_TRUE != mac_mib_get_privacyinvoked(&pst_hmac_vap->st_vap_base_info)))
     {
@@ -839,7 +640,7 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
     }
     /*lint +e731*/
 
-    /* c_current_rssi为0时，表示linkloss上报的触发，不需要考虑rssi增益 */
+    /* c_current_rssi??0????????linkloss??????????????????????rssi???? */
     c_delta_rssi = hmac_roam_alg_adjust_rssi_increase(pst_roam_info, pst_bss_dscr);
     if (c_delta_rssi <= 0)
     {
@@ -852,13 +653,13 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
         ((OAL_PTR_NULL == pst_roam_alg->pst_max_capacity_bss) ||
         (ul_avail_channel_capacity > pst_roam_alg->ul_max_capacity)))
     {
-	    //暂时不考虑容量
+	    //??????????????
         //pst_roam_alg->ul_max_capacity      = ul_avail_channel_capacity;
         //pst_roam_alg->pst_max_capacity_bss = pst_bss_dscr;
     }
 
     c_tmp_rssi = pst_bss_dscr->c_rssi;
-    /* 对于已存在pmk缓存的bss进行加分处理 */
+    /* ??????????pmk??????bss???????????? */
     puc_pmkid = hmac_vap_get_pmksa(pst_hmac_vap, pst_bss_dscr->auc_bssid);
     if (OAL_PTR_NULL != puc_pmkid)
     {
@@ -875,21 +676,7 @@ oal_uint32 hmac_roam_alg_bss_check(hmac_roam_info_stru *pst_roam_info, mac_bss_d
     return OAL_SUCC;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_need_to_stop_roam_trigger
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月10日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 oal_bool_enum_uint8 hmac_roam_alg_need_to_stop_roam_trigger(hmac_roam_info_stru *pst_roam_info)
 {
     hmac_vap_stru              *pst_hmac_vap;
@@ -929,21 +716,7 @@ oal_bool_enum_uint8 hmac_roam_alg_need_to_stop_roam_trigger(hmac_roam_info_stru 
     return OAL_FALSE;
 }
 
-/*****************************************************************************
- 函 数 名  : hmac_roam_alg_bss_check
- 功能描述  :
- 输入参数  :
- 输出参数  : 无
- 返 回 值  : OAL_SUCC 或 失败错误码
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2015年7月10日
-    作    者   : g00260350
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 mac_bss_dscr_stru *hmac_roam_alg_select_bss(hmac_roam_info_stru *pst_roam_info)
 {
     hmac_vap_stru              *pst_hmac_vap;
@@ -967,12 +740,12 @@ mac_bss_dscr_stru *hmac_roam_alg_select_bss(hmac_roam_info_stru *pst_roam_info)
 
     pst_roam_alg = &(pst_roam_info->st_alg);
 
-    /* 取得最大 rssi 的 bss */
+    /* ???????? rssi ?? bss */
     pst_bss_dscr = pst_roam_alg->pst_max_rssi_bss;
 
     if ((OAL_PTR_NULL != pst_roam_alg->pst_max_capacity_bss) && (pst_roam_alg->ul_max_capacity >= ROAM_THROUGHPUT_THRESHOLD))
     {
-        /* 取得最大 capacity 的 bss*/
+        /* ???????? capacity ?? bss*/
         pst_bss_dscr = pst_roam_alg->pst_max_capacity_bss;
     }
 
@@ -982,13 +755,13 @@ mac_bss_dscr_stru *hmac_roam_alg_select_bss(hmac_roam_info_stru *pst_roam_info)
         return OAL_PTR_NULL;
     }
 
-    /* 过滤当前关联的 bss */
+    /* ?????????????? bss */
     if (0 == oal_compare_mac_addr(pst_mac_vap->auc_bssid, pst_bss_dscr->auc_bssid))
     {
         return OAL_PTR_NULL;
     }
 
-    /* rssi增益处理 */
+    /* rssi???????? */
     c_delta_rssi = hmac_roam_alg_adjust_rssi_increase(pst_roam_info, pst_bss_dscr);
     if (c_delta_rssi <= 0)
     {
